@@ -1,0 +1,7 @@
+#!/bin/bash
+
+set -e
+
+. cf/xserver-master/config.sh
+
+$MPBT -solution "$SOLUTION" -workdir "$WORKDIR" fetch

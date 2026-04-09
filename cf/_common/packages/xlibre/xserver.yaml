@@ -1,0 +1,31 @@
+provides:
+    - x11/xserver-sdk
+
+sources:
+    git:
+        ref:    origin/${xserver_branch}
+        remotes:
+            origin:
+                url:    ${xlibre_git}/${@basename}.git
+                fetch:
+                  - refs/tags/*:refs/tags/origin/*
+                  - refs/heads/*:refs/remotes/origin/*
+                tagopt: --no-tags
+            xorg:
+                url:    ${xorg_git}/xserver.git
+                fetch:
+                  - refs/tags/*:refs/tags/xorg/*
+                  - refs/heads/*:refs/remotes/xorg/*
+                tagopt: --no-tags
+        local-branch: ${xserver_branch}
+
+buildsystem: meson
+
+depends:
+    - sys/pciaccess
+    - x11/libxcvt
+    - sys/libdrm
+
+build-depends:
+    - x11/xorgproto
+    - x11/xcb-proto

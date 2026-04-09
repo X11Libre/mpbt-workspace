@@ -1,0 +1,9 @@
+#!/bin/bash
+
+set -e
+
+. cf/xserver-25.0/config.sh
+
+$MPBT -solution $SOLUTION -workdir "$WORKDIR" build
+
+rm -Rf "$WORKDIR"/install

@@ -1,0 +1,23 @@
+sources:
+    git:
+        ref:    origin/master
+        remotes:
+            origin:
+                url:    ${xlibre_git}/${@basename}.git
+                fetch:
+                  - refs/tags/*:refs/tags/origin/*
+                  - refs/heads/*:refs/remotes/origin/*
+                tagopt: --no-tags
+            xorg:
+                url:    ${xorg_git}/driver/${@basename}.git
+                fetch:
+                  - refs/tags/*:refs/tags/xorg/*
+                  - refs/heads/*:refs/remotes/xorg/*
+                tagopt: --no-tags
+        local-branch: master
+
+buildsystem: autotools
+
+build-depends:
+    - x11/xserver-sdk
+    - 3rdparty/util-macros

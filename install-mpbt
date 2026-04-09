@@ -1,0 +1,3 @@
+#!/bin/bash
+
+go install github.com/metux/mpbt/cmd/mpbt-builder@latest

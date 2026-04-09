@@ -1,0 +1,23 @@
+sources:
+    git:
+        ref:    origin/master
+        remotes:
+            origin:
+                url:    ${xlibre_git}/${@basename}.git
+                fetch:
+                  - refs/tags/*:refs/tags/origin/*
+                  - refs/heads/*:refs/remotes/origin/*
+                tagopt: --no-tags
+            linuxwacom:
+                url:    https://github.com/linuxwacom/xf86-input-wacom.git
+                fetch:
+                  - refs/tags/*:refs/tags/linuxwacom/*
+                  - refs/heads/*:refs/remotes/linuxwacom/*
+                tagopt: --no-tags
+        local-branch: master
+
+buildsystem: autotools
+
+build-depends:
+    - x11/xserver-sdk
+    - 3rdparty/util-macros
