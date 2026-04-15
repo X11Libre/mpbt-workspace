@@ -18,6 +18,10 @@ sources:
                   - refs/heads/*:refs/remotes/xorg/*
                 tagopt: --no-tags
         local-branch: ${xserver_branch}
+        config:
+            make-pr.upstream-remote: origin
+            make-pr.upstream-branch: ${xserver_branch}
+            make-pr.reviewers:       X11Libre/dev
 
 buildsystem: meson
 
