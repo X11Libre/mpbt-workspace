@@ -115,14 +115,15 @@ git push "$UPSTREAM_REMOTE" "$BRANCH_NAME"
 
 ### CREATE PR
 if [[ ${#COMMITS[@]} -eq 1 ]]; then
-  gh pr create -a "@me" --fill -B "$UPSTREAM_BRANCH" -H "$BRANCH_NAME" --reviewer "$REVIEWERS"
+  TITLE="($UPSTREAM_BRANCH) $(gh pr create --fill --dry-run 2>&1 | grep "title:" | sed -e 's~^title:[\t ]*~~;' || true)"
+  gh pr create -a "@me" --fill --title "$TITLE" -B "$UPSTREAM_BRANCH" -H "$BRANCH_NAME" --reviewer "$REVIEWERS"
 else
   TMP_FILE=$(mktemp)
   echo "# Pull Request description (edit below, lines starting with # are ignored)" > "$TMP_FILE"
   echo "" >> "$TMP_FILE"
   git log --format='%h %s' "${COMMITS[@]}" >> "$TMP_FILE"
   ${EDITOR:-vi} "$TMP_FILE"
-  gh pr create -a "@me" --title "PR: ${COMMITS[*]}" --body-file "$TMP_FILE" -B "$UPSTREAM_BRANCH" -H "$BRANCH_NAME" --reviewer "$REVIEWERS"
+  gh pr create -a "@me" --title "($UPSTREAM_BRANCH) PR: ${COMMITS[*]}" --body-file "$TMP_FILE" -B "$UPSTREAM_BRANCH" -H "$BRANCH_NAME" --reviewer "$REVIEWERS"
   rm -f "$TMP_FILE"
 fi
 
