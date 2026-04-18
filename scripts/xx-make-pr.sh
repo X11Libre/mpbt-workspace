@@ -115,7 +115,7 @@ git push "$UPSTREAM_REMOTE" "$BRANCH_NAME"
 
 ### CREATE PR
 if [[ ${#COMMITS[@]} -eq 1 ]]; then
-  TITLE="($UPSTREAM_BRANCH) $(gh pr create --fill --dry-run 2>&1 | grep "title:" | sed -e 's~^title:[\t ]*~~;' || true)"
+  TITLE="($UPSTREAM_BRANCH) $(git log -1 --pretty=format:"%s")"
   gh pr create -a "@me" --fill --title "$TITLE" -B "$UPSTREAM_BRANCH" -H "$BRANCH_NAME" --reviewer "$REVIEWERS"
 else
   TMP_FILE=$(mktemp)
