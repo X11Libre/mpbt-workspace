@@ -94,6 +94,7 @@ build:
     - xlibre/xf86-video-vmware
     - xlibre/xf86-video-voodoo
     - xlibre/xf86-video-xgi
+    - xlibre/xts
 
 env:
     PKG_CONFIG_PATH: ${install-prefix}/share/pkgconfig:${install-prefix}/lib/pkgconfig:${install-prefix}/lib/${@PROJECT::@machine}/pkgconfig/

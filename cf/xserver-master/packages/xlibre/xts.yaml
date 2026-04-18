@@ -1,0 +1,34 @@
+sources:
+    git:
+        ref:    origin/${master_branch}
+        remotes:
+            origin:
+                url:    ${xlibre_git}/mirror.fdo.xts.git
+                fetch:
+                  - refs/tags/*:refs/tags/origin/*
+                  - refs/heads/*:refs/remotes/origin/*
+                tagopt: --no-tags
+            xorg:
+                url:    ${xorg_git}/test/xts.git
+                fetch:
+                  - refs/tags/*:refs/tags/xorg/*
+                  - refs/heads/*:refs/remotes/xorg/*
+                tagopt: --no-tags
+        local-branch: ${master_branch}
+        config:
+            make-pr.upstream-remote: origin
+            make-pr.upstream-branch: ${master_branch}
+            make-pr.reviewers:       X11Libre/dev
+
+master_branch: hotfix/for-macos-and-25.0
+
+buildsystem: autotools
+
+depends:
+    - sys/pciaccess
+    - x11/libxcvt
+    - sys/libdrm
+
+build-depends:
+    - x11/xorgproto
+    - x11/xcb-proto
