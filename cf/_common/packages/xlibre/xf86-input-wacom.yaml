@@ -15,6 +15,10 @@ sources:
                   - refs/heads/*:refs/remotes/linuxwacom/*
                 tagopt: --no-tags
         local-branch: master
+        config:
+            make-pr.upstream-remote: origin
+            make-pr.upstream-branch: master
+            make-pr.reviewers:       X11Libre/dev
 
 buildsystem: autotools
 
