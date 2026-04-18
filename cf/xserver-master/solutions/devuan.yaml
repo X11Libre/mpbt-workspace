@@ -39,7 +39,7 @@ package-config:
 
 build:
     - 3rdparty/piglit
-    - 3rdparty/xts
+    - xlibre/xts
     - xlibre/xserver
     - xlibre/xf86-input-elographics
     - xlibre/xf86-input-evdev
@@ -94,7 +94,6 @@ build:
     - xlibre/xf86-video-vmware
     - xlibre/xf86-video-voodoo
     - xlibre/xf86-video-xgi
-    - xlibre/xts
 
 env:
     PKG_CONFIG_PATH: ${install-prefix}/share/pkgconfig:${install-prefix}/lib/pkgconfig:${install-prefix}/lib/${@PROJECT::@machine}/pkgconfig/
