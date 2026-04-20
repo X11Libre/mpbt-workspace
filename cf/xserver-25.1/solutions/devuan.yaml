@@ -17,7 +17,7 @@ package-mapping:
     x11/xorgproto:        3rdparty/xorgproto
 
 package-config:
-    xserver/xlibre-xserver:
+    xlibre/xserver:
         meson-extra-args:
             - -Dxephyr=true
             - -Dxnest=true
