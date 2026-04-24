@@ -22,9 +22,7 @@ package-config:
             - -Dxephyr=true
             - -Dxnest=true
             - -Dxvfb=true
-            - -Dxfbdev=true
             - -Dxorg=true
-            - -Dxorg-sdk=true
             - -Dsuid_wrapper=true
             - -Dxf86-input-inputtest=true
             - -Dtest_xephyr_gles=false
