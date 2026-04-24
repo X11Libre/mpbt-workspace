@@ -85,7 +85,7 @@ INCUBATOR_BRANCH=$(git rev-parse --abbrev-ref HEAD)
 if [[ -z "$BRANCH_NAME" ]]; then
   FIRST_SUBJECT=$(git log -1 --pretty=%s "${COMMITS[0]}")
   BRANCH_NAME=$(echo "$FIRST_SUBJECT" | tr '[:upper:]' '[:lower:]' | tr -cs 'a-z0-9' '-')
-  BRANCH_NAME="pr/${BRANCH_NAME}_$(date +%Y-%m-%d_%H-%M-%S)"
+  BRANCH_NAME="pr/${UPSTREAM_BRANCH}-${BRANCH_NAME}_$(date +%Y-%m-%d_%H-%M-%S)"
 fi
 
 TMP_BRANCH="tmp-${BRANCH_NAME}"
