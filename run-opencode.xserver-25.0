@@ -1,0 +1,10 @@
+#!/bin/bash
+#
+# Start an opencode session for the xserver-25.0 release line.
+# Sets XLIBRE_RELEASE so subagents know which solution/workdir to use.
+#
+
+. cf/xserver-25.0/config.sh
+export XLIBRE_RELEASE
+
+exec opencode "$@"

@@ -12,7 +12,25 @@ Prerequisites
 
 * [Go](https://go.dev) — to install `mpbt-builder`
 * [GitHub CLI (`gh`)](https://cli.github.com/) — for the PR workflow
+* [opencode](https://opencode.ai) — for AI-assisted development (install via `npm i -g opencode-ai` or your package manager)
 * Meson, autotools, pkg-config, and usual Xorg build dependencies
+
+### opencode setup
+
+1. Install opencode (see https://opencode.ai/guide/installation)
+2. Set up an API provider — either via the CLI:
+
+       opencode providers
+
+   or via the `/connect` command inside opencode's web UI (follows a link to
+   obtain a token). Both store the credential globally in
+   `~/.local/share/opencode/auth.json` — no project-level config needed.
+3. Start a session:
+
+       ./run-opencode.xserver-master
+
+   The `run-opencode.*` scripts source the per-release config and set
+   `XLIBRE_RELEASE` automatically.
 
 Quick start
 -----------
@@ -29,6 +47,7 @@ Scripts reference
 | `install-mpbt` | `go install`s the `mpbt-builder` binary |
 | `run-fetch.xserver-<release>` | Clone or fetch all sources for a release line |
 | `run-build.xserver-<release>` | Build all packages (in solution order), then **delete** the install prefix |
+| `run-opencode.xserver-<release>` | Start an opencode session for a release line (sets `XLIBRE_RELEASE`) |
 | `scripts/xx-make-pr.sh` | Cherry-pick commits from incubator, push, create a PR, and rewrite commit messages with PR markers |
 | `scripts/show-pr-conflict` | List all open PRs with merge conflicts (uses `gh`) |
 
@@ -52,6 +71,7 @@ Directory layout
     ├── install-mpbt               installs mpbt-builder
     ├── run-fetch.xserver-*        fetch sources per release line
     ├── run-build.xserver-*        build per release line
+    ├── run-opencode.xserver-*     opencode session per release line
     ├── cf/                        configuration (the "brain")
     │   ├── _common/               shared source of truth
     │   │   └── packages/xlibre/   package YAML defs + driver template
