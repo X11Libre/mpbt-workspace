@@ -1,4 +1,7 @@
 #!/bin/bash
+#
+# Clone/fetch all sources for xserver-master release line.
+#
 
 set -e
 

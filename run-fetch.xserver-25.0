@@ -1,4 +1,7 @@
 #!/bin/bash
+#
+# Clone/fetch all sources for xserver-25.0 release line.
+#
 
 set -e
 
