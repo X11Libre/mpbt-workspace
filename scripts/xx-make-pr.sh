@@ -135,17 +135,12 @@ if [[ "$MODE" == "incubator" ]]; then
   # Rewrite incubator branch directly
   git checkout "$INCUBATOR_BRANCH"
   for c in "${COMMITS[@]}"; do
-    git rebase -i --autosquash --keep-empty --exec "
-      git commit --amend -m \"[PR #$PR_NUMBER] $(git log -1 --pretty=%s)\" \
-      --trailer \"PR: $PR_URL\""
+    git rebase -i --autosquash --keep-empty --exec "git log --format=%B -1 HEAD | sed \"1s/^/[PR #$PR_NUMBER] /\" | git commit --amend -F - --trailer \"PR: $PR_URL\""
   done
 else
   # Rebase incubator onto PR branch (markers first in PR branch)
   git checkout "$BRANCH_NAME"
-  for c in "${COMMITS[@]}"; do
-    git commit --amend -m "[PR #$PR_NUMBER] $(git log -1 --pretty=%s)" \
-      --trailer "PR: $PR_URL"
-  done
+  git rebase "$UPSTREAM_REF" --exec "git log --format=%B -1 HEAD | sed \"1s/^/[PR #$PR_NUMBER] /\" | git commit --amend -F - --trailer \"PR: $PR_URL\""
   git checkout "$INCUBATOR_BRANCH"
   git rebase "$BRANCH_NAME"
 fi
