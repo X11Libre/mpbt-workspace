@@ -1,0 +1,24 @@
+set -e
+
+. cf/xserver-master/config.sh
+cd "${WORKDIR}"
+export XLIBRE_RELEASE
+
+echo "WORKDIR=${WORKDIR}"
+PROJECT_DIR=`pwd`/sources/xlibre/xserver/
+
+echo "PROJECT_DIR=$PROJECT_DIR"
+
+cd "$PROJECT_DIR"
+
+export GIT_DIR="$PROJECT_DIR/.git"
+export GIT_WORK_TREE="$PROJECT_DIR"
+
+ls -la $GIT_DIR
+
+aider \
+  --model openai/mistralai/mistral-medium-3.5-128b \
+  --openai-api-base https://integrate.api.nvidia.com/v1 \
+  --openai-api-key nvapi-... \
+  --subtree-only \
+  --yes "$@"
