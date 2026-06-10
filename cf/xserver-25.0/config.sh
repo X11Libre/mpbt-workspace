@@ -1,4 +1,4 @@
-
+# Config sourced by run-* scripts for the xserver-25.0 release line.
 export XLIBRE_RELEASE="xserver-25.0"
 export PATH="$PATH:$HOME/go/bin"
 export MPBT="mpbt-builder"
