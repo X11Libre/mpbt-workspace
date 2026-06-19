@@ -1,0 +1,10 @@
+#!/bin/bash
+#
+# Clone/fetch all sources for xserver-25.2 release line.
+#
+
+set -e
+
+. cf/xserver-25.2/config.sh
+
+$MPBT -solution "$SOLUTION" -workdir "$WORKDIR" fetch

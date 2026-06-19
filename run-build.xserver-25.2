@@ -1,0 +1,13 @@
+#!/bin/bash
+#
+# Full build of all packages (in solution order) for xserver-25.2.
+# The install prefix is ephemeral — deleted after the build.
+#
+
+set -e
+
+. cf/xserver-25.2/config.sh
+
+$MPBT -solution $SOLUTION -workdir "$WORKDIR" build
+
+rm -Rf "$WORKDIR"/install
