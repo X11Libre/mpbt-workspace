@@ -125,6 +125,14 @@ the final steps by hand: `git checkout -b <pr-branch> origin/<upstream-branch>`,
 
 ## Backport workflow (master PR → release branches)
 
+> **NEVER auto-merge into `release/*` branches.** Merges into any release line
+> (`release/25.2`, `release/25.1`, `release/25.0`, …) happen **only manually, by the maintainer**.
+> A green CI run and a clean bot-review are **not** sufficient to merge a release PR — agents open
+> and cross-link the PR and then **stop**. Fixes for existing releases must always be reviewed
+> independently and manually (applicability + correctness, confirmed per branch), regardless of CI
+> status. (Auto-merge is only ever acceptable on `master` PRs — and even there only when the user
+> explicitly asks for it.)
+
 Backporting a merged **master** PR means applying its changes to every applicable release
 line, each worked in **its own clone**. Agents must use a dedicated agent-owned clone created
 with `scripts/mk-agent-clone <release>` (see Concurrency / isolation) — not the user's
@@ -259,6 +267,11 @@ When an agent reviews a PR, **always post the review outcome as a comment on tha
 result there** — including on the maintainer's **own** PRs (the bot banner makes the origin clear,
 so self-authored PRs are reviewed and recorded the same way). The `gh` CLI is authenticated as
 **@metux**, so every comment appears under the maintainer's name. Four rules apply.
+
+> **A passing review never authorizes an auto-merge into a `release/*` branch.** Merges into
+> release lines are manual-only (maintainer); see the box at the top of the Backport workflow.
+> Reviewing/labeling a release PR is fine — merging it from an agent is not. Auto-merge is only
+> ever acceptable on a `master` PR, and only when the user explicitly requests it.
 
 **1. Disclose that it's a bot.** Prepend this exact banner (then a blank line) to *every* comment
 posted in the user's name — PR-level comments, review summaries, and inline review comments alike:
