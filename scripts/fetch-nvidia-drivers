@@ -1,0 +1,79 @@
+#!/usr/bin/env bash
+#
+# Download proprietary NVIDIA driver .run installers and extract ONLY the
+# X-server-loadable modules (nvidia_drv.so, libglxserver_nvidia.so, libglx.so).
+# Nothing is installed. The extracted modules are used to check the xserver's
+# driver ABI against real (incl. OLD) nvidia blobs — see the "Automated reviews"
+# ABI section in AGENTS.md and scripts/nvidia-undefined-symbols.
+#
+# Usage:
+#   scripts/fetch-nvidia-drivers [version ...]      # e.g. 390.157 570.133.07
+#   (no args -> the DEFAULT_VERSIONS below: legacy 390/470 + recent 550/570)
+#
+# Env overrides: NVIDIA_ARCH (default Linux-x86_64), NVIDIA_BASE, NVIDIA_DEST.
+# Output layout (gitignored, under _WORK_):  _WORK_/nvidia/<version>/*.so*
+#
+set -euo pipefail
+
+ARCH="${NVIDIA_ARCH:-Linux-x86_64}"
+BASE="${NVIDIA_BASE:-https://us.download.nvidia.com/XFree86}"
+WS="$(cd "$(dirname "$0")/.." && pwd)"
+DEST="${NVIDIA_DEST:-$WS/_WORK_/nvidia}"
+DEFAULT_VERSIONS=(390.157 470.256.02 550.142 570.133.07)
+
+versions=("$@")
+[ "${#versions[@]}" -gt 0 ] || versions=("${DEFAULT_VERSIONS[@]}")
+
+mkdir -p "$DEST/cache"
+for ver in "${versions[@]}"; do
+    run="NVIDIA-$ARCH-$ver.run"
+    url="$BASE/$ARCH/$ver/$run"
+    cache="$DEST/cache/$run"
+    out="$DEST/$ver"
+
+    if [ -f "$out/.extracted" ]; then
+        echo "[$ver] already extracted -> $out ($(ls "$out"/*.so* 2>/dev/null | wc -l) module(s))"
+        continue
+    fi
+    if [ ! -f "$cache" ]; then
+        echo "[$ver] downloading $url"
+        if ! curl -fSL --retry 3 -o "$cache.part" "$url"; then
+            echo "[$ver] download FAILED (does $ARCH carry $ver?) — skipping" >&2
+            rm -f "$cache.part"; continue
+        fi
+        mv "$cache.part" "$cache"
+    else
+        echo "[$ver] using cached installer"
+    fi
+
+    rm -rf "$out"; mkdir -p "$out"
+    extract="$(mktemp -d)"
+    echo "[$ver] extracting modules (no install)..."
+    if ! ( cd "$extract" && sh "$cache" --extract-only >/dev/null 2>&1 ); then
+        echo "[$ver] extraction failed" >&2; rm -rf "$extract"; continue
+    fi
+    n=0
+    while IFS= read -r m; do
+        cp -a "$m" "$out/"; n=$((n + 1))
+    done < <(find "$extract" -maxdepth 2 -type f \
+                  \( -name 'nvidia_drv.so*' -o -name 'libglxserver_nvidia.so*' -o -name 'libglx.so*' \
+                     -o -name 'libEGL_nvidia.so*' -o -name 'libGLX_nvidia.so*' \
+                     -o -name 'libnvidia-egl-gbm.so*' -o -name 'libnvidia-egl-wayland.so*' \
+                     -o -name 'libnvidia-egl-xcb.so*' -o -name 'libnvidia-egl-xlib.so*' \) 2>/dev/null)
+    # EGL external-platform / GLVND vendor JSON configs (declare which platforms exist)
+    while IFS= read -r j; do
+        cp -a "$j" "$out/"; n=$((n + 1))
+    done < <(find "$extract" -maxdepth 3 -type f -name '*_nvidia*.json' 2>/dev/null)
+    rm -rf "$extract"
+
+    if [ "$n" -gt 0 ]; then
+        touch "$out/.extracted"
+        echo "[$ver] extracted $n server module(s) -> $out"
+        # NVIDIA_PRUNE_CACHE=1 drops the (large) .run after extract — used by
+        # fetch-all-nvidia-drivers so fetching every version doesn't hoard ~150GB.
+        [ "${NVIDIA_PRUNE_CACHE:-0}" = 1 ] && rm -f "$cache"
+    else
+        echo "[$ver] WARNING: no X-server modules found in archive" >&2
+    fi
+done
+echo "done. nvidia server modules under: $DEST/<version>/"

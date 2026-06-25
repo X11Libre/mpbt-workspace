@@ -1,0 +1,131 @@
+#!/usr/bin/env bash
+#
+# Backport a single master commit to ONE release line and open the PR — the
+# whole mechanical sequence in one command:
+#
+#   1. mk-agent-clone <release> [name]   refresh the isolated agent clone,
+#                                        landing on rfc/backport-<release>
+#   2. ensure the commit object is present (mk-agent-clone already fetched origin)
+#   3. git cherry-pick -x <commit>       keep msg + Signed-off-by, append the
+#                                        "(cherry picked from commit <sha>)" line.
+#                                        If it fails only because the file moved
+#                                        (the Xext/<ext>/ <-> <ext>/ reorg), auto
+#                                        path-remaps the diff and applies it,
+#                                        reconstructing the same commit. A real
+#                                        content conflict still bails.
+#   4. xx-make-pr.sh <new-sha>           push PR branch, open PR vs release/<rel>,
+#                                        mark the incubator with [PR #NNNN]
+#
+# Everything happens inside the dedicated agent clone
+# (_WORK_/xserver-<rel>/agent/<name>/xserver) — never the user's hand-edited
+# sources clone. Releases are independent (run them in parallel); do NOT run two
+# of these for the SAME <release>+<name> at once — mk-agent-clone resets the
+# incubator.
+#
+# APPLICABILITY IS YOUR JOB FIRST. Use backport-applies / show-branch-file to
+# confirm the release branch is actually vulnerable (not already fixed, not N/A)
+# before running this. Pure directory-reorg path differences are handled
+# automatically (see step 3); only a genuine content conflict bails, telling you
+# to do a manual/adapted backport in the agent clone.
+#
+# Usage:
+#   backport-commit <release> <commit-ish | PR-number> [agent-name]
+#
+# Examples:
+#   backport-commit 25.2 92430c900830eb74d5af010a3e20c517096c1d27
+#   backport-commit 25.2 2395          # resolves the master PR's merge commit
+set -euo pipefail
+
+WS="$(cd "$(dirname "$0")/.." && pwd)"
+SCRIPTS="$WS/scripts"
+
+REL="${1:?usage: backport-commit <release> <commit-ish|PR-number> [agent-name]}"
+WHAT="${2:?usage: backport-commit <release> <commit-ish|PR-number> [agent-name]}"
+NAME="${3:-default}"
+DEST="$WS/_WORK_/xserver-$REL/agent/$NAME/xserver"
+
+# 1. refresh / create the isolated agent clone (lands on rfc/backport-<rel>)
+"$SCRIPTS/mk-agent-clone" "$REL" "$NAME"
+
+REPO="$(git -C "$DEST" config --get remote.origin.url \
+        | sed -E 's#(git@github.com:|https://github.com/)##; s#\.git$##')"
+UP_REMOTE="$(git -C "$DEST" config make-pr.upstream-remote)"
+
+# 2. resolve a PR number to its merge commit; otherwise use the arg verbatim
+if [[ "$WHAT" =~ ^#?[0-9]+$ ]]; then
+    PRNUM="${WHAT#\#}"
+    SHA="$(gh pr view "$PRNUM" -R "$REPO" --json mergeCommit --jq '.mergeCommit.oid')"
+    [ -n "$SHA" ] || { echo "backport-commit: PR #$PRNUM is not merged / has no merge commit" >&2; exit 1; }
+    echo "backport-commit: PR #$PRNUM -> merge commit $SHA"
+else
+    SHA="$WHAT"
+fi
+
+# make sure the commit object is reachable locally
+if ! git -C "$DEST" cat-file -e "${SHA}^{commit}" 2>/dev/null; then
+    git -C "$DEST" fetch "$UP_REMOTE" master 2>/dev/null || true
+    git -C "$DEST" cat-file -e "${SHA}^{commit}" 2>/dev/null \
+        || git -C "$DEST" fetch "$UP_REMOTE" "$SHA" 2>/dev/null \
+        || { echo "backport-commit: commit not found on $UP_REMOTE: $SHA" >&2; exit 1; }
+fi
+
+# 3. Apply the change onto rfc/backport-<rel>, preserving msg + author + provenance.
+#    First try a normal cherry-pick (-x appends the "(cherry picked from ...)"
+#    line). If that fails *because the file moved* — the Xext/<ext>/ <-> <ext>/
+#    directory reorg between master and the older releases — fall back to a
+#    path-remapped `git apply`: locate each touched file in the release tree by
+#    basename, rewrite the diff's paths to match, apply it, and reconstruct the
+#    commit identically (same author + message + cherry-picked-from line). A
+#    genuine content conflict (not a pure path move) still bails for manual work.
+if git -C "$DEST" cherry-pick -x "$SHA"; then
+    :
+else
+    git -C "$DEST" cherry-pick --abort 2>/dev/null || true
+    echo "backport-commit: cherry-pick failed; trying path-remapped apply (dir reorg)..." >&2
+
+    sed_script=""; remapped=0
+    while IFS= read -r mp; do
+        [ -n "$mp" ] || continue
+        if git -C "$DEST" ls-files --error-unmatch "$mp" >/dev/null 2>&1; then
+            tp="$mp"                       # same path exists on this branch
+        else
+            base="${mp##*/}"
+            # files with that basename, pick the one sharing the longest trailing
+            # path with the master path; blank if the choice is ambiguous
+            tp="$(git -C "$DEST" ls-files "*/$base" "$base" | awk -v m="$mp" '
+                function suf(a,b,   as,bs,na,nb,n){na=split(a,as,"/");nb=split(b,bs,"/");n=0;
+                    while(na-n>0 && nb-n>0 && as[na-n]==bs[nb-n]) n++; return n}
+                { s=suf($0,m); if(s>best){best=s;pick=$0} else if(s==best){pick=pick" "$0} }
+                END{ if(pick ~ / /) print ""; else print pick }')"
+            [ -n "$tp" ] || { echo "backport-commit: cannot uniquely locate '$base' on $REL (missing or ambiguous) — do it manually in $DEST" >&2; exit 3; }
+        fi
+        if [ "$tp" != "$mp" ]; then
+            sed_script="${sed_script}s#${mp}#${tp}#g;"; remapped=1
+            echo "  remap: $mp -> $tp" >&2
+        fi
+    done < <(git -C "$DEST" show --format= --name-only "$SHA")
+
+    [ "$remapped" = 1 ] || { echo "backport-commit: not a path reorg — code differs. Do a manual/adapted backport in $DEST" >&2; exit 3; }
+
+    diff="$(git -C "$DEST" show --format= "$SHA" | sed "$sed_script")"
+    if ! printf '%s\n' "$diff" | git -C "$DEST" apply --index --check - 2>/dev/null; then
+        echo "backport-commit: path-remapped diff still doesn't apply (code differs) — do a manual/adapted backport in $DEST" >&2
+        exit 3
+    fi
+    printf '%s\n' "$diff" | git -C "$DEST" apply --index -
+
+    msg="$(git -C "$DEST" log -1 --format=%B "$SHA")"
+    author="$(git -C "$DEST" log -1 --format='%an <%ae>' "$SHA")"
+    msgfile="$(mktemp)"
+    printf '%s\n(cherry picked from commit %s)\n' "$msg" "$SHA" > "$msgfile"
+    git -C "$DEST" commit --quiet --author="$author" -F "$msgfile"
+    rm -f "$msgfile"
+    echo "backport-commit: applied via path remap." >&2
+fi
+
+NEW_SHA="$(git -C "$DEST" rev-parse HEAD)"
+echo "backport-commit: prepared $NEW_SHA on rfc/backport-$REL"
+git -C "$DEST" show --stat "$NEW_SHA"
+
+# 4. submit the PR from inside the agent clone (xx-make-pr.sh reads cwd config)
+( cd "$DEST" && "$SCRIPTS/xx-make-pr.sh" "$NEW_SHA" )

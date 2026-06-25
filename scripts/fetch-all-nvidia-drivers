@@ -1,0 +1,32 @@
+#!/usr/bin/env bash
+#
+# Fetch & extract the X-server modules for MANY NVIDIA driver versions, for
+# broad driver-ABI coverage ("even old blobs must keep loading"). Wraps
+# scripts/list-nvidia-versions + scripts/fetch-nvidia-drivers, and prunes each
+# large .run after extracting its (small) modules so disk stays bounded.
+#
+# Usage:
+#   scripts/fetch-all-nvidia-drivers              # latest of EACH major branch (recommended)
+#   scripts/fetch-all-nvidia-drivers --every      # literally every version on the mirror
+#
+# --every pulls 500+ installers (hundreds of GB transferred, even though only the
+# extracted modules — a few GB total — are kept). --per-branch (default) gives one
+# driver per branch (~30-40), which is what actually matters for ABI: patch
+# releases within a branch almost never change which server symbols a blob imports.
+#
+set -euo pipefail
+
+HERE="$(cd "$(dirname "$0")" && pwd)"
+mode="--per-branch"
+[ "${1:-}" = "--every" ] && mode=""
+[ "${1:-}" = "--per-branch" ] && mode="--per-branch"
+
+mapfile -t versions < <("$HERE/list-nvidia-versions" $mode)
+[ "${#versions[@]}" -gt 0 ] || { echo "no versions enumerated" >&2; exit 1; }
+
+echo "fetch-all-nvidia-drivers: ${#versions[@]} version(s) (${mode:---every})"
+echo "  ${versions[*]}"
+echo "  (.run installers are pruned after extraction; only modules are kept)"
+
+# Prune cache so 'all' doesn't hoard installers; extract modules only.
+NVIDIA_PRUNE_CACHE=1 "$HERE/fetch-nvidia-drivers" "${versions[@]}"

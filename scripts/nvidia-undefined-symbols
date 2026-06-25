@@ -1,0 +1,36 @@
+#!/usr/bin/env bash
+#
+# Print the UNDEFINED (imported) dynamic symbols of the extracted NVIDIA X
+# server modules — i.e. the server-ABI symbols an installed nvidia blob
+# resolves at load time. This is the input to ABI-change review: if a PR
+# removes _X_EXPORT from any symbol that appears in this list, that nvidia
+# version fails to load on the new server.
+#
+# Usage:
+#   scripts/nvidia-undefined-symbols [version ...]   # default: all extracted
+#   scripts/nvidia-undefined-symbols 390.157         # one version
+#
+# Typical check (do unexported names from a PR appear in any nvidia blob?):
+#   comm -12 <(printf '%s\n' SYM1 SYM2 ... | sort -u) \
+#            <(scripts/nvidia-undefined-symbols | sort -u)
+#
+set -euo pipefail
+
+WS="$(cd "$(dirname "$0")/.." && pwd)"
+DEST="${NVIDIA_DEST:-$WS/_WORK_/nvidia}"
+
+versions=("$@")
+if [ "${#versions[@]}" -eq 0 ]; then
+    mapfile -t versions < <(find "$DEST" -mindepth 1 -maxdepth 1 -type d ! -name cache -printf '%f\n' 2>/dev/null | sort)
+fi
+[ "${#versions[@]}" -gt 0 ] || {
+    echo "no extracted nvidia drivers under $DEST — run scripts/fetch-nvidia-drivers first" >&2
+    exit 1
+}
+
+for ver in "${versions[@]}"; do
+    for mod in "$DEST/$ver"/*.so*; do
+        [ -e "$mod" ] || continue
+        nm -D --undefined-only "$mod" 2>/dev/null | awk '{print $NF}'
+    done
+done | sort -u

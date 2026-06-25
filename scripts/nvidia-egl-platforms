@@ -1,0 +1,42 @@
+#!/usr/bin/env bash
+#
+# Report which EGL platforms each extracted NVIDIA driver supports — the key
+# input to the open-DDX plan (GBM is the modern, simpler path; EGLStream is the
+# pre-GBM fallback). Detected from the extracted userspace EGL libs/JSON
+# (requires fetch-nvidia-drivers to have run with the EGL-extraction patterns).
+#
+# Usage:
+#   scripts/nvidia-egl-platforms [version ...]   # default: all extracted
+#
+set -euo pipefail
+
+WS="$(cd "$(dirname "$0")/.." && pwd)"
+DEST="${NVIDIA_DEST:-$WS/_WORK_/nvidia}"
+
+versions=("$@")
+if [ "${#versions[@]}" -eq 0 ]; then
+    mapfile -t versions < <(find "$DEST" -mindepth 1 -maxdepth 1 -type d ! -name cache -printf '%f\n' 2>/dev/null | sort -V)
+fi
+[ "${#versions[@]}" -gt 0 ] || { echo "no extracted drivers under $DEST — run fetch-nvidia-drivers first" >&2; exit 1; }
+
+printf '%-14s %-5s %-8s %-8s %s\n' "VERSION" "GBM" "WAYLAND" "STREAM" "GLX-MODEL"
+printf '%-14s %-5s %-8s %-8s %s\n' "-------" "---" "-------" "------" "---------"
+for v in "${versions[@]}"; do
+    d="$DEST/$v"
+    gbm="no"; [ -n "$(ls "$d"/libnvidia-egl-gbm.so* 2>/dev/null)" ] && gbm="YES"
+    [ "$gbm" = no ] && ls "$d"/*gbm*.json >/dev/null 2>&1 && gbm="YES"
+    wl="no"; [ -n "$(ls "$d"/libnvidia-egl-wayland.so* 2>/dev/null)" ] && wl="YES"
+    # EGLStream/EGLDevice: present in essentially all modern drivers; confirm via libEGL strings
+    stream="?"
+    egl="$(ls "$d"/libEGL_nvidia.so* 2>/dev/null | head -1)"
+    if [ -n "$egl" ]; then
+        # grep -c (reads all input) avoids the pipefail+grep-q SIGPIPE false-negative
+        c=$(strings -a "$egl" | grep -cE 'EGL_EXT_platform_device|EGL_KHR_stream' || true)
+        [ "${c:-0}" -gt 0 ] && stream="YES" || stream="no"
+    fi
+    # GLX server-module model: replace-server (libglx.so) vs GLXVND vendor (libglxserver_nvidia.so)
+    glx="?"
+    [ -n "$(ls "$d"/libglx.so* 2>/dev/null)" ] && glx="replace-server(libglx.so)"
+    [ -n "$(ls "$d"/libglxserver_nvidia.so* 2>/dev/null)" ] && glx="GLXVND-vendor"
+    printf '%-14s %-5s %-8s %-8s %s\n' "$v" "$gbm" "$wl" "$stream" "$glx"
+done

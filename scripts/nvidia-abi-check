@@ -1,0 +1,68 @@
+#!/usr/bin/env bash
+#
+# Classify candidate symbol names against the extracted NVIDIA blobs, accounting
+# for BOTH ways a driver can reference a server symbol:
+#   1. LINK-TIME import      — undefined dynamic symbol (nm -D --undefined-only)
+#   2. RUNTIME lookup by name — dlsym() / dlvsym() / the X server's LoaderSymbol(),
+#                               where the symbol NAME is only a string literal
+#                               in the module (invisible to nm). Caught via `strings`.
+# A symbol a PR unexports that shows up as EITHER can break that nvidia version.
+#
+# Usage:
+#   scripts/nvidia-abi-check SYM [SYM ...]
+#   printf '%s\n' SymA SymB | scripts/nvidia-abi-check
+#
+# Exit status: 0 = none of the candidates referenced anywhere (safe);
+#              1 = at least one candidate referenced (inspect output);
+#              2 = usage / no extracted drivers.
+#
+# NOTE: the string scan catches names that appear verbatim. A driver that builds
+# a symbol name dynamically (string concatenation) would still evade detection —
+# rare, but a residual blind spot worth keeping in mind.
+#
+set -euo pipefail
+
+WS="$(cd "$(dirname "$0")/.." && pwd)"
+DEST="${NVIDIA_DEST:-$WS/_WORK_/nvidia}"
+
+if [ "$#" -gt 0 ]; then mapfile -t cands < <(printf '%s\n' "$@" | sed '/^$/d' | sort -u)
+else                    mapfile -t cands < <(sed '/^$/d' | sort -u); fi
+[ "${#cands[@]}" -gt 0 ] || { echo "usage: nvidia-abi-check SYM [SYM ...]   (or pipe names on stdin)" >&2; exit 2; }
+
+mapfile -t versions < <(find "$DEST" -mindepth 1 -maxdepth 1 -type d ! -name cache -printf '%f\n' 2>/dev/null | sort)
+[ "${#versions[@]}" -gt 0 ] || { echo "no extracted drivers under $DEST — run scripts/fetch-nvidia-drivers first" >&2; exit 2; }
+
+tmp="$(mktemp -d)"; trap 'rm -rf "$tmp"' EXIT
+printf '%s\n' "${cands[@]}" > "$tmp/cand"
+
+# Per version, compute the import set (UND) and the candidate string-literal hits
+# ONCE (grep reads files, not a live pipe -> no pipefail/SIGPIPE surprises).
+for v in "${versions[@]}"; do
+    : > "$tmp/und.$v"; : > "$tmp/str.$v"
+    for m in "$DEST/$v"/*.so*; do
+        [ -e "$m" ] || continue
+        nm -D --undefined-only "$m" 2>/dev/null | awk '{print $NF}' >> "$tmp/und.$v"
+        strings -a "$m" 2>/dev/null >> "$tmp/allstr.$v"
+    done
+    sort -u "$tmp/und.$v" -o "$tmp/und.$v"
+    grep -Fxf "$tmp/cand" "$tmp/allstr.$v" 2>/dev/null | sort -u > "$tmp/str.$v" || true
+done
+
+echo "checked versions: ${versions[*]}"
+printf '%-46s %-26s %s\n' "SYMBOL" "LINK-IMPORT(UND)" "RUNTIME-LOOKUP(string)"
+printf '%-46s %-26s %s\n' "------" "----------------" "----------------------"
+
+hit=0
+for s in "${cands[@]}"; do
+    imp=""; dyn=""
+    for v in "${versions[@]}"; do
+        if grep -Fxq "$s" "$tmp/und.$v"; then
+            imp="$imp${imp:+,}$v"
+        elif grep -Fxq "$s" "$tmp/str.$v"; then
+            dyn="$dyn${dyn:+,}$v"
+        fi
+    done
+    [ -n "$imp$dyn" ] && hit=1
+    printf '%-46s %-26s %s\n' "$s" "${imp:--}" "${dyn:--}"
+done
+exit $hit
