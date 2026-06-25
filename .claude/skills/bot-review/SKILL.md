@@ -77,3 +77,12 @@ gh api --method POST repos/X11Libre/xserver/issues/<pr#>/labels -f 'labels[]=bot
 
 If a later revision fixes the blocking finding, swap the label to `bot-review-passed` and update
 the review comment to match.
+
+## Never auto-merge a `release/*` PR
+
+A `bot-review-passed` verdict and green CI do **not** authorize merging a PR that targets a
+release line (`release/25.2`, `release/25.1`, `release/25.0`, …). **Merges into release branches
+are manual-only, by the maintainer** — fixes for existing releases must always be reviewed
+independently and manually, regardless of CI status. Review, comment, and label a release PR;
+then **stop**. (Auto-merge is only ever acceptable on a `master` PR, and only when the user
+explicitly asks for it.) See AGENTS.md → Backport workflow (top box).

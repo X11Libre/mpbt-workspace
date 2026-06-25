@@ -10,6 +10,10 @@ each in its **own isolated agent clone** — never the user's hand-edited
 `sources/xlibre/xserver` tree. Run all commands from the workspace root
 (`/home/nekrad/src/xorg/mpbt-workspace`).
 
+> **This workflow ends at "open + cross-link the PR". NEVER merge a `release/*` PR.** Merges into
+> release lines are manual-only, by the maintainer — green CI / a passing review do not authorize
+> a merge. Fixes for existing releases must always be reviewed independently and manually.
+
 Full reference: **AGENTS.md → "Backport workflow"**. This skill is the actionable checklist.
 
 ## Inputs
