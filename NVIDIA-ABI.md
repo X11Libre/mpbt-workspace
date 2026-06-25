@@ -83,6 +83,33 @@ These are the dangerous, easy-to-miss ones. **Must stay `_X_EXPORT`.**
   client-side). Re-confirm if testing a driver branch known to register an XvMC adaptor. (#808)
 - The ~23 RENDER funcs unexported by #1469 (gradient creators, `Composite*`, `AddTraps`, …) —
   unreferenced by all 4.
+- DIX resource-type bookkeeping globals `lastResourceType` and `TypeMask` unexported by #1388 —
+  neither imported nor looked up by name in any of the 4. Drivers allocate resource types via the
+  exported `CreateNewResourceType()`, not by touching these internals. Safe to unexport.
+- DIX internal region helpers `InitRegions`, `RegionRectAlloc`, `RegionIsValid`, `RegionPrint`
+  unexported by #1389 (moved to a private `dix/region_priv.h`) — neither imported nor looked up by
+  name in any of the 4. `InitRegions` is a one-time DIX init (`dix/main.c`); `RegionRectAlloc` is an
+  internal pixman-region grow helper; `RegionIsValid`/`RegionPrint` are `DEBUG`-only. Drivers use the
+  exported `Region*` API (`RegionCreate`/`RegionInit`/…), not these. Safe to unexport.
+
+### Batch sweep of open `unexport` PRs (2026-06-25, vs 390.157 / 470.256.02 / 550.142 / 570.133.07)
+
+All open `unexport`-labelled PRs were checked (link-import ∪ runtime-lookup). The label
+`needs-nvidia-verification` was added to each to gate the merge on maintainer sign-off. **Net**-
+unexported symbols only (a symbol re-added with `_X_EXPORT` in the same diff stays exported and was
+excluded). All of the below are **unreferenced by all 4** → safe:
+
+- #1914 `xf86PlatformDeviceCheckBusID`; #1481 `LogHdrMessageVerb`; #1467 `defaultColorVisualClass`;
+  #1387 `DontPropagateMasks`; #1358 `defaultFontPath`; #1355 `XNFvasprintf`.
+- #1487 — only `PixmapScreenInit` is net-unexported (the other `Pixmap*` in the diff keep
+  `_X_EXPORT`).
+- #1383 `CloseDownExtensions`, `EnableDisableExtensionError`, `GetExtensionEntry`, `InitExtensions`,
+  `NotImplemented`.
+- #1469 (RENDER) — the 23 net-unexported funcs (gradient creators, `Composite*`, `AddTraps`,
+  `PictureInit`, filter setup, transform converters) are all unreferenced. **Caveat / corrects an
+  earlier note:** `PictureFindFilter`, `PictureMatchVisual`, `SetPictureFilter` ARE link-imported by
+  all 4 blobs — but #1469 **keeps them `_X_EXPORT`** (re-added in the same diff), so the PR is safe.
+  Do NOT unexport those three.
 
 ## Residual blind spot
 
