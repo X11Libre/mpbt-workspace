@@ -14,6 +14,14 @@ cleared:
   to establish — append it to the relevant section of `AGENTS.md` (and the topic docs like
   `NVIDIA-ABI.md`) **within the session**, not at the end. Session context is wiped on `/clear`;
   only what's written here survives. Prefer a concise durable note over re-deriving it next time.
+- **Project knowledge lives in this repo, not in per-user agent memory.** Lessons, CI gotchas,
+  failure modes, workflow quirks and PR-repair findings go into `AGENTS.md` or a topic doc
+  (`NVIDIA-ABI.md`, `CI-GOXTS-XEPHYR.md`, …) — version-controlled and shared with the whole team
+  and with headless/CI runs. A machine-local per-user agent memory store (e.g. Claude Code's
+  `~/.claude/.../memory/`) is private and invisible to teammates, so it must **not** hold project
+  facts; reserve it for genuinely user-specific, cross-project preferences. And **never** create a
+  `memory/` directory inside a source clone — it sits untracked in the upstream tree where a stray
+  `git add -A` could commit it.
 - **Turn repeated commands into scripts, then authorize them.** If you find yourself running the
   same multi-step command (especially GitHub/`gh` access like fetching CI job logs, querying
   checks, editing PR bodies), factor it into a generic `scripts/<name>` (match the existing style:
@@ -212,6 +220,24 @@ work in a dedicated agent clone, never the user's hand-edited sources tree.
    0x0` with an **address-only** backtrace (no symbols). So also grep the tail for
    `Summary of Failures`, `Fail:`, and `Caught signal` / `Segmentation fault` — a server crash
    during XTS is a real PR regression, not flakiness (this was the #1639 saveset NULL-deref).
+
+   **The go-xts (go-x11proto) Xephyr test has its own failure modes** — a display-number race
+   that hangs until timeout, and byte-order / `+byteswappedclients` requirements. See
+   **`CI-GOXTS-XEPHYR.md`** before debugging a hung or LE-only `run-xts-go-xephyr.sh` (from the
+   #3122 repair).
+
+   **A flaky/red CI run can't always be re-run — refresh by rebasing.** `gh run rerun <id>
+   [--failed]` fails with *"run … cannot be rerun; its workflow file may be broken"* when the run
+   is **older than ~30 days** (GitHub's rerun window), regardless of the actual failure. Many
+   long-open PRs fail CI only on **infrastructure flakes** — most commonly `FAILED: failed cloning
+   https://github.com/X11Libre/mirror.fdo.libxcb-util` / `HTTP 502` from the source mirror, or a
+   single XTS `Fail:` — not a code defect. When the run is too old to rerun, the way to get a fresh
+   green run is to **rebase the PR branch onto current `origin/master` and `push --force-with-lease`**
+   (a new head SHA re-triggers CI). For single-commit PRs only a few commits behind this is
+   usually clean; build-verify (`ninja … hw/vfb/Xvfb hw/xnest/Xnest`) before pushing since the
+   rebase may expose a new in-tree user of a symbol the PR unexports. A genuine content conflict
+   means a manual rebase is needed instead. (Done in bulk June 2026 for the stale unexport/cleanup
+   PRs #1051/#1388/#1450/#1467/#1469/#1481.)
 
 2. **Check out the PR branch in an isolated clone:** `scripts/pr-checkout <pr#>` → makes/refreshes
    `_WORK_/xserver-master/agent/repair/xserver`, checks out the PR's head branch, prints the
