@@ -239,6 +239,21 @@ work in a dedicated agent clone, never the user's hand-edited sources tree.
    means a manual rebase is needed instead. (Done in bulk June 2026 for the stale unexport/cleanup
    PRs #1051/#1388/#1450/#1467/#1469/#1481.)
 
+   **Classify a red rollup by *conclusion*, not by count — `CANCELLED` ≠ `FAILURE`.** The CI matrix
+   is **fail-fast**: one real `FAILURE` cancels all the still-running siblings, so
+   `statusCheckRollup` can show e.g. "106 failing" that is really **2 `FAILURE` + 104 `CANCELLED`**.
+   The `CANCELLED` jobs are collateral, not the cause — only the `FAILURE`/`TIMED_OUT` ones point at
+   the real problem (filter on `.conclusion`). Don't read a big red number as a wide breakage.
+
+   **BSD/Solaris CI jobs flake at the VM level, independent of the code.** The `vmactions`-based
+   jobs (`xserver-build-{dragonflybsd,solaris,netbsd,openbsd,freebsd}`) routinely fail with the VM
+   never booting — `boot failed, let's shutdown vm, and retry once more` ×3 — or other provisioning
+   noise, with no build output. Heuristic: **the same platform job red across several *unrelated*
+   PRs ⇒ it's the job, not the PR** (a trivial unexport/typing cleanup can't selectively break only
+   Solaris while every Ubuntu/macOS/etc. job is green). These are fresh-run flakes, so a single
+   `gh run rerun <run-id> --failed` usually clears them. Add to the known-flake set alongside the
+   `libxcb-util`/HTTP-502 mirror clone.
+
 2. **Check out the PR branch in an isolated clone:** `scripts/pr-checkout <pr#>` → makes/refreshes
    `_WORK_/xserver-master/agent/repair/xserver`, checks out the PR's head branch, prints the
    clone dir.
@@ -263,6 +278,19 @@ work in a dedicated agent clone, never the user's hand-edited sources tree.
    force-push a hollow commit** to the contributor's branch — confirm with the maintainer and close
    the PR with a bot-bannered comment explaining it's already addressed upstream (cite the function
    + the commit/mechanism that removed the old code).
+
+   **Check supersession *before* rebasing with `git cherry`.** `git cherry -v origin/master <branch>`
+   marks each of the branch's commits `-` (patch-id already on master → a rebase silently drops it)
+   or `+` (genuinely new). All-`-` ⇒ the PR is fully merged/superseded — close it, don't rebase.
+   The subtle case: a commit can be `+` yet still effectively obsolete — git only drops a commit as
+   empty when its patch is *identical* to one on master; if master reached the same end state via
+   *different* commits, the rebase **conflicts** instead, and a correct resolution collapses to a
+   no-op (or worse, re-introduces a regression the master version already fixed). #1063 (`dix: use
+   xorg_list saveSet list`, June 2026) was exactly this: `git cherry` said `+`, but master already
+   had the conversion *plus* the `if (client)` NULL-guard the PR dropped — so the only non-cosmetic
+   delta the PR carried was *removing* that guard. Closed as superseded. (Contrast the genuine
+   cross-reorg/rebase case like wip/x86emu, where `git cherry` correctly `-`-dropped the 5 merged
+   `[PR #…]` commits and cleanly replayed only the 2 still-open ones.)
 
 3. **Fix it in that clone**, then **verify locally before pushing** — a meson-only change still
    warrants a real build. From a throwaway build dir: `meson setup <builddir> <clone>` (success =
@@ -298,6 +326,18 @@ so self-authored PRs are reviewed and recorded the same way). The `gh` CLI is au
 > release lines are manual-only (maintainer); see the box at the top of the Backport workflow.
 > Reviewing/labeling a release PR is fine — merging it from an agent is not. Auto-merge is only
 > ever acceptable on a `master` PR, and only when the user explicitly requests it.
+
+**Re-reviewing a `bot-review-changes-requested` PR: independently verify the prior finding — it can
+be wrong.** When re-visiting a PR that already carries a changes-requested label, don't trust the
+earlier verdict; re-derive it from the *current* code. Two distinct outcomes both require flipping
+to `bot-review-passed`: (a) the author pushed a fix (compare the prior finding against the current
+head), or (b) **the prior finding was itself wrong** — a hallucinated/over-stated blocker. #3153
+(`Fbdev arg parsing`, June 2026) was case (b): the prior review modelled the *old* CLI option
+ordering and flagged a bug against semantics the patch *intentionally inverts*; the author's
+"it's hallucinating" pushback was correct, confirmed by simulating the patched `ddxProcessArgument`
+under the new ordering. When a finding hinges on a behavioral model, re-run that model against the
+actual patched code before keeping the red label. (Also seen: #3027 over-framed an honest hardening
+log line as a "CRITICAL vulnerability" — pass the code, recommend retitling.)
 
 **1. Disclose that it's a bot.** Prepend this exact banner (then a blank line) to *every* comment
 posted in the user's name — PR-level comments, review summaries, and inline review comments alike:
@@ -497,6 +537,44 @@ scripts/mk-agent-clone <release> [name]   # e.g. scripts/mk-agent-clone 25.2
 **Rule of thumb:** agents → own clone via `mk-agent-clone`; parallelize freely *across* releases;
 *within* a release use a per-agent clone name (or worktree / `with-clone-lock`). Always run
 `xx-make-pr.sh` from an isolated tree.
+
+## submit/* branch hygiene — is a branch already in master?
+
+The `submit/*` branches are old staging branches that diverge from current `master` by
+**thousands of commits** (one checked had a merge-base ~5000 commits back) **and** straddle the
+`Xext/<ext>/` directory reorg. That breaks every single-method "is it merged?" test — each has a
+blind spot:
+
+- **`git cherry` / patch-id** ("forward patch present in master history"): blind to **reverts** —
+  a later `Revert "…"` in master leaves the forward patch in history, so a reverted-and-thus-*absent*
+  change still reads as "contained" (seen on `glamor-unexport`).
+- **`git merge-tree --write-tree` vs master tree**: a clean `CONTAINED` (merged tree == master tree)
+  or `DIFFERS` (clean merge, tree changes ⇒ genuinely **not** contained, e.g. a revert) is reliable,
+  but on these stale branches the 3-way merge **CONFLICTs** purely from the file-move reorg — a
+  false negative for branches that *are* fully merged (e.g. `dix-cleanup`, 55 commits all in master).
+- **Test-rebase onto master** (`git rebase --empty=drop`): inherits the patch-id revert blind spot
+  (drops the commit as "already applied"); `--reapply-cherry-picks` over-corrects and CONFLICTs on
+  staleness. `git apply -R` of the cumulative diff is too strict (surrounding-context drift).
+
+**Working recipe** (used June 2026 to clear 79 of ~150 submit branches):
+1. **Reliable-positive delete set** = `merge-tree` CONTAINED (bulletproof), *plus* patch-id-clean
+   branches (`git cherry` 0 `+` lines) **minus** anything flagged by either (a) `merge-tree`
+   `DIFFERS` or (b) a **fuzzy** revert-message scan (master's revert subject often carries a
+   `(!NNNN)` prefix, so match the branch's commit subject as a *substring* of `Revert "…"`
+   subjects — exact match misses them). Always `gh pr list` first; deleting a branch with an open
+   PR closes it.
+2. **"Hochziehen" (pull pending branches up onto master):** a full rebase replays the
+   already-merged commits too, which is what mostly conflicts — instead cherry-pick **only the
+   genuinely-missing commits** (forward patch-id not in master) onto `origin/master`. Even so,
+   expect most to still **conflict on real content** (the new commits touch heavily-reorged
+   subsystems) — those need manual, build-verified rebasing and must **not** be auto-pushed.
+   Only force-push the ones that rebase/cherry-pick **cleanly**.
+
+Do all of this in a **separate detached worktree** (`git worktree add --detach … origin/master`),
+never the user's checkout — and note the user may be switching branches / rebasing in the same
+clone concurrently (their reflog churn is theirs, not yours). The throwaway analysis scripts live
+in the session scratchpad (`classify.sh`, `cherrypick-missing.sh`); promote to `scripts/` only if
+this becomes recurring.
 
 ## opencode session setup
 
