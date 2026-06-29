@@ -47,6 +47,7 @@ BUS_TTL="${BUS_TTL:-900}"
 if [ -n "${AGENT_ID:-}" ]; then AGENT_ID_SET=1; else AGENT_ID_SET=0; fi
 AGENT_ID="${AGENT_ID:-$(id -un)@$(hostname -s 2>/dev/null || hostname 2>/dev/null || echo host)}"
 PROJECT="${XLIBRE_RELEASE:-${PROJECT:-}}"
+HANDLE="${AGENT_HANDLE:-}"   # attach handle (e.g. tmux session) so the board shows how to reach this agent
 STATUS_DIR="$BUS_DIR/status"
 MSG_DIR="$BUS_DIR/msgs"
 ACK_DIR="$BUS_DIR/acks"
@@ -102,8 +103,8 @@ do_status() {  # <state> [note]
     [ -n "$state" ] || { echo "agent-bus: status needs a <state> (e.g. working|building|blocked|idle|done)" >&2; exit 2; }
     warn_id
     lock_bus
-    printf '%s\t%s\t%s\t%s\t%s\t%s\t%s\n' \
-        "$(now)" "$(isots)" "$AGENT_ID" "$(clean "$PROJECT")" "$(clean "$state")" "$$" "$(clean "$note")" > "$(sfile "$AGENT_ID")"
+    printf '%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n' \
+        "$(now)" "$(isots)" "$AGENT_ID" "$(clean "$PROJECT")" "$(clean "$state")" "$$" "$(clean "$HANDLE")" "$(clean "$note")" > "$(sfile "$AGENT_ID")"
     log_event status "$state ${PROJECT:+[$PROJECT] }$note"
     echo "agent-bus: '$AGENT_ID'${PROJECT:+ ($PROJECT)} → $state${note:+ — $note}"
 }
@@ -141,12 +142,12 @@ do_ack() {  # <id> [note]
 # --- control side ------------------------------------------------------------
 do_board() {
     shopt -s nullglob
-    local f e i a p s pid n found=0
+    local f e i a p s pid h n found=0
     for f in "$STATUS_DIR"/*.tsv; do
-        if [ "$found" = 0 ]; then printf '%-18s  %-12s  %-10s  %-6s  %-5s  %s\n' AGENT PROJECT STATE AGE INBOX NOTE; found=1; fi
-        IFS=$'\t' read -r e i a p s pid n < "$f" || continue
+        if [ "$found" = 0 ]; then printf '%-18s  %-12s  %-10s  %-6s  %-5s  %-22s  %s\n' AGENT PROJECT STATE AGE INBOX ATTACH NOTE; found=1; fi
+        IFS=$'\t' read -r e i a p s pid h n < "$f" || continue
         local mark=""; stale "$e" && mark=" [STALE]"
-        printf '%-18s  %-12s  %-10s  %-6s  %-5s  %s%s\n' "$a" "${p:--}" "$s" "$(age "$e")" "$(inbox_count "$a")" "$n" "$mark"
+        printf '%-18s  %-12s  %-10s  %-6s  %-5s  %-22s  %s%s\n' "$a" "${p:--}" "$s" "$(age "$e")" "$(inbox_count "$a")" "${h:--}" "$n" "$mark"
     done
     [ "$found" = 1 ] || echo "(no agents reporting — none have run 'agent-bus status' yet)"
 }
@@ -183,9 +184,9 @@ do_events() { local n="${1:-20}"; [ -f "$EVENTS" ] && tail -n "$n" "$EVENTS" || 
 do_prune() {
     shopt -s nullglob
     lock_bus
-    local f e i a p s pid n cnt=0 id me te mf mt mtext mc=0
+    local f e i a p s pid h n cnt=0 id me te mf mt mtext mc=0
     for f in "$STATUS_DIR"/*.tsv; do
-        IFS=$'\t' read -r e i a p s pid n < "$f" || continue
+        IFS=$'\t' read -r e i a p s pid h n < "$f" || continue
         if stale "$e"; then rm -f "$f"; cnt=$((cnt + 1)); fi
     done
     # drop directives older than TTL that every reporting agent has acked
@@ -194,9 +195,9 @@ do_prune() {
         id="$(basename "$f" .tsv)"
         stale "$me" || continue
         # any live (non-stale) recipient that hasn't acked? then keep
-        local keep=0 sf se si sa sp ss spid sn
+        local keep=0 sf se si sa sp ss spid sh sn
         for sf in "$STATUS_DIR"/*.tsv; do
-            IFS=$'\t' read -r se si sa sp ss spid sn < "$sf" || continue
+            IFS=$'\t' read -r se si sa sp ss spid sh sn < "$sf" || continue
             [ "$mt" = all ] || [ "$mt" = "$sa" ] || continue
             acked "$id" "$sa" || { keep=1; break; }
         done

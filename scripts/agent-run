@@ -1,0 +1,127 @@
+#!/usr/bin/env bash
+#
+# agent-run — launch an agent/CLI session DETACHED in a named tmux session.
+#
+# The session keeps running after you close the terminal or drop the SSH
+# connection (the tmux server is a daemon), and ANY number of controllers can
+# attach to it concurrently (`scripts/agent-attach`, i.e. tmux multi-attach) —
+# that is the fully self-hosted answer to "detach + N controllers reach every
+# running agent", and it works for ANY CLI (Claude Code, opencode, a plain
+# shell), not just Claude. It registers the tmux session as the agent-bus
+# attach handle, so `scripts/agent-bus board` shows how to reach each agent.
+#
+# Usage:
+#   agent-run <release> [--client claude|opencode|shell] [--name <id>] [-- <args…>]
+#       launch a detached session for a release line (default client: claude).
+#       <release> may be "master" / "25.2" / … or the full "xserver-25.2".
+#       Anything after -- is passed to the client.
+#   agent-run --list                 list running mpbt sessions + the board
+#   agent-run --stop <id|session>    kill a session (best-effort clears its heartbeat)
+#
+# Identity/handle: AGENT_ID defaults to "<release>-<client>" (override with
+#   --name); the tmux session is "mpbt-<AGENT_ID>" sanitized to tmux-safe chars,
+#   and is exported as $AGENT_HANDLE so it lands on the board.
+# Persistence note: a tmux session survives terminal close and SSH disconnect
+#   out of the box. To also survive a full logout reliably, enable lingering once:
+#   `loginctl enable-linger "$USER"`. It does NOT survive reboot (agents are
+#   in-flight conversations; just relaunch).
+set -euo pipefail
+
+ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+SESS_PREFIX="mpbt-"
+
+usage() { sed -n '2,/^set -euo/p' "$0" | sed 's/^# \{0,1\}//; /^set -euo/d'; }
+die()   { echo "agent-run: $*" >&2; exit 1; }
+have_tmux() { command -v tmux >/dev/null 2>&1 || die "tmux not found — install it (e.g. 'sudo apt install tmux'); it is the detach/multi-attach backend."; }
+tmux_safe() { printf '%s' "$1" | tr -c 'A-Za-z0-9_-' '_'; }
+
+list_sessions() {
+    have_tmux
+    echo "== running mpbt tmux sessions =="
+    tmux ls 2>/dev/null | grep "^${SESS_PREFIX}" || echo "(none)"
+    echo
+    echo "== agent-bus board =="
+    "$ROOT/scripts/agent-bus" board
+}
+
+stop_session() {  # <id|session>
+    have_tmux
+    local arg="$1" session
+    if tmux has-session -t "$arg" 2>/dev/null; then session="$arg"
+    else session="$(tmux_safe "${SESS_PREFIX}${arg}")"; fi
+    tmux has-session -t "$session" 2>/dev/null || die "no such session: $arg"
+    # best-effort: clear the matching heartbeat by reading its AGENT_ID off the board
+    local sf aid
+    for sf in "$ROOT"/_WORK_/agent-bus/status/*.tsv; do
+        [ -f "$sf" ] || continue
+        local e i a p s pid h n; IFS=$'\t' read -r e i a p s pid h n < "$sf" || continue
+        if [ "$h" = "$session" ]; then aid="$a"; break; fi
+    done
+    tmux kill-session -t "$session"
+    echo "agent-run: stopped session '$session'"
+    [ -n "${aid:-}" ] && AGENT_ID="$aid" "$ROOT/scripts/agent-bus" clear >/dev/null 2>&1 || true
+}
+
+# ---- arg parsing ----
+[ "$#" -ge 1 ] || { usage; exit 1; }
+case "$1" in
+    -h|--help) usage; exit 0 ;;
+    --list)    list_sessions; exit 0 ;;
+    --stop)    shift; [ "$#" -ge 1 ] || die "--stop needs <id|session>"; stop_session "$1"; exit 0 ;;
+esac
+
+release="$1"; shift
+client="claude"; name=""
+while [ "$#" -ge 1 ]; do
+    case "$1" in
+        --client) shift; client="${1:-}";;
+        --name)   shift; name="${1:-}";;
+        --)       shift; break;;
+        --*)      die "unknown option: $1";;
+        *)        break;;
+    esac
+    shift
+done
+# remaining "$@" = client args
+
+case "$client" in claude|opencode|shell) ;; *) die "unknown --client '$client' (claude|opencode|shell)";; esac
+
+have_tmux
+rel_full="xserver-${release#xserver-}"
+rel_short="${rel_full#xserver-}"
+[ -f "$ROOT/cf/$rel_full/config.sh" ] || die "no such release '$release' (missing cf/$rel_full/config.sh)"
+
+AGENT_ID="${name:-${rel_short}-${client}}"
+session="$(tmux_safe "${SESS_PREFIX}${AGENT_ID}")"
+tmux has-session -t "$session" 2>/dev/null && \
+    die "session '$session' already running — attach with: scripts/agent-attach $AGENT_ID   (or use --name for a second one)"
+
+# Build the program to exec inside tmux.
+case "$client" in
+    claude)   prog=(claude) ;;
+    opencode) prog=("./run-opencode.${rel_full}") ;;   # wrapper sources config.sh + sets its own heartbeat
+    shell)    prog=("${SHELL:-bash}") ;;
+esac
+prog+=("$@")
+
+# Inner command string: set identity + release env, then exec the client.
+inner="export AGENT_ID=$(printf '%q' "$AGENT_ID") AGENT_HANDLE=$(printf '%q' "$session"); "
+inner+=". cf/$(printf '%q' "$rel_full")/config.sh; export XLIBRE_RELEASE; "
+inner+="exec"
+for a in "${prog[@]}"; do inner+=" $(printf '%q' "$a")"; done
+
+tmux new-session -d -s "$session" -c "$ROOT" bash -lc "$inner"
+
+# Initial heartbeat so the board shows it immediately (the client's own
+# hook/wrapper will refresh it to 'idle' once it's up).
+AGENT_ID="$AGENT_ID" AGENT_HANDLE="$session" XLIBRE_RELEASE="$rel_full" \
+    "$ROOT/scripts/agent-bus" status starting "launched via agent-run ($client)" >/dev/null 2>&1 || true
+
+cat <<EOF
+agent-run: launched '$AGENT_ID' ($client, $rel_full) detached.
+  tmux session : $session
+  attach       : scripts/agent-attach $AGENT_ID
+  view-only    : scripts/agent-attach --read-only $AGENT_ID
+  board        : scripts/agent-bus board
+  stop         : scripts/agent-run --stop $AGENT_ID
+EOF
