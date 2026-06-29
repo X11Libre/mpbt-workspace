@@ -1,0 +1,72 @@
+#!/usr/bin/env bash
+#
+# agent-attach — connect a controller to a detached agent session (launched via
+# scripts/agent-run). Multiple controllers can attach to the SAME agent at once
+# (tmux multi-attach): everyone sees and drives the same live session. Detach
+# again with the tmux key (default Ctrl-b d) — the agent keeps running.
+#
+# Usage:
+#   agent-attach <id|session|partial>   attach (shared view — all clients share size)
+#   agent-attach --read-only <id>       attach view-only (can watch, can't type)
+#   agent-attach --independent <id>     own view/window-size (grouped session)
+#   agent-attach --list                 list attachable sessions + the board
+#
+# <id> matches an AGENT_ID or attach handle from `scripts/agent-bus board`, the
+# tmux session name, or any unique substring of a running mpbt session.
+set -euo pipefail
+
+ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+SESS_PREFIX="mpbt-"
+
+usage() { sed -n '2,/^set -euo/p' "$0" | sed 's/^# \{0,1\}//; /^set -euo/d'; }
+die()   { echo "agent-attach: $*" >&2; exit 1; }
+command -v tmux >/dev/null 2>&1 || die "tmux not found — install it (e.g. 'sudo apt install tmux')."
+tmux_safe() { printf '%s' "$1" | tr -c 'A-Za-z0-9_-' '_'; }
+
+mode="shared"
+[ "$#" -ge 1 ] || { usage; exit 1; }
+case "$1" in
+    -h|--help)      usage; exit 0 ;;
+    --list)         echo "== attachable mpbt sessions =="; tmux ls 2>/dev/null | grep "^${SESS_PREFIX}" || echo "(none)";
+                    echo; echo "== agent-bus board =="; "$ROOT/scripts/agent-bus" board; exit 0 ;;
+    --read-only)    mode="ro";  shift ;;
+    --independent)  mode="ind"; shift ;;
+    --*)            die "unknown option: $1" ;;
+esac
+[ "$#" -ge 1 ] || die "need <id|session>"
+arg="$1"
+
+# Resolve to a concrete tmux session.
+resolve() {
+    # 1) exact tmux session
+    tmux has-session -t "$arg" 2>/dev/null && { echo "$arg"; return; }
+    # 2) sanitized "mpbt-<id>"
+    local s; s="$(tmux_safe "${SESS_PREFIX}${arg}")"
+    tmux has-session -t "$s" 2>/dev/null && { echo "$s"; return; }
+    # 3) board lookup: AGENT_ID or handle matches arg
+    local sf e i a p st pid h n
+    for sf in "$ROOT"/_WORK_/agent-bus/status/*.tsv; do
+        [ -f "$sf" ] || continue
+        IFS=$'\t' read -r e i a p st pid h n < "$sf" || continue
+        if [ "$a" = "$arg" ] || [ "$h" = "$arg" ]; then
+            [ -n "$h" ] && tmux has-session -t "$h" 2>/dev/null && { echo "$h"; return; }
+        fi
+    done
+    # 4) unique substring of a running mpbt session
+    local matches; matches="$(tmux ls -F '#{session_name}' 2>/dev/null | grep "^${SESS_PREFIX}" | grep -F "$arg" || true)"
+    local cnt; cnt="$(printf '%s\n' "$matches" | grep -c . || true)"
+    if [ "$cnt" = 1 ]; then echo "$matches"; return; fi
+    [ "$cnt" -gt 1 ] && die "ambiguous '$arg' — matches:"$'\n'"$matches"
+    return 1
+}
+
+session="$(resolve)" || die "no running session matches '$arg' (try: scripts/agent-attach --list)"
+
+[ -t 1 ] || die "not a terminal — attach from an interactive shell (controllers are humans/TTYs, not the agent tool)."
+
+echo "agent-attach: attaching to '$session' (mode: $mode). Detach with Ctrl-b d; the agent keeps running."
+case "$mode" in
+    shared) exec tmux attach -t "$session" ;;
+    ro)     exec tmux attach -r -t "$session" ;;
+    ind)    exec tmux new-session -t "$session" -s "${session}-view-$$" ;;
+esac

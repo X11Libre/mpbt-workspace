@@ -103,8 +103,13 @@ do_status() {  # <state> [note]
     [ -n "$state" ] || { echo "agent-bus: status needs a <state> (e.g. working|building|blocked|idle|done)" >&2; exit 2; }
     warn_id
     lock_bus
+    # IFS=$'\t' read coalesces adjacent tabs (tab is IFS-whitespace), so an EMPTY
+    # mid-line field would be swallowed and shift later fields. Store "-" for
+    # empty project/handle (only the trailing note may be empty). Board renders
+    # "-" the same as it would an empty value.
+    local pp hh; pp="$(clean "$PROJECT")"; [ -n "$pp" ] || pp="-"; hh="$(clean "$HANDLE")"; [ -n "$hh" ] || hh="-"
     printf '%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n' \
-        "$(now)" "$(isots)" "$AGENT_ID" "$(clean "$PROJECT")" "$(clean "$state")" "$$" "$(clean "$HANDLE")" "$(clean "$note")" > "$(sfile "$AGENT_ID")"
+        "$(now)" "$(isots)" "$AGENT_ID" "$pp" "$(clean "$state")" "$$" "$hh" "$(clean "$note")" > "$(sfile "$AGENT_ID")"
     log_event status "$state ${PROJECT:+[$PROJECT] }$note"
     echo "agent-bus: '$AGENT_ID'${PROJECT:+ ($PROJECT)} → $state${note:+ — $note}"
 }

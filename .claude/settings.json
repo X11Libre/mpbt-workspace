@@ -1,8 +1,12 @@
 {
   "permissions": {
     "allow": [
+      "Bash(scripts/agent-attach)",
+      "Bash(scripts/agent-attach *)",
       "Bash(scripts/agent-bus)",
       "Bash(scripts/agent-bus *)",
+      "Bash(scripts/agent-run)",
+      "Bash(scripts/agent-run *)",
       "Bash(scripts/backport-applies)",
       "Bash(scripts/backport-applies *)",
       "Bash(scripts/backport-commit)",
