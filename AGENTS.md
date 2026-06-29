@@ -55,6 +55,7 @@ cleared:
 | `scripts/pr-checkout <pr#> [name]` | **repair an open master PR**: isolated agent clone + check out the PR's head branch, ready to edit (prints the clone dir) — pairs with `pr-amend-push` |
 | `scripts/pr-amend-push <clone-dir> [files...]` | fold edits into the PR's commit (`--amend --no-edit`, keeps message + `Signed-off-by`) and `--force-with-lease` back to the PR branch |
 | `scripts/pr-claim <pr#> ["what"]` \| `--list` \| `--release <pr#>` \| `--steal <pr#>` | **advisory cross-agent PR lock + work log** so multiple agents don't collide on the same PR (each has its own clone, but they share one GitHub PR branch). Claim a PR before mutating it; `--list` is the shared "who's working on what" log. Keyed by PR#, `flock`-serialized, stale after `$CLAIM_TTL` (1h). Set a unique `$AGENT_ID` per agent. See Concurrency |
+| `scripts/agent-bus status <state> ["note"]` \| `board` \| `inbox` \| `ack <id>` \| `tell <agent> <text>` \| `broadcast <text>` | **cross-session control plane** (status heartbeats + directives) so one control agent ("1st officer") can see and steer many independent sessions without terminal-hopping. Workers `status`/`inbox`/`ack`; the controller reads `board` and posts `tell`/`broadcast`. File-based + `flock`-serialized under `_WORK_/agent-bus/` (gitignored), heartbeats stale after `$BUS_TTL` (15m). Set a unique `$AGENT_ID`; `$XLIBRE_RELEASE` is the default project column. Sibling of `pr-claim` (that = PR-branch ownership; this = who's-doing-what + steering). See Concurrency |
 | `scripts/fetch-nvidia-drivers [version ...]` | download proprietary NVIDIA `.run` installers and extract the X-server modules (no install) for ABI checks |
 | `scripts/list-nvidia-versions [--per-branch]` | enumerate NVIDIA driver versions on the mirror (all, or latest-per-branch) |
 | `scripts/fetch-all-nvidia-drivers [--every]` | fetch+extract many versions (default: latest of each branch; `--every` = all 500+), pruning `.run`s |
@@ -107,6 +108,7 @@ Only xserver uses meson. Solution files set `meson-extra-args` per-package.
 - **pkg-config & aclocal paths** are set per-solution in `devuan.yaml` `env:` — they point into the install prefix.
 - **Tags are namespaced per remote** (e.g., `refs/tags/origin/*`, `refs/tags/xorg/*`). Repos use `tagopt: --no-tags` to prevent tag clutter; tags are fetched manually.
 - **Xserver meson flags** vary by release (see devuan.yaml `package-config:`), generally include `-Dxephyr=true`, `-Dxnest=true`, `-Dxvfb=true`, `-Dxorg=true`, `-Dxf86-input-inputtest=true`, `-Dtest_xephyr_gles=false`.
+- **XLibre has removed server regeneration (no internal reset).** `dix/main.c` runs the init sequence **once**, calls `Dispatch()`, then tears down and `return 0` — there is no regeneration loop, `serverGeneration` does not appear in `main()`, and `-noreset` is explicitly *"removed in XLibre"* (`os/utils.c`). Consequence for review: the old XFree86 `if (xxxGeneration != serverGeneration) { … }` re-init guards are now **vestigial**, and process-lifetime statics used as once-only init flags are **safe** (no second generation to reset them for). This is why dropping such guards (PR #1455) is correct on master — but **NOT** automatically safe to backport to a release line that may still regenerate.
 
 ## PR workflow (`scripts/xx-make-pr.sh`)
 
@@ -253,6 +255,35 @@ work in a dedicated agent clone, never the user's hand-edited sources tree.
    Solaris while every Ubuntu/macOS/etc. job is green). These are fresh-run flakes, so a single
    `gh run rerun <run-id> --failed` usually clears them. Add to the known-flake set alongside the
    `libxcb-util`/HTTP-502 mirror clone.
+
+   **Two more known flakes in the `xserver-build-*` *test* phase (both `Fail: 0`, so not real):**
+   - **`xserver:xephyr-glamor / XTS  TIMEOUT 1200s … killed by signal 15`** — a loaded-runner
+     timeout, *not* a code failure. Tell it apart from a real XTS failure by the summary showing
+     `Timeout: 1` / `Fail: 0` (vs a genuine `Fail: N` / `Caught signal 11`). The *same* suite often
+     passes in ~137s in a parallel run on the same head, which proves it's infra. Note GitHub
+     sometimes schedules **two parallel "Build X servers" runs on one head**; one can flake (XTS
+     timeout) while the other is fully green, and `statusCheckRollup` surfaces the failing one —
+     check whether a sibling run of the same SHA already passed before assuming breakage.
+   - **`go-xts` `panic: send on closed channel`** (e.g. `TestXSettingsWatch`) — a race in the
+     **go-x11proto client** (`proto/core/conn.go`: `eventCh`/`errorCh` closed by `Close()` while
+     `readLoop` was still sending). **Fixed in go-x11proto v0.0.4.** The xserver CI pins that
+     dependency in **`.github/scripts/conf.sh`** (`PKG_GOXPROTO_REF`) and
+     **`.github/workflows/build-xserver.yml`** (`GOXPROTO_REF`) — `install-prereq.sh` consumes the
+     var, so bump only those two literals to raise it (PR #3156 bumped v0.0.3→v0.0.4).
+
+   **Re-trigger trick when the run is too new/old to rerun *and* master hasn't moved.** Rebasing
+   only re-triggers if it produces a new head SHA; when the PR is already on the current tip (or
+   stacked and you must keep the base), force a fresh SHA with an empty
+   `git commit --amend --no-edit --date=now` then `push --force-with-lease`. Same content, new SHA,
+   CI re-runs. (Used to clear the XTS-timeout flake on #1455 and #696.)
+
+   **Stacked PRs when one depends on an unmerged fix.** If PR-B is only correct once PR-A's fix
+   lands (and a controlled run *proves* it — e.g. #1455 failed `xvinfo`/`XvBadPort` without #3154's
+   one-liner, passed with it), base PR-B's branch on PR-A's branch (it then carries A's commit until
+   A merges) and note the merge order in a comment. **After PR-A merges**, rebase PR-B onto
+   `origin/master`: git drops the now-duplicate commit by patch-id (`Warnung: zuvor angewendeten
+   Commit … übersprungen`), leaving PR-B's own commit alone. The two changes must touch **disjoint**
+   regions for the textual rebase to stay clean either way.
 
 2. **Check out the PR branch in an isolated clone:** `scripts/pr-checkout <pr#>` → makes/refreshes
    `_WORK_/xserver-master/agent/repair/xserver`, checks out the PR's head branch, prints the
@@ -488,6 +519,52 @@ scripts/pr-claim --release <pr#>         # when done (or --release-all at sessio
 - **Read-only review needs no claim** — only mutation (pushing to the branch) does.
 - Pushing to **distinct** branches never conflicts, so across *different* PRs / release lines you
   still parallelize freely; the claim is only about the shared branch of one PR.
+
+### Central control plane — one agent monitors/steers the others (`scripts/agent-bus`)
+
+`pr-claim` coordinates *ownership of one PR branch*; `agent-bus` is the broader **control
+plane** so a single control agent (a "1st officer") — or a future dashboard / voice UI / MCP bus —
+can see what every independent session is doing and steer it, instead of switching between many
+terminals. Same model as everything else here: no process talks to another directly; all parties
+read/write the same gitignored files (`_WORK_/agent-bus/`, `flock`-serialized), so it works across
+**totally independent** `claude` (or human) sessions, not just spawned subagents. Pull-based and
+advisory — workers must poll their `inbox`; nothing forces a session to act.
+
+- **Worker session** (one per release line / task): set a unique `$AGENT_ID`, then
+  `agent-bus status <state> ["note"]` to report/refresh a heartbeat (states are free text:
+  `working|building|reviewing|blocked|idle|done`); `$XLIBRE_RELEASE` auto-fills the project column.
+  Check `agent-bus inbox` for directives addressed to you or to all, and `agent-bus ack <id>` when
+  handled. `agent-bus clear` on exit.
+- **Control agent** (`AGENT_ID=control` by convention): `agent-bus board` (the default no-arg
+  command) is the whole-fleet view — every agent, project, state, heartbeat age, unacked-inbox
+  count, note, `[STALE]` past `$BUS_TTL` (15m). Steer with `agent-bus tell <agent> <text…>` (one
+  agent) or `agent-bus broadcast <text…>` (all); `agent-bus msgs` shows directives + ack counts,
+  `agent-bus events` the audit trail, `agent-bus prune` reaps stale heartbeats + fully-acked old
+  directives.
+
+**Heartbeats are auto-reported — both session types register on the `board` without a manual call:**
+- **Claude Code** via checked-in `.claude/settings.json` hooks: `SessionStart`
+  (`agent-bus status idle "session started"`) and `SessionEnd` (`agent-bus clear`), invoked as
+  `"$CLAUDE_PROJECT_DIR"/scripts/agent-bus …` (cwd-independent, `… || true` so they never block a
+  session).
+- **opencode** via the `run-opencode.xserver-*` wrappers: each exports a per-session
+  `AGENT_ID=${XLIBRE_RELEASE#xserver-}-$$` (release + PID, unless already set) and runs
+  `agent-bus status idle "opencode session"` just before `exec opencode`. opencode does **not** fire
+  Claude Code's hooks, so there's no auto-`clear` on exit (`exec` also rules out a cleanup `trap`) —
+  the heartbeat is reaped by the `$BUS_TTL` staleness (15m) / `agent-bus prune`.
+
+Agents still call `agent-bus status <state>` to report *what* they're doing as it changes; the
+auto-heartbeat only registers presence. **Caveat:** the Claude Code hook inherits the session's env
+and identity falls back to `user@host` when `$AGENT_ID` is unset — so for a plain `claude` session
+(not launched via a wrapper) **export a unique `$AGENT_ID`** (and `$XLIBRE_RELEASE` for the project
+column) first, or all same-host sessions collapse to one board row and a `SessionEnd` in any one
+clears it for all. (The `run-opencode.*` wrappers already set both.)
+
+**Roadmap (not built yet):** the file layout is deliberately the data layer a richer controller can
+sit on unchanged — a `watch`/TUI dashboard tailing `status/` + `msgs/`, or an **MCP server in
+HTTP/SSE mode** (runs as a daemon, serves many independent sessions at once, needs no Claude key,
+carries its own creds for any external access) acting as a push message-bus instead of file polling.
+Start with the files; promote to MCP when polling latency or multi-host reach demands it.
 
 **Preferred: agents work in their own dedicated clones.** Agents/automation must NOT do backport
 work in the user's hand-edited `sources/xlibre/xserver` clone. Instead create an agent-owned clone:

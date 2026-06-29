@@ -1,0 +1,224 @@
+#!/usr/bin/env bash
+#
+# agent-bus — file-based status + directive bus for coordinating many
+# independent agent sessions (one per release line / project / task).
+#
+# Sibling of pr-claim: that one guards ownership of a single GitHub PR branch;
+# THIS one is the cross-session control plane — every session reports what it's
+# doing (heartbeat), and a control agent ("1st officer") sees the whole board
+# and steers the others with directives. No process talks to another directly;
+# everyone reads/writes the same gitignored files, so it works across totally
+# independent `claude` (or human) sessions on the same host/checkout, and is the
+# data layer a future dashboard / voice UI / MCP bus can sit on top of unchanged.
+#
+# ADVISORY / pull-based: it coordinates actors that also use agent-bus. Workers
+# poll their `inbox`; the control agent reads the `board` and posts directives.
+# Nothing here can force a session to act — it surfaces state and intent.
+#
+# Worker session (each release line / task):
+#   agent-bus status <state> ["note"]   report/refresh my heartbeat
+#                                        state: idle|working|building|reviewing|blocked|done|…
+#   agent-bus inbox                      directives addressed to me or to all, unacked
+#   agent-bus ack <id> ["note"]          mark a directive handled
+#   agent-bus clear                      drop my heartbeat (session end)
+#
+# Control agent ("1st officer") / dashboard:
+#   agent-bus board                      the whole board: every agent, state, age, inbox, note
+#   agent-bus tell <agent> <text…>       queue a directive for one agent
+#   agent-bus broadcast <text…>          queue a directive for ALL agents
+#   agent-bus msgs                       list all directives with ack status
+#   agent-bus events [N]                 tail the audit log (default 20)
+#   agent-bus prune                      drop stale heartbeats + fully-acked old directives
+#
+# Identity: $AGENT_ID — set a SHORT UNIQUE name per session (e.g.
+#   AGENT_ID=build-25.2). Without it, sessions share one identity and can't be
+#   told apart; the script warns when unset. $XLIBRE_RELEASE (if set) is the
+#   default project shown on the board.
+# Staleness: a heartbeat older than $BUS_TTL seconds (default 900) shows [STALE]
+#   on the board and is removed by `prune` — covers sessions that exited dirty.
+# Storage (gitignored): $BUS_DIR (default <workspace>/_WORK_/agent-bus/):
+#   status/<agent>.tsv heartbeats, msgs/<id>.tsv directives, acks/ markers,
+#   events.log append-only audit trail.
+set -euo pipefail
+
+ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+BUS_DIR="${BUS_DIR:-$ROOT/_WORK_/agent-bus}"
+BUS_TTL="${BUS_TTL:-900}"
+if [ -n "${AGENT_ID:-}" ]; then AGENT_ID_SET=1; else AGENT_ID_SET=0; fi
+AGENT_ID="${AGENT_ID:-$(id -un)@$(hostname -s 2>/dev/null || hostname 2>/dev/null || echo host)}"
+PROJECT="${XLIBRE_RELEASE:-${PROJECT:-}}"
+STATUS_DIR="$BUS_DIR/status"
+MSG_DIR="$BUS_DIR/msgs"
+ACK_DIR="$BUS_DIR/acks"
+EVENTS="$BUS_DIR/events.log"
+
+usage() { sed -n '2,/^set -euo/p' "$0" | sed 's/^# \{0,1\}//; /^set -euo/d'; }
+
+mkdir -p "$STATUS_DIR" "$MSG_DIR" "$ACK_DIR"
+
+now()    { date +%s; }
+isots()  { date -Is 2>/dev/null || date -u +%Y-%m-%dT%H:%M:%SZ; }
+clean()  { printf '%s' "${1:-}" | tr '\t\n' '  '; }
+fsafe()  { printf '%s' "$1" | tr -c 'A-Za-z0-9._-' '_'; }
+sfile()  { printf '%s/%s.tsv' "$STATUS_DIR" "$(fsafe "$1")"; }
+log_event() { printf '%s\t%s\t%s\t%s\n' "$(isots)" "$1" "$AGENT_ID" "$(clean "${2:-}")" >> "$EVENTS" 2>/dev/null || true; }
+lock_bus()  { exec 9>"$BUS_DIR/.lock"; flock 9; }
+stale()  { [ "$(( $(now) - ${1:-0} ))" -ge "$BUS_TTL" ]; }
+age()    { local s=$(( $(now) - ${1:-0} ));
+           if   [ "$s" -ge 3600 ]; then echo "$((s/3600))h$(((s%3600)/60))m";
+           elif [ "$s" -ge 60   ]; then echo "$((s/60))m";
+           else echo "${s}s"; fi; }
+warn_id() { [ "$AGENT_ID_SET" = 1 ] || echo "agent-bus: note: AGENT_ID not set; using '$AGENT_ID' — set a unique AGENT_ID per session." >&2; }
+
+# --- message ids: monotonic zero-padded sequence under the bus lock ----------
+next_id() {
+    local seq f n
+    f="$MSG_DIR/.seq"
+    n=0; [ -f "$f" ] && IFS= read -r n < "$f" 2>/dev/null || true
+    n=$((n + 1)); printf '%s\n' "$n" > "$f"
+    printf 'm%04d' "$n"
+}
+mfile()  { printf '%s/%s.tsv' "$MSG_DIR" "$1"; }
+ackmark() { printf '%s/%s__%s' "$ACK_DIR" "$1" "$(fsafe "$2")"; }  # <id> <agent>
+acked()  { [ -f "$(ackmark "$1" "$2")" ]; }
+
+# count unacked directives targeted at <agent> (explicit or broadcast "all")
+inbox_count() {  # <agent>
+    shopt -s nullglob
+    local agent="$1" f id tgt cnt=0 me te mf mt mtext
+    for f in "$MSG_DIR"/m*.tsv; do
+        IFS=$'\t' read -r me te mf mt mtext < "$f" || continue
+        id="$(basename "$f" .tsv)"
+        [ "$mt" = all ] || [ "$mt" = "$agent" ] || continue
+        acked "$id" "$agent" && continue
+        cnt=$((cnt + 1))
+    done
+    printf '%s' "$cnt"
+}
+
+# --- worker side -------------------------------------------------------------
+do_status() {  # <state> [note]
+    local state="${1:-}" note="${2:-}"
+    [ -n "$state" ] || { echo "agent-bus: status needs a <state> (e.g. working|building|blocked|idle|done)" >&2; exit 2; }
+    warn_id
+    lock_bus
+    printf '%s\t%s\t%s\t%s\t%s\t%s\t%s\n' \
+        "$(now)" "$(isots)" "$AGENT_ID" "$(clean "$PROJECT")" "$(clean "$state")" "$$" "$(clean "$note")" > "$(sfile "$AGENT_ID")"
+    log_event status "$state ${PROJECT:+[$PROJECT] }$note"
+    echo "agent-bus: '$AGENT_ID'${PROJECT:+ ($PROJECT)} → $state${note:+ — $note}"
+}
+
+do_clear() {
+    lock_bus
+    rm -f "$(sfile "$AGENT_ID")"; log_event clear ""
+    echo "agent-bus: cleared heartbeat for '$AGENT_ID'"
+}
+
+do_inbox() {  # directives for me or all, oldest first; show ack state
+    shopt -s nullglob
+    local f id me te mf mt mtext found=0
+    for f in "$MSG_DIR"/m*.tsv; do
+        IFS=$'\t' read -r me te mf mt mtext < "$f" || continue
+        id="$(basename "$f" .tsv)"
+        [ "$mt" = all ] || [ "$mt" = "$AGENT_ID" ] || continue
+        if [ "$found" = 0 ]; then printf '%-6s  %-7s  %-18s  %-4s  %s\n' ID AGE FROM ACK WHAT; found=1; fi
+        local a=" "; acked "$id" "$AGENT_ID" && a="✓"
+        printf '%-6s  %-7s  %-18s  %-4s  %s\n' "$id" "$(age "$me")" "$mf" "$a" "$mtext"
+    done
+    [ "$found" = 1 ] || echo "(inbox empty for '$AGENT_ID')"
+}
+
+do_ack() {  # <id> [note]
+    local id="${1:-}" note="${2:-}"
+    [ -n "$id" ] || { echo "agent-bus: ack needs <id> (see 'agent-bus inbox')" >&2; exit 2; }
+    [ -f "$(mfile "$id")" ] || { echo "agent-bus: no such directive '$id'" >&2; exit 2; }
+    lock_bus
+    : > "$(ackmark "$id" "$AGENT_ID")"
+    log_event ack "$id $note"
+    echo "agent-bus: '$AGENT_ID' acked $id${note:+ — $note}"
+}
+
+# --- control side ------------------------------------------------------------
+do_board() {
+    shopt -s nullglob
+    local f e i a p s pid n found=0
+    for f in "$STATUS_DIR"/*.tsv; do
+        if [ "$found" = 0 ]; then printf '%-18s  %-12s  %-10s  %-6s  %-5s  %s\n' AGENT PROJECT STATE AGE INBOX NOTE; found=1; fi
+        IFS=$'\t' read -r e i a p s pid n < "$f" || continue
+        local mark=""; stale "$e" && mark=" [STALE]"
+        printf '%-18s  %-12s  %-10s  %-6s  %-5s  %s%s\n' "$a" "${p:--}" "$s" "$(age "$e")" "$(inbox_count "$a")" "$n" "$mark"
+    done
+    [ "$found" = 1 ] || echo "(no agents reporting — none have run 'agent-bus status' yet)"
+}
+
+do_post() {  # <target> <text…>
+    local target="$1"; shift
+    local text; text="$(clean "$*")"
+    [ -n "$text" ] || { echo "agent-bus: directive needs text" >&2; exit 2; }
+    warn_id
+    lock_bus
+    local id; id="$(next_id)"
+    printf '%s\t%s\t%s\t%s\t%s\n' "$(now)" "$(isots)" "$AGENT_ID" "$target" "$text" > "$(mfile "$id")"
+    log_event directive "$id → $target: $text"
+    if [ "$target" = all ]; then echo "agent-bus: broadcast $id from '$AGENT_ID' → ALL: $text";
+    else echo "agent-bus: directive $id from '$AGENT_ID' → $target: $text"; fi
+}
+
+do_msgs() {
+    shopt -s nullglob
+    local f id me te mf mt mtext found=0
+    for f in "$MSG_DIR"/m*.tsv; do
+        IFS=$'\t' read -r me te mf mt mtext < "$f" || continue
+        id="$(basename "$f" .tsv)"
+        if [ "$found" = 0 ]; then printf '%-6s  %-7s  %-16s  %-12s  %-6s  %s\n' ID AGE FROM TARGET ACKS WHAT; found=1; fi
+        # count ack markers for this id
+        local nacks; nacks=$(find "$ACK_DIR" -name "${id}__*" 2>/dev/null | wc -l | tr -d ' ')
+        printf '%-6s  %-7s  %-16s  %-12s  %-6s  %s\n' "$id" "$(age "$me")" "$mf" "$mt" "$nacks" "$mtext"
+    done
+    [ "$found" = 1 ] || echo "(no directives)"
+}
+
+do_events() { local n="${1:-20}"; [ -f "$EVENTS" ] && tail -n "$n" "$EVENTS" || echo "(no events)"; }
+
+do_prune() {
+    shopt -s nullglob
+    lock_bus
+    local f e i a p s pid n cnt=0 id me te mf mt mtext mc=0
+    for f in "$STATUS_DIR"/*.tsv; do
+        IFS=$'\t' read -r e i a p s pid n < "$f" || continue
+        if stale "$e"; then rm -f "$f"; cnt=$((cnt + 1)); fi
+    done
+    # drop directives older than TTL that every reporting agent has acked
+    for f in "$MSG_DIR"/m*.tsv; do
+        IFS=$'\t' read -r me te mf mt mtext < "$f" || continue
+        id="$(basename "$f" .tsv)"
+        stale "$me" || continue
+        # any live (non-stale) recipient that hasn't acked? then keep
+        local keep=0 sf se si sa sp ss spid sn
+        for sf in "$STATUS_DIR"/*.tsv; do
+            IFS=$'\t' read -r se si sa sp ss spid sn < "$sf" || continue
+            [ "$mt" = all ] || [ "$mt" = "$sa" ] || continue
+            acked "$id" "$sa" || { keep=1; break; }
+        done
+        [ "$keep" = 0 ] && { rm -f "$f"; rm -f "$ACK_DIR/${id}__"*; mc=$((mc + 1)); }
+    done
+    log_event prune "$cnt stale heartbeats, $mc directives"
+    echo "agent-bus: pruned $cnt stale heartbeat(s), $mc spent directive(s)"
+}
+
+[ "$#" -ge 1 ] || { do_board; exit 0; }
+case "$1" in
+    -h|--help)        usage ;;
+    status)           shift; do_status "${1:-}" "${2:-}" ;;
+    clear)            do_clear ;;
+    inbox)            do_inbox ;;
+    ack)              shift; do_ack "${1:-}" "${2:-}" ;;
+    board|-l|--list)  do_board ;;
+    tell)             shift; [ "$#" -ge 2 ] || { echo "agent-bus: tell needs <agent> <text…>" >&2; exit 2; }; t="$1"; shift; do_post "$t" "$@" ;;
+    broadcast|--all)  shift; do_post all "$@" ;;
+    msgs|--msgs)      do_msgs ;;
+    events)           shift; do_events "${1:-20}" ;;
+    prune)            do_prune ;;
+    --*)              echo "agent-bus: unknown option: $1" >&2; exit 2 ;;
+    *)                echo "agent-bus: unknown command: $1 (try --help)" >&2; exit 2 ;;
+esac
