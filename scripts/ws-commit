@@ -1,0 +1,63 @@
+#!/usr/bin/env bash
+#
+# ws-commit — commit (and push) to the workspace repo atomically under the
+# with-clone-lock mutex, so concurrent agent sessions sharing this single
+# working tree don't race on the index / HEAD.
+#
+# The workspace repo (mpbt-workspace) is ONE checkout that many agent sessions
+# (and the human) mutate. Plain `git add && git commit` from two of them at once
+# corrupts each other's staging: it produced bundled commits (an agent's change
+# swept in another's staged WIP) under a mangled message. with-clone-lock is the
+# right primitive for that (it serializes mutations of a single working tree);
+# this wrapper is the convenient, enforced path so agents actually use it.
+#
+# ADVISORY: like with-clone-lock / pr-claim, it only serializes actors that also
+# go through it (or with-clone-lock). A raw `git commit` still bypasses it.
+#
+# Usage:
+#   ws-commit -m "<message>" <path> [<path>...]   add the given paths, commit, push
+#   ws-commit -m "<message>" -a                    add all tracked changes (git add -u)
+#   ws-commit --no-push -m "<message>" <path>      commit only, don't push
+#
+# Holds the lock for the whole add+commit+pull--rebase+push, so a concurrent
+# push landing between our commit and push is integrated race-free (we own the
+# lock; the rebase replays our commit on top, then we push).
+set -euo pipefail
+
+HERE="$(cd "$(dirname "$0")" && pwd)"
+
+# Re-exec under the per-working-tree lock (skipped once we already hold it).
+if [ -z "${WS_COMMIT_LOCKED:-}" ]; then
+    exec env WS_COMMIT_LOCKED=1 "$HERE/with-clone-lock" "$0" "$@"
+fi
+
+push=1
+msg=""
+paths=()
+while [ $# -gt 0 ]; do
+    case "$1" in
+        -m)        msg="${2:-}"; shift 2;;
+        --no-push) push=0; shift;;
+        -a|--all)  paths=(-u); shift;;
+        --)        shift; paths+=("$@"); break;;
+        -*)        echo "ws-commit: unknown option: $1" >&2; exit 2;;
+        *)         paths+=("$1"); shift;;
+    esac
+done
+
+[ -n "$msg" ]          || { echo "ws-commit: -m <message> is required" >&2; exit 2; }
+[ "${#paths[@]}" -gt 0 ] || { echo "ws-commit: no paths given (use -a for all tracked changes)" >&2; exit 2; }
+
+git add "${paths[@]}"
+if git diff --cached --quiet; then
+    echo "ws-commit: nothing staged — nothing to commit"
+    exit 0
+fi
+git commit -m "$msg"
+
+if [ "$push" = 1 ]; then
+    # We hold the lock, so integrating a concurrent push is race-free.
+    branch="$(git rev-parse --abbrev-ref HEAD)"
+    git pull --rebase --autostash origin "$branch" || true
+    git push origin "$branch"
+fi
