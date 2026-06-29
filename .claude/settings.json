@@ -1,6 +1,8 @@
 {
   "permissions": {
     "allow": [
+      "Bash(scripts/agent-bus)",
+      "Bash(scripts/agent-bus *)",
       "Bash(scripts/backport-applies)",
       "Bash(scripts/backport-applies *)",
       "Bash(scripts/backport-commit)",
@@ -49,6 +51,29 @@
       "Bash(gh run *)",
       "Bash(gh workflow *)",
       "Bash(gh issue *)"
+    ]
+  },
+  "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"$CLAUDE_PROJECT_DIR\"/scripts/agent-bus status idle \"session started\" >/dev/null 2>&1 || true",
+            "statusMessage": "agent-bus: heartbeat"
+          }
+        ]
+      }
+    ],
+    "SessionEnd": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"$CLAUDE_PROJECT_DIR\"/scripts/agent-bus clear >/dev/null 2>&1 || true"
+          }
+        ]
+      }
     ]
   }
 }
