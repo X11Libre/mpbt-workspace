@@ -55,7 +55,9 @@ cleared:
 | `scripts/pr-checkout <pr#> [name]` | **repair an open master PR**: isolated agent clone + check out the PR's head branch, ready to edit (prints the clone dir) — pairs with `pr-amend-push` |
 | `scripts/pr-amend-push <clone-dir> [files...]` | fold edits into the PR's commit (`--amend --no-edit`, keeps message + `Signed-off-by`) and `--force-with-lease` back to the PR branch |
 | `scripts/pr-claim <pr#> ["what"]` \| `--list` \| `--release <pr#>` \| `--steal <pr#>` | **advisory cross-agent PR lock + work log** so multiple agents don't collide on the same PR (each has its own clone, but they share one GitHub PR branch). Claim a PR before mutating it; `--list` is the shared "who's working on what" log. Keyed by PR#, `flock`-serialized, stale after `$CLAIM_TTL` (1h). Set a unique `$AGENT_ID` per agent. See Concurrency |
-| `scripts/agent-bus status <state> ["note"]` \| `board` \| `inbox` \| `ack <id>` \| `tell <agent> <text>` \| `broadcast <text>` | **cross-session control plane** (status heartbeats + directives) so one control agent ("1st officer") can see and steer many independent sessions without terminal-hopping. Workers `status`/`inbox`/`ack`; the controller reads `board` and posts `tell`/`broadcast`. File-based + `flock`-serialized under `_WORK_/agent-bus/` (gitignored), heartbeats stale after `$BUS_TTL` (15m). Set a unique `$AGENT_ID`; `$XLIBRE_RELEASE` is the default project column. Sibling of `pr-claim` (that = PR-branch ownership; this = who's-doing-what + steering). See Concurrency |
+| `scripts/agent-bus status <state> ["note"]` \| `board` \| `inbox` \| `ack <id>` \| `tell <agent> <text>` \| `broadcast <text>` | **cross-session control plane** (status heartbeats + directives) so one control agent ("1st officer") can see and steer many independent sessions without terminal-hopping. Workers `status`/`inbox`/`ack`; the controller reads `board` and posts `tell`/`broadcast`. File-based + `flock`-serialized under `_WORK_/agent-bus/` (gitignored), heartbeats stale after `$BUS_TTL` (15m). Set a unique `$AGENT_ID`; `$XLIBRE_RELEASE` is the default project column; `$AGENT_HANDLE` (set by `agent-run`) is the board's ATTACH column. Sibling of `pr-claim` (that = PR-branch ownership; this = who's-doing-what + steering). See Concurrency |
+| `scripts/agent-run <release> [--client claude\|opencode\|shell] [--name <id>] [-- <args>]` \| `--list` \| `--stop <id>` | **launch a session DETACHED in a named tmux session** so it survives terminal close / SSH disconnect and any number of controllers can attach. Works for any CLI (not just Claude). Registers the tmux session as the agent-bus `$AGENT_HANDLE` so it shows on the `board`. Needs `tmux`. See "Detaching sessions" in Concurrency |
+| `scripts/agent-attach <id\|session\|partial>` \| `--read-only` \| `--independent` \| `--list` | **connect a controller to a detached agent** (tmux multi-attach — many controllers, same live session). `--read-only` = watch-only; `--independent` = own window size (grouped session). Resolves `<id>` against the board / tmux session names. Detach with `Ctrl-b d` (agent keeps running) |
 | `scripts/fetch-nvidia-drivers [version ...]` | download proprietary NVIDIA `.run` installers and extract the X-server modules (no install) for ABI checks |
 | `scripts/list-nvidia-versions [--per-branch]` | enumerate NVIDIA driver versions on the mirror (all, or latest-per-branch) |
 | `scripts/fetch-all-nvidia-drivers [--every]` | fetch+extract many versions (default: latest of each branch; `--every` = all 500+), pruning `.run`s |
@@ -567,6 +569,39 @@ sit on unchanged — a `watch`/TUI dashboard tailing `status/` + `msgs/`, or an 
 HTTP/SSE mode** (runs as a daemon, serves many independent sessions at once, needs no Claude key,
 carries its own creds for any external access) acting as a push message-bus instead of file polling.
 Start with the files; promote to MCP when polling latency or multi-host reach demands it.
+
+### Detaching sessions + multi-controller access (`agent-run` / `agent-attach`, tmux)
+
+Goal: run agents detached from any terminal, and let an **arbitrary number of controller clients each
+reach every running agent** — fully self-hosted, no cloud, any CLI. The backend is **tmux**: the
+tmux server is a daemon, so a session survives terminal close / SSH disconnect, and multiple
+`tmux attach` to one session = multiple controllers driving the *same* live agent.
+
+- **Launch detached:** `scripts/agent-run <release> [--client claude|opencode|shell] [--name <id>] [-- <args>]`.
+  Starts the client in a `tmux` session named `mpbt-<AGENT_ID>`, exports `AGENT_ID` + `XLIBRE_RELEASE`
+  + `AGENT_HANDLE` (= the tmux session) into it, and writes an initial heartbeat — so it appears on
+  `agent-bus board` with its ATTACH handle immediately. `--list` shows running sessions + board;
+  `--stop <id>` kills one.
+- **Attach a controller:** `scripts/agent-attach <id>` (resolves `<id>` via the board / tmux names).
+  Run it from any terminal on the host (or over SSH) — as many as you like, concurrently.
+  `--read-only` watches without typing; `--independent` gives that controller its own window size
+  (a grouped session) instead of the shared-size default. `Ctrl-b d` detaches; the agent keeps running.
+- **Reach from another machine:** SSH into the host and run `agent-attach` there — tmux needs no
+  network service of its own. (For N remote controllers that's N SSH logins to the one host where
+  the agents run.)
+
+**Prereqs / caveats:**
+- **`tmux` must be installed** (`sudo apt install tmux`) — `agent-run`/`agent-attach` refuse with a
+  hint otherwise. It is the only added dependency.
+- Survives terminal close + SSH disconnect out of the box. To also survive a full **logout**
+  reliably, enable lingering once: `loginctl enable-linger "$USER"`. It does **not** survive reboot
+  (agents are in-flight conversations — just relaunch).
+- `agent-attach` execs `tmux attach`, which needs a real TTY — it's a human/controller command, not
+  something the agent tool itself runs (it errors when stdout isn't a terminal).
+- **Why not Claude Code's native Remote Control / agent-view?** Remote Control routes through
+  Anthropic's cloud (no self-hosted bridge) and only covers Claude Code sessions, not opencode — so
+  it fails the "self-hosted + every client" requirement. The background agent-view supervisor is
+  also Claude-only and same-host. tmux is the CLI-agnostic, self-hostable, multi-attach equivalent.
 
 **Preferred: agents work in their own dedicated clones.** Agents/automation must NOT do backport
 work in the user's hand-edited `sources/xlibre/xserver` clone. Instead create an agent-owned clone:
