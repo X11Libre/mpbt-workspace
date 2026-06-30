@@ -191,16 +191,22 @@ job per platform. Two non-obvious mechanisms:
     connect it to the `snprintf` bound). Fixed at source by checking the `snprintf` return value
     instead (#3176, `set_sun_path`), so the lane runs **`-Dwerror=true`** like the other Linux jobs.
 
-- **`-Dwerror=true` status per lane** (probe June 2026, run flipping the `werror=false` lanes). The
-  Linux jobs that build clean under werror keep it **on**: `ubuntu*`, `rhel` (after #3176),
-  **`solaris`** (probe: SUCCESS → can be tightened). Still pinned **`-Dwerror=false`** because they
-  trip *real* warnings under werror (fix the source first, then flip):
-  - **`gentoo`** — `test/bigreq/request-length.c:65` ignores `write()`'s return (`-Werror=unused-result`).
-  - **`openbsd`** — `os/client.c:170-172` unused vars `path`/`totsize`/`fd` (clang `-Wunused-variable`,
-    an OpenBSD-specific code path).
-  - **`alpine`** — warnings under musl/clang (cause not yet pinned down).
-  So `solaris` is the one freshly-tightenable lane; the other three need trivial source fixes before
-  their `-Dwerror=false` can be dropped.
+- **`-Dwerror=true` status per lane** (probe June 2026). Lanes build clean under werror and have it
+  **on**: `ubuntu*`, `rhel` (after #3176), and — after **#3196** — **`solaris`/`gentoo`/`openbsd`**.
+  That PR fixed the two real warnings the probe surfaced and flipped those three lanes:
+  - **`gentoo`** — `test/bigreq/request-length.c` ignored `write()`'s return (`-Werror=unused-result`);
+    now checked. (Its *old* `werror=false` reason, format-truncation in `set_sun_path`, was already
+    gone — fixed by #3176.)
+  - **`openbsd`** — `os/client.c` declared the `/proc` vars `path`/`totsize`/`fd` on OpenBSD too,
+    where the `kvm_getprocs` branch doesn't use them (clang `-Wunused-variable`); fixed by excluding
+    `__OpenBSD__` from the declaration guard.
+  - **`solaris`** — was already clean; just flipped.
+- **`alpine` is the one lane that stays `-Dwerror=false`, and it's *not* our bug to fix.** On musl,
+  libbsd's `<bsd/sys/cdefs.h>` pulls the system `<sys/cdefs.h>`, which emits a `#warning`
+  (*"usage of non-standard #include <sys/cdefs.h> is deprecated"*) that `-Werror` (`-Werror=cpp`)
+  turns fatal in **every** TU that uses libbsd (miinitext, gtf, present, vblank, …). It's a
+  musl/libbsd toolchain quirk, unfixable in-tree without suppressing the whole `cpp` warning class —
+  so the lane stays werror-off, documented inline in `build-xserver.yml`.
 
 ## PR workflow (`scripts/xx-make-pr.sh`)
 
