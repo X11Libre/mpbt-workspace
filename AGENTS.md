@@ -14,6 +14,12 @@ cleared:
   to establish — append it to the relevant section of `AGENTS.md` (and the topic docs like
   `NVIDIA-ABI.md`) **within the session**, not at the end. Session context is wiped on `/clear`;
   only what's written here survives. Prefer a concise durable note over re-deriving it next time.
+- **You may commit + push `AGENTS.md` directly, without asking, on the maintainer's `mtx/*`
+  workspace branches.** Standing grant from the maintainer: when you record a lesson or note in
+  `AGENTS.md` and the current workspace branch is `mtx/*`, commit and push it straightaway (use
+  `scripts/ws-commit -m <msg> AGENTS.md` so it goes through the `with-clone-lock` mutex). No
+  confirmation needed for `AGENTS.md` on those branches. (Other files / other branches still follow
+  the normal "ask before committing" rule.)
 - **Project knowledge lives in this repo, not in per-user agent memory.** Lessons, CI gotchas,
   failure modes, workflow quirks and PR-repair findings go into `AGENTS.md` or a topic doc
   (`NVIDIA-ABI.md`, `CI-GOXTS-XEPHYR.md`, …) — version-controlled and shared with the whole team
