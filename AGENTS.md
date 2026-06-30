@@ -408,6 +408,15 @@ so self-authored PRs are reviewed and recorded the same way). The `gh` CLI is au
 > Reviewing/labeling a release PR is fine — merging it from an agent is not. Auto-merge is only
 > ever acceptable on a `master` PR, and only when the user explicitly requests it.
 
+**Route hardware-touching PRs to the HW domain experts before merge.** Changes to the
+**modesetting** driver, **kdrive**, **xfbdev**, or the **xfree86 DDX bus/output/primary-device**
+paths should get a human review from **@cepelinas9000** and **@stefan11111** — the two contributors
+deepest into the HW side. **@stefan11111** is the **kdrive** expert and wrote **xfbdev**. For such a
+PR, request both as reviewers (`gh api --method POST repos/X11Libre/xserver/pulls/<pr#>/requested_reviewers
+-f 'reviewers[]=cepelinas9000' -f 'reviewers[]=stefan11111'`) and **do not auto-merge on a green
+bot-review + CI alone** — wait for an `APPROVED` review from one of them. (Seen on #3181,
+`xfree86: prefer boot_display over boot_vga`, a primary-device-selection behaviour change.)
+
 **Re-reviewing a `bot-review-changes-requested` PR: independently verify the prior finding — it can
 be wrong.** When re-visiting a PR that already carries a changes-requested label, don't trust the
 earlier verdict; re-derive it from the *current* code. Two distinct outcomes both require flipping
