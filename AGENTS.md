@@ -157,6 +157,26 @@ job per platform. Two non-obvious mechanisms:
     is **fatal**, the X protocol libs are **best-effort**; the baseline build is
     `-Dxvfb=true -Dxnest=true` with xorg/xephyr/glx/dri/udev/logind off (the parts
     that build on Hurd today). ~10.5 min total.
+  - **What builds on Hurd today (PR #3179 lean lane = Xvfb+Xnest; explored further
+    on `wip/hurd-ci` with a non-fatal physical-DDX stage).** Findings, each gap
+    surfaced by disabling the previous blocker:
+    | attempt | added flag | result / blocker |
+    |---|---|---|
+    | Xvfb + Xnest | — | **build green** (the lane's baseline) |
+    | `-Dxorg` (DRI on, auto) | — | `hw/xfree86/dri/dri.c` → libdrm `<drm.h>` → `mach/x86_64/ioccom.h` missing |
+    | ″ | `-Ddri1=false` | `glamor/glamor_egl.c` → `DRM_FORMAT_MOD_INVALID`/`glamor_dri3_info` |
+    | ″ | `-Dglamor=false` | `hw/kdrive/linux/linux.c` → `<linux/vt.h>` missing (from `-Dxfbdev`) |
+    | `-Dxorg` alone | `-Dxfbdev=false` | **xfree86 Xorg BUILDS** — `[509/573] Linking target hw/xfree86/Xorg` 🎉 |
+
+    Takeaways: the **xfree86 Xorg server compiles + links cleanly on GNU/Hurd**
+    (unaccelerated). The two hard blockers are **fundamental, not port bugs** —
+    DRI and glamor need a DRM kernel interface that Hurd does not have (no
+    `drm.h`/GBM/EGL-on-DRM), so `dri1/dri2/dri3` + `glamor` + `glx` must stay off.
+    The one **real** Hurd-port task surfaced is **kdrive `xfbdev`**: it builds
+    `hw/kdrive/linux` which needs Linux VTs (`<linux/vt.h>`) — Hurd would need its
+    own kdrive backend. The physical stage runs only on `wip/hurd-ci` (adds ~5 min);
+    keep #3179's mainline lane lean (Xvfb+Xnest) unless we want the Xorg-build
+    status tracked in mainline CI.
 
 ## PR workflow (`scripts/xx-make-pr.sh`)
 
