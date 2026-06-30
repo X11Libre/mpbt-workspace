@@ -32,6 +32,38 @@ die() {
     exit 1
 }
 
+# Retry a command through transient failures (e.g. sporadic gh API 401 "Bad
+# credentials" / 5xx). Retry chatter goes to stderr so stdout stays clean for
+# command substitution.
+gh_retry() {
+    local tries=0 max=5
+    until "$@"; do
+        tries=$((tries + 1))
+        [ "$tries" -ge "$max" ] && return 1
+        echo "$0: command failed (attempt $tries/$max), retrying in $((tries * 2))s: $*" >&2
+        sleep $((tries * 2))
+    done
+}
+
+# Create the PR, tolerating transient gh failures. The branch is already pushed
+# before this runs, so a single transient failure must NOT lose the work:
+# retry, and if a PR already exists for the branch (prior attempt / re-run),
+# treat that as success.
+create_pr() {
+    local tries=0 max=5
+    while true; do
+        gh pr create "$@" && return 0
+        if gh pr view "$BRANCH_NAME" --json url >/dev/null 2>&1; then
+            echo "$0: a PR already exists for $BRANCH_NAME, continuing." >&2
+            return 0
+        fi
+        tries=$((tries + 1))
+        [ "$tries" -ge "$max" ] && return 1
+        echo "$0: 'gh pr create' failed (attempt $tries/$max), retrying in $((tries * 3))s..." >&2
+        sleep $((tries * 3))
+    done
+}
+
 [ "$UPSTREAM_REMOTE" ] || die "missing git config entry: make-pr.upstream-remote"
 [ "$UPSTREAM_BRANCH" ] || die "missing git config entry: make-pr.upstream-branch"
 [ "$REVIEWERS"       ] || die "missing git config entry: make-pr.reviewers"
@@ -116,18 +148,21 @@ git push "$UPSTREAM_REMOTE" "$BRANCH_NAME"
 ### CREATE PR
 if [[ ${#COMMITS[@]} -eq 1 ]]; then
   TITLE="($UPSTREAM_BRANCH) $(git log -1 --pretty=format:"%s")"
-  gh pr create -a "@me" --fill --title "$TITLE" -B "$UPSTREAM_BRANCH" -H "$BRANCH_NAME" --reviewer "$REVIEWERS"
+  create_pr -a "@me" --fill --title "$TITLE" -B "$UPSTREAM_BRANCH" -H "$BRANCH_NAME" --reviewer "$REVIEWERS" \
+    || die "gh pr create failed after retries. Branch '$BRANCH_NAME' is already pushed — create the PR manually: gh pr create -B $UPSTREAM_BRANCH -H $BRANCH_NAME --reviewer $REVIEWERS"
 else
   TMP_FILE=$(mktemp)
   echo "# Pull Request description (edit below, lines starting with # are ignored)" > "$TMP_FILE"
   echo "" >> "$TMP_FILE"
   git log --format='%h %s' "${COMMITS[@]}" >> "$TMP_FILE"
   ${EDITOR:-vi} "$TMP_FILE"
-  gh pr create -a "@me" --title "($UPSTREAM_BRANCH) PR: ${COMMITS[*]}" --body-file "$TMP_FILE" -B "$UPSTREAM_BRANCH" -H "$BRANCH_NAME" --reviewer "$REVIEWERS"
+  create_pr -a "@me" --title "($UPSTREAM_BRANCH) PR: ${COMMITS[*]}" --body-file "$TMP_FILE" -B "$UPSTREAM_BRANCH" -H "$BRANCH_NAME" --reviewer "$REVIEWERS" \
+    || die "gh pr create failed after retries. Branch '$BRANCH_NAME' is already pushed — create the PR manually: gh pr create -B $UPSTREAM_BRANCH -H $BRANCH_NAME --reviewer $REVIEWERS"
   rm -f "$TMP_FILE"
 fi
 
-PR_URL=$(gh pr view --json url -q .url "$BRANCH_NAME")
+PR_URL=$(gh_retry gh pr view --json url -q .url "$BRANCH_NAME")
+[ -n "$PR_URL" ] || die "could not resolve PR URL for '$BRANCH_NAME' (gh pr view failed). The PR may exist; check: gh pr view $BRANCH_NAME"
 PR_NUMBER=$(echo "$PR_URL" | grep -o '[0-9]*$')
 
 ### HANDLE MARKERS
