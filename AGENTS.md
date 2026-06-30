@@ -178,6 +178,30 @@ job per platform. Two non-obvious mechanisms:
     keep #3179's mainline lane lean (Xvfb+Xnest) unless we want the Xorg-build
     status tracked in mainline CI.
 
+- **RHEL/AlmaLinux lane** (`xserver-build-rhel`, PR #3172). Matrix `rhelver: ['9','10']` on
+  `almalinux:9`/`:10` containers — AlmaLinux is an ABI-identical RHEL rebuild and stands in for
+  RHEL because the real UBI images can't enable **CRB** without an entitlement on public runners.
+  `install-pkg.sh` enables **EPEL + CRB** (most X `-devel` packages live in CRB), then `dnf`-installs
+  the deps. Two gotchas hit while adding it:
+  - **`xorg-x11-font-utils` does not exist on RHEL 9/10** (dropped, not in EPEL/CRB) — and it is
+    **not** a build dep (`meson.build` uses `dependency('fontutil', required: false)` with a
+    `$datadir/fonts/X11` fallback). Don't list it; it just aborts `dnf`.
+  - **RHEL 10's gcc 14 raised `-Werror=format-truncation`** in `os/Xtranssock.c` `set_sun_path()` —
+    a false positive (a manual length pre-check already prevented truncation, but GCC couldn't
+    connect it to the `snprintf` bound). Fixed at source by checking the `snprintf` return value
+    instead (#3176, `set_sun_path`), so the lane runs **`-Dwerror=true`** like the other Linux jobs.
+
+- **`-Dwerror=true` status per lane** (probe June 2026, run flipping the `werror=false` lanes). The
+  Linux jobs that build clean under werror keep it **on**: `ubuntu*`, `rhel` (after #3176),
+  **`solaris`** (probe: SUCCESS → can be tightened). Still pinned **`-Dwerror=false`** because they
+  trip *real* warnings under werror (fix the source first, then flip):
+  - **`gentoo`** — `test/bigreq/request-length.c:65` ignores `write()`'s return (`-Werror=unused-result`).
+  - **`openbsd`** — `os/client.c:170-172` unused vars `path`/`totsize`/`fd` (clang `-Wunused-variable`,
+    an OpenBSD-specific code path).
+  - **`alpine`** — warnings under musl/clang (cause not yet pinned down).
+  So `solaris` is the one freshly-tightenable lane; the other three need trivial source fixes before
+  their `-Dwerror=false` can be dropped.
+
 ## PR workflow (`scripts/xx-make-pr.sh`)
 
 Requires git config entries (these are automatically added by the run-fetch* scripts):
