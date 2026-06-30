@@ -113,6 +113,45 @@ Only xserver uses meson. Solution files set `meson-extra-args` per-package.
 - **Xserver meson flags** vary by release (see devuan.yaml `package-config:`), generally include `-Dxephyr=true`, `-Dxnest=true`, `-Dxvfb=true`, `-Dxorg=true`, `-Dxf86-input-inputtest=true`, `-Dtest_xephyr_gles=false`.
 - **XLibre has removed server regeneration (no internal reset).** `dix/main.c` runs the init sequence **once**, calls `Dispatch()`, then tears down and `return 0` — there is no regeneration loop, `serverGeneration` does not appear in `main()`, and `-noreset` is explicitly *"removed in XLibre"* (`os/utils.c`). Consequence for review: the old XFree86 `if (xxxGeneration != serverGeneration) { … }` re-init guards are now **vestigial**, and process-lifetime statics used as once-only init flags are **safe** (no second generation to reset them for). This is why dropping such guards (PR #1455) is correct on master — but **NOT** automatically safe to backport to a release line that may still regenerate.
 
+## CI platform lanes — Docker images + VM builds
+
+The `Build X servers` workflow (`.github/workflows/build-xserver.yml`) fans out one
+job per platform. Two non-obvious mechanisms:
+
+- **Content-addressed deps images (build-if-missing).** The gentoo and ubuntu base
+  images are built by in-pipeline jobs (`gentoo-deps-image`, `ubuntu-deps-image`)
+  whose **image tag is a sha256 of the image's build inputs** (Dockerfile + the
+  install scripts + `conf.sh`/`util.sh`); the job does a `docker manifest inspect`
+  and **only builds when that exact tag is missing**, else reuses (a few-second
+  check vs a ~15–22 min rebuild). `:latest` is moved only by master. The per-commit
+  SDK (`build-sdk-image`) builds `FROM` the content-hashed ubuntu base via the SDK
+  Dockerfile's `ARG BASE` + a `--build-arg BASE=…/xserver-ubuntu-build:<hash>`, so a
+  WIP branch's SDK is built on exactly the deps that branch defines (no staleness).
+  This replaced the standalone `gentoo-image.yml`/`ubuntu-deps-image.yml`/
+  `sdk-image.yml` (PR #3180), which rebuilt per-branch and let WIP branches consume a
+  stale master `:latest`. **Gotcha:** `ubuntu-deps-image`/`build-sdk-image`/
+  `drivers-build-ubuntu` are **abi-gated** (`if: abi_changed || tag`), so a
+  workflow-only PR **skips** them — the ubuntu/SDK chain is exercised only on a real
+  ABI-changing commit (gentoo is *not* abi-gated and always runs).
+
+- **GNU/Hurd has no vmactions VM — it's a hand-rolled QEMU boot** (`xserver-build-hurd`
+  → `.github/scripts/hurd/run-vm-build.sh`, PR #3179). Hard-won boot recipe:
+  - The amd64 Hurd image uses **rumpdisk** for SATA, so the disk MUST be attached via
+    **`-M q35` + an `ich9-ahci` AHCI controller** (`-device ich9-ahci` + `ide-hd
+    bus=ahci.0`). The default i440fx IDE disk yields an `ext2fs` I/O error and never
+    boots.
+  - **gnumach boots single-CPU only** — no `-smp`.
+  - GRUB + gnumach log to **VGA only**; patch `grub.cfg` to add a **serial console**
+    (`serial`/`terminal_*` + `console=com0` on the multiboot line) so the boot is
+    visible under `-nographic` (otherwise it looks like a silent hang).
+  - **`/dev/kvm` exists on GH runners but isn't accessible to the runner user** —
+    `sudo chmod 666 /dev/kvm` (fall back to `-accel tcg` if unavailable).
+  - **VM boot flakes transiently** → retry the boot up to 3×.
+  - In-VM (`run-xserver-build.sh`): the toolchain install (git/meson/ninja/pkg-config)
+    is **fatal**, the X protocol libs are **best-effort**; the baseline build is
+    `-Dxvfb=true -Dxnest=true` with xorg/xephyr/glx/dri/udev/logind off (the parts
+    that build on Hurd today). ~10.5 min total.
+
 ## PR workflow (`scripts/xx-make-pr.sh`)
 
 Requires git config entries (these are automatically added by the run-fetch* scripts):
@@ -125,6 +164,12 @@ Requires git config entries (these are automatically added by the run-fetch* scr
 ```
 
 The script cherry-picks commits onto a temp branch based on `$upstream_remote/$upstream_branch`, pushes, creates a PR (via `gh`), then rewrites commit messages with `[PR #NNNN]` prefix and `PR:` trailer, and rebases the incubator branch.
+
+**Commit-message trailer convention — `Signed-off-by` only, NEVER `Co-Authored-By`.** Commits in
+all these repos (xserver and the drivers) carry a `Signed-off-by:` trailer (kernel/X.org style)
+and nothing else. Do **not** append a `Co-Authored-By:` line (e.g. an AI co-author) — the
+maintainer does not want it in the history. This overrides any agent/harness default that says to
+add one. Use `git commit -s` (or write the `Signed-off-by` explicitly) and stop there.
 
 **The `[PR #NNNN]` prefix + `PR:` trailer belong ONLY on the incubator branch (`rfc/backport-*`) — never on the PR branch or the merged upstream commit.** The PR is pushed *before* the PR number exists, so the pushed/merged commit must keep its clean original message. Leak seen on master: PR #3162 merged 4 commits all prefixed `[PR #3162]`. Root cause — `xx-make-pr.sh` `DEFAULT_MODE="rebase"`: rebase mode runs the `[PR #N]` `sed` + `PR:` `--exec` rewrite against the **PR branch** `$BRANCH_NAME` (the head that gets merged), not just the incubator (the in-script comment even says *"markers added to PR branch"*). The clean `incubator` mode rewrites only the incubator, but it uses `git rebase -i` (interactive), which is unsupported in this environment — which is why the default was flipped to the contaminating `rebase` mode. **Until the script is fixed (apply the marker `--exec` to the *incubator* rebase only, leave `$BRANCH_NAME` untouched, and make that path non-interactive via `GIT_SEQUENCE_EDITOR=true`/no `-i`): before merging any `xx-make-pr.sh` PR, verify the PR head's subject line is clean (no `[PR #…]`).** A second leak vector: re-running `xx-make-pr.sh` on an incubator commit that is *already* prefixed re-cherry-picks the prefix onto the fresh PR branch — always submit the clean commit. (Already-merged prefixed commits are left as-is; no master history rewrite.)
 
@@ -408,6 +453,19 @@ maintainer.
 cannot be recompiled** — and *even old nvidia versions must keep working*. So the goal is to
 **preserve** the binary ABI, not to version a break: we cannot just bump a number and expect
 users to get a new blob. Treat anything that could change the binary ABI with great caution.
+
+**Scope — whose drivers actually constrain us.** Only two consumer sets matter for an ABI/API
+change: (1) the **current driver releases the xlibre project itself ships/builds** (the ~53
+in-tree-built `xf86-*` drivers — what CI's `drivers-build-ubuntu` matrix covers), which must keep
+building/working; and (2) the **proprietary nvidia blob**, which must keep loading (see this
+section). Arbitrary *completely external* drivers — out-of-tree, third-party, niche/BSD, anything
+outside the xlibre project and not nvidia — **do not constrain us** and are not a reason to hold
+back a change. Consequence for **macros/`#define`s** specifically: since nvidia is a binary blob
+(macros are compile-time, invisible to it) and the only source consumers we care about are those
+~53 driver releases, a header macro that none of them reference *by name* (grep the driver trees —
+see the servermd.h analysis) can be renamed/namespaced/removed **freely**, with no deprecation
+alias needed for hypothetical external users. (This does **not** relax the rules below for
+`_X_EXPORT`'ed symbols and public struct layout — those still bind because of nvidia.)
 
 What actually matters (ignore the rest):
 
