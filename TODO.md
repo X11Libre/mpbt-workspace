@@ -8,6 +8,7 @@ TODO
 - [ ] github CI: check apt-caching: the freebsd job still downloading lots of deb packages
 - [ ] github CI: alpine job runs in container --> doesn't need to wait for ubuntu-pkg job
 - [ ] github CI: PRs always trigger two duplicate pipelines (even when pushing into existing one)
+- [ ] github CI: give piglit a per-test timeout on the `xephyr-glamor / XTS` run (`test/scripts/xephyr-glamor-piglit.sh` -> `run-piglit.sh` passes no `-t`/timeout flag to piglit itself); right now a single wedged XTS subtest blocks silently until the whole-suite meson `timeout: 1200` in `test/meson.build` kills it, with zero progress output to identify which subtest hung. A real per-test timeout would fail fast with a subtest name instead. (found 2026-07-01 investigating a 64min/3-retries-exhausted CI hang on PR #3203, see DASHBOARD.md)
 - [ ] add script for setting up git object sharing between the xserver repos
 - [ ] add automatic build of a cygwin repo
 - [ ] check whether it's possible to run a real Xserver (xfree86 or Xfbdev) within the github CI.
