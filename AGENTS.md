@@ -941,5 +941,7 @@ None of these exist in this repo. The X Test Suite (xts) is a build target, not 
 ## File layout reminder
 
 - `.gitignore` only ignores `/_WORK_/`
-- Two git branches: `master` and `wip1`
+- One git branch: `master` (the `wip1` branch this once mentioned no longer exists — checked
+  `git branch -a` + `gh api repos/X11Libre/mpbt-workspace/branches`, 2026-07-01; agents work off
+  their own `mtx/*`/task branches instead)
 - Remote: `git@github.com:X11Libre/mpbt-workspace.git`
