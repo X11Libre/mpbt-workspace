@@ -922,6 +922,32 @@ round-trip contract** as the authority — the server's own *reader* for the sam
 `XkbPaddedSize(len+2)` → 4 bytes for an empty string) plus the *sizer* (`XkbSizeCountedString(NULL)
 == 4`) define the contract precisely. Reader + sizer + writer must agree.
 
+## Coding style (xserver source) — new code always braces if/while/for bodies
+
+**Always wrap `if`/`while`/`for`/`else` bodies in `{ }`, even a single-statement body — for
+*newly written or newly touched* code.** The existing tree is inconsistent (plenty of unbraced
+single-statement bodies, e.g. `os/Xtranssock.c`'s `set_sun_path()`: `if (!port || !*port || !path)`
+on one line, a tab-indented `return -1;` on the next, no braces) — that pre-existing code is **not**
+being mass-reformatted; the maintainer wants it converted successively over time, not in a
+drive-by. But anything an agent adds or edits from now on must brace every such body regardless of
+length. (Established 2026-07-01 while fixing PR #3199 — `os/Xtranssock.c`'s new
+`unix_socket_is_live()` and the `hostx.c` NULL-check fix were both corrected from an unbraced
+single-line body to a braced one per this rule.)
+
+Indentation inside a body — braced or not — still follows whatever the surrounding function already
+uses; in older files like `Xtranssock.c` that's a single **tab** per nesting level (mixed with
+4-space alignment for wrapped continuation lines), not 4 spaces. Match the immediate surrounding
+code, don't impose a new indent style along with the new braces.
+
+Brace *placement* (`if (...) {` same line vs. `if (...)\n{` own line) is genuinely mixed
+throughout the tree with no single dominant convention even within one file — match whichever
+style the immediately surrounding code already uses; either is acceptable for new code.
+
+This note lives here for now; consider promoting xserver-specific coding-style rules (this one and
+any future ones) to a dedicated document inside the xserver tree itself (e.g. `CODING_STYLE.md`)
+once there are enough of them to warrant it, rather than growing an unbounded style section in this
+workspace-level file.
+
 ## opencode session setup
 
 To work with this workspace via opencode, the user needs to:
