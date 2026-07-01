@@ -20,10 +20,16 @@
 #                                        state: idle|working|building|reviewing|blocked|done|…
 #   agent-bus inbox                      directives addressed to me or to all, unacked
 #   agent-bus ack <id> ["note"]          mark a directive handled
+#   agent-bus ask "<q>" [--to <ctrl>] [--timeout <secs>]
+#                                        ask the controller a question; BLOCKS
+#                                        (local file-poll, no API) until the
+#                                        reply lands, then prints the answer
 #   agent-bus clear                      drop my heartbeat (session end)
 #
 # Control agent ("1st officer") / dashboard:
 #   agent-bus board                      the whole board: every agent, state, age, inbox, note
+#   agent-bus asks                       pending questions addressed to me
+#   agent-bus reply <qid> <answer…>      answer a worker's question (routes back)
 #   agent-bus tell <agent> <text…>       queue a directive for one agent
 #   agent-bus broadcast <text…>          queue a directive for ALL agents
 #   agent-bus msgs                       list all directives with ack status
@@ -157,17 +163,92 @@ do_board() {
     [ "$found" = 1 ] || echo "(no agents reporting — none have run 'agent-bus status' yet)"
 }
 
+# _post <target> <text> — write a directive, echo its id (no human chatter)
+_post() {
+    lock_bus
+    local id; id="$(next_id)"
+    printf '%s\t%s\t%s\t%s\t%s\n' "$(now)" "$(isots)" "$AGENT_ID" "$1" "$2" > "$(mfile "$id")"
+    log_event directive "$id → $1: $2"
+    printf '%s' "$id"
+}
+
 do_post() {  # <target> <text…>
     local target="$1"; shift
     local text; text="$(clean "$*")"
     [ -n "$text" ] || { echo "agent-bus: directive needs text" >&2; exit 2; }
     warn_id
-    lock_bus
-    local id; id="$(next_id)"
-    printf '%s\t%s\t%s\t%s\t%s\n' "$(now)" "$(isots)" "$AGENT_ID" "$target" "$text" > "$(mfile "$id")"
-    log_event directive "$id → $target: $text"
+    local id; id="$(_post "$target" "$text")"
     if [ "$target" = all ]; then echo "agent-bus: broadcast $id from '$AGENT_ID' → ALL: $text";
     else echo "agent-bus: directive $id from '$AGENT_ID' → $target: $text"; fi
+}
+
+# --- ask / reply: a worker asks a question, the control agent (a human-attended
+# "1st officer" session, AGENT_ID=control by convention) answers, and the answer
+# routes back. Built on the directive channel: the question is a directive to the
+# controller tagged "[ask]"; the answer a directive back to the asker tagged
+# "[re <qid>]". The worker blocks locally (cheap file poll, no API) until the
+# reply lands — so you talk to one controller instead of every worker. ---
+CONTROLLER="${AGENT_CONTROLLER:-control}"
+
+do_ask() {  # <question…>  [--to <controller>] [--timeout <secs>]
+    local ctrl="$CONTROLLER" timeout=600 poll=5; local -a words=()
+    while [ "$#" -gt 0 ]; do
+        case "$1" in
+            --to)      ctrl="$2"; shift 2 ;;
+            --timeout) timeout="$2"; shift 2 ;;
+            *)         words+=("$1"); shift ;;
+        esac
+    done
+    local q; q="$(clean "${words[*]:-}")"
+    [ -n "$q" ] || { echo "agent-bus: ask needs a <question…>" >&2; exit 2; }
+    warn_id
+    local qid; qid="$(_post "$ctrl" "[ask] $q")"
+    echo "agent-bus: asked '$ctrl' ($qid) — waiting up to ${timeout}s for a reply…" >&2
+    local waited=0 f me te mf mt mtext id
+    while [ "$waited" -lt "$timeout" ]; do
+        shopt -s nullglob
+        for f in "$MSG_DIR"/m*.tsv; do
+            IFS=$'\t' read -r me te mf mt mtext < "$f" || continue
+            [ "$mt" = "$AGENT_ID" ] || continue
+            case "$mtext" in
+                "[re $qid] "*)
+                    id="$(basename "$f" .tsv)"; : > "$(ackmark "$id" "$AGENT_ID")"
+                    printf '%s\n' "${mtext#"[re $qid] "}"
+                    return 0 ;;
+            esac
+        done
+        sleep "$poll"; waited=$((waited + poll))
+    done
+    echo "agent-bus: no reply to $qid within ${timeout}s" >&2
+    return 3
+}
+
+do_reply() {  # <qid> <answer…>
+    local qid="$1"; shift
+    local ans; ans="$(clean "$*")"
+    { [ -n "$qid" ] && [ -n "$ans" ]; } || { echo "agent-bus: reply needs <qid> <answer…>" >&2; exit 2; }
+    local qf; qf="$(mfile "$qid")"
+    [ -f "$qf" ] || { echo "agent-bus: no such question '$qid'" >&2; exit 2; }
+    local me te mf mt mtext; IFS=$'\t' read -r me te mf mt mtext < "$qf"
+    warn_id
+    local rid; rid="$(_post "$mf" "[re $qid] $ans")"
+    : > "$(ackmark "$qid" "$AGENT_ID")"   # ack the question → leaves the controller's inbox
+    echo "agent-bus: replied to $qid (asker '$mf') via $rid"
+}
+
+do_asks() {  # controller view: pending questions addressed to me, unanswered
+    shopt -s nullglob
+    local f me te mf mt mtext id found=0
+    for f in "$MSG_DIR"/m*.tsv; do
+        IFS=$'\t' read -r me te mf mt mtext < "$f" || continue
+        [ "$mt" = "$AGENT_ID" ] || continue
+        case "$mtext" in "[ask] "*) ;; *) continue ;; esac
+        id="$(basename "$f" .tsv)"
+        acked "$id" "$AGENT_ID" && continue
+        [ "$found" = 0 ] && { printf '%-6s  %-7s  %-18s  %s\n' QID AGE FROM QUESTION; found=1; }
+        printf '%-6s  %-7s  %-18s  %s\n' "$id" "$(age "$me")" "$mf" "${mtext#"[ask] "}"
+    done
+    [ "$found" = 1 ] || echo "(no pending questions for '$AGENT_ID')"
 }
 
 do_msgs() {
@@ -222,6 +303,9 @@ case "$1" in
     board|-l|--list)  do_board ;;
     tell)             shift; [ "$#" -ge 2 ] || { echo "agent-bus: tell needs <agent> <text…>" >&2; exit 2; }; t="$1"; shift; do_post "$t" "$@" ;;
     broadcast|--all)  shift; do_post all "$@" ;;
+    ask)              shift; do_ask "$@" ;;
+    reply)            shift; [ "$#" -ge 2 ] || { echo "agent-bus: reply needs <qid> <answer…>" >&2; exit 2; }; qid="$1"; shift; do_reply "$qid" "$@" ;;
+    asks)             do_asks ;;
     msgs|--msgs)      do_msgs ;;
     events)           shift; do_events "${1:-20}" ;;
     prune)            do_prune ;;
