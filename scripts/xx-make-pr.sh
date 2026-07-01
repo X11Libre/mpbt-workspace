@@ -142,6 +142,12 @@ done
 # Rename to final branch
 git branch -M "$BRANCH_NAME"
 
+# Strip any incubator-only "[PR #N] " subject prefix that may have come in via
+# cherry-picking an already-marked incubator commit. The pushed (and therefore
+# merged) commits must stay clean — the prefix belongs only on the incubator and
+# is (re)added there further below. The "PR:" trailer is kept as provenance.
+git rebase "$UPSTREAM_REF" --exec 'git log -1 --format=%B | sed "1s/^\[PR #[0-9]*\] //" | git commit --amend -F -'
+
 # Push it to github
 git push "$UPSTREAM_REMOTE" "$BRANCH_NAME"
 
