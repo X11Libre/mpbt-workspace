@@ -5,7 +5,9 @@
 by default**, so — until PR #3202 — **no build, and no CI lane, ever compiled it**. Turning it on
 in CI immediately surfaced that the code has bit-rotted on every non-Linux platform.
 
-## Step 1 — make it build cleanly again (in progress)
+## Step 1 — make it build cleanly again ✅ (done)
+
+**Status:** #3202 **merged** (sysmacros + mingw fixes) — bigfont now builds on all lanes. The sysmacros removal also fixed the solaris `ARRAY_SIZE` clash (that header was the source). #3202 also flipped the meson default on; **#3205** restores it to **off** and instead enables bigfont only on the CI lanes (per maintainer: don't change meson defaults). `dix.h` `ARRAY_SIZE` guarded defensively by #3203.
 
 Enabling it by default (PR #3202, `xlibre/ci-build-bigfont`) is what exposes the breakage; the run
 is green on Linux (ubuntu/rhel/alpine/gentoo/arch, 71 jobs) and **red on 7 lanes**:
@@ -13,7 +15,7 @@ is green on Linux (ubuntu/rhel/alpine/gentoo/arch, 71 jobs) and **red on 7 lanes
 | Lanes | Error | Root cause | Fix | Backport? |
 |-------|-------|-----------|-----|-----------|
 | macos, freebsd, dragonfly, netbsd, openbsd | `xf86bigfont.c:49: 'sys/sysmacros.h' file not found` | Linux/glibc-only header, unguarded; **not actually used** (no `major()/minor()/makedev()`) | **drop the `#include`** | ✅ compile-break on release-CI'd BSD/macOS lanes → backport candidate |
-| solaris | `include/dix.h:68: "ARRAY_SIZE" redefined [-Werror]` | a Solaris system header (pulled in via bigfont's `sys/*` includes) already defines `ARRAY_SIZE`; `dix.h` defines it unconditionally | guard `dix.h`'s `ARRAY_SIZE` with `#ifndef` (core-header touch) | evaluate per release |
+| solaris | `include/dix.h:68: "ARRAY_SIZE" redefined` | it was `<sys/sysmacros.h>` (Solaris defines `ARRAY_SIZE` there) — **fixed by the same sysmacros removal**. `dix.h` also guarded defensively (#3203) | ✅ done | no release Solaris CI → n/a |
 | mingw32 | `geteuid`/`getegid` implicit decl (`xf86bigfont.c:281/282`) + `stuff_flags` set-but-unused (`:333`) | Windows has no real euid/gid; the calls are **not** under `CONFIG_MITSHM` | guard the euid/gid use (Win = stub) + fix the unused var | n/a (mingw not a release lane) |
 
 **Which platforms were already CI-supported in releases** (→ backport candidates for their fixes):
