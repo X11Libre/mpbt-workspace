@@ -45,6 +45,8 @@
       "Bash(scripts/show-pr-conflict *)",
       "Bash(scripts/with-clone-lock)",
       "Bash(scripts/with-clone-lock *)",
+      "Bash(scripts/ws-commit)",
+      "Bash(scripts/ws-commit *)",
       "Bash(scripts/xx-make-pr.sh)",
       "Bash(scripts/xx-make-pr.sh *)",
       "Bash(meson *)",
@@ -54,7 +56,19 @@
       "Bash(gh api *)",
       "Bash(gh run *)",
       "Bash(gh workflow *)",
-      "Bash(gh issue *)"
+      "Bash(gh issue *)",
+      "Read(AGENTS.md)",
+      "Read(**/AGENTS.md)",
+      "Read(DASHBOARD.md)",
+      "Read(**/DASHBOARD.md)",
+      "Edit(AGENTS.md)",
+      "Edit(**/AGENTS.md)",
+      "Edit(DASHBOARD.md)",
+      "Edit(**/DASHBOARD.md)",
+      "Write(AGENTS.md)",
+      "Write(**/AGENTS.md)",
+      "Write(DASHBOARD.md)",
+      "Write(**/DASHBOARD.md)"
     ]
   },
   "hooks": {
