@@ -753,7 +753,11 @@ advisory — workers must poll their `inbox`; nothing forces a session to act.
 - **Claude Code** via checked-in `.claude/settings.json` hooks: `SessionStart`
   (`agent-bus status idle "session started"`) and `SessionEnd` (`agent-bus clear`), invoked as
   `"$CLAUDE_PROJECT_DIR"/scripts/agent-bus …` (cwd-independent, `… || true` so they never block a
-  session).
+  session). `SessionStart` also launches **`scripts/agent-bus-watch`** (detached) and `SessionEnd`
+  stops it (`--stop`): a local, LLM-free poller that **notifies** (append to
+  `_WORK_/agent-bus/notify/<agent>.log` + best-effort `notify-send`) when a new directive for this
+  agent (or `all`) arrives. Notify-only for now — it does not act on/ack directives; it runs only
+  while a client session is open, so it costs nothing (no API) until mail actually lands.
 - **opencode** via the `run-opencode.xserver-*` wrappers: each exports a per-session
   `AGENT_ID=${XLIBRE_RELEASE#xserver-}-$$` (release + PID, unless already set) and runs
   `agent-bus status idle "opencode session"` just before `exec opencode`. opencode does **not** fire
@@ -778,11 +782,13 @@ cross-project agents this way when their work affects xserver CI (e.g. a go-x11p
 needed here). Same rule applies to `DASHBOARD.md`: a cross-repo theme is fine there if it has a
 concrete effect on this workspace's build/CI/tests.
 
-**Roadmap (not built yet):** the file layout is deliberately the data layer a richer controller can
-sit on unchanged — a `watch`/TUI dashboard tailing `status/` + `msgs/`, or an **MCP server in
-HTTP/SSE mode** (runs as a daemon, serves many independent sessions at once, needs no Claude key,
-carries its own creds for any external access) acting as a push message-bus instead of file polling.
-Start with the files; promote to MCP when polling latency or multi-host reach demands it.
+**Roadmap:** the file layout is deliberately the data layer a richer controller can sit on
+unchanged. A first `watch` step exists — `scripts/agent-bus-watch` (notify-only, per-session via
+the hooks above). Still open: a TUI dashboard tailing `status/` + `msgs/`, auto-handling of
+directives (watcher acts instead of only notifying — planned, on explicit request), and an **MCP
+server in HTTP/SSE mode** (runs as a daemon, serves many independent sessions at once, needs no
+Claude key, carries its own creds for any external access) acting as a push message-bus instead of
+file polling. Start with the files; promote to MCP when polling latency or multi-host reach demands it.
 
 ### Detaching sessions + multi-controller access (`agent-run` / `agent-attach`, tmux)
 
