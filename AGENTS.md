@@ -18,7 +18,14 @@ cleared:
   index.** `agent-bus`/`pr-claim` are TTL'd live-status (minutes/hours); nothing durable tracked
   *themes* until now, so half-started ideas got lost between sessions. When you start, pause, or
   finish a theme (an initiative spanning more than one PR, or a decision still pending), update its
-  row **in the same session** — same rationale as the lessons-learned rule above. Don't add
+  row **in the same session** — same rationale as the lessons-learned rule above.
+- **Notice something worth a look while doing unrelated work → add it to `DASHBOARD.md`'s
+  Parkplatz immediately, don't just mention it in the response and move on.** A suspicious code
+  path, a possible follow-up cleanup, an untriaged idea, a "this looks wrong but is out of scope
+  right now" — the moment you'd otherwise say it in passing and keep going, add a Parkplatz row
+  instead (one line: thema, where it was noticed — file/PR/commit, today's date, short why). This
+  is the main way `DASHBOARD.md` stays populated: most finds happen as a side effect of other work,
+  not during a dedicated triage pass. Don't add
   individual PRs or ephemeral status there; it links out to the detail doc/branch/PR instead of
   duplicating GitHub or `agent-bus`.
 - **You may commit + push `AGENTS.md` directly, without asking, on the maintainer's `mtx/*`
