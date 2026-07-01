@@ -743,6 +743,17 @@ and identity falls back to `user@host` when `$AGENT_ID` is unset — so for a pl
 column) first, or all same-host sessions collapse to one board row and a `SessionEnd` in any one
 clears it for all. (The `run-opencode.*` wrappers already set both.)
 
+**Cross-repo agents can join this board too, by the maintainer's direction.** `agent-bus`/
+`DASHBOARD.md` aren't limited to sessions rooted in this checkout — an agent working in a
+*sibling* repo the maintainer also maintains (e.g. **`go-x11proto`**, `/home/nekrad/src/xorg/go-x11`
+— the Go X11-protocol client library the `go-xts` CI suite is built on, see "go-x11proto pin
+sites" above) can register on this same board when told to, with its `$XLIBRE_RELEASE`/project
+column simply naming that other repo and `workdir:` pointing outside `_WORK_/`. Treat such an
+entry as legitimate coordination, not stray noise — the maintainer explicitly wires up
+cross-project agents this way when their work affects xserver CI (e.g. a go-x11proto version bump
+needed here). Same rule applies to `DASHBOARD.md`: a cross-repo theme is fine there if it has a
+concrete effect on this workspace's build/CI/tests.
+
 **Roadmap (not built yet):** the file layout is deliberately the data layer a richer controller can
 sit on unchanged — a `watch`/TUI dashboard tailing `status/` + `msgs/`, or an **MCP server in
 HTTP/SSE mode** (runs as a daemon, serves many independent sessions at once, needs no Claude key,
