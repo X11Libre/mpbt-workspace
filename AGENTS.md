@@ -42,6 +42,12 @@ cleared:
   authorized this way. Document the new script in the Key
   commands table. This is why `pr-job-logs`, `pr-checkout`, `pr-amend-push`, `show-branch-file`,
   `backport-applies`, etc. exist and are pre-authorized in `.claude/settings.json`.
+- **C booleans: use `bool` (`<stdbool.h>`), not Xlib's `Bool`.** The legacy `Bool`/`TRUE`/`FALSE`
+  typedef is being **phased out**. For any **newly introduced** boolean (variable, struct field,
+  return type), use C99 `bool`/`true`/`false` and `#include <stdbool.h>`. Don't do sweeping
+  `Bool`→`bool` churn in unrelated code, but prefer `bool` in new/rewritten code and when a change
+  already touches the declaration. (First applied: the `shmSupported` flag in the `xf86bigfont`
+  pagesize cleanup, PR #3201.)
 
 ## Key commands
 
