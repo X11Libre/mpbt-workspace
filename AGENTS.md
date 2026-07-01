@@ -275,6 +275,16 @@ add one. Use `git commit -s` (or write the `Signed-off-by` explicitly) and stop 
 
 **The `[PR #NNNN]` prefix + `PR:` trailer belong ONLY on the incubator branch (`rfc/backport-*`) — never on the PR branch or the merged upstream commit.** The PR is pushed *before* the PR number exists, so the pushed/merged commit must keep its clean original message. Leak seen on master: PR #3162 merged 4 commits all prefixed `[PR #3162]`. Root cause — `xx-make-pr.sh` `DEFAULT_MODE="rebase"`: rebase mode runs the `[PR #N]` `sed` + `PR:` `--exec` rewrite against the **PR branch** `$BRANCH_NAME` (the head that gets merged), not just the incubator (the in-script comment even says *"markers added to PR branch"*). The clean `incubator` mode rewrites only the incubator, but it uses `git rebase -i` (interactive), which is unsupported in this environment — which is why the default was flipped to the contaminating `rebase` mode. **Until the script is fixed (apply the marker `--exec` to the *incubator* rebase only, leave `$BRANCH_NAME` untouched, and make that path non-interactive via `GIT_SEQUENCE_EDITOR=true`/no `-i`): before merging any `xx-make-pr.sh` PR, verify the PR head's subject line is clean (no `[PR #…]`).** A second leak vector: re-running `xx-make-pr.sh` on an incubator commit that is *already* prefixed re-cherry-picks the prefix onto the fresh PR branch — always submit the clean commit. (Already-merged prefixed commits are left as-is; no master history rewrite.)
 
+**Always pass `xx-make-pr.sh` an explicit commit SHA — never the symbolic `HEAD`.** The script first
+`git checkout`s a fresh `tmp-pr/…` branch off `origin/<upstream-branch>`, *then* resolves the commit
+argument to cherry-pick. A literal `HEAD` therefore re-resolves to the just-checked-out temp branch's
+tip (= current `origin/master`), so it cherry-picks master's own tip onto itself — which conflicts /
+empties and bails with `Cherry-pick of HEAD failed`, leaving a half-done `tmp-pr/…` branch and a
+`CHERRY_PICK_HEAD` in progress. Recover with `git cherry-pick --abort`, `git checkout <your-branch>`,
+`git branch -D tmp-pr/…`, then re-run with the real SHA (`git rev-parse HEAD` first if unsure). (Hit
+2026-07-01 creating the CSRG_BASED-cleanup PR #3211 — passing `HEAD` grabbed the freshly-merged
+go-x11proto-bump commit instead.)
+
 **Cherry-pick conflict recovery (master moved under you).** The script `git fetch`es then cherry-picks
 onto a *fresh* `origin/<upstream-branch>` tip. If upstream advanced and touched the same region as
 your commit, the cherry-pick conflicts and the script bails, leaving a half-done `tmp-pr/…` branch.
