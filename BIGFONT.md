@@ -30,8 +30,8 @@ break is the clearest compile-break candidate.
 ## Related, already-open cleanups (separate PRs)
 - **#3201** `xlibre/bigfont-drop-pagesize` — drop the redundant SHM page-rounding + `pagesize`
   (removes the only `CSRG_BASED` user in the file); `pagesize==0` sentinel → `bool shmSupported`.
-- **`xlibre/bigfont-consolidate-cleanup`** (ready, not pushed) — drop the redundant
-  `XF86BigfontResetProc` (pure `ExtensionEntry` callback, redundant with `FreeAllResources` on
+- **`xlibre/bigfont-consolidate-cleanup`** (branch created, **commit not yet authored** — pending
+  maintainer OK on the approach) — drop the redundant `XF86BigfontResetProc` (pure `ExtensionEntry` callback, redundant with `FreeAllResources` on
   graceful exit and `AbortServer→XF86BigfontCleanup` on abort) → pass `NULL` reset proc. Do this
   **after** the build resurrection so it's CI-covered.
 
