@@ -67,6 +67,18 @@ cleared:
   `Bool`→`bool` churn in unrelated code, but prefer `bool` in new/rewritten code and when a change
   already touches the declaration. (First applied: the `shmSupported` flag in the `xf86bigfont`
   pagesize cleanup, PR #3201.)
+- **Bash cwd persists silently across tool calls — after `cd`-ing into a nested clone under
+  `_WORK_/` for one investigation, every later command in that session (including unrelated ones
+  like `apt-get source`, `stat`, `git status`) keeps running there until you explicitly `cd` back
+  or use absolute paths.** Bit twice in one session (2026-07-01): (1) it made an unrelated `git
+  status`/`stat` on `mpbt-workspace/DASHBOARD.md` fail and look like file corruption, when the real
+  cause was just running from inside an xserver agent clone; (2) `apt-get source libfontenc1` /
+  `libxfont2` — run for read-only upstream-source investigation, not meant to touch any repo — each
+  download into whatever the *current* cwd happens to be, once **inside the xserver clone itself**
+  (leaving stray `libfontenc-1.1.8/`, `.dsc`, `.orig.tar.gz` etc. as untracked files in a shared
+  clone) and once in the `mpbt-workspace` root. **Always `cd` into the scratchpad dir (or pass an
+  absolute output path) before any ad-hoc source/package fetch for investigation** — never rely on
+  "wherever cwd currently is" for a command whose output isn't meant to land in a repo.
 - **Opening URLs (e.g. PR links) in the maintainer's browser.** In an **interactive local session**
   the Bash tool shares the maintainer's desktop session (`DISPLAY` set, dbus reachable), so you can
   open a link in their running browser with a plain local command — handy for handing over a PR to
