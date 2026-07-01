@@ -118,6 +118,7 @@ Only xserver uses meson. Solution files set `meson-extra-args` per-package.
 - **Tags are namespaced per remote** (e.g., `refs/tags/origin/*`, `refs/tags/xorg/*`). Repos use `tagopt: --no-tags` to prevent tag clutter; tags are fetched manually.
 - **Xserver meson flags** vary by release (see devuan.yaml `package-config:`), generally include `-Dxephyr=true`, `-Dxnest=true`, `-Dxvfb=true`, `-Dxorg=true`, `-Dxf86-input-inputtest=true`, `-Dtest_xephyr_gles=false`.
 - **XLibre has removed server regeneration (no internal reset).** `dix/main.c` runs the init sequence **once**, calls `Dispatch()`, then tears down and `return 0` — there is no regeneration loop, `serverGeneration` does not appear in `main()`, and `-noreset` is explicitly *"removed in XLibre"* (`os/utils.c`). Consequence for review: the old XFree86 `if (xxxGeneration != serverGeneration) { … }` re-init guards are now **vestigial**, and process-lifetime statics used as once-only init flags are **safe** (no second generation to reset them for). This is why dropping such guards (PR #1455) is correct on master — but **NOT** automatically safe to backport to a release line that may still regenerate.
+- **A static lib linked into two loadable modules → duplicate symbols with per-copy statics.** The Xorg (xfree86) DDX loads code as separate `dlopen`'d modules, and a `static_library` can end up compiled into more than one of them: `libxserver_glx` (containing `Xext/glx/glxext.c`) goes into **`extensions/libglx.so`** via `link_whole:` *and* into **`libglamoregl.so`** via `link_with:` — the latter transitively, because the `glamor` lib's `glamor_egl.c` referenced `xorgGlxCreateVendor()`, dragging `glxext.c.o` in to resolve it. Result: on Xorg, `xorgGlxServerInit`/`xorgGlxCreateVendor` exist at **two addresses, each with its own file-scope `static` storage** — so a `static`-once guard in such a function silently fails to work (each copy has its own flag), and gdb shows two same-named functions. A **monolithic** server (kdrive `Xfbdev`, which links the archive once into the executable) doesn't have this. Diagnose with `nm <module>.so | grep <sym>` on each module. #3174 fixed the glx instance by removing the cross-reference (`glamor_egl.c` no longer calls `xorgGlxCreateVendor`), so `glxext.c.o` is no longer pulled into `libglamoregl.so`. Same family as the latent double-compile of `dpms.c` (the #3022 repair): watch for a source/object appearing in two link targets that are both loaded at once.
 
 ## CI platform lanes — Docker images + VM builds
 
@@ -154,29 +155,30 @@ job per platform. Two non-obvious mechanisms:
     `sudo chmod 666 /dev/kvm` (fall back to `-accel tcg` if unavailable).
   - **VM boot flakes transiently** → retry the boot up to 3×.
   - In-VM (`run-xserver-build.sh`): the toolchain install (git/meson/ninja/pkg-config)
-    is **fatal**, the X protocol libs are **best-effort**; the baseline build is
-    `-Dxvfb=true -Dxnest=true` with xorg/xephyr/glx/dri/udev/logind off (the parts
-    that build on Hurd today). ~10.5 min total.
-  - **What builds on Hurd today (PR #3179 lean lane = Xvfb+Xnest; explored further
-    on `wip/hurd-ci` with a non-fatal physical-DDX stage).** Findings, each gap
-    surfaced by disabling the previous blocker:
-    | attempt | added flag | result / blocker |
-    |---|---|---|
-    | Xvfb + Xnest | — | **build green** (the lane's baseline) |
-    | `-Dxorg` (DRI on, auto) | — | `hw/xfree86/dri/dri.c` → libdrm `<drm.h>` → `mach/x86_64/ioccom.h` missing |
-    | ″ | `-Ddri1=false` | `glamor/glamor_egl.c` → `DRM_FORMAT_MOD_INVALID`/`glamor_dri3_info` |
-    | ″ | `-Dglamor=false` | `hw/kdrive/linux/linux.c` → `<linux/vt.h>` missing (from `-Dxfbdev`) |
-    | `-Dxorg` alone | `-Dxfbdev=false` | **xfree86 Xorg BUILDS** — `[509/573] Linking target hw/xfree86/Xorg` 🎉 |
+    is **fatal**, the X protocol libs are **best-effort**. The lane now **fatally
+    builds every server that compiles on Hurd** in one meson run —
+    `-Dxvfb -Dxnest -Dxorg -Dxephyr -Dglx` — with `dri*`/`glamor`/`xfbdev`/`udev`/
+    `logind` off (PR #3193). ~12–13 min total.
+  - **What builds on Hurd today (final: PR #3179 added the lane, #3193 made it
+    build all five servers).** The gaps below were surfaced one at a time by
+    disabling the previous blocker; the review of #3193 (stefan11111) then
+    established that glx + Xephyr build too:
+    | server / flag | result |
+    |---|---|
+    | Xvfb, Xnest | ✅ build |
+    | `-Dxorg` (xfree86) | ✅ builds — `Linking target hw/xfree86/Xorg` (unaccelerated) |
+    | `-Dxephyr` | ✅ builds — but needs `libxcb-xv0-dev` (else meson setup errors `Dependency "xcb-xv" not found`); it runs as an X client over XCB, not the kdrive linux VT/input path |
+    | `-Dglx` | ✅ builds **without libdrm** (software/indirect GLX) |
+    | `-Ddri1/2/3` | ❌ `hw/xfree86/dri/dri.c` → libdrm's `<drm.h>` pulls a nonexistent `mach/x86_64/ioccom.h` — Hurd has no DRM kernel interface |
+    | `-Dglamor` | ❌ `glamor/glamor_egl.c` → `DRM_FORMAT_MOD_INVALID` undeclared + needs GBM (GBM needs DRM) — confirmed non-buildable on Hurd |
+    | `-Dxfbdev` (kdrive fbdev) | ❌ builds `hw/kdrive/linux/linux.c` → needs Linux VTs `<linux/vt.h>` — would need a dedicated **Hurd kdrive backend** |
 
-    Takeaways: the **xfree86 Xorg server compiles + links cleanly on GNU/Hurd**
-    (unaccelerated). The two hard blockers are **fundamental, not port bugs** —
-    DRI and glamor need a DRM kernel interface that Hurd does not have (no
-    `drm.h`/GBM/EGL-on-DRM), so `dri1/dri2/dri3` + `glamor` + `glx` must stay off.
-    The one **real** Hurd-port task surfaced is **kdrive `xfbdev`**: it builds
-    `hw/kdrive/linux` which needs Linux VTs (`<linux/vt.h>`) — Hurd would need its
-    own kdrive backend. The physical stage runs only on `wip/hurd-ci` (adds ~5 min);
-    keep #3179's mainline lane lean (Xvfb+Xnest) unless we want the Xorg-build
-    status tracked in mainline CI.
+    Takeaways: the **xfree86 Xorg server + Xephyr + GLX build cleanly on GNU/Hurd**
+    (unaccelerated). The remaining blockers are **fundamental, not port bugs**: DRI
+    and glamor need a DRM kernel interface Hurd lacks. The one **real** open port
+    task is a **Hurd kdrive backend** for `xfbdev` (the Linux-VT dependency). Note
+    `libdrm-dev` *does* exist on Hurd (`debian-ports`, `2.4.107+hurd`) — installing
+    it isn't the DRI blocker; the missing Mach ioctl header is.
 
 - **RHEL/AlmaLinux lane** (`xserver-build-rhel`, PR #3172). Matrix `rhelver: ['9','10']` on
   `almalinux:9`/`:10` containers — AlmaLinux is an ABI-identical RHEL rebuild and stands in for
