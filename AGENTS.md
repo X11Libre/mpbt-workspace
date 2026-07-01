@@ -67,6 +67,13 @@ cleared:
   `Bool`→`bool` churn in unrelated code, but prefer `bool` in new/rewritten code and when a change
   already touches the declaration. (First applied: the `shmSupported` flag in the `xf86bigfont`
   pagesize cleanup, PR #3201.)
+- **Opening URLs (e.g. PR links) in the maintainer's browser.** In an **interactive local session**
+  the Bash tool shares the maintainer's desktop session (`DISPLAY` set, dbus reachable), so you can
+  open a link in their running browser with a plain local command — handy for handing over a PR to
+  review. Do it **only on explicit request** (it's a visible side-effect on their desktop), and
+  never in headless/CI runs (no display). The exact browser command is a per-user setting (don't
+  hard-code a browser here — `xdg-open` follows the user's system default, which may not be the
+  browser they actually use).
 
 ## Key commands
 
