@@ -34,6 +34,11 @@ cleared:
   `scripts/ws-commit -m <msg> AGENTS.md` so it goes through the `with-clone-lock` mutex). No
   confirmation needed for `AGENTS.md` on those branches. (Other files / other branches still follow
   the normal "ask before committing" rule.)
+  **What `mtx/*` is for:** it's the maintainer's **personal staging branch** — freely accumulate
+  lessons/docs/tooling there without asking each time. It is **not** auto-merged into `master`.
+  Generalizing something onto `master` (so other users/contributors benefit, not just the
+  maintainer) is a deliberate, separate, later decision the maintainer makes per item — don't
+  propose or perform that promotion unprompted.
 - **Project knowledge lives in this repo, not in per-user agent memory.** Lessons, CI gotchas,
   failure modes, workflow quirks and PR-repair findings go into `AGENTS.md` or a topic doc
   (`NVIDIA-ABI.md`, `CI-GOXTS-XEPHYR.md`, …) — version-controlled and shared with the whole team
