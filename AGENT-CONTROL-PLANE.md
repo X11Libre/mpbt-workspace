@@ -30,24 +30,39 @@ On the directive channel: a question is a directive to the controller tagged
 Because it's the existing directive channel, the controller's `agent-bus-watch`
 already notifies on incoming questions — no extra plumbing.
 
-## Step 2 — tool-permission forwarding (PLANNED, on explicit request)
+## Step 2 — tool-permission forwarding (BUILT, opt-in)
 
-Route "allow command XYZ?" prompts to the controller instead of the local UI, via
-a Claude Code **`PreToolUse` hook** on workers:
+`scripts/agent-permission-hook` is a Claude Code **`PreToolUse` hook** that routes
+a tool's permission decision to the controller instead of prompting the local
+session. It reads the PreToolUse payload, `agent-bus ask`s the controller
+`[perm] allow <tool>: <summary> — for <agent>?`, **blocks** for the answer, and
+emits `permissionDecision` = `allow`/`deny`. The controller answers with
+`agent-bus reply <qid> allow|deny`.
 
-1. Hook intercepts the tool call, `agent-bus ask`s the controller "allow `<cmd>`
-   for `<agent>`?" and **blocks** for the decision.
-2. Returns allow/deny to Claude Code based on the reply — the worker's own
-   session never prompts.
+**Opt-in, per worker** — add a `PreToolUse` entry to a worker's
+`.claude/settings.local.json` (never globally / in shared `settings.json`, or a
+non-answering controller would gate every matched tool call):
 
-Caveats to handle when building:
-- The tool call blocks on the human answer (same as a normal prompt, just
-  centralised); many at once = a queue in the controller.
-- **Timeout fallback:** if the controller doesn't answer, deny (or fall back to a
-  local prompt) — never hang a worker forever.
-- **Trust:** you are approving *other* workers' commands centrally — the prompt
-  must show agent id + the exact command.
-- Verify the exact `PreToolUse` allow/deny/ask contract before relying on it.
+```json
+"hooks": { "PreToolUse": [ { "matcher": "Bash",
+  "hooks": [ { "type": "command", "timeout": 120,
+    "command": "/abs/path/scripts/agent-permission-hook" } ] } ] }
+```
+
+Fail-safe (verified against the hook contract): Claude Code's own hook timeout
+**fails open** (the tool proceeds), so the hook enforces its **own shorter**
+timeout and returns first:
+- `$AGENT_PERM_TIMEOUT` (default 60s; keep it below the hook's `timeout`),
+- `$AGENT_PERM_TIMEOUT_DECISION` = `deny` (default, fail-closed) | `ask`,
+- `$AGENT_CONTROLLER` (default `control`).
+
+Verified end-to-end (feeding a PreToolUse payload + a controller reply): allow→
+allow, deny→deny, no-answer→deny. Note the precedence rule: a hook can't override
+a `deny`/`ask` permission *rule* (most-restrictive wins), so it widens nothing —
+it only answers what would otherwise be a prompt.
+
+**Trust:** you approve *other* workers' commands centrally — the question shows
+the agent id + the exact command, so you see what you're allowing.
 
 ## Roadmap
 
