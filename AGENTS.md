@@ -14,6 +14,13 @@ cleared:
   to establish — append it to the relevant section of `AGENTS.md` (and the topic docs like
   `NVIDIA-ABI.md`) **within the session**, not at the end. Session context is wiped on `/clear`;
   only what's written here survives. Prefer a concise durable note over re-deriving it next time.
+- **Keep `DASHBOARD.md` current — it's the cross-session "what's in flight / what got parked"
+  index.** `agent-bus`/`pr-claim` are TTL'd live-status (minutes/hours); nothing durable tracked
+  *themes* until now, so half-started ideas got lost between sessions. When you start, pause, or
+  finish a theme (an initiative spanning more than one PR, or a decision still pending), update its
+  row **in the same session** — same rationale as the lessons-learned rule above. Don't add
+  individual PRs or ephemeral status there; it links out to the detail doc/branch/PR instead of
+  duplicating GitHub or `agent-bus`.
 - **You may commit + push `AGENTS.md` directly, without asking, on the maintainer's `mtx/*`
   workspace branches.** Standing grant from the maintainer: when you record a lesson or note in
   `AGENTS.md` and the current workspace branch is `mtx/*`, commit and push it straightaway (use
