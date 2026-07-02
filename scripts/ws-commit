@@ -1,5 +1,8 @@
 #!/usr/bin/env bash
 #
+# SPDX-License-Identifier: AGPL-3.0-or-later
+# Copyright © 2026 Enrico Weigelt, metux IT consult
+#
 # ws-commit — commit (and push) to the workspace repo atomically under the
 # with-clone-lock mutex, so concurrent agent sessions sharing this single
 # working tree don't race on the index / HEAD.

@@ -1,5 +1,8 @@
 #!/usr/bin/env bash
 #
+# SPDX-License-Identifier: AGPL-3.0-or-later
+# Copyright © 2026 Enrico Weigelt, metux IT consult
+#
 # agent-attach — connect a controller to a detached agent session (launched via
 # scripts/agent-run). Multiple controllers can attach to the SAME agent at once
 # (tmux multi-attach): everyone sees and drives the same live session. Detach

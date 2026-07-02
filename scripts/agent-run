@@ -1,5 +1,8 @@
 #!/usr/bin/env bash
 #
+# SPDX-License-Identifier: AGPL-3.0-or-later
+# Copyright © 2026 Enrico Weigelt, metux IT consult
+#
 # agent-run — launch an agent/CLI session DETACHED in a named tmux session.
 #
 # The session keeps running after you close the terminal or drop the SSH

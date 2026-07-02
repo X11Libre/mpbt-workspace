@@ -1,4 +1,8 @@
 #!/usr/bin/env python3
+#
+# SPDX-License-Identifier: AGPL-3.0-or-later
+# Copyright © 2026 Enrico Weigelt, metux IT consult
+#
 """
 Analyze an NV-GLX capture (JSONL from x11trace.py --jsonl) to help infer the
 wire format: per (ext, kind, minor/code) it reports counts, length stats,

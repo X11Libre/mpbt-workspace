@@ -1,5 +1,8 @@
 #!/usr/bin/env bash
 #
+# SPDX-License-Identifier: AGPL-3.0-or-later
+# Copyright © 2026 Enrico Weigelt, metux IT consult
+#
 # Fold working-tree changes into the current (PR head) commit of an agent clone
 # and force-push (with lease) back to the PR branch — the second half of a PR
 # repair started with scripts/pr-checkout.

@@ -1,5 +1,8 @@
 #!/usr/bin/env bash
 #
+# SPDX-License-Identifier: AGPL-3.0-or-later
+# Copyright © 2026 Enrico Weigelt, metux IT consult
+#
 # agent-bus-watch — local, LLM-free watcher that NOTIFIES when a new agent-bus
 # directive arrives for this agent (explicit target or broadcast "all").
 #
