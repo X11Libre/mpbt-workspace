@@ -1,4 +1,3 @@
-# DASHBOARD.md
 
 Living index of **themes/initiatives** — not individual PRs (GitHub already tracks those; don't
 duplicate `gh pr list` here). Purpose: let parallel agents (and the maintainer) see at a glance
