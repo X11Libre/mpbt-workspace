@@ -1,0 +1,113 @@
+#!/usr/bin/env bash
+#
+# SPDX-License-Identifier: AGPL-3.0-or-later
+# Copyright © 2026 Enrico Weigelt, metux IT consult
+#
+# Quick CI status of a PR — one canonical command so agents don't hand-assemble
+# `gh pr checks` / `gh pr view --json statusCheckRollup` / `gh api ...` combos
+# (and don't get a fresh auth prompt each time). Give it a PR number OR a full
+# PR URL and nothing else.
+#
+# It fetches the PR's statusCheckRollup and classifies every check BY CONCLUSION,
+# not by count — because the CI matrix is fail-fast: one real FAILURE cancels all
+# still-running siblings, so a big red number is usually "2 FAILURE + N CANCELLED"
+# (the CANCELLED ones are collateral, not the cause). See AGENTS.md. It prints:
+#   - a header (title / state / mergeable / head branch)
+#   - bucket counts (pass / fail / cancelled / pending / skipped)
+#   - the real failures (FAILURE / TIMED_OUT / ERROR) listed by name
+#   - still-pending checks
+#   - a one-line verdict, and a hint when the only failures are known flakes
+#     (BSD/Solaris VM boot, xephyr-glamor XTS timeout, libxcb-util 502, go-xts
+#     'send on closed channel') — see the PR repair workflow in AGENTS.md.
+#
+# For the actual failure *logs* of red jobs, use scripts/pr-job-logs <pr#>.
+#
+# Usage:
+#   pr-ci <pr#>
+#   pr-ci https://github.com/OWNER/REPO/pull/<n>   # repo taken from the URL
+#   pr-ci <pr#> --json                             # raw statusCheckRollup JSON
+# Env:
+#   REPO   override repo (default X11Libre/xserver); a URL argument wins over it
+set -euo pipefail
+
+REPO="${REPO:-X11Libre/xserver}"
+PR=""
+WANT_JSON=0
+
+while [ "$#" -gt 0 ]; do
+    case "$1" in
+        --json)    WANT_JSON=1 ;;
+        -h|--help) sed -n '2,/^set -euo/p' "$0" | sed 's/^# \{0,1\}//; /^set -euo/d'; exit 0 ;;
+        https://*|http://*)
+            # full PR URL: github.com/OWNER/REPO/pull/N
+            REPO="$(printf '%s\n' "$1" | sed -E 's#https?://[^/]+/([^/]+/[^/]+)/pull/.*#\1#')"
+            PR="$(printf '%s\n' "$1" | sed -E 's#.*/pull/([0-9]+).*#\1#')"
+            ;;
+        -*)        echo "pr-ci: unknown arg: $1" >&2; exit 2 ;;
+        *)         PR="$1" ;;
+    esac
+    shift
+done
+
+[ -n "$PR" ] || { echo "pr-ci: need a PR number or URL (see --help)" >&2; exit 2; }
+
+json="$(gh pr view "$PR" --repo "$REPO" \
+        --json number,title,headRefName,state,mergeable,url,statusCheckRollup 2>/dev/null)" \
+    || { echo "pr-ci: could not fetch PR $PR from $REPO" >&2; exit 1; }
+
+if [ "$WANT_JSON" -eq 1 ]; then
+    printf '%s\n' "$json" | jq '.statusCheckRollup'
+    exit 0
+fi
+
+printf '%s\n' "$json" | jq -r '
+    def bucket:
+        if .__typename == "CheckRun" then
+            (if .status != "COMPLETED" then "pending"
+             elif .conclusion == "SUCCESS" then "pass"
+             elif (.conclusion | IN("FAILURE","TIMED_OUT","STARTUP_FAILURE")) then "fail"
+             elif .conclusion == "CANCELLED" then "cancelled"
+             else "skip" end)
+        else
+            (if .state == "SUCCESS" then "pass"
+             elif (.state | IN("FAILURE","ERROR")) then "fail"
+             elif .state == "PENDING" then "pending"
+             else "skip" end)
+        end;
+    def nm: if .__typename == "CheckRun" then .name else .context end;
+    def cc: if .__typename == "CheckRun" then (.conclusion // .status) else .state end;
+
+    (.statusCheckRollup // []) as $c0
+    | ($c0 | map(. + {b: bucket})) as $c
+    | "PR #\(.number) - \(.title)",
+      "  \(.url)",
+      "  state=\(.state)  mergeable=\(.mergeable)  head=\(.headRefName)",
+      "  checks: \($c|length)  pass=\($c|map(select(.b=="pass"))|length)  FAIL=\($c|map(select(.b=="fail"))|length)  cancelled=\($c|map(select(.b=="cancelled"))|length)  pending=\($c|map(select(.b=="pending"))|length)  skip=\($c|map(select(.b=="skip"))|length)",
+      ( ($c|map(select(.b=="fail"))) as $f
+        | if ($f|length)>0 then
+            "  -- real failures (act on these) --",
+            ($f[] | "    FAIL  \(nm)  [\(cc)]")
+          else empty end ),
+      ( ($c|map(select(.b=="pending"))) as $p
+        | if ($p|length)>0 then
+            "  -- still pending --",
+            ($p[] | "    ...   \(nm)")
+          else empty end ),
+      ( ($c|map(select(.b=="fail"))|length) as $nf
+        | ($c|map(select(.b=="pending"))|length) as $np
+        | if $nf>0 then "  VERDICT: \($nf) real failure(s)" + (if $np>0 then ", \($np) pending" else "" end)
+          elif $np>0 then "  VERDICT: \($np) pending, no failures yet"
+          elif ($c|length)==0 then "  VERDICT: (no checks reported)"
+          else "  VERDICT: all green" end )
+'
+
+# known-flake hint (based on the failing check names) — advisory only
+fails="$(printf '%s\n' "$json" | jq -r '
+    (.statusCheckRollup // [])[]
+    | select(.__typename=="CheckRun" and (.conclusion | IN("FAILURE","TIMED_OUT","STARTUP_FAILURE")))
+    | .name' 2>/dev/null || true)"
+if printf '%s\n' "$fails" | grep -qiE 'dragonfly|solaris|netbsd|openbsd|freebsd|xephyr-glamor|go-xts'; then
+    echo "  ⚠ note: some failing lanes match known flakes (BSD/Solaris VM boot, xephyr-glamor XTS"
+    echo "    timeout, go-xts race). Confirm vs a sibling run / rerun before assuming breakage —"
+    echo "    see AGENTS.md 'PR repair workflow'. Get logs with: scripts/pr-job-logs $PR"
+fi
