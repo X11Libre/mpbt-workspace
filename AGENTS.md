@@ -94,6 +94,7 @@ cleared:
 | command | purpose |
 |---------|---------|
 | `./install-mpbt` | `go install github.com/metux/mpbt/cmd/mpbt-builder@latest` |
+| `./run-control [--detach]` | start a Claude Code **control-agent** session (`AGENT_ID=control`, no `XLIBRE_RELEASE`); `--detach` launches it in a named tmux session via `agent-run` so it survives terminal close |
 | `./run-fetch.xserver-<release>` | clone/fetch all sources for a release line |
 | `./run-build.xserver-<release>` | full build of all packages in order, then **deletes** `_WORK_/<release>/install` |
 | `./run-opencode.xserver-<release>` | start opencode session for a release line (sets `XLIBRE_RELEASE`) |
