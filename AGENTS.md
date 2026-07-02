@@ -1019,6 +1019,37 @@ any future ones) to a dedicated document inside the xserver tree itself (e.g. `C
 once there are enough of them to warrant it, rather than growing an unbounded style section in this
 workspace-level file.
 
+## Licensing policy
+
+Two different scopes — don't conflate them:
+
+- **New files that end up linked into the xserver binary itself (or a driver)** — anything that
+  ships as part of the actual X server/driver deliverable — are, from now on, licensed
+  **X11 OR MIT OR AGPL-3.0-or-later** (multi-licensed; the recipient picks whichever of the three
+  suits them). Maintainer decision, 2026-07-02. The X11/MIT option keeps `X11Libre/xserver`'s own
+  convention (`COPYING`: *"copyright holders of new code should use this license statement where
+  possible"*) and keeps proprietary consumers (the NVIDIA blob, see the NVIDIA-ABI section)
+  unaffected, since they can just use that grant; AGPL-3.0-or-later is offered as an *additional*
+  choice, not a replacement — this is why the AGPL-vs-NVIDIA-friendliness tension flagged earlier
+  the same day doesn't apply once it's multi-licensed rather than AGPL-only. Applies only to a
+  genuinely **new** file wholly authored by the maintainer (or an agent on their behalf) — editing
+  an existing file that already carries the plain X11/MIT grant does **not** relicense that file;
+  the new triple-license only attaches to brand-new files.
+- **New files that are NOT part of the final delivery** — helper scripts, CI workflow/config, dev
+  tooling, build orchestration — wherever they live (mpbt-workspace's own `scripts/*`, but equally
+  a newly-authored file under e.g. `.github/scripts/` inside an xserver/driver clone) — are, from
+  now on, **AGPL-3.0-or-later only**. mpbt-workspace's own tooling was already fully relicensed
+  this way, 2026-07-02 (see `LICENSE` + the `SPDX-License-Identifier: AGPL-3.0-or-later` +
+  copyright header pattern used throughout `scripts/*` — copy that pattern for any new script
+  anywhere, xserver-repo helper scripts included).
+
+**Not retroactive yet — explicitly deferred, do not act on this without a fresh go-ahead:**
+applying either license to *existing* files. Maintainer's stated plan (2026-07-02): eventually
+retrofit files that were written **solely** by the maintainer (never touching code originally
+authored by someone else — e.g. any of the upstream X.Org/XFree86 contributors listed in
+`X11Libre/xserver`'s `COPYING`). This is recorded here purely as a **TODO** — don't relicense any
+existing file proactively; wait for an explicit instruction each time.
+
 ## opencode session setup
 
 To work with this workspace via opencode, the user needs to:
@@ -1042,19 +1073,6 @@ None of these exist in this repo. The X Test Suite (xts) is a build target, not 
   `git branch -a` + `gh api repos/X11Libre/mpbt-workspace/branches`, 2026-07-01; agents work off
   their own `mtx/*`/task branches instead)
 - Remote: `git@github.com:X11Libre/mpbt-workspace.git`
-- **License: AGPL-3.0-or-later for this workspace's own tooling** (`scripts/*`, the top-level
-  `run-*`/`install-mpbt` launchers, `cf/*/config.sh`, `cf/*/packages/xlibre/update-generic.sh`,
-  `nvglx-re/`) — maintainer decision, 2026-07-02. Full text in `LICENSE` (canonical FSF text,
-  fetched from gnu.org); every script carries an `SPDX-License-Identifier: AGPL-3.0-or-later`
-  + copyright header. **Give every new script this same header when you add one.** This is
-  **scoped to mpbt-workspace's own build/orchestration tooling only** — it does not touch the
-  license of anything mpbt *builds*. Do **not** apply an AGPL header to files inside the
-  xserver/driver source clones: `X11Libre/xserver`'s `COPYING` is the customary permissive
-  MIT/X11-style license (with an explicit "copyright holders of new code should use this license
-  statement where possible" convention, and the maintainer is already listed there as a 2025
-  copyright holder), and this project's own explicit design constraint is staying friendly to
-  proprietary consumers (see the NVIDIA-ABI section) — introducing a strong-copyleft/network-clause
-  license into that tree, even for a standalone new test/CI script, would cut against both the
-  upstream project's norms and its own stated goals. If a genuinely new, wholly-authored file
-  inside an xserver/driver clone is ever a relicensing candidate, that's a separate, explicit
-  maintainer call each time — not a default to apply opportunistically.
+- **License:** `LICENSE` (AGPL-3.0-or-later, canonical FSF text) covers this workspace's own
+  tooling — see the "Licensing policy" section above for the full scope (this repo vs.
+  xserver/driver clones) and the current new-files-only, not-yet-retroactive status.
