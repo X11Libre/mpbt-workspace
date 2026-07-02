@@ -787,6 +787,20 @@ and identity falls back to `user@host` when `$AGENT_ID` is unset — so for a pl
 column) first, or all same-host sessions collapse to one board row and a `SessionEnd` in any one
 clears it for all. (The `run-opencode.*` wrappers already set both.)
 
+**Fixed for plain `claude` sessions via a dotfile-sourced auto-ID script (2026-07-02):**
+`scripts/agent-bus-auto-id.sh` auto-exports a unique `AGENT_ID=ws-$$` (shell PID) whenever an
+interactive shell's `$PWD` is inside this workspace tree and `$AGENT_ID` isn't already set (so it
+composes with the `run-opencode.*` wrappers rather than overriding them). It must be **sourced from
+the user's `~/.bashrc`/`~/.zshrc`** (one line: `[ -f
+/home/nekrad/src/xorg/mpbt-workspace/scripts/agent-bus-auto-id.sh ] && . <that path>`), *not* wired
+as a Claude Code hook — checked against the hooks JSON schema: `SessionStart`/`SessionEnd` hooks run
+as one-shot child processes and have no output field that injects env vars back into the
+interactive session's shell (only `systemMessage`/`decision`/`hookSpecificOutput.additionalContext`
+etc). `$AGENT_ID` must already be in the environment *before* `claude` starts so it propagates via
+ordinary process-env inheritance into both the existing `SessionStart`/`SessionEnd` hook commands
+and every Bash-tool-backed shell of that session — no `settings.json` change was needed once the
+env var is populated upstream of the client process.
+
 **Cross-repo agents can join this board too, by the maintainer's direction.** `agent-bus`/
 `DASHBOARD.md` aren't limited to sessions rooted in this checkout — an agent working in a
 *sibling* repo the maintainer also maintains (e.g. **`go-x11proto`**, `/home/nekrad/src/xorg/go-x11`
