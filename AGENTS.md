@@ -28,12 +28,14 @@ cleared:
   not during a dedicated triage pass. Don't add
   individual PRs or ephemeral status there; it links out to the detail doc/branch/PR instead of
   duplicating GitHub or `agent-bus`.
-- **You may commit + push `AGENTS.md` directly, without asking, on the maintainer's `mtx/*`
-  workspace branches.** Standing grant from the maintainer: when you record a lesson or note in
-  `AGENTS.md` and the current workspace branch is `mtx/*`, commit and push it straightaway (use
-  `scripts/ws-commit -m <msg> AGENTS.md` so it goes through the `with-clone-lock` mutex). No
-  confirmation needed for `AGENTS.md` on those branches. (Other files / other branches still follow
-  the normal "ask before committing" rule.)
+- **You may commit + push directly, without asking, on the maintainer's `mtx/*` workspace
+  branches — any file, not just `AGENTS.md`.** Standing grant from the maintainer (broadened
+  2026-07-02; originally scoped to `AGENTS.md` only): on `mtx/agent-config` (and other `mtx/*`
+  branches), commit and push straight away whenever it's warranted — lessons/notes in `AGENTS.md`,
+  `DASHBOARD.md` updates, new/changed `scripts/*`, config tweaks, whatever the session produced.
+  Use `scripts/ws-commit -m <msg> <path...>` so it goes through the `with-clone-lock` mutex. No
+  confirmation needed on those branches. (Other branches — anything not `mtx/*` — still follow the
+  normal "ask before committing" rule.)
   **What `mtx/*` is for:** it's the maintainer's **personal staging branch** — freely accumulate
   lessons/docs/tooling there without asking each time. It is **not** auto-merged into `master`.
   Generalizing something onto `master` (so other users/contributors benefit, not just the
