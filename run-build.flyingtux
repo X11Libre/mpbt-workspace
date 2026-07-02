@@ -1,0 +1,16 @@
+#!/bin/bash
+#
+# SPDX-License-Identifier: AGPL-3.0-or-later
+# Copyright © 2026 Enrico Weigelt, metux IT consult
+#
+# "Build" of FlyingTux — currently a no-op (plain Python, no compiled
+# artifact; the package has no `commands: build:` list, so mpbt's exec
+# builder just skips the stage). Kept for symmetry with the other solutions
+# and as a place to hang a real smoke check later if one is wanted.
+#
+
+set -e
+
+. cf/flyingtux/config.sh
+
+$MPBT -solution "$SOLUTION" -workdir "$WORKDIR" build
