@@ -1,0 +1,25 @@
+#!/usr/bin/env bash
+#
+# Request one or more reviewers on a PR via the REST API (wraps the
+# multi-flag `gh api --method POST .../requested_reviewers -f 'reviewers[]=...'`
+# recipe from AGENTS.md's "Route hardware-touching PRs" section, so it doesn't
+# need retyping per PR).
+#
+# Usage:   pr-request-reviewers <pr#> <login> [login...]
+# Env:     REPO  override repo (default X11Libre/xserver)
+#
+# Example (the modesetting/kdrive/xfbdev HW-domain routing):
+#   pr-request-reviewers 3181 cepelinas9000 stefan11111
+set -euo pipefail
+
+REPO="${REPO:-X11Libre/xserver}"
+PR="${1:?usage: pr-request-reviewers <pr#> <login> [login...]}"
+PR="${PR#\#}"
+shift
+[ "$#" -gt 0 ] || { echo "pr-request-reviewers: need at least one reviewer login" >&2; exit 1; }
+
+args=()
+for r in "$@"; do args+=(-f "reviewers[]=$r"); done
+
+gh api --method POST "repos/$REPO/pulls/$PR/requested_reviewers" "${args[@]}" --jq '.html_url'
+echo "pr-request-reviewers: requested on #$PR: $*"

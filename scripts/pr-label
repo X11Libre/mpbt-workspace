@@ -1,0 +1,60 @@
+#!/usr/bin/env bash
+#
+# Add/remove GitHub PR labels via the REST API. `gh pr edit --add-label`
+# currently fails on the xserver repo with the same GraphQL "Projects classic
+# deprecation" error that broke `gh pr edit --body` (see pr-set-body) — so
+# labels get the same REST-API workaround.
+#
+# Usage:
+#   pr-label <pr#> add <label> [label...]
+#   pr-label <pr#> remove <label> [label...]
+#   pr-label <pr#> set-review passed|changes-requested
+#     convenience for the bot-review outcome labels: removes whichever of
+#     bot-review-passed / bot-review-changes-requested is currently set and
+#     adds the requested one.
+#
+# Env: REPO  override repo (default X11Libre/xserver)
+#
+# Examples:
+#   pr-label 3153 set-review passed
+#   pr-label 3181 add needs-hw-review
+set -euo pipefail
+
+REPO="${REPO:-X11Libre/xserver}"
+PR="${1:?usage: pr-label <pr#> add|remove|set-review <label...>}"
+PR="${PR#\#}"
+MODE="${2:?usage: pr-label <pr#> add|remove|set-review <label...>}"
+shift 2
+
+case "$MODE" in
+    add)
+        [ "$#" -gt 0 ] || { echo "pr-label: add needs at least one label" >&2; exit 1; }
+        args=()
+        for l in "$@"; do args+=(-f "labels[]=$l"); done
+        gh api --method POST "repos/$REPO/issues/$PR/labels" "${args[@]}" >/dev/null
+        echo "pr-label: added to #$PR: $*"
+        ;;
+    remove)
+        [ "$#" -gt 0 ] || { echo "pr-label: remove needs at least one label" >&2; exit 1; }
+        for l in "$@"; do
+            gh api --method DELETE "repos/$REPO/issues/$PR/labels/$l" >/dev/null 2>&1 \
+                || echo "pr-label: #$PR had no '$l' label (skipped)" >&2
+        done
+        echo "pr-label: removed from #$PR: $*"
+        ;;
+    set-review)
+        VERDICT="${1:?usage: pr-label <pr#> set-review passed|changes-requested}"
+        case "$VERDICT" in
+            passed)             NEW=bot-review-passed;             OLD=bot-review-changes-requested ;;
+            changes-requested)  NEW=bot-review-changes-requested;  OLD=bot-review-passed ;;
+            *) echo "pr-label: set-review wants 'passed' or 'changes-requested', got '$VERDICT'" >&2; exit 1 ;;
+        esac
+        gh api --method DELETE "repos/$REPO/issues/$PR/labels/$OLD" >/dev/null 2>&1 || true
+        gh api --method POST "repos/$REPO/issues/$PR/labels" -f "labels[]=$NEW" >/dev/null
+        echo "pr-label: #$PR -> $NEW"
+        ;;
+    *)
+        echo "pr-label: unknown mode '$MODE' (want add|remove|set-review)" >&2
+        exit 1
+        ;;
+esac
