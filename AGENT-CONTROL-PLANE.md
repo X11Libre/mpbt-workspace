@@ -6,6 +6,43 @@ officer") instead of servicing every parallel worker. Workers route their
 agent, who asks the human once and routes the answer back. Built on `agent-bus`
 (file-based, advisory); no new daemon, no API cost while idle.
 
+## Quickstart (for you, the maintainer)
+
+**Be the 1st officer.** In the one session you want to man, start it as the
+controller and watch the board:
+
+    export AGENT_ID=control          # this session is the controller
+    scripts/agent-bus board          # who's online, who has unanswered mail
+    scripts/agent-bus asks           # questions waiting for you
+
+When a worker asks something you'll see a desktop notification (from the notify
+watcher) and it shows up in `asks`. Answer it:
+
+    scripts/agent-bus reply <qid> "your answer"        # free-form question
+    scripts/agent-bus reply <qid> allow                # a [perm] request → allow
+    scripts/agent-bus reply <qid> deny                 #                  → deny
+
+**Steer workers** (unchanged): `scripts/agent-bus tell <agent> "…"` /
+`broadcast "…"`.
+
+**A worker asks you** (any session): `scripts/agent-bus ask "should I force-push?"`
+— it blocks until you `reply`, then prints your answer.
+
+**Route a worker's tool-approvals to you** (opt-in, per worker): add to *that
+worker's* `.claude/settings.local.json`:
+
+    "hooks": { "PreToolUse": [ { "matcher": "Bash",
+      "hooks": [ { "type": "command", "timeout": 120,
+        "command": "/home/nekrad/src/xorg/mpbt-workspace/scripts/agent-permission-hook" } ] } ] }
+
+Then that worker's `Bash` permission prompts come to you as `[perm]` questions.
+If you don't answer within the timeout it **denies** (fail-closed). Don't put
+this in shared/committed settings — an absent controller would block everything.
+
+**Turn it off:** stop being controller = just close/rename the `control` session
+(pending questions time out → workers get the fail decision). Remove the
+`PreToolUse` block to stop routing a worker's approvals.
+
 ## Roles
 
 - **Control agent** — a human-attended session, `AGENT_ID=control` by convention
