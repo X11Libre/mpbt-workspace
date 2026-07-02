@@ -3,6 +3,8 @@
     "allow": [
       "Bash(chromium)",
       "Bash(chromium *)",
+      "Bash(scripts/json)",
+      "Bash(scripts/json *)",
       "Bash(scripts/agent-attach)",
       "Bash(scripts/agent-attach *)",
       "Bash(scripts/agent-bus)",
