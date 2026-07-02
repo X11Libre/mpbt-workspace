@@ -99,6 +99,7 @@ cleared:
 | `./run-opencode.xserver-<release>` | start opencode session for a release line (sets `XLIBRE_RELEASE`) |
 | `scripts/xx-make-pr.sh [--rebase|--branch <name>] <commits...>` | create PR from commits on the incubator branch |
 | `scripts/mk-agent-clone <release> [name]` | create/refresh an agent-owned clone for backport work (object-shared, isolated from your clone) |
+| `scripts/worktree add <repo> [name] [--from <ref>\|--branch <existing>]` \| `list [repo]` \| `remove <repo> <name> [--force] [--keep-branch]` \| `prune [repo]` | generic **worktree** helper for temporary/per-session/per-task isolation of **any** existing repo (not just xserver release lines — use `mk-agent-clone` for those, see why in its header). `add` defaults to a fresh throwaway branch `wt/<name>` off `origin/HEAD` (or the repo's current branch); `--branch <existing>` checks out an existing branch instead (git's normal one-worktree-per-branch guard still applies). All worktrees live under **this** workspace's `_WORK_/worktrees/<reponame>/<name>/` regardless of which repo they're for — one well-known, already-gitignored location. `remove` deletes the throwaway `wt/<name>` branch too, unless `--keep-branch` or it was checked out via `--branch`. Pre-authorized in `.claude/settings.json` |
 | `scripts/backport-commit <release> <commit-ish\|PR#> [name]` | **one-shot backport**: refresh agent clone → `cherry-pick -x` → `xx-make-pr.sh`; opens the PR vs `release/<release>` |
 | `scripts/show-branch-file <ref> <path> [symbol]` | print a repo file (or symbol region) at any ref via the GitHub API — for backport applicability checks; auto-handles the `Xext/<ext>/` ↔ `<ext>/` reorg |
 | `scripts/backport-applies <master-path> <grep-ERE> [release ...]` | run the applicability grep across all release lines at once (wraps `show-branch-file`) — classify each branch vulnerable / already-fixed / N-A in one command |
@@ -911,7 +912,9 @@ scripts/mk-agent-clone <release> [name]   # e.g. scripts/mk-agent-clone 25.2
 - **Per-task git worktrees** — own working dir + index + HEAD, shares the object store. Git
   refuses to check out the same branch in two worktrees (a useful guard). But note the ref-store
   caveat above: don't run history-rewriting tools like `xx-make-pr.sh` from a worktree of a clone
-  someone else uses. (Claude Code can spawn agents with `isolation: "worktree"`.)
+  someone else uses. (Claude Code can spawn agents with `isolation: "worktree"`.) **`scripts/worktree
+  add <repo> [name]`** wraps the create/list/remove/prune lifecycle for exactly this case, for
+  any repo — see the Key commands table — and is pre-authorized so it needs no confirmation.
 - **`scripts/with-clone-lock`** — advisory per-working-tree `flock`; wrap mutating commands so
   cooperating actors serialize instead of colliding:
   ```bash
