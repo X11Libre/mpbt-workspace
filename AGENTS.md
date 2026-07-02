@@ -119,6 +119,7 @@ cleared:
 | `scripts/fetch-all-nvidia-drivers [--every]` | fetch+extract many versions (default: latest of each branch; `--every` = all 500+), pruning `.run`s |
 | `scripts/nvidia-abi-check SYM ...` | classify symbols against extracted blobs: link-import (`nm`) ∪ runtime lookup (string) |
 | `scripts/nvidia-undefined-symbols [version ...]` | raw dump of imported (UND) symbols (subset of nvidia-abi-check; prefer the latter) |
+| `scripts/json validate <file>...` \| `pretty [file]` \| `get <expr> [file]` | JSON helper so agents stop reaching for ad-hoc `python3 -c "import json…"` one-liners (each triggers a fresh auth prompt, since arbitrary `python3 -c` can't be safely wildcard-allowlisted). Reads a file arg or stdin (`gh api … \| scripts/json get …`). `validate` = parse + non-zero exit on bad JSON; `get` evals a Python expr against the parsed doc (bound to `data`). Pre-authorized in `.claude/settings.json` |
 | `scripts/with-clone-lock <cmd...>` | run a mutating command holding an exclusive per-working-tree lock (see Concurrency) |
 | `scripts/ws-commit -m <msg> <path...>` | atomically commit (+push) to **this** workspace repo under the `with-clone-lock` mutex — the safe way for agents to mutate the shared workspace checkout (`-a` = all tracked, `--no-push` = commit only). Use this instead of raw `git commit` here, so concurrent agent sessions don't race the index/HEAD (which produced bundled "1" commits) |
 | `scripts/show-pr-conflict` | list all open PRs with merge conflicts |
