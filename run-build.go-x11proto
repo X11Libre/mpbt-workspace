@@ -1,0 +1,14 @@
+#!/bin/bash
+#
+# SPDX-License-Identifier: AGPL-3.0-or-later
+# Copyright © 2026 Enrico Weigelt, metux IT consult
+#
+# Optional build of go-x11proto — runs its Makefile (builds the Go tools) via
+# mpbt's `exec` builder. Separate from the xserver build.
+#
+
+set -e
+
+. cf/go-x11proto/config.sh
+
+$MPBT -solution "$SOLUTION" -workdir "$WORKDIR" build

@@ -149,6 +149,26 @@ sections here remain the full reference. Keep them in sync when a workflow chang
 
 Build order and which packages to build is defined in each solution's `build:` list.
 
+## go-x11proto is its own mpbt solution
+
+Since 2026-07-02, **go-x11proto** (the Go X11-protocol client lib + `xnamespace`/go-xts tools,
+`X11Libre/go-x11proto`) is cloned and optionally built by mpbt as a **standalone solution**,
+deliberately kept **separate from the xserver build** (own workdir, own `build:` list). This is the
+"all go-x11proto agent work now happens under the mpbt-workspace" migration.
+
+- **Config:** `cf/go-x11proto/{config.sh,solutions/default.yaml,packages/xlibre/go-x11proto.yaml}`.
+  `XLIBRE_RELEASE=go-x11proto`, `WORKDIR=_WORK_/go-x11proto`.
+- **Clone lives at** `_WORK_/go-x11proto/sources/xlibre/go-x11proto` (gitignored, like all sources).
+  This *replaces* the old external `/home/nekrad/src/xorg/go-x11` checkout, which was **moved** here
+  (not re-cloned) so its local branches + stashes were preserved.
+- **Wrappers:** `./run-fetch.go-x11proto` (clone/fetch), `./run-build.go-x11proto` (optional build),
+  `./run-opencode.go-x11proto`. Agents should `cd` into the clone above to work on it.
+- **Build:** the package uses `buildsystem: exec` with `commands: build: [make]` — go-x11proto is
+  pure Go with a plain `Makefile` (no autotools/meson), so mpbt just runs `make` (which does the
+  `go build`s). `make-pr.*` is configured on the clone, so `scripts/xx-make-pr.sh` works from it too.
+- Any other repo integrated into the fleet the same way (e.g. FlyingTux) follows this pattern:
+  its own `cf/<name>/` + `run-*.<name>` wrappers, never folded into the xserver package set.
+
 ## Template/symlink system
 
 Most ~54 drivers are autotools-based and use the same build pattern.
@@ -805,10 +825,12 @@ env var is populated upstream of the client process.
 
 **Cross-repo agents can join this board too, by the maintainer's direction.** `agent-bus`/
 `DASHBOARD.md` aren't limited to sessions rooted in this checkout — an agent working in a
-*sibling* repo the maintainer also maintains (e.g. **`go-x11proto`**, `/home/nekrad/src/xorg/go-x11`
-— the Go X11-protocol client library the `go-xts` CI suite is built on, see "go-x11proto pin
-sites" above) can register on this same board when told to, with its `$XLIBRE_RELEASE`/project
-column simply naming that other repo and `workdir:` pointing outside `_WORK_/`. Treat such an
+*sibling* repo the maintainer also maintains (e.g. **`go-x11proto`** — the Go X11-protocol client
+library the `go-xts` CI suite is built on, see "go-x11proto pin sites" above) can register on this
+same board when told to, with its `$XLIBRE_RELEASE`/project column simply naming that other repo.
+(As of 2026-07-02 go-x11proto is itself an mpbt solution — see "go-x11proto is its own mpbt
+solution" below — so its clone now lives *inside* `_WORK_/go-x11proto/sources/xlibre/go-x11proto`,
+not at the old external `/home/nekrad/src/xorg/go-x11` path.) Treat such an
 entry as legitimate coordination, not stray noise — the maintainer explicitly wires up
 cross-project agents this way when their work affects xserver CI (e.g. a go-x11proto version bump
 needed here). Same rule applies to `DASHBOARD.md`: a cross-repo theme is fine there if it has a

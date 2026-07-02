@@ -1,0 +1,21 @@
+# SPDX-License-Identifier: AGPL-3.0-or-later
+# Copyright © 2026 Enrico Weigelt, metux IT consult
+#
+# Standalone solution for the go-x11proto library + tools.
+#
+# Deliberately SEPARATE from the xserver build: go-x11proto is only cloned here
+# (and optionally built via its own Makefile), never mixed into the xserver
+# package set. Its sole build entry is xlibre/go-x11proto below.
+
+xlibre_git:     git@github.com:X11Libre
+
+install-prefix: ${@PROJECT::@workdir}/target
+
+build:
+    - xlibre/go-x11proto
+
+packages:
+    - ${@PROJECT::@rootdir}/cf/go-x11proto/packages
+
+package-defaults:
+    xlibre_git:     ${xlibre_git}
