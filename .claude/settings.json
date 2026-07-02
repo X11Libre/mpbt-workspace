@@ -17,6 +17,8 @@
       "Bash(scripts/backport-commit *)",
       "Bash(scripts/cancel-stale-ci)",
       "Bash(scripts/cancel-stale-ci *)",
+      "Bash(scripts/dashboard)",
+      "Bash(scripts/dashboard *)",
       "Bash(scripts/fetch-all-nvidia-drivers)",
       "Bash(scripts/fetch-all-nvidia-drivers *)",
       "Bash(scripts/fetch-nvidia-drivers)",
