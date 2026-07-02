@@ -49,6 +49,7 @@ Angefangen/aufgefallen, aber (noch) nicht weiterverfolgt — kurze Notiz statt V
 
 | Thema | Notiert | Seit | Notiz |
 |---|---|---|---|
+| `panoramiXprocs.c` noch nicht auf neue `X_REQUEST*`-Makros umgestellt | maintainer, 2026-07-02 (bei #3136 Bug-2-Audit aufgefallen) | 2026-07-02 | `Xext/panoramiX/panoramiXprocs.c` benutzt noch das alte Request-Handling (manuelles Header-Parsing, Byteswap, Längen-Checks) statt der neuen `X_REQUEST*`-Makros. **Außerdem prüfen:** sind die Replies dort schon auf den `x_rpcbuf_t`-Pfad (`X_SEND_REPLY_WITH_RPCBUF`) umgestellt, oder noch alte `WriteToClient`/`X_SEND_REPLY_SIMPLE`-Handler? (Beim Audit gesehen: `PanoramiXAllocColor` nutzt noch bare `xAllocColorReply` + `X_SEND_REPLY_SIMPLE` — Info-Leak, separat gefixt.) Eigener Umstell-Pass, wenn Zeit. |
 | x86emu `mul_long`/`idiv_long`/`div_long` correctness bugs | `X86EMU-CLEANUP.md` | 2026 (fuzz run) | Manual-path high-word carry bug in `mul_long`; u64-path overflow check wrong in `idiv_long`/`div_long`, `INT64_MIN / -1` SIGFPEs. Needs a dedicated, separately-reviewed correctness commit + the fuzz harness (`scratchpad/llcmp.c`, not checked in) as evidence |
 | x86emu `types.h` u8/u16 kludge → stdint rename | `X86EMU-CLEANUP.md` | 2026 | Treewide mechanical rename, own large pass |
 | x86emu `#ifdef DEBUG` / `DB()` macro cleanup | `X86EMU-CLEANUP.md` | 2026 | Low priority |
