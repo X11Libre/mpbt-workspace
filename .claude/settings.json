@@ -39,6 +39,8 @@
       "Bash(scripts/pr-append-body *)",
       "Bash(scripts/pr-checkout)",
       "Bash(scripts/pr-checkout *)",
+      "Bash(scripts/pr-ci)",
+      "Bash(scripts/pr-ci *)",
       "Bash(scripts/pr-claim)",
       "Bash(scripts/pr-claim *)",
       "Bash(scripts/pr-comment)",
