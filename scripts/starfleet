@@ -1,0 +1,72 @@
+#!/usr/bin/env bash
+#
+# SPDX-License-Identifier: AGPL-3.0-or-later
+# Copyright © 2026 Enrico Weigelt, metux IT consult
+#
+#
+# starfleet — a bit of fun: a Starfleet-themed "bridge" view of the agent-bus
+# fleet, for the Admiral. READ-ONLY and purely additive — it reflavours the same
+# status/ + msgs/ files that `agent-bus board` shows and changes nothing
+# functional; agents keep using the plain `board`.
+#
+# Persona: $ADMIRAL (default "Archer"), $CONTROLLER (default "control", shown as
+# the First Officer). Stale heartbeats (> $BUS_TTL, default 900s) show as
+# "off duty". Run it, kick back, command your fleet.
+set -euo pipefail
+
+ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+BUS_DIR="${BUS_DIR:-$ROOT/_WORK_/agent-bus}"
+STATUS_DIR="$BUS_DIR/status"; MSG_DIR="$BUS_DIR/msgs"; ACK_DIR="$BUS_DIR/acks"
+ADMIRAL="${ADMIRAL:-Archer}"; CONTROLLER="${AGENT_CONTROLLER:-control}"
+BUS_TTL="${BUS_TTL:-900}"
+now() { date +%s; }
+age() { local s=$(( $(now) - ${1:-0} ));
+        if [ "$s" -ge 3600 ]; then echo "$((s/3600))h$(((s%3600)/60))m";
+        elif [ "$s" -ge 60 ]; then echo "$((s/60))m"; else echo "${s}s"; fi; }
+
+# worker state → bridge flavour
+flavour() { case "$1" in
+    idle)      echo "standing by" ;;
+    working)   echo "on duty" ;;
+    building)  echo "in engineering" ;;
+    reviewing) echo "at tactical" ;;
+    blocked)   echo "awaiting orders" ;;
+    done)      echo "mission complete" ;;
+    *)         echo "$1" ;;
+  esac; }
+
+printf '\n  \033[1m🖖  U.S.S. XLibre — Admiral %s commanding\033[0m\n' "$ADMIRAL"
+printf '      Stardate %s\n\n' "$(date +%Y.%j)"
+
+shopt -s nullglob
+printf '  \033[4m%-20s %-16s %-16s %-8s %s\033[0m\n' "CREW" "POST" "STATION" "WATCH" "STATUS"
+found=0
+for f in "$STATUS_DIR"/*.tsv; do
+    IFS=$'\t' read -r ts iso agent proj state pid handle note < "$f" || continue
+    found=1
+    local_post="Crew"; [ "$agent" = "$CONTROLLER" ] && local_post="First Officer ⭐"
+    st="$(flavour "$state")"
+    [ "$(( $(now) - ${ts:-0} ))" -ge "$BUS_TTL" ] && st="off duty (silent)"
+    [ "$proj" = "-" ] && proj="—"
+    printf '  %-20s %-16s %-16s %-8s %s\n' "$agent" "$local_post" "$proj" "$(age "$ts")" "$st"
+done
+[ "$found" = 1 ] || printf '  (no hands on deck)\n'
+
+# open orders = unacked directives still on the board
+orders=0; lines=""
+for m in "$MSG_DIR"/m*.tsv; do
+    IFS=$'\t' read -r a b from tgt txt < "$m" || continue
+    id="${m##*/}"; id="${id%.tsv}"
+    # count as open unless every plausible recipient acked; simplest: show if any ack marker is missing for a broadcast, or unacked for a target
+    if [ "$tgt" = all ]; then
+        # broadcast: open until someone acks it
+        [ -n "$(find "$ACK_DIR" -name "${id}__*" 2>/dev/null | head -1)" ] && continue
+    else
+        [ -f "$ACK_DIR/${id}__$(printf '%s' "$tgt" | tr -c 'A-Za-z0-9._-' '_')" ] && continue
+    fi
+    orders=$((orders + 1))
+    lines+="$(printf '    ✉  %s → %s: %.90s\n' "$from" "$tgt" "$txt")"$'\n'
+done
+printf '\n  \033[1mStanding orders / open transmissions: %s\033[0m\n' "$orders"
+[ "$orders" -gt 0 ] && printf '%s' "$lines"
+printf '\n  Make it so.\n\n'
