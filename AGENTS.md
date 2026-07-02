@@ -101,6 +101,10 @@ cleared:
 | `scripts/show-branch-file <ref> <path> [symbol]` | print a repo file (or symbol region) at any ref via the GitHub API — for backport applicability checks; auto-handles the `Xext/<ext>/` ↔ `<ext>/` reorg |
 | `scripts/backport-applies <master-path> <grep-ERE> [release ...]` | run the applicability grep across all release lines at once (wraps `show-branch-file`) — classify each branch vulnerable / already-fixed / N-A in one command |
 | `scripts/pr-set-body <pr#> <body-file>` | set a PR body via REST API (works around the broken `gh pr edit`); for backport cross-linking |
+| `scripts/pr-append-body <pr#> <text-file>` | fetch a PR's current body, append the given text, write it back via `pr-set-body` — for backport-dashboard tables / back-links without manual fetch-then-set |
+| `scripts/pr-comment <pr#> <body-file> [--bot-review]` | post a PR comment; `--bot-review` prepends the exact mandated bot-disclosure banner (see "Automated reviews") so the wording can't drift |
+| `scripts/pr-label <pr#> add\|remove\|set-review <label...>` | add/remove PR labels via REST API (same `gh pr edit` workaround as `pr-set-body`); `set-review passed\|changes-requested` swaps the two `bot-review-*` outcome labels in one call |
+| `scripts/pr-request-reviewers <pr#> <login...>` | request PR reviewers via REST API — wraps the HW-domain-routing recipe from "Automated reviews" |
 | `scripts/pr-job-logs <pr#>` \| `--job <id>` \| `<pr#> --all` | **fetch raw CI job logs + failure summary** for a PR's failing jobs (or one job by id). Wraps the reliable `repos/<repo>/actions/jobs/<id>/logs` endpoint (since `gh run view --log` returns nothing here) and greps the real cause across **build/link** (`FAILED:`, `: error:`, `undefined reference`), **configure** (meson `ERROR:`, `Dependency "x" not found`), **dep-install** (Gentoo `emerge`/`!!!`, Alpine `apk`, Debian `E:`, Arch, Fedora), and **test-phase** (`Summary of Failures`, `Fail: N`, `Caught signal`/segfault) failures; falls back to the log tail when no marker matches. Writes to `$OUTDIR` (default `mktemp -d`) |
 | `scripts/pr-checkout <pr#> [name]` | **repair an open master PR**: isolated agent clone + check out the PR's head branch, ready to edit (prints the clone dir) — pairs with `pr-amend-push` |
 | `scripts/pr-amend-push <clone-dir> [files...]` | fold edits into the PR's commit (`--amend --no-edit`, keeps message + `Signed-off-by`) and `--force-with-lease` back to the PR branch |
@@ -557,8 +561,8 @@ so self-authored PRs are reviewed and recorded the same way). The `gh` CLI is au
 **modesetting** driver, **kdrive**, **xfbdev**, or the **xfree86 DDX bus/output/primary-device**
 paths should get a human review from **@cepelinas9000** and **@stefan11111** — the two contributors
 deepest into the HW side. **@stefan11111** is the **kdrive** expert and wrote **xfbdev**. For such a
-PR, request both as reviewers (`gh api --method POST repos/X11Libre/xserver/pulls/<pr#>/requested_reviewers
--f 'reviewers[]=cepelinas9000' -f 'reviewers[]=stefan11111'`) and **do not auto-merge on a green
+PR, request both as reviewers (`scripts/pr-request-reviewers <pr#> cepelinas9000 stefan11111`)
+and **do not auto-merge on a green
 bot-review + CI alone** — wait for an `APPROVED` review from one of them. (Seen on #3181,
 `xfree86: prefer boot_display over boot_vga`, a primary-device-selection behaviour change.)
 
@@ -582,6 +586,9 @@ posted in the user's name — PR-level comments, review summaries, and inline re
 
 <comment body>
 ```
+
+`scripts/pr-comment <pr#> <body-file> --bot-review` prepends this exact banner for you — prefer
+it over hand-copying the banner text into every comment.
 
 **2. Assess backport-worthiness.** As part of the review, decide whether the change is a
 **security vulnerability** or **critical bugfix** that should reach the maintained release lines
@@ -686,13 +693,10 @@ exactly one outcome label so results are filterable on GitHub:
   regression, a security/ABI break the maintainer should act on before merge).
 
 If a later revision fixes the blocking finding (e.g. an amend + force-push), swap the label to
-`bot-review-passed` and update the review comment to match. Apply labels via the REST API, **not**
-`gh pr edit` — the latter currently fails on this repo with the *"Projects classic deprecation"*
-GraphQL error (same breakage as `pr-set-body` works around):
-
-```sh
-gh api --method POST repos/X11Libre/xserver/issues/<pr#>/labels -f 'labels[]=bot-review-passed'
-```
+`bot-review-passed` and update the review comment to match. Apply labels via
+`scripts/pr-label <pr#> set-review passed|changes-requested`, **not** `gh pr edit` — the latter
+currently fails on this repo with the *"Projects classic deprecation"* GraphQL error (same
+breakage as `pr-set-body` works around).
 
 ## Concurrency / isolation (multiple sessions + manual work)
 
