@@ -1,5 +1,8 @@
 #!/usr/bin/env bash
 #
+# SPDX-License-Identifier: AGPL-3.0-or-later
+# Copyright © 2026 Enrico Weigelt, metux IT consult
+#
 # Append a text block to a PR's existing body (fetch -> append -> pr-set-body).
 # Wraps the repeated read/append/write dance used for the required backport
 # cross-linking: the "Backport dashboard" table appended to a master PR, and

@@ -1,5 +1,8 @@
 #!/usr/bin/env bash
 #
+# SPDX-License-Identifier: AGPL-3.0-or-later
+# Copyright © 2026 Enrico Weigelt, metux IT consult
+#
 # Backport applicability check: for each maintained release line, fetch the
 # given (master-path) file and grep it for a marker pattern, so you can
 # classify each branch at a glance as vulnerable / already-fixed / N-A — the

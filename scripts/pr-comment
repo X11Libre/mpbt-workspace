@@ -1,5 +1,8 @@
 #!/usr/bin/env bash
 #
+# SPDX-License-Identifier: AGPL-3.0-or-later
+# Copyright © 2026 Enrico Weigelt, metux IT consult
+#
 # Post a PR comment from a file. Plain wrapper around `gh pr comment
 # --body-file`, with one addition: --bot-review prepends the exact banner
 # AGENTS.md's "Automated reviews" section mandates on every review comment

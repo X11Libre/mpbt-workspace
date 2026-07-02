@@ -1,5 +1,8 @@
 #!/usr/bin/env bash
 #
+# SPDX-License-Identifier: AGPL-3.0-or-later
+# Copyright © 2026 Enrico Weigelt, metux IT consult
+#
 # Serialize mutating git work within a single clone/working-tree, so that
 # concurrent agent sessions and manual work don't clobber each other's
 # checkout / index / rebase state.

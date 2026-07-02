@@ -1,5 +1,8 @@
 #!/usr/bin/env bash
 #
+# SPDX-License-Identifier: AGPL-3.0-or-later
+# Copyright © 2026 Enrico Weigelt, metux IT consult
+#
 # Delete COMPLETED workflow runs that are outdated — runs whose head commit is
 # no longer the tip of their branch (the branch was pushed again afterwards),
 # so the run is dead history cluttering the Actions tab.

@@ -1,5 +1,8 @@
 #!/usr/bin/env bash
 #
+# SPDX-License-Identifier: AGPL-3.0-or-later
+# Copyright © 2026 Enrico Weigelt, metux IT consult
+#
 # pr-claim — advisory, cross-clone PR work registry + lock.
 #
 # Each agent works in its OWN clone (see Concurrency in AGENTS.md), which keeps

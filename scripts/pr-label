@@ -1,5 +1,8 @@
 #!/usr/bin/env bash
 #
+# SPDX-License-Identifier: AGPL-3.0-or-later
+# Copyright © 2026 Enrico Weigelt, metux IT consult
+#
 # Add/remove GitHub PR labels via the REST API. `gh pr edit --add-label`
 # currently fails on the xserver repo with the same GraphQL "Projects classic
 # deprecation" error that broke `gh pr edit --body` (see pr-set-body) — so

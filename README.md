@@ -172,3 +172,17 @@ Notes
   target, not a test runner.
 * **git branches.** Two branches on the remote: `master` and `wip1` (incubator).
 * **`_WORK_/`** is gitignored. Only the `.gitignore` at the root is used.
+
+License
+-------
+
+This workspace's own tooling (everything under `scripts/`, the top-level
+`run-*`/`install-mpbt` launchers, `cf/*/config.sh`, `cf/*/packages/xlibre/update-generic.sh`,
+and `nvglx-re/`) is licensed under the **GNU Affero General Public License v3.0 or later**
+(AGPL-3.0-or-later) — see [`LICENSE`](LICENSE) and the `SPDX-License-Identifier` header in
+each file.
+
+This does **not** change the license of anything this workspace builds. The XLibre
+Xserver and driver sources cloned/built via `mpbt-builder` are separate upstream
+projects with their own licenses (see each project's own `COPYING`/`LICENSE`),
+unaffected by this repo's tooling license.

@@ -1,5 +1,8 @@
 #!/usr/bin/env bash
 #
+# SPDX-License-Identifier: AGPL-3.0-or-later
+# Copyright © 2026 Enrico Weigelt, metux IT consult
+#
 # agent-bus-auto-id.sh — auto-assign a unique, session-stable $AGENT_ID
 # whenever an interactive shell is sitting inside this workspace tree, so a
 # plain `claude` (or opencode, or anything else) launched here registers as

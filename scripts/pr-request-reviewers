@@ -1,5 +1,8 @@
 #!/usr/bin/env bash
 #
+# SPDX-License-Identifier: AGPL-3.0-or-later
+# Copyright © 2026 Enrico Weigelt, metux IT consult
+#
 # Request one or more reviewers on a PR via the REST API (wraps the
 # multi-flag `gh api --method POST .../requested_reviewers -f 'reviewers[]=...'`
 # recipe from AGENTS.md's "Route hardware-touching PRs" section, so it doesn't

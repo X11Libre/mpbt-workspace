@@ -1,5 +1,8 @@
 #!/usr/bin/env bash
 #
+# SPDX-License-Identifier: AGPL-3.0-or-later
+# Copyright © 2026 Enrico Weigelt, metux IT consult
+#
 # Set a pull-request body from a file, via the GitHub REST API.
 #
 # `gh pr edit` currently fails on the xserver repo with a GraphQL "Projects

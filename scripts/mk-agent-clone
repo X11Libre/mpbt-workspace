@@ -1,5 +1,8 @@
 #!/usr/bin/env bash
 #
+# SPDX-License-Identifier: AGPL-3.0-or-later
+# Copyright © 2026 Enrico Weigelt, metux IT consult
+#
 # Create (or refresh) a dedicated agent-owned clone for backport work on a
 # release line, fully isolated from the user's hand-edited clone but SHARING
 # its git object store (via alternates) to save disk and network.

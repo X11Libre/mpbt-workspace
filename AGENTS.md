@@ -1042,3 +1042,19 @@ None of these exist in this repo. The X Test Suite (xts) is a build target, not 
   `git branch -a` + `gh api repos/X11Libre/mpbt-workspace/branches`, 2026-07-01; agents work off
   their own `mtx/*`/task branches instead)
 - Remote: `git@github.com:X11Libre/mpbt-workspace.git`
+- **License: AGPL-3.0-or-later for this workspace's own tooling** (`scripts/*`, the top-level
+  `run-*`/`install-mpbt` launchers, `cf/*/config.sh`, `cf/*/packages/xlibre/update-generic.sh`,
+  `nvglx-re/`) — maintainer decision, 2026-07-02. Full text in `LICENSE` (canonical FSF text,
+  fetched from gnu.org); every script carries an `SPDX-License-Identifier: AGPL-3.0-or-later`
+  + copyright header. **Give every new script this same header when you add one.** This is
+  **scoped to mpbt-workspace's own build/orchestration tooling only** — it does not touch the
+  license of anything mpbt *builds*. Do **not** apply an AGPL header to files inside the
+  xserver/driver source clones: `X11Libre/xserver`'s `COPYING` is the customary permissive
+  MIT/X11-style license (with an explicit "copyright holders of new code should use this license
+  statement where possible" convention, and the maintainer is already listed there as a 2025
+  copyright holder), and this project's own explicit design constraint is staying friendly to
+  proprietary consumers (see the NVIDIA-ABI section) — introducing a strong-copyleft/network-clause
+  license into that tree, even for a standalone new test/CI script, would cut against both the
+  upstream project's norms and its own stated goals. If a genuinely new, wholly-authored file
+  inside an xserver/driver clone is ever a relicensing candidate, that's a separate, explicit
+  maintainer call each time — not a default to apply opportunistically.

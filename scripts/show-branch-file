@@ -1,5 +1,8 @@
 #!/usr/bin/env bash
 #
+# SPDX-License-Identifier: AGPL-3.0-or-later
+# Copyright © 2026 Enrico Weigelt, metux IT consult
+#
 # Print a source file (or a function/symbol region) from the xserver repo at a
 # given ref, WITHOUT needing a local clone — straight from the GitHub API.
 #
