@@ -57,6 +57,8 @@
       "Bash(scripts/pr-request-reviewers *)",
       "Bash(scripts/pr-set-body)",
       "Bash(scripts/pr-set-body *)",
+      "Bash(scripts/pr-view)",
+      "Bash(scripts/pr-view *)",
       "Bash(scripts/prune-stale-ci)",
       "Bash(scripts/prune-stale-ci *)",
       "Bash(scripts/show-branch-file)",
