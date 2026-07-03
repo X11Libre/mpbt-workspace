@@ -23,8 +23,9 @@
 #                      the same short/full forms as run-opencode.* (e.g.
 #                      "master", "25.2", "xserver-25.2") as well as the
 #                      non-xserver solutions ("flyingtux", "go-x11proto").
-#                      Default AGENT_ID becomes "<rel>-$$".
-#   --name <id>       override AGENT_ID (default: "<rel>-$$" or "ws-$$")
+#   --name <id>       override AGENT_ID (default: next free ship name from
+#                      scripts/ship-names, falling back to "<rel>-$$"/"ws-$$"
+#                      if the registry has none free)
 #
 
 RELEASE=""
@@ -53,10 +54,21 @@ if [ -n "$RELEASE" ]; then
     [ -f "$cfg" ] || { echo "run-claude: no such release/solution '$RELEASE' (missing $cfg)" >&2; exit 1; }
     . "$cfg"
     export XLIBRE_RELEASE
-    : "${NAME:=${XLIBRE_RELEASE#xserver-}-$$}"
 else
     unset XLIBRE_RELEASE 2>/dev/null || true
-    : "${NAME:=ws-$$}"
+fi
+
+if [ -z "$NAME" ]; then
+    # Same ship-name registry as agent-bus-auto-id.sh / agent-run, so a plain
+    # run-claude session gets a fleet identity too instead of a bare PID tag.
+    NAME="$(scripts/ship-names assign 2>/dev/null)" || true
+    if [ -z "$NAME" ]; then
+        if [ -n "$RELEASE" ]; then
+            NAME="${XLIBRE_RELEASE#xserver-}-$$"
+        else
+            NAME="ws-$$"
+        fi
+    fi
 fi
 
 export AGENT_ID="$NAME"
