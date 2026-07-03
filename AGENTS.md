@@ -95,6 +95,7 @@ cleared:
 |---------|---------|
 | `./install-mpbt` | `go install github.com/metux/mpbt/cmd/mpbt-builder@latest` |
 | `./run-control [--detach]` | start a Claude Code **control-agent** session (`AGENT_ID=control`, no `XLIBRE_RELEASE`); `--detach` launches it in a named tmux session via `agent-run` so it survives terminal close |
+| `./run-claude [--release <rel>] [--name <id>]` | start a plain Claude Code session with an auto-assigned, board-visible `AGENT_ID` (`<rel>-$$` or `ws-$$`); `--release` sources that project's `cf/<rel>/config.sh` first (accepts the same short/full/non-xserver forms as `run-opencode.*`). The explicit-launcher counterpart to `scripts/agent-bus-auto-id.sh` (which does the same thing implicitly, via `~/.bashrc`, for a plain `claude` started from a shell already inside the workspace tree) |
 | `./run-fetch.xserver-<release>` | clone/fetch all sources for a release line |
 | `./run-build.xserver-<release>` | full build of all packages in order, then **deletes** `_WORK_/<release>/install` |
 | `./run-opencode.xserver-<release>` | start opencode session for a release line (sets `XLIBRE_RELEASE`) |
