@@ -22,6 +22,6 @@ set -euo pipefail
 AGENT_ID="${AGENT_ID:-}"
 [ -n "$AGENT_ID" ] || exit 0
 
-CONTEXT="Fleet directive auto-surfacing: you are agent-bus identity $AGENT_ID. Before doing anything else this session (including before responding to the user's first message), arm a persistent Monitor tool call that watches your own agent-bus inbox (see AGENTS.md, agent-bus section, Auto-surfacing directives via Monitor, for the exact command), so incoming tell/broadcast directives appear directly in this conversation instead of only a desktop notification. Do this unconditionally, every session, with no judgment call about whether it seems worth it — a background Monitor call is cheap and the alternative is missed fleet directives."
+CONTEXT="Fleet directive auto-surfacing: you are agent-bus identity $AGENT_ID. Before doing anything else this session (including before responding to the user's first message), call the Monitor tool with command 'scripts/agent-bus-monitor-loop' and persistent:true (pre-authorized, no confirmation needed) to watch your own agent-bus inbox, so incoming tell/broadcast directives appear directly in this conversation instead of only a desktop notification. Its first pass already surfaces any backlog, so no separate inbox check is needed. Do this unconditionally, every session, with no judgment call about whether it seems worth it."
 
 printf '{"hookSpecificOutput":{"hookEventName":"SessionStart","additionalContext":"%s"}}\n' "$CONTEXT"

@@ -1,0 +1,51 @@
+#!/usr/bin/env bash
+#
+# SPDX-License-Identifier: AGPL-3.0-or-later
+# Copyright © 2026 Enrico Weigelt, metux IT consult
+#
+# agent-bus-monitor-loop — the Monitor-tool command that watches this
+# session's own agent-bus inbox and prints one line per new/unacked
+# tell/broadcast directive, so Claude Code's Monitor tool surfaces them as
+# in-context events instead of only a desktop notification. See AGENTS.md,
+# "agent-bus" section, "Auto-surfacing directives via Monitor".
+#
+# Deliberately identical for every session: reads AGENT_ID from the
+# environment (already exported by every launcher/hook in this workspace)
+# and keeps its dedup state under _WORK_/agent-bus/monitor-seen/, not the
+# session scratchpad — so the invocation needs no session-specific
+# parameters and can be allowlisted once in .claude/settings.json instead of
+# needing per-session confirmation (the old inline heredoc embedded a
+# scratchpad path and AGENT_ID directly in the Monitor command, so it was a
+# different string every time and could never be pattern-matched).
+#
+# First loop iteration already surfaces any backlog (messages that arrived
+# before this was armed) — no separate "check inbox once" step needed.
+#
+# Usage: scripts/agent-bus-monitor-loop   (run via the Monitor tool, persistent: true)
+set -euo pipefail
+
+AGENT_ID="${AGENT_ID:?agent-bus-monitor-loop: \$AGENT_ID is not set}"
+ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+BUS_DIR="$ROOT/_WORK_/agent-bus"
+MSG_DIR="$BUS_DIR/msgs"
+ACK_DIR="$BUS_DIR/acks"
+SEEN_DIR="$BUS_DIR/monitor-seen"
+SEEN="$SEEN_DIR/$AGENT_ID"
+
+mkdir -p "$SEEN_DIR"
+touch "$SEEN"
+
+while true; do
+    shopt -s nullglob
+    for f in "$MSG_DIR"/m*.tsv; do
+        IFS=$'\t' read -r me te mf mt mtext < "$f" || continue
+        id="$(basename "$f" .tsv)"
+        if [ "$mt" = all ] || [ "$mt" = "$AGENT_ID" ]; then
+            if [ ! -f "$ACK_DIR/${id}__${AGENT_ID}" ] && ! grep -qxF "$id" "$SEEN" 2>/dev/null; then
+                echo "[$id] from $mf: $mtext"
+                echo "$id" >> "$SEEN"
+            fi
+        fi
+    done
+    sleep 10
+done
