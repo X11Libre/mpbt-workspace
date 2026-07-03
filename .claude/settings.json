@@ -3,6 +3,8 @@
     "allow": [
       "Bash(chromium)",
       "Bash(chromium *)",
+      "Bash(./bootstrap)",
+      "Bash(./bootstrap *)",
       "Bash(scripts/json)",
       "Bash(scripts/json *)",
       "Bash(scripts/agent-attach)",
