@@ -4,19 +4,24 @@
 # Copyright © 2026 Enrico Weigelt, metux IT consult
 #
 # agent-bus-monitor-hint — SessionStart hook helper: emits a
-# hookSpecificOutput.additionalContext nudge telling the assistant to arm a
-# Monitor-tool watch on its own agent-bus inbox, so incoming tell/broadcast
-# directives surface as in-context events instead of only a desktop
-# notification a human has to relay by hand. See AGENTS.md, "agent-bus"
-# section, "Auto-surfacing directives via Monitor" for the command + rationale.
+# hookSpecificOutput.additionalContext instruction telling the assistant to
+# unconditionally arm a Monitor-tool watch on its own agent-bus inbox, so
+# incoming tell/broadcast directives surface as in-context events instead of
+# only a desktop notification a human has to relay by hand. See AGENTS.md,
+# "agent-bus" section, "Auto-surfacing directives via Monitor" for the
+# command + rationale.
 #
 # Deliberately does nothing (exits quietly) when $AGENT_ID isn't set yet —
 # nothing useful to say without an identity to watch for.
+#
+# Note: this only fires once the session takes its first turn (a hook can't
+# invoke a tool by itself) — a session sitting idle with no user input yet
+# has nothing to act on this with until that first turn happens.
 set -euo pipefail
 
 AGENT_ID="${AGENT_ID:-}"
 [ -n "$AGENT_ID" ] || exit 0
 
-CONTEXT="Fleet directive auto-surfacing: you are agent-bus identity $AGENT_ID. If this session will stay open a while, arm a persistent Monitor tool call now that watches your own agent-bus inbox (see AGENTS.md, agent-bus section, Auto-surfacing directives via Monitor, for the exact command), so incoming tell/broadcast directives appear directly in this conversation instead of only a desktop notification. Skip this for a short one-off task that will finish before anyone could plausibly send you a directive."
+CONTEXT="Fleet directive auto-surfacing: you are agent-bus identity $AGENT_ID. Before doing anything else this session (including before responding to the user's first message), arm a persistent Monitor tool call that watches your own agent-bus inbox (see AGENTS.md, agent-bus section, Auto-surfacing directives via Monitor, for the exact command), so incoming tell/broadcast directives appear directly in this conversation instead of only a desktop notification. Do this unconditionally, every session, with no judgment call about whether it seems worth it — a background Monitor call is cheap and the alternative is missed fleet directives."
 
 printf '{"hookSpecificOutput":{"hookEventName":"SessionStart","additionalContext":"%s"}}\n' "$CONTEXT"

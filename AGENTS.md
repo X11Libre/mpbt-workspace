@@ -971,16 +971,27 @@ while true; do
 done
 ```
 
-Call `Monitor` with this as `command`, `persistent: true`. Wired as a nudge, not a forced action:
-`scripts/agent-bus-monitor-hint` runs as a third `SessionStart` hook command and emits a
-`hookSpecificOutput.additionalContext` telling the assistant to arm this if the session is going to
-stick around — the assistant still decides (a one-shot subagent doing a 2-minute task shouldn't
-bother). First real-world validation (2026-07-03, the `Enterprise`/control session): arming the
-Monitor immediately surfaced a 3-message backlog including an "ASAP" backport request (`m0011`) that
-had been sitting unclaimed with no live session polling for it — concretely proving the gap this
-closes. Turned out already superseded (PR #3226's backports were already open before the directive
-was even read) — a reminder that `agent-bus` mail can go stale exactly like the board itself; ack
-with an explanation instead of blindly acting when that happens.
+Call `Monitor` with this as `command`, `persistent: true`. **Unconditional as of 2026-07-03** (was
+initially a discretionary nudge — changed after observing several fleet sessions sitting idle with
+an unarmed inbox and unacked directives): `scripts/agent-bus-monitor-hint` runs as a third
+`SessionStart` hook command and emits a `hookSpecificOutput.additionalContext` instructing the
+assistant to arm this **as its very first action, every session, no judgment call** — not "if it'll
+stick around." First real-world validation (2026-07-03, the `Enterprise`/control session): arming
+the Monitor immediately surfaced a 3-message backlog including an "ASAP" backport request (`m0011`)
+that had been sitting unclaimed with no live session polling for it — concretely proving the gap
+this closes. Turned out already superseded (PR #3226's backports were already open before the
+directive was even read) — a reminder that `agent-bus` mail can go stale exactly like the board
+itself; ack with an explanation instead of blindly acting when that happens.
+
+**Hard limit: a hook can't invoke a tool — this only fires on the session's first turn.** A `claude`
+process that has been launched (heartbeat posted, shows up on `agent-bus board` as `idle`/"session
+started") but has not yet received any input has had **no turn** yet, and `Monitor` can only be
+called by the assistant during a turn — so its inbox stays genuinely unwatched until the first
+message (from the user, or an `agent-run -- <initial prompt>` launch arg) arrives. This is why a
+broadcast can sit un-acked at freshly-started ships (`Discovery`/`Excelsior`/`Voyager`, seen
+2026-07-03) even with the hint wired up: they simply hadn't taken a turn yet, not that the hint
+failed. There is no scripts-only fix for that half — a session with zero interaction cannot
+self-trigger a tool call.
 
 **Gap: opencode has no equivalent.** `Monitor` is a Claude Code harness tool; opencode sessions have
 no comparable in-context event mechanism, so they're stuck on notify-only (desktop popup) for now.
