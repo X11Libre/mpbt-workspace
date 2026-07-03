@@ -22,6 +22,10 @@ set -euo pipefail
 AGENT_ID="${AGENT_ID:-}"
 [ -n "$AGENT_ID" ] || exit 0
 
-CONTEXT="Fleet directive auto-surfacing: you are agent-bus identity $AGENT_ID. Before doing anything else this session (including before responding to the user's first message), call the Monitor tool with command 'scripts/agent-bus-monitor-loop' and persistent:true (pre-authorized, no confirmation needed) to watch your own agent-bus inbox, so incoming tell/broadcast directives appear directly in this conversation instead of only a desktop notification. Its first pass already surfaces any backlog, so no separate inbox check is needed. Do this unconditionally, every session, with no judgment call about whether it seems worth it."
+if [ "$AGENT_ID" = "Enterprise" ]; then
+    CONTEXT="Fleet directive auto-surfacing: you are agent-bus identity $AGENT_ID (the flagship/control session). Before doing anything else this session (including before responding to the user's first message), call the Monitor tool twice: (1) command 'scripts/agent-bus-monitor-loop', persistent:true, to watch your own agent-bus inbox; (2) command 'scripts/agent-bus-fleet-watch', persistent:true, to watch for ships joining or restarting on the board. Both are pre-authorized, no confirmation needed. Each one's first pass already surfaces any backlog, so no separate inbox/board check is needed. Do this unconditionally, every session, with no judgment call about whether it seems worth it."
+else
+    CONTEXT="Fleet directive auto-surfacing: you are agent-bus identity $AGENT_ID. Before doing anything else this session (including before responding to the user's first message), call the Monitor tool with command 'scripts/agent-bus-monitor-loop' and persistent:true (pre-authorized, no confirmation needed) to watch your own agent-bus inbox, so incoming tell/broadcast directives appear directly in this conversation instead of only a desktop notification. Its first pass already surfaces any backlog, so no separate inbox check is needed. Do this unconditionally, every session, with no judgment call about whether it seems worth it."
+fi
 
 printf '{"hookSpecificOutput":{"hookEventName":"SessionStart","additionalContext":"%s"}}\n' "$CONTEXT"

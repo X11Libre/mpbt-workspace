@@ -15,8 +15,21 @@
 # (which already tells it to arm the Monitor unconditionally) actually gets
 # acted on instead of sitting unread on an idle, un-typed-into session. See
 # AGENTS.md, "agent-bus" section, "Auto-surfacing directives via Monitor".
+#
+# Flagship (AGENT_ID=Enterprise) sessions also watch fleet membership, not
+# just their own inbox, so they get a second Monitor-arming instruction (see
+# agent-bus-fleet-watch). Callers must have $AGENT_ID already exported into
+# the environment before invoking this script for that check to see it —
+# run-ship/run-flagship do; agent-run's own internal call passes it
+# explicitly since AGENT_ID is only a local shell var there at that point.
 set -euo pipefail
 
-cat <<'EOF'
+if [ "${AGENT_ID:-}" = "Enterprise" ]; then
+    cat <<'EOF'
+Session just started. Before anything else, call the Monitor tool twice: (1) command `scripts/agent-bus-monitor-loop`, persistent:true, to watch your own agent-bus inbox; (2) command `scripts/agent-bus-fleet-watch`, persistent:true, to watch for ships joining/restarting on the board (this is the flagship/control session). Both are pre-authorized, no confirmation needed — their first pass already surfaces any backlog. Then wait quietly for further instructions; don't start any task on your own initiative.
+EOF
+else
+    cat <<'EOF'
 Session just started. Before anything else, call the Monitor tool with command `scripts/agent-bus-monitor-loop`, persistent:true (pre-authorized, no confirmation needed) — its first pass already surfaces any backlog. Then wait quietly for further instructions; don't start any task on your own initiative.
 EOF
+fi

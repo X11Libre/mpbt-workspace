@@ -97,9 +97,9 @@ cleared:
 | `./run-flagship [--detach]` | start a Claude Code **flagship** session (`AGENT_ID=Enterprise`, no `XLIBRE_RELEASE`); `--detach` launches it in a named tmux session via `agent-run` so it survives terminal close |
 | `scripts/ship-names assign [flagship]` \| `release <name>` \| `list` \| `gc` | **Star Trek ship name registry** — each agent instance gets a unique ship name as its `AGENT_ID`. `assign` picks the next unused name (50 names, flock-serialized); `assign flagship` reserves `Enterprise` for the control/flagship session; `release` frees a name; `gc` reaps reservations with no live agent-bus heartbeat. Names shown in the shell prompt (PS1), Claude Code status line (⚓), and tmux session title. `Enterprise` is the reserved flagship — never auto-assigned to worker sessions |
 | `./run-ship [--release <rel>] [--name <id>]` | start a plain Claude Code session with an auto-assigned, board-visible `AGENT_ID` (`<rel>-$$` or `ws-$$`); `--release` sources that project's `cf/<rel>/config.sh` first (accepts the same short/full/non-xserver forms as `run-opencode.*`). The explicit-launcher counterpart to `scripts/agent-bus-auto-id.sh` (which does the same thing implicitly, via `~/.bashrc`, for a plain `claude` started from a shell already inside the workspace tree) |
-| `scripts/agent-bus-boot-prompt` | prints the default initial prompt `run-ship`/`run-flagship`/`agent-run --client claude` feed to a freshly-launched session when no explicit initial prompt/args were given — forces the session's first turn immediately at launch (instead of waiting for a human to type) so the `agent-bus-monitor-hint` SessionStart context actually gets acted on (arming the Monitor) right away |
+| `scripts/agent-bus-boot-prompt` | prints the default initial prompt `run-ship`/`run-flagship`/`agent-run --client claude` feed to a freshly-launched session when no explicit initial prompt/args were given — forces the session's first turn immediately at launch (instead of waiting for a human to type) so the `agent-bus-monitor-hint` SessionStart context actually gets acted on (arming the Monitor) right away. Branches on `$AGENT_ID`: for the flagship (`Enterprise`) it instructs arming **both** `agent-bus-monitor-loop` and `agent-bus-fleet-watch`; any other identity gets just the inbox watch |
 | `scripts/agent-bus-monitor-loop` | the `Monitor`-tool `command` that watches this session's own agent-bus inbox and prints one line per new/unacked directive; identical invocation every session (reads `$AGENT_ID` from the environment, no session-specific args), so it's pre-authorized via a bare `"Monitor"` allow entry in `.claude/settings.json` — arming it needs no confirmation prompt |
-| `scripts/agent-bus-fleet-watch` | sibling `Monitor`-tool `command` for a control/flagship session: watches `_WORK_/agent-bus/status/` and prints "New ship online: …" the moment a new `AGENT_ID` registers on the board (seeds its known-set from the board at arm time, so only later arrivals are reported) — also covered by the bare `"Monitor"` allow |
+| `scripts/agent-bus-fleet-watch` | sibling `Monitor`-tool `command` for a control/flagship session: watches `_WORK_/agent-bus/status/` and prints one line whenever a ship's heartbeat *epoch* changes — "New ship online: …" for a never-seen `AGENT_ID`, "Ship update: …" for a restart of a known one (seeds its known-set from the board at arm time, so only later changes are reported) — also covered by the bare `"Monitor"` allow. Auto-armed alongside `agent-bus-monitor-loop` for `AGENT_ID=Enterprise` sessions via `agent-bus-boot-prompt`/`agent-bus-monitor-hint` |
 | `./run-fetch.xserver-<release>` | clone/fetch all sources for a release line |
 | `./run-build.xserver-<release>` | full build of all packages in order, then **deletes** `_WORK_/<release>/install` |
 | `./run-opencode.xserver-<release>` | start opencode session for a release line (sets `XLIBRE_RELEASE`) |
@@ -1022,6 +1022,21 @@ first action (see above) — arming `scripts/agent-bus-monitor-loop` and then wa
 separate inbox-check/status-report steps spelled out (status is already handled by the existing
 `SessionStart` heartbeat hook, which runs outside the permission system entirely since it's not a
 model-invoked tool call).
+
+**Flagship also needs the fleet-membership watch, not just its own inbox (2026-07-03).** The
+`agent-bus-fleet-watch` script (see Key commands) existed but wasn't wired into the auto-arm path
+above — a freshly (re)launched `Enterprise` session only armed `agent-bus-monitor-loop`, so a ship
+restarting (e.g. Potemkin) produced no in-context notification even though the control session was
+supposed to be watching the whole board. Fixed by making `agent-bus-boot-prompt` and
+`agent-bus-monitor-hint` both branch on `$AGENT_ID`: for `Enterprise` they now instruct arming
+**both** Monitors (`agent-bus-monitor-loop` + `agent-bus-fleet-watch`); every other identity still
+gets just the inbox watch, since fleet membership is only the flagship's concern. One wrinkle in
+`agent-run`: at the point it calls `agent-bus-boot-prompt` internally (for a bare `agent-run
+<release> --client claude --name Enterprise`, i.e. not via `run-flagship`), `AGENT_ID` is still only
+a local shell variable, not yet exported into the environment (that happens later, in the string
+built for the inner tmux command) — so the branch would silently miss it. Fixed by passing it
+explicitly: `AGENT_ID="$AGENT_ID" "$ROOT/scripts/agent-bus-boot-prompt"`, mirroring the same
+inline-env-var pattern the script already uses for the actual `exec` line.
 
 **Gap: opencode has no equivalent.** `Monitor` is a Claude Code harness tool; opencode sessions have
 no comparable in-context event mechanism, so they're stuck on notify-only (desktop popup) for now.
