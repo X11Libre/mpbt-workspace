@@ -430,6 +430,16 @@ Each release clone has a dedicated incubator branch and a matching `make-pr.upst
 
 Procedure, per applicable release:
 
+0. **Check whether it's already been backported before doing anything else:**
+   `gh pr view <master-pr#> --repo X11Libre/xserver --json body -q .body` — if a "Backport
+   dashboard" table is already present, another (possibly now-finished/invisible-on-the-board)
+   session already did this PR; read the linked backport PR numbers instead of re-running the
+   workflow. Skipping this step produces byte-identical duplicate PRs and duplicate cherry-picked
+   commits in the shared `rfc/backport-<release>` incubator. (Hit 2026-07-03: `agent-bus board`
+   only shows *currently running* agents — a session that finished before a suspend/reboot leaves
+   no trace there, so the board being "empty of workers" does NOT mean a PR hasn't already been
+   backported. Recovered cleanly because `backport-commit`'s incubator rebase never got pushed —
+   the divergence was caught locally — but always check first regardless.)
 1. **Check applicability** by inspecting the actual code on that branch — the fix may already
    be present, or the buggy code may not exist / not be vulnerable there. (See
    `VULN-FIX-BACKPORT.md` for an example applicability matrix.) Use
