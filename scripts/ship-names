@@ -1,0 +1,138 @@
+#!/usr/bin/env bash
+#
+# SPDX-License-Identifier: AGPL-3.0-or-later
+# Copyright © 2026 Enrico Weigelt, metux IT consult
+#
+# ship-names — Star Trek ship name registry for agent fleet management.
+#
+# Each running agent instance is assigned a unique ship name as its AGENT_ID,
+# so the agent-bus board and tmux session list read like a fleet roster instead
+# of a wall of PIDs. Enterprise is reserved for the control/flagship session.
+#
+# Reservations live in _WORK_/agent-bus/ships/ (one file per active name,
+# gitignored). stale reservations (no matching agent-bus heartbeat) can be
+# cleared with `ship-names release <name>` or `ship-names gc`.
+#
+# Usage:
+#   ship-names assign [flagship]  pick an unused name (flagship = Enterprise)
+#   ship-names release <name>     free a reservation
+#   ship-names list               show all names and current status
+#   ship-names gc                 remove reservations with no live agent-bus entry
+#   ship-names flagship           print the flagship name (Enterprise)
+
+set -euo pipefail
+
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+NAMES_FILE="$SCRIPT_DIR/ship-names.txt"
+ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
+WORK_DIR="${WORK_DIR:-$ROOT/_WORK_}"
+SHIPS_DIR="$WORK_DIR/agent-bus/ships"
+STATUS_DIR="$WORK_DIR/agent-bus/status"
+FLAGSHIP="Enterprise"
+
+die() { echo "ship-names: $*" >&2; exit 1; }
+
+cmd="${1:-list}"
+shift || true
+
+case "$cmd" in
+
+    assign)
+        mkdir -p "$SHIPS_DIR"
+
+        # Flagship request — reserve Enterprise specifically.
+        if [ "${1:-}" = "flagship" ]; then
+            if [ ! -e "$SHIPS_DIR/$FLAGSHIP" ]; then
+                printf '%s\n' "$$:$(date +%s)" > "$SHIPS_DIR/$FLAGSHIP"
+                echo "$FLAGSHIP"
+                exit 0
+            fi
+            echo "ship-names: flagship ($FLAGSHIP) already reserved" >&2
+            exit 1
+        fi
+
+        # General assignment — atomically pick the first unused name.
+        exec 9>"$SHIPS_DIR/.assign.lock"
+        flock -w 10 9 || die "assign lock timeout"
+
+        result=""
+        while IFS= read -r name || [ -n "$name" ]; do
+            case "$name" in
+                ''|\#*) continue ;;
+                "$FLAGSHIP") continue ;;   # flagship is reserved for control agent
+            esac
+            if [ ! -e "$SHIPS_DIR/$name" ]; then
+                printf '%s\n' "$$:$(date +%s)" > "$SHIPS_DIR/$name"
+                result="$name"
+                break
+            fi
+        done < "$NAMES_FILE"
+
+        flock -u 9
+        exec 9>&-
+
+        if [ -n "$result" ]; then
+            echo "$result"
+        else
+            echo "ws-$$"   # fallback when all names are taken
+        fi
+        ;;
+
+    release)
+        name="${1:-}"
+        [ -n "$name" ] || die "release: name required"
+        rm -f "$SHIPS_DIR/$name"
+        ;;
+
+    list)
+        echo "Ship name registry ($SHIPS_DIR):"
+        printf '  %-22s  %s\n' "NAME" "STATUS"
+        printf '  %-22s  %s\n' "----" "------"
+        # Flagship first
+        if [ -e "$SHIPS_DIR/$FLAGSHIP" ]; then
+            printf '  %-22s  ACTIVE (flagship)\n' "$FLAGSHIP"
+        else
+            printf '  %-22s  free\n' "$FLAGSHIP"
+        fi
+        while IFS= read -r name || [ -n "$name" ]; do
+            case "$name" in ''|\#*|"$FLAGSHIP") continue ;; esac
+            f="$SHIPS_DIR/$name"
+            if [ -e "$f" ]; then
+                payload="$(cat "$f" 2>/dev/null || echo "?")"
+                printf '  %-22s  ACTIVE (%s)\n' "$name" "$payload"
+            else
+                printf '  %-22s  free\n' "$name"
+            fi
+        done < "$NAMES_FILE"
+        ;;
+
+    gc)
+        # Remove reservations with no matching live agent-bus status entry.
+        [ -d "$SHIPS_DIR" ] || exit 0
+        removed=0
+        for f in "$SHIPS_DIR"/*; do
+            [ -f "$f" ] || continue
+            name="$(basename "$f")"
+            [ "$name" = ".assign.lock" ] && continue
+            if [ ! -e "$STATUS_DIR/$name.tsv" ]; then
+                rm -f "$f"
+                echo "ship-names: gc: released stale reservation '$name'"
+                removed=$((removed + 1))
+            fi
+        done
+        echo "ship-names: gc: removed $removed stale reservation(s)"
+        ;;
+
+    flagship)
+        echo "$FLAGSHIP"
+        ;;
+
+    --help|-h)
+        sed -n '2,/^set -euo/p' "$0" | sed 's/^# \{0,1\}//; /^set -euo/d'
+        ;;
+
+    *)
+        die "unknown command: $cmd  (try --help)"
+        ;;
+
+esac

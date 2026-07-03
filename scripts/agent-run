@@ -68,6 +68,7 @@ stop_session() {  # <id|session>
     tmux kill-session -t "$session"
     echo "agent-run: stopped session '$session'"
     [ -n "${aid:-}" ] && AGENT_ID="$aid" "$ROOT/scripts/agent-bus" clear >/dev/null 2>&1 || true
+    [ -n "${aid:-}" ] && "$ROOT/scripts/ship-names" release "$aid" >/dev/null 2>&1 || true
 }
 
 # ---- arg parsing ----
@@ -108,7 +109,12 @@ else
     rel_short=""
 fi
 
-AGENT_ID="${name:-${rel_short}-${client}}"
+if [ -n "$name" ]; then
+    AGENT_ID="$name"
+else
+    AGENT_ID="$("$ROOT/scripts/ship-names" assign 2>/dev/null)" || true
+    [ -z "${AGENT_ID:-}" ] && AGENT_ID="${rel_short:-cross}-${client}"
+fi
 session="$(tmux_safe "${SESS_PREFIX}${AGENT_ID}")"
 tmux has-session -t "$session" 2>/dev/null && \
     die "session '$session' already running — attach with: scripts/agent-attach $AGENT_ID   (or use --name for a second one)"
