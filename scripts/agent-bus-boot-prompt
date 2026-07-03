@@ -18,5 +18,5 @@
 set -euo pipefail
 
 cat <<'EOF'
-Session just started. Before anything else: process your SessionStart hook context, including arming a persistent Monitor watch on your own agent-bus inbox (see AGENTS.md, agent-bus section, "Auto-surfacing directives via Monitor", for the exact command) — do this unconditionally, it's cheap. Then run `agent-bus inbox` once to check for anything already waiting for you. After that, report status idle and wait quietly for further instructions — don't start any task on your own initiative.
+Session just started. Before anything else, call the Monitor tool with command `scripts/agent-bus-monitor-loop`, persistent:true (pre-authorized, no confirmation needed) — its first pass already surfaces any backlog. Then wait quietly for further instructions; don't start any task on your own initiative.
 EOF

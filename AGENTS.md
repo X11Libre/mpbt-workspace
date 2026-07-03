@@ -98,6 +98,7 @@ cleared:
 | `scripts/ship-names assign [flagship]` \| `release <name>` \| `list` \| `gc` | **Star Trek ship name registry** — each agent instance gets a unique ship name as its `AGENT_ID`. `assign` picks the next unused name (50 names, flock-serialized); `assign flagship` reserves `Enterprise` for the control/flagship session; `release` frees a name; `gc` reaps reservations with no live agent-bus heartbeat. Names shown in the shell prompt (PS1), Claude Code status line (⚓), and tmux session title. `Enterprise` is the reserved flagship — never auto-assigned to worker sessions |
 | `./run-ship [--release <rel>] [--name <id>]` | start a plain Claude Code session with an auto-assigned, board-visible `AGENT_ID` (`<rel>-$$` or `ws-$$`); `--release` sources that project's `cf/<rel>/config.sh` first (accepts the same short/full/non-xserver forms as `run-opencode.*`). The explicit-launcher counterpart to `scripts/agent-bus-auto-id.sh` (which does the same thing implicitly, via `~/.bashrc`, for a plain `claude` started from a shell already inside the workspace tree) |
 | `scripts/agent-bus-boot-prompt` | prints the default initial prompt `run-ship`/`run-flagship`/`agent-run --client claude` feed to a freshly-launched session when no explicit initial prompt/args were given — forces the session's first turn immediately at launch (instead of waiting for a human to type) so the `agent-bus-monitor-hint` SessionStart context actually gets acted on (arming the Monitor) right away |
+| `scripts/agent-bus-monitor-loop` | the `Monitor`-tool `command` that watches this session's own agent-bus inbox and prints one line per new/unacked directive; identical invocation every session (reads `$AGENT_ID` from the environment, no session-specific args), so it's pre-authorized via a bare `"Monitor"` allow entry in `.claude/settings.json` — arming it needs no confirmation prompt |
 | `./run-fetch.xserver-<release>` | clone/fetch all sources for a release line |
 | `./run-build.xserver-<release>` | full build of all packages in order, then **deletes** `_WORK_/<release>/install` |
 | `./run-opencode.xserver-<release>` | start opencode session for a release line (sets `XLIBRE_RELEASE`) |
@@ -896,6 +897,15 @@ and identity falls back to `user@host` when `$AGENT_ID` is unset — so for a pl
 column) first, or all same-host sessions collapse to one board row and a `SessionEnd` in any one
 clears it for all. (The `run-opencode.*` wrappers already set both.)
 
+**Don't prefix `export AGENT_ID=... &&` in front of `scripts/agent-bus`/`scripts/pr-claim` calls
+when `$AGENT_ID` is already in the session's environment** (true for every launcher/hook-started
+session in this workspace — the whole point of the ship-name/auto-id machinery above). Doing it
+anyway is harmless functionally but breaks the `Bash(scripts/agent-bus *)`/`Bash(scripts/pr-claim
+*)` allowlist entries, which match on the command line's literal *prefix*: `export AGENT_ID=Foo &&
+scripts/agent-bus board` does not start with `scripts/agent-bus`, so it prompts for confirmation
+even though a bare `scripts/agent-bus board` would not have. Only export/override `$AGENT_ID`
+inline when you deliberately need a *different* identity than the session's own for one call.
+
 **Ship names for fleet identity (2026-07-03).** Every agent instance — whether a plain `claude`
 session, an `agent-run`-launched tmux session, or the flagship `run-flagship` — gets a unique **Star
 Trek ship name** as its `AGENT_ID`. `Enterprise` is reserved for the flagship/control session; worker
@@ -948,41 +958,43 @@ that was considered and rejected (`tmux send-keys` injection into an `agent-run`
 keystroke injection bypassing confirmations, and it works uniformly for both foreground and
 `agent-run`/tmux-launched sessions since it's a session-level tool, not tied to the tmux backend.
 
-Command (self-contained, dedupes against acks so restarts don't re-fire old mail; adjust
-`$AGENT_ID` / the seen-file path per session):
+**Command: `scripts/agent-bus-monitor-loop`** (2026-07-03, replacing an earlier inline heredoc —
+see below for why). Call `Monitor` with `command: "scripts/agent-bus-monitor-loop"`,
+`persistent: true`. The script reads `$AGENT_ID` from the environment (already exported by every
+launcher/hook in this workspace) and keeps its dedup state under
+`_WORK_/agent-bus/monitor-seen/<AGENT_ID>` — so, unlike the old approach, **the invocation is the
+exact same string for every session**. That matters for permissions: `.claude/settings.json` now
+carries a bare `"Monitor"` allow entry, so this call needs **no confirmation prompt** at all,
+in any session. (The bare-tool-name form — no `(...)` — allows every invocation of that tool
+regardless of arguments, same as a bare `"Read"` entry; be aware this is a blanket grant, not
+scoped to this one script, consistent with the other standing `scripts/*` grants already in this
+file for this same trust boundary.) The script's first loop pass already scans all existing
+messages, so arming it also serves as the one-time backlog check — no separate `agent-bus inbox`
+call needed.
 
-```bash
-AGENT_ID=<your ship name>
-BUS_DIR=/home/nekrad/src/xorg/mpbt-workspace/_WORK_/agent-bus
-MSG_DIR="$BUS_DIR/msgs"; ACK_DIR="$BUS_DIR/acks"
-SEEN=/tmp/.../scratchpad/.monitor-seen-$AGENT_ID   # use your session's scratchpad dir
-mkdir -p "$(dirname "$SEEN")"; touch "$SEEN"
-while true; do
-  shopt -s nullglob
-  for f in "$MSG_DIR"/m*.tsv; do
-    IFS=$'\t' read -r me te mf mt mtext < "$f" || continue
-    id=$(basename "$f" .tsv)
-    if [ "$mt" = all ] || [ "$mt" = "$AGENT_ID" ]; then
-      if [ ! -f "$ACK_DIR/${id}__${AGENT_ID}" ] && ! grep -qxF "$id" "$SEEN" 2>/dev/null; then
-        echo "[$id] from $mf: $mtext"; echo "$id" >> "$SEEN"
-      fi
-    fi
-  done
-  sleep 10
-done
-```
+**Unconditional as of 2026-07-03** (was initially a discretionary nudge — changed after observing
+several fleet sessions sitting idle with an unarmed inbox and unacked directives):
+`scripts/agent-bus-monitor-hint` runs as a third `SessionStart` hook command and emits a
+`hookSpecificOutput.additionalContext` instructing the assistant to arm this **as its very first
+action, every session, no judgment call** — not "if it'll stick around." First real-world
+validation (2026-07-03, the `Enterprise`/control session): arming the Monitor immediately surfaced
+a 3-message backlog including an "ASAP" backport request (`m0011`) that had been sitting unclaimed
+with no live session polling for it — concretely proving the gap this closes. Turned out already
+superseded (PR #3226's backports were already open before the directive was even read) — a
+reminder that `agent-bus` mail can go stale exactly like the board itself; ack with an explanation
+instead of blindly acting when that happens.
 
-Call `Monitor` with this as `command`, `persistent: true`. **Unconditional as of 2026-07-03** (was
-initially a discretionary nudge — changed after observing several fleet sessions sitting idle with
-an unarmed inbox and unacked directives): `scripts/agent-bus-monitor-hint` runs as a third
-`SessionStart` hook command and emits a `hookSpecificOutput.additionalContext` instructing the
-assistant to arm this **as its very first action, every session, no judgment call** — not "if it'll
-stick around." First real-world validation (2026-07-03, the `Enterprise`/control session): arming
-the Monitor immediately surfaced a 3-message backlog including an "ASAP" backport request (`m0011`)
-that had been sitting unclaimed with no live session polling for it — concretely proving the gap
-this closes. Turned out already superseded (PR #3226's backports were already open before the
-directive was even read) — a reminder that `agent-bus` mail can go stale exactly like the board
-itself; ack with an explanation instead of blindly acting when that happens.
+**Why the command moved out of an inline heredoc into `scripts/agent-bus-monitor-loop`.** The
+original approach had the hint dictate a self-contained bash snippet embedding `$AGENT_ID` and a
+session-scratchpad path directly in the `Monitor` call's `command` argument. That worked, but every
+session produced a *different* command string (different agent, different scratchpad path), so it
+could never be permission-allowlisted — every arming, plus the `agent-bus inbox`/`agent-bus status
+idle` calls the old hint also asked for, prompted for confirmation individually (reported
+2026-07-03: "funktioniert schonmal - emittiert allerdings noch eine menge kommandos, die extra
+bestätigt werden müssen"). Moving the loop into a script with no session-specific parameters (env
+var instead of an interpolated literal, a fixed workspace-relative seen-dir instead of the
+scratchpad) turned it into one static, allowlistable invocation — and made the explicit inbox-check
+step redundant, since the script's own first pass covers it.
 
 **Hard limit: a hook can't invoke a tool — this only fires on the session's first turn.** A `claude`
 process that has been launched (heartbeat posted, shows up on `agent-bus board` as `idle`/"session
@@ -998,13 +1010,17 @@ zero interaction — but the *launcher* isn't a session, it's a plain shell scri
 gets fed to `claude` as its initial argument, and `claude [prompt]` (no `-p`) starts interactively
 with that prompt already submitted as the first turn. So `run-ship`, `run-flagship`, and
 `agent-run --client claude` now each check: if the caller gave no explicit initial prompt/args, feed
-`scripts/agent-bus-boot-prompt`'s text (arm the Monitor, check `agent-bus inbox` once, then report
-idle and wait) as the initial `claude` argument instead of leaving it empty. This forces the first
-turn — and with it the Monitor-arming — at launch time, with nobody needing to type anything.
+`scripts/agent-bus-boot-prompt`'s text (arm the Monitor via `scripts/agent-bus-monitor-loop`, then
+wait) as the initial `claude` argument instead of leaving it empty. This forces the first turn —
+and with it the Monitor-arming — at launch time, with nobody needing to type anything.
 Skipped whenever the caller *does* pass their own initial args/prompt (respects explicit intent,
 never overrides it). `run-flagship --detach` composes cleanly: it fills `EXTRA` with the boot prompt
 itself before delegating to `agent-run`, so `agent-run`'s own empty-check no-ops instead of
-double-injecting.
+double-injecting. The prompt text itself shrank once the Monitor call became the *only* required
+first action (see above) — arming `scripts/agent-bus-monitor-loop` and then waiting, no more
+separate inbox-check/status-report steps spelled out (status is already handled by the existing
+`SessionStart` heartbeat hook, which runs outside the permission system entirely since it's not a
+model-invoked tool call).
 
 **Gap: opencode has no equivalent.** `Monitor` is a Claude Code harness tool; opencode sessions have
 no comparable in-context event mechanism, so they're stuck on notify-only (desktop popup) for now.
