@@ -18,12 +18,17 @@
 #       launch a detached session for a release line (default client: claude).
 #       <release> may be "master" / "25.2" / … or the full "xserver-25.2".
 #       Anything after -- is passed to the client.
+#   agent-run "" --name <id> [--client claude|shell] [-- <args…>]
+#       cross-project session with no release/XLIBRE_RELEASE (e.g. the
+#       control agent) — pass an empty <release> and a mandatory --name.
+#       Not supported for --client opencode (its wrapper needs a release).
 #   agent-run --list                 list running mpbt sessions + the board
 #   agent-run --stop <id|session>    kill a session (best-effort clears its heartbeat)
 #
 # Identity/handle: AGENT_ID defaults to "<release>-<client>" (override with
-#   --name); the tmux session is "mpbt-<AGENT_ID>" sanitized to tmux-safe chars,
-#   and is exported as $AGENT_HANDLE so it lands on the board.
+#   --name, required when <release> is empty); the tmux session is
+#   "mpbt-<AGENT_ID>" sanitized to tmux-safe chars, and is exported as
+#   $AGENT_HANDLE so it lands on the board.
 # Persistence note: a tmux session survives terminal close and SSH disconnect
 #   out of the box. To also survive a full logout reliably, enable lingering once:
 #   `loginctl enable-linger "$USER"`. It does NOT survive reboot (agents are
@@ -90,9 +95,18 @@ done
 case "$client" in claude|opencode|shell) ;; *) die "unknown --client '$client' (claude|opencode|shell)";; esac
 
 have_tmux
-rel_full="xserver-${release#xserver-}"
-rel_short="${rel_full#xserver-}"
-[ -f "$ROOT/cf/$rel_full/config.sh" ] || die "no such release '$release' (missing cf/$rel_full/config.sh)"
+
+if [ -n "$release" ]; then
+    rel_full="xserver-${release#xserver-}"
+    rel_short="${rel_full#xserver-}"
+    [ -f "$ROOT/cf/$rel_full/config.sh" ] || die "no such release '$release' (missing cf/$rel_full/config.sh)"
+else
+    # Cross-project session (e.g. control): no release, no XLIBRE_RELEASE.
+    [ "$client" = "opencode" ] && die "--client opencode needs a <release> (its wrapper sources cf/<release>/config.sh)"
+    [ -n "$name" ] || die "empty <release> needs an explicit --name (nothing to derive AGENT_ID from)"
+    rel_full=""
+    rel_short=""
+fi
 
 AGENT_ID="${name:-${rel_short}-${client}}"
 session="$(tmux_safe "${SESS_PREFIX}${AGENT_ID}")"
@@ -107,9 +121,11 @@ case "$client" in
 esac
 prog+=("$@")
 
-# Inner command string: set identity + release env, then exec the client.
+# Inner command string: set identity (+ release env, if any), then exec the client.
 inner="export AGENT_ID=$(printf '%q' "$AGENT_ID") AGENT_HANDLE=$(printf '%q' "$session"); "
-inner+=". cf/$(printf '%q' "$rel_full")/config.sh; export XLIBRE_RELEASE; "
+if [ -n "$rel_full" ]; then
+    inner+=". cf/$(printf '%q' "$rel_full")/config.sh; export XLIBRE_RELEASE; "
+fi
 inner+="exec"
 for a in "${prog[@]}"; do inner+=" $(printf '%q' "$a")"; done
 
@@ -117,11 +133,11 @@ tmux new-session -d -s "$session" -c "$ROOT" bash -lc "$inner"
 
 # Initial heartbeat so the board shows it immediately (the client's own
 # hook/wrapper will refresh it to 'idle' once it's up).
-AGENT_ID="$AGENT_ID" AGENT_HANDLE="$session" XLIBRE_RELEASE="$rel_full" \
+AGENT_ID="$AGENT_ID" AGENT_HANDLE="$session" ${rel_full:+XLIBRE_RELEASE="$rel_full"} \
     "$ROOT/scripts/agent-bus" status starting "launched via agent-run ($client)" >/dev/null 2>&1 || true
 
 cat <<EOF
-agent-run: launched '$AGENT_ID' ($client, $rel_full) detached.
+agent-run: launched '$AGENT_ID' ($client${rel_full:+, $rel_full}) detached.
   tmux session : $session
   attach       : scripts/agent-attach $AGENT_ID
   view-only    : scripts/agent-attach --read-only $AGENT_ID
