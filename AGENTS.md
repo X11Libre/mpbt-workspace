@@ -330,6 +330,34 @@ job per platform. Two non-obvious mechanisms:
   musl/libbsd toolchain quirk, unfixable in-tree without suppressing the whole `cpp` warning class —
   so the lane stays werror-off, documented inline in `build-xserver.yml`.
 
+- **NetBSD lane has a scoped GitHub-hosted dependency mirror (to dodge ftp/cdn.netbsd.org flakes).**
+  `xserver-build-netbsd` used to install its deps straight from the official NetBSD mirrors, which
+  flake intermittently (`pkg_add: ... Undefined error: 0`, all 3 internal retries exhausted — the
+  same BSD/Solaris VM-flake class as the vmactions jobs; hit on **PR #3225**, 2026-07-03, reddening
+  an Ubuntu-only diff). Fix (**PR #3243**, opened not merged): a **scoped** mirror of *just* what
+  this job needs — the pkgin dependency closure of the build's package list + the 5 X11 OS-release
+  binary sets, ≈230 MB (vs ~65 GB full pkgsrc) — hosted as assets of a **stable GitHub Release
+  `netbsd-pkgsrc-mirror`** in `X11Libre/xserver`. `install-pkg.sh` now tries the mirror **first**
+  and falls back to the official mirrors (soft fallback, not a hard cutover). The package list +
+  release/arch + all URLs live in one shared **`.github/scripts/netbsd/mirror-conf.sh`** sourced by
+  both `install-pkg.sh` and the sync. **To refresh/poke the mirror:** run the weekly
+  **`.github/workflows/netbsd-pkg-mirror.yml`** (`Refresh NetBSD pkg mirror`, also
+  `workflow_dispatch`) — it boots the *same* `vmactions/netbsd-vm` image the build lane uses, drives
+  the real `pkgin -d install` (download-only, cache = `/var/db/pkgin/cache`) to get the
+  authoritative closure (no hand-rolled resolver), builds a **trimmed `pkg_summary.gz`** (a strict
+  *subset* of the official summary, so `FILE_SIZE`/metadata stay byte-consistent — pkgin verifies
+  size, there's no checksum field), and `gh release upload --clobber`s + prunes stale assets
+  (`publish-mirror.sh`). **Gotchas / assumptions:** (1) the mirror release must be populated by one
+  `workflow_dispatch` run before the mirror-first path finds anything (until then the lane just uses
+  the official fallback); (2) the closure matches the build only because sync-VM-image ==
+  build-VM-image (both `netbsd-vm@v1.2.3` release `10.1`); (3) unverified without a live VM: whether
+  pkgin's libfetch follows GitHub's 302 release-asset redirect for `pkg_summary.gz`/`.tgz` (the
+  fallback exists precisely to cover this if it doesn't); (4) `<rel>/All` 302-redirects to a dated
+  quarterly (`10.0_2026Q1/All`) that moves over time — the sync follows it with `curl -L`, never
+  hardcode the date. Debugging the awk trim: reading the keep-list must happen under the default
+  `RS="\n"` *before* switching to paragraph mode `RS=""`, else the whole keep-list slurps into one
+  key and nothing matches.
+
 ## PR workflow (`scripts/xx-make-pr.sh`)
 
 Requires git config entries (these are automatically added by the run-fetch* scripts):
