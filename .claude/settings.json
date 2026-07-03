@@ -69,6 +69,8 @@
       "Bash(scripts/ship-names *)",
       "Bash(scripts/show-pr-conflict)",
       "Bash(scripts/show-pr-conflict *)",
+      "Bash(scripts/starfleetctl)",
+      "Bash(scripts/starfleetctl *)",
       "Bash(scripts/with-clone-lock)",
       "Bash(scripts/with-clone-lock *)",
       "Bash(scripts/worktree)",
