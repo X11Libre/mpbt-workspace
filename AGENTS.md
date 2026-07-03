@@ -94,7 +94,8 @@ cleared:
 | command | purpose |
 |---------|---------|
 | `./install-mpbt` | `go install github.com/metux/mpbt/cmd/mpbt-builder@latest` |
-| `./run-control [--detach]` | start a Claude Code **control-agent** session (`AGENT_ID=control`, no `XLIBRE_RELEASE`); `--detach` launches it in a named tmux session via `agent-run` so it survives terminal close |
+| `./run-control [--detach]` | start a Claude Code **flagship** session (`AGENT_ID=Enterprise`, no `XLIBRE_RELEASE`); `--detach` launches it in a named tmux session via `agent-run` so it survives terminal close |
+| `scripts/ship-names assign [flagship]` \| `release <name>` \| `list` \| `gc` | **Star Trek ship name registry** — each agent instance gets a unique ship name as its `AGENT_ID`. `assign` picks the next unused name (50 names, flock-serialized); `assign flagship` reserves `Enterprise` for the control/flagship session; `release` frees a name; `gc` reaps reservations with no live agent-bus heartbeat. Names shown in the shell prompt (PS1), Claude Code status line (⚓), and tmux session title. `Enterprise` is the reserved flagship — never auto-assigned to worker sessions |
 | `./run-claude [--release <rel>] [--name <id>]` | start a plain Claude Code session with an auto-assigned, board-visible `AGENT_ID` (`<rel>-$$` or `ws-$$`); `--release` sources that project's `cf/<rel>/config.sh` first (accepts the same short/full/non-xserver forms as `run-opencode.*`). The explicit-launcher counterpart to `scripts/agent-bus-auto-id.sh` (which does the same thing implicitly, via `~/.bashrc`, for a plain `claude` started from a shell already inside the workspace tree) |
 | `./run-fetch.xserver-<release>` | clone/fetch all sources for a release line |
 | `./run-build.xserver-<release>` | full build of all packages in order, then **deletes** `_WORK_/<release>/install` |
@@ -837,7 +838,7 @@ advisory — workers must poll their `inbox`; nothing forces a session to act.
   `working|building|reviewing|blocked|idle|done`); `$XLIBRE_RELEASE` auto-fills the project column.
   Check `agent-bus inbox` for directives addressed to you or to all, and `agent-bus ack <id>` when
   handled. `agent-bus clear` on exit.
-- **Control agent** (`AGENT_ID=control` by convention): `agent-bus board` (the default no-arg
+- **Control agent** (`AGENT_ID=Enterprise` — the flagship): `agent-bus board` (the default no-arg
   command) is the whole-fleet view — every agent, project, state, heartbeat age, unacked-inbox
   count, note, `[STALE]` past `$BUS_TTL` (15m). Steer with `agent-bus tell <agent> <text…>` (one
   agent) or `agent-bus broadcast <text…>` (all); `agent-bus msgs` shows directives + ack counts,
@@ -866,10 +867,23 @@ and identity falls back to `user@host` when `$AGENT_ID` is unset — so for a pl
 column) first, or all same-host sessions collapse to one board row and a `SessionEnd` in any one
 clears it for all. (The `run-opencode.*` wrappers already set both.)
 
-**Fixed for plain `claude` sessions via a dotfile-sourced auto-ID script (2026-07-02):**
-`scripts/agent-bus-auto-id.sh` auto-exports a unique `AGENT_ID=ws-$$` (shell PID) whenever an
+**Ship names for fleet identity (2026-07-03).** Every agent instance — whether a plain `claude`
+session, an `agent-run`-launched tmux session, or the flagship `run-control` — gets a unique **Star
+Trek ship name** as its `AGENT_ID`. `Enterprise` is reserved for the flagship/control session; worker
+sessions are assigned the next free name from `scripts/ship-names.txt` (50 ships, Federation /
+Klingon / Romulan / Cardassian / Bajoran) via `scripts/ship-names assign`. Names are visible:
+- **Shell prompt:** `agent-bus-auto-id.sh` prefixes `(Defiant) ` to `$PS1` on first entry.
+- **Claude Code status line:** `⚓ Defiant` rendered by the `statusLine` hook in `.claude/settings.json`.
+- **tmux:** session is named `mpbt-Defiant`, visible in `tmux ls` and on the `agent-bus board`.
+- **Agent bus board:** ship name IS the `AGENT_ID` column — reads like a fleet roster.
+Names are released automatically: by `EXIT` trap / zsh `zshexit` in `agent-bus-auto-id.sh`, by
+`agent-run --stop`, and by the Claude Code `SessionEnd` hook. Stale reservations can be cleared
+with `scripts/ship-names gc`.
+
+**Fixed for plain `claude` sessions via a dotfile-sourced auto-ID script (2026-07-02, updated 2026-07-03):**
+`scripts/agent-bus-auto-id.sh` auto-assigns a ship name as `AGENT_ID` whenever an
 interactive shell's `$PWD` is inside this workspace tree and `$AGENT_ID` isn't already set (so it
-composes with the `run-opencode.*` wrappers rather than overriding them). It must be **sourced from
+composes with the `run-opencode.*` wrappers and `run-control` rather than overriding them). It must be **sourced from
 the user's `~/.bashrc`/`~/.zshrc`** (one line: `[ -f
 /home/nekrad/src/xorg/mpbt-workspace/scripts/agent-bus-auto-id.sh ] && . <that path>`), *not* wired
 as a Claude Code hook — checked against the hooks JSON schema: `SessionStart`/`SessionEnd` hooks run

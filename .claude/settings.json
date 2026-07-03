@@ -57,6 +57,8 @@
       "Bash(scripts/prune-stale-ci *)",
       "Bash(scripts/show-branch-file)",
       "Bash(scripts/show-branch-file *)",
+      "Bash(scripts/ship-names)",
+      "Bash(scripts/ship-names *)",
       "Bash(scripts/show-pr-conflict)",
       "Bash(scripts/show-pr-conflict *)",
       "Bash(scripts/with-clone-lock)",
@@ -176,9 +178,17 @@
           {
             "type": "command",
             "command": "\"$CLAUDE_PROJECT_DIR\"/scripts/agent-bus-watch --stop >/dev/null 2>&1 || true"
+          },
+          {
+            "type": "command",
+            "command": "[ -n \"$AGENT_ID\" ] && \"$CLAUDE_PROJECT_DIR\"/scripts/ship-names release \"$AGENT_ID\" >/dev/null 2>&1 || true"
           }
         ]
       }
     ]
+  },
+  "statusLine": {
+    "type": "command",
+    "command": "printf '⚓ %s' \"${AGENT_ID:-?}\""
   }
 }
