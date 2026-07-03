@@ -1,0 +1,22 @@
+#!/usr/bin/env bash
+#
+# SPDX-License-Identifier: AGPL-3.0-or-later
+# Copyright © 2026 Enrico Weigelt, metux IT consult
+#
+# agent-bus-boot-prompt — prints the default initial prompt used by the
+# claude launchers (run-ship, run-flagship, agent-run --client claude) when
+# they start a session with no explicit initial prompt of its own.
+#
+# Why this exists: Monitor can only be armed by the assistant during a turn
+# (a SessionStart hook can inject context but can't call a tool), and a
+# freshly-launched session with nobody typing into it yet never gets a turn.
+# Feeding this text in as the initial prompt forces that first turn
+# immediately at launch, so the agent-bus-monitor-hint SessionStart context
+# (which already tells it to arm the Monitor unconditionally) actually gets
+# acted on instead of sitting unread on an idle, un-typed-into session. See
+# AGENTS.md, "agent-bus" section, "Auto-surfacing directives via Monitor".
+set -euo pipefail
+
+cat <<'EOF'
+Session just started. Before anything else: process your SessionStart hook context, including arming a persistent Monitor watch on your own agent-bus inbox (see AGENTS.md, agent-bus section, "Auto-surfacing directives via Monitor", for the exact command) — do this unconditionally, it's cheap. Then run `agent-bus inbox` once to check for anything already waiting for you. After that, report status idle and wait quietly for further instructions — don't start any task on your own initiative.
+EOF

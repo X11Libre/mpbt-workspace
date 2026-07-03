@@ -94,9 +94,10 @@ cleared:
 | command | purpose |
 |---------|---------|
 | `./install-mpbt` | `go install github.com/metux/mpbt/cmd/mpbt-builder@latest` |
-| `./run-control [--detach]` | start a Claude Code **flagship** session (`AGENT_ID=Enterprise`, no `XLIBRE_RELEASE`); `--detach` launches it in a named tmux session via `agent-run` so it survives terminal close |
+| `./run-flagship [--detach]` | start a Claude Code **flagship** session (`AGENT_ID=Enterprise`, no `XLIBRE_RELEASE`); `--detach` launches it in a named tmux session via `agent-run` so it survives terminal close |
 | `scripts/ship-names assign [flagship]` \| `release <name>` \| `list` \| `gc` | **Star Trek ship name registry** — each agent instance gets a unique ship name as its `AGENT_ID`. `assign` picks the next unused name (50 names, flock-serialized); `assign flagship` reserves `Enterprise` for the control/flagship session; `release` frees a name; `gc` reaps reservations with no live agent-bus heartbeat. Names shown in the shell prompt (PS1), Claude Code status line (⚓), and tmux session title. `Enterprise` is the reserved flagship — never auto-assigned to worker sessions |
-| `./run-claude [--release <rel>] [--name <id>]` | start a plain Claude Code session with an auto-assigned, board-visible `AGENT_ID` (`<rel>-$$` or `ws-$$`); `--release` sources that project's `cf/<rel>/config.sh` first (accepts the same short/full/non-xserver forms as `run-opencode.*`). The explicit-launcher counterpart to `scripts/agent-bus-auto-id.sh` (which does the same thing implicitly, via `~/.bashrc`, for a plain `claude` started from a shell already inside the workspace tree) |
+| `./run-ship [--release <rel>] [--name <id>]` | start a plain Claude Code session with an auto-assigned, board-visible `AGENT_ID` (`<rel>-$$` or `ws-$$`); `--release` sources that project's `cf/<rel>/config.sh` first (accepts the same short/full/non-xserver forms as `run-opencode.*`). The explicit-launcher counterpart to `scripts/agent-bus-auto-id.sh` (which does the same thing implicitly, via `~/.bashrc`, for a plain `claude` started from a shell already inside the workspace tree) |
+| `scripts/agent-bus-boot-prompt` | prints the default initial prompt `run-ship`/`run-flagship`/`agent-run --client claude` feed to a freshly-launched session when no explicit initial prompt/args were given — forces the session's first turn immediately at launch (instead of waiting for a human to type) so the `agent-bus-monitor-hint` SessionStart context actually gets acted on (arming the Monitor) right away |
 | `./run-fetch.xserver-<release>` | clone/fetch all sources for a release line |
 | `./run-build.xserver-<release>` | full build of all packages in order, then **deletes** `_WORK_/<release>/install` |
 | `./run-opencode.xserver-<release>` | start opencode session for a release line (sets `XLIBRE_RELEASE`) |
@@ -896,7 +897,7 @@ column) first, or all same-host sessions collapse to one board row and a `Sessio
 clears it for all. (The `run-opencode.*` wrappers already set both.)
 
 **Ship names for fleet identity (2026-07-03).** Every agent instance — whether a plain `claude`
-session, an `agent-run`-launched tmux session, or the flagship `run-control` — gets a unique **Star
+session, an `agent-run`-launched tmux session, or the flagship `run-flagship` — gets a unique **Star
 Trek ship name** as its `AGENT_ID`. `Enterprise` is reserved for the flagship/control session; worker
 sessions are assigned the next free name from `scripts/ship-names.txt` (50 ships, Federation /
 Klingon / Romulan / Cardassian / Bajoran) via `scripts/ship-names assign`. Names are visible:
@@ -911,7 +912,7 @@ with `scripts/ship-names gc`.
 **Fixed for plain `claude` sessions via a dotfile-sourced auto-ID script (2026-07-02, updated 2026-07-03):**
 `scripts/agent-bus-auto-id.sh` auto-assigns a ship name as `AGENT_ID` whenever an
 interactive shell's `$PWD` is inside this workspace tree and `$AGENT_ID` isn't already set (so it
-composes with the `run-opencode.*` wrappers and `run-control` rather than overriding them). It must be **sourced from
+composes with the `run-opencode.*` wrappers and `run-flagship` rather than overriding them). It must be **sourced from
 the user's `~/.bashrc`/`~/.zshrc`** (one line: `[ -f
 /home/nekrad/src/xorg/mpbt-workspace/scripts/agent-bus-auto-id.sh ] && . <that path>`), *not* wired
 as a Claude Code hook — checked against the hooks JSON schema: `SessionStart`/`SessionEnd` hooks run
@@ -987,11 +988,23 @@ itself; ack with an explanation instead of blindly acting when that happens.
 process that has been launched (heartbeat posted, shows up on `agent-bus board` as `idle`/"session
 started") but has not yet received any input has had **no turn** yet, and `Monitor` can only be
 called by the assistant during a turn — so its inbox stays genuinely unwatched until the first
-message (from the user, or an `agent-run -- <initial prompt>` launch arg) arrives. This is why a
-broadcast can sit un-acked at freshly-started ships (`Discovery`/`Excelsior`/`Voyager`, seen
-2026-07-03) even with the hint wired up: they simply hadn't taken a turn yet, not that the hint
-failed. There is no scripts-only fix for that half — a session with zero interaction cannot
-self-trigger a tool call.
+message arrives. This is why a broadcast could sit un-acked at freshly-started ships
+(`Discovery`/`Excelsior`/`Voyager`, seen 2026-07-03) even with the hint wired up: they simply hadn't
+taken a turn yet, not that the hint failed.
+
+**Closed the remaining gap by having the launcher supply that first message itself
+(`scripts/agent-bus-boot-prompt`, 2026-07-03).** A session still can't self-trigger a tool call with
+zero interaction — but the *launcher* isn't a session, it's a plain shell script that controls what
+gets fed to `claude` as its initial argument, and `claude [prompt]` (no `-p`) starts interactively
+with that prompt already submitted as the first turn. So `run-ship`, `run-flagship`, and
+`agent-run --client claude` now each check: if the caller gave no explicit initial prompt/args, feed
+`scripts/agent-bus-boot-prompt`'s text (arm the Monitor, check `agent-bus inbox` once, then report
+idle and wait) as the initial `claude` argument instead of leaving it empty. This forces the first
+turn — and with it the Monitor-arming — at launch time, with nobody needing to type anything.
+Skipped whenever the caller *does* pass their own initial args/prompt (respects explicit intent,
+never overrides it). `run-flagship --detach` composes cleanly: it fills `EXTRA` with the boot prompt
+itself before delegating to `agent-run`, so `agent-run`'s own empty-check no-ops instead of
+double-injecting.
 
 **Gap: opencode has no equivalent.** `Monitor` is a Claude Code harness tool; opencode sessions have
 no comparable in-context event mechanism, so they're stuck on notify-only (desktop popup) for now.

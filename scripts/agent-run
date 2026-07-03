@@ -125,6 +125,14 @@ case "$client" in
     opencode) prog=("./run-opencode.${rel_full}") ;;   # wrapper sources config.sh + sets its own heartbeat
     shell)    prog=("${SHELL:-bash}") ;;
 esac
+if [ "$client" = "claude" ] && [ "$#" -eq 0 ]; then
+    # No initial prompt given: feed the standard boot prompt so the session's
+    # first turn happens immediately at launch (that first turn is what
+    # actually arms the agent-bus Monitor — a SessionStart hook can inject
+    # context but can't call a tool itself) instead of sitting idle in a tmux
+    # pane nobody has attached to yet.
+    set -- "$("$ROOT/scripts/agent-bus-boot-prompt")"
+fi
 prog+=("$@")
 
 # Inner command string: set identity (+ release env, if any), then exec the client.

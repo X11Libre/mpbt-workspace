@@ -77,4 +77,13 @@ export AGENT_ID="$NAME"
 # SessionStart hook, which uses this same env-inherited AGENT_ID).
 scripts/agent-bus status idle "claude session starting (run-claude)" >/dev/null 2>&1 || true
 
+# No explicit initial prompt/args given: feed the standard boot prompt so the
+# session's first turn happens immediately at launch instead of waiting for a
+# human to type something — that first turn is what actually arms the
+# agent-bus Monitor (a SessionStart hook can inject context but can't call a
+# tool itself). Skipped when the caller passed their own args/prompt.
+if [ "${#EXTRA[@]}" -eq 0 ]; then
+    EXTRA=("$(scripts/agent-bus-boot-prompt)")
+fi
+
 exec claude "${EXTRA[@]+"${EXTRA[@]}"}"
