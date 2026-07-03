@@ -158,14 +158,14 @@ sections here remain the full reference. Keep them in sync when a workflow chang
 
 Build order and which packages to build is defined in each solution's `build:` list.
 
-## go-x11proto and FlyingTux are their own mpbt solutions
+## go-x11proto, FlyingTux and starfleetctl are their own mpbt solutions
 
 Since 2026-07-02, sister projects that aren't part of the xserver source tree itself are cloned
 and (optionally) built by mpbt as **standalone solutions**, each deliberately kept **separate from
 the xserver build** (own workdir, own `build:` list). This is the "all agent work on that project
-now happens under the mpbt-workspace, instead of an ad-hoc external checkout" migration. Two
-projects have been done this way so far — **go-x11proto** and **FlyingTux** — and they're the
-template for any future one:
+now happens under the mpbt-workspace, instead of an ad-hoc external checkout" migration. Three
+projects have been done this way so far — **go-x11proto**, **FlyingTux**, and **starfleetctl** —
+and they're the template for any future one:
 
 - **Config:** `cf/<name>/{config.sh,solutions/default.yaml,packages/xlibre/<name>.yaml}`.
   `XLIBRE_RELEASE=<name>`, `WORKDIR=_WORK_/<name>`.
@@ -220,6 +220,23 @@ apply to it):
 - No `make-pr.*` config: FlyingTux isn't part of the xserver PR ecosystem and
   `scripts/xx-make-pr.sh`'s assumptions (X11Libre remotes, `[PR #NNNN]` conventions, reviewers)
   don't apply to a personal repo.
+
+**starfleetctl** (the Go CLI consolidating the flock/race-prone fleet-coordination scripts —
+`agent-bus`, `pr-claim`, `ws-commit` — into one tool, `metux/starfleetctl` — a **personal** GitHub
+repo, private, same non-X11Libre caveat as FlyingTux):
+
+- Unlike go-x11proto/FlyingTux, there was no pre-existing external checkout to move — the code
+  started life directly inside mpbt-workspace (branch `mtx/mpbtctl`, see the DASHBOARD.md
+  `starfleetctl` row for the full history) and was extracted into its own repo once the maintainer
+  decided it should follow this same sister-project pattern rather than live in-tree or be folded
+  into the `mpbt`/`mpbt-builder` Go repo itself (a third option that was considered and rejected —
+  keeping it separate means it can be extracted/reused independently of the build orchestrator).
+- **Build:** `buildsystem: exec` with `commands: build: [make]`, same shape as go-x11proto — plain
+  Go, a `Makefile` that just runs `go build -o starfleetctl ./cmd/starfleetctl`. The built binary
+  lands in the source checkout itself; no install step yet.
+- No `make-pr.*` config, for the same reason as FlyingTux (personal repo, not X11Libre).
+- Naming: picked to fit the workspace's existing Star-Trek ship-name/fleet theme (agent-bus board,
+  `scripts/ship-names`, the `Enterprise` flagship) rather than the more generic original `mpbtctl`.
 
 ## Template/symlink system
 
