@@ -1,0 +1,38 @@
+#!/usr/bin/env bash
+#
+# SPDX-License-Identifier: AGPL-3.0-or-later
+# Copyright © 2026 Enrico Weigelt, metux IT consult
+#
+# Print PR metadata via `gh pr view --json <fields>` as one canonical,
+# allowlistable command. Exists because the natural way agents wrote this
+# check — e.g. `echo "AGENT_ID=$AGENT_ID"; gh pr view <n> --json ... -q '{...}'`
+# to sanity-check identity + PR state in one go — starts with `echo`, not
+# `gh`, so it doesn't match the `Bash(gh)`/`Bash(gh *)` allow rules and
+# prompts for confirmation every time even though `gh` itself is allowlisted
+# (same command-line-prefix-matching gotcha as the AGENT_ID-export case
+# documented in AGENTS.md). Keep identity checks (`echo "AGENT_ID=$AGENT_ID"`)
+# and the PR check as separate tool calls / separate scripts instead of
+# chaining them with `;`/`&&`.
+#
+# This also covers the backport workflow's step-0 "already backported?"
+# check (`gh pr view <pr#> --json body -q .body`) with one shared command.
+#
+# Usage:
+#   pr-view <pr#> [json-fields]     # default fields: number,title,state
+# Env:
+#   REPO   repo slug (default X11Libre/xserver)
+#
+# Pipe into `scripts/json get <expr>` for further extraction/filtering.
+set -euo pipefail
+
+REPO="${REPO:-X11Libre/xserver}"
+
+usage() { sed -n '2,/^set -euo/p' "$0" | sed 's/^# \{0,1\}//; /^set -euo/d'; }
+
+case "${1:-}" in -h|--help) usage; exit 0 ;; esac
+[ $# -ge 1 ] || { usage; exit 2; }
+
+pr="$1"
+fields="${2:-number,title,state}"
+
+gh pr view "$pr" --repo "$REPO" --json "$fields"

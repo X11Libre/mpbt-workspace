@@ -110,6 +110,7 @@ cleared:
 | `scripts/show-branch-file <ref> <path> [symbol]` | print a repo file (or symbol region) at any ref via the GitHub API — for backport applicability checks; auto-handles the `Xext/<ext>/` ↔ `<ext>/` reorg |
 | `scripts/backport-applies <master-path> <grep-ERE> [release ...]` | run the applicability grep across all release lines at once (wraps `show-branch-file`) — classify each branch vulnerable / already-fixed / N-A in one command |
 | `scripts/pr-set-body <pr#> <body-file>` | set a PR body via REST API (works around the broken `gh pr edit`); for backport cross-linking |
+| `scripts/pr-view <pr#> [json-fields]` | print PR metadata via `gh pr view --json <fields>` as one canonical, allowlistable command (default fields `number,title,state`) — exists so agents don't chain it after an unrelated `echo`/`export` (breaks `Bash(gh *)` prefix matching, see the AGENT_ID-export gotcha below); also covers the backport workflow's step-0 "already backported?" body check |
 | `scripts/pr-append-body <pr#> <text-file>` | fetch a PR's current body, append the given text, write it back via `pr-set-body` — for backport-dashboard tables / back-links without manual fetch-then-set |
 | `scripts/pr-comment <pr#> <body-file> [--bot-review]` | post a PR comment; `--bot-review` prepends the exact mandated bot-disclosure banner (see "Automated reviews") so the wording can't drift |
 | `scripts/pr-label <pr#> add\|remove\|set-review <label...>` | add/remove PR labels via REST API (same `gh pr edit` workaround as `pr-set-body`); `set-review passed\|changes-requested` swaps the two `bot-review-*` outcome labels in one call |
@@ -906,6 +907,16 @@ anyway is harmless functionally but breaks the `Bash(scripts/agent-bus *)`/`Bash
 scripts/agent-bus board` does not start with `scripts/agent-bus`, so it prompts for confirmation
 even though a bare `scripts/agent-bus board` would not have. Only export/override `$AGENT_ID`
 inline when you deliberately need a *different* identity than the session's own for one call.
+
+**The same prefix-matching gotcha bites *any* chained command, not just `export AGENT_ID=...
+&&`.** Allowlist entries like `Bash(gh)`/`Bash(gh *)` only match when the command line *itself*
+starts with `gh` — `echo "AGENT_ID=$AGENT_ID"; gh pr view <n> --json ... -q '{...}'` starts with
+`echo`, so it prompts for confirmation even though `gh` alone is allowlisted (hit on Pegasus,
+2026-07-03, checking identity + PR #3226 status in one shot). Split unrelated diagnostics
+(`echo`/`export`/a status print) and the allowlisted command into **separate Bash tool calls**
+instead of chaining with `;`/`&&`/`|`. For the specific "print PR metadata" case, use
+`scripts/pr-view <pr#> [fields]` (one canonical allowlisted command) rather than hand-rolling
+`gh pr view --json ...`.
 
 **Ship names for fleet identity (2026-07-03).** Every agent instance — whether a plain `claude`
 session, an `agent-run`-launched tmux session, or the flagship `run-flagship` — gets a unique **Star
