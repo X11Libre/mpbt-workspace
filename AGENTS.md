@@ -935,13 +935,67 @@ cross-project agents this way when their work affects xserver CI (e.g. a go-x11p
 needed here). Same rule applies to `DASHBOARD.md`: a cross-repo theme is fine there if it has a
 concrete effect on this workspace's build/CI/tests.
 
+**Auto-surfacing directives via `Monitor` (Claude Code only, 2026-07-03).** `agent-bus-watch` is
+notify-only — it tells a human via desktop popup, but a live session doesn't see the directive
+unless it happens to run `agent-bus inbox` itself. Claude Code's **`Monitor` tool** closes that gap
+*without* crossing into unsupervised auto-execution: it's a background poll loop whose stdout lines
+land as real events *inside* the session's own conversation (the same mechanism used to watch a
+background build or a CI run), so a new `tell`/`broadcast` appears to the assistant like any other
+observed event — the assistant still reasons about it and goes through the normal tool-permission
+flow for whatever it decides to do. That's a meaningfully smaller blast radius than the alternative
+that was considered and rejected (`tmux send-keys` injection into an `agent-run` pane) — no raw
+keystroke injection bypassing confirmations, and it works uniformly for both foreground and
+`agent-run`/tmux-launched sessions since it's a session-level tool, not tied to the tmux backend.
+
+Command (self-contained, dedupes against acks so restarts don't re-fire old mail; adjust
+`$AGENT_ID` / the seen-file path per session):
+
+```bash
+AGENT_ID=<your ship name>
+BUS_DIR=/home/nekrad/src/xorg/mpbt-workspace/_WORK_/agent-bus
+MSG_DIR="$BUS_DIR/msgs"; ACK_DIR="$BUS_DIR/acks"
+SEEN=/tmp/.../scratchpad/.monitor-seen-$AGENT_ID   # use your session's scratchpad dir
+mkdir -p "$(dirname "$SEEN")"; touch "$SEEN"
+while true; do
+  shopt -s nullglob
+  for f in "$MSG_DIR"/m*.tsv; do
+    IFS=$'\t' read -r me te mf mt mtext < "$f" || continue
+    id=$(basename "$f" .tsv)
+    if [ "$mt" = all ] || [ "$mt" = "$AGENT_ID" ]; then
+      if [ ! -f "$ACK_DIR/${id}__${AGENT_ID}" ] && ! grep -qxF "$id" "$SEEN" 2>/dev/null; then
+        echo "[$id] from $mf: $mtext"; echo "$id" >> "$SEEN"
+      fi
+    fi
+  done
+  sleep 10
+done
+```
+
+Call `Monitor` with this as `command`, `persistent: true`. Wired as a nudge, not a forced action:
+`scripts/agent-bus-monitor-hint` runs as a third `SessionStart` hook command and emits a
+`hookSpecificOutput.additionalContext` telling the assistant to arm this if the session is going to
+stick around — the assistant still decides (a one-shot subagent doing a 2-minute task shouldn't
+bother). First real-world validation (2026-07-03, the `Enterprise`/control session): arming the
+Monitor immediately surfaced a 3-message backlog including an "ASAP" backport request (`m0011`) that
+had been sitting unclaimed with no live session polling for it — concretely proving the gap this
+closes. Turned out already superseded (PR #3226's backports were already open before the directive
+was even read) — a reminder that `agent-bus` mail can go stale exactly like the board itself; ack
+with an explanation instead of blindly acting when that happens.
+
+**Gap: opencode has no equivalent.** `Monitor` is a Claude Code harness tool; opencode sessions have
+no comparable in-context event mechanism, so they're stuck on notify-only (desktop popup) for now.
+Parked in `DASHBOARD.md` as a follow-up (give opencode *some* notify capability, even if not full
+in-context surfacing).
+
 **Roadmap:** the file layout is deliberately the data layer a richer controller can sit on
-unchanged. A first `watch` step exists — `scripts/agent-bus-watch` (notify-only, per-session via
-the hooks above). Still open: a TUI dashboard tailing `status/` + `msgs/`, auto-handling of
-directives (watcher acts instead of only notifying — planned, on explicit request), and an **MCP
-server in HTTP/SSE mode** (runs as a daemon, serves many independent sessions at once, needs no
-Claude key, carries its own creds for any external access) acting as a push message-bus instead of
-file polling. Start with the files; promote to MCP when polling latency or multi-host reach demands it.
+unchanged. Two steps exist now — `scripts/agent-bus-watch` (desktop notify, per-session via the
+hooks above) and the `Monitor`-based in-context surfacing above. Still open: a TUI dashboard tailing
+`status/` + `msgs/`, true auto-*execution* of directives (something other than the assistant's own
+judgment triggers the action — not attempted; the `Monitor` approach deliberately keeps a human-grade
+reasoning step in between), an opencode-side notify story, and an **MCP server in HTTP/SSE mode**
+(runs as a daemon, serves many independent sessions at once, needs no Claude key, carries its own
+creds for any external access) acting as a push message-bus instead of file polling. Start with the
+files; promote to MCP when polling latency or multi-host reach demands it.
 
 ### Detaching sessions + multi-controller access (`agent-run` / `agent-attach`, tmux)
 
