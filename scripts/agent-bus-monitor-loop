@@ -21,6 +21,12 @@
 # First loop iteration already surfaces any backlog (messages that arrived
 # before this was armed) — no separate "check inbox once" step needed.
 #
+# Poll interval (2s) costs nothing beyond this local shell loop — no tokens
+# or API calls are spent unless a line is actually emitted (that's the real
+# cost driver, since an emitted line becomes an in-context event/turn).
+# Shorten further if you want lower detection latency; it's just a `stat`
+# over a handful of files.
+#
 # Usage: scripts/agent-bus-monitor-loop   (run via the Monitor tool, persistent: true)
 set -euo pipefail
 
@@ -47,5 +53,5 @@ while true; do
             fi
         fi
     done
-    sleep 10
+    sleep 2
 done

@@ -16,6 +16,10 @@
 # No session-specific parameters, so (like agent-bus-monitor-loop) this is
 # the same invocation every time and can be allowlisted once.
 #
+# Poll interval (2s) costs nothing beyond this local shell loop — no tokens
+# or API calls are spent unless a line is actually emitted (that's the real
+# cost driver, since an emitted line becomes an in-context event/turn).
+#
 # Usage: scripts/agent-bus-fleet-watch   (run via the Monitor tool, persistent: true)
 set -euo pipefail
 
@@ -38,5 +42,5 @@ while true; do
         IFS=$'\t' read -r epoch iso agent project state pid handle note < "$f" || continue
         echo "New ship online: $agent (project=${project:-—}, state=$state${note:+, note: $note})"
     done
-    sleep 10
+    sleep 2
 done
