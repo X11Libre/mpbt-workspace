@@ -10,6 +10,7 @@
       "Bash(scripts/agent-bus)",
       "Bash(scripts/agent-bus *)",
       "Bash(scripts/agent-bus-boot-prompt)",
+      "Bash(scripts/agent-bus-fleet-watch)",
       "Bash(scripts/agent-bus-monitor-loop)",
       "Monitor",
       "Bash(scripts/agent-run)",
