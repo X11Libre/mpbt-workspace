@@ -30,6 +30,15 @@ done
 export AGENT_ID="Enterprise"
 unset XLIBRE_RELEASE 2>/dev/null || true
 
+# No explicit initial prompt/args given: feed the standard boot prompt so the
+# session's first turn happens immediately at launch instead of waiting for a
+# human to type something — that first turn is what actually arms the
+# agent-bus Monitor (a SessionStart hook can inject context but can't call a
+# tool itself). Skipped when the caller passed their own args/prompt.
+if [ "${#EXTRA[@]}" -eq 0 ]; then
+    EXTRA=("$(scripts/agent-bus-boot-prompt)")
+fi
+
 if [ "$DETACH" -eq 1 ]; then
     # Launch in a named tmux session so it survives terminal close.
     # agent-run registers the AGENT_HANDLE on the board automatically.
