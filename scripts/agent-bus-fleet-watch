@@ -4,15 +4,22 @@
 # Copyright © 2026 Enrico Weigelt, metux IT consult
 #
 # agent-bus-fleet-watch — Monitor-tool command for a control/flagship
-# session: watches _WORK_/agent-bus/status/ for new ships joining the board
-# and prints one line per newly-seen AGENT_ID, so a controller sees "a new
-# session just registered" as an in-context event instead of having to poll
-# `agent-bus board` by hand. Sibling of scripts/agent-bus-monitor-loop (that
-# one watches for tell/broadcast directives; this one watches fleet
-# membership itself).
+# session: watches _WORK_/agent-bus/status/ for ships joining (or
+# re-joining) the board and prints one line per change, so a controller sees
+# "a new/restarted session just registered" as an in-context event instead
+# of having to poll `agent-bus board` by hand. Sibling of
+# scripts/agent-bus-monitor-loop (that one watches for tell/broadcast
+# directives; this one watches fleet membership itself).
 #
-# Seeds its "already known" set from the board at arm time, so only ships
-# that join *after* arming are reported — not the whole pre-existing fleet.
+# Tracks the heartbeat *epoch* per AGENT_ID, not just presence — a restart
+# of an already-known ship (e.g. Voyager relaunched) rewrites its status
+# file with a fresh epoch and a launcher/SessionStart "session started"-type
+# note, so it's reported too, not just brand-new AGENT_IDs never seen
+# before. (First cut only tracked presence and missed exactly this case —
+# fixed 2026-07-03 after a restarted Voyager produced no notification.)
+# Seeds from the board at arm time, so only *changes after arming* are
+# reported, not the whole pre-existing fleet's history.
+#
 # No session-specific parameters, so (like agent-bus-monitor-loop) this is
 # the same invocation every time and can be allowlisted once.
 #
@@ -27,20 +34,25 @@ ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 STATUS_DIR="$ROOT/_WORK_/agent-bus/status"
 mkdir -p "$STATUS_DIR"
 
-declare -A seen
+declare -A last_epoch
 shopt -s nullglob
 for f in "$STATUS_DIR"/*.tsv; do
-    seen["$(basename "$f" .tsv)"]=1
+    IFS=$'\t' read -r epoch iso agent project state pid handle note < "$f" || continue
+    last_epoch["$agent"]="$epoch"
 done
 
 while true; do
     shopt -s nullglob
     for f in "$STATUS_DIR"/*.tsv; do
-        id="$(basename "$f" .tsv)"
-        [ -n "${seen[$id]:-}" ] && continue
-        seen[$id]=1
         IFS=$'\t' read -r epoch iso agent project state pid handle note < "$f" || continue
-        echo "New ship online: $agent (project=${project:-—}, state=$state${note:+, note: $note})"
+        prev="${last_epoch[$agent]:-}"
+        [ "$prev" = "$epoch" ] && continue
+        if [ -z "$prev" ]; then
+            echo "New ship online: $agent (project=${project:-—}, state=$state${note:+, note: $note})"
+        else
+            echo "Ship update: $agent (project=${project:-—}, state=$state${note:+, note: $note})"
+        fi
+        last_epoch["$agent"]="$epoch"
     done
     sleep 2
 done
