@@ -1,0 +1,42 @@
+#!/usr/bin/env bash
+#
+# SPDX-License-Identifier: AGPL-3.0-or-later
+# Copyright © 2026 Enrico Weigelt, metux IT consult
+#
+# agent-bus-fleet-watch — Monitor-tool command for a control/flagship
+# session: watches _WORK_/agent-bus/status/ for new ships joining the board
+# and prints one line per newly-seen AGENT_ID, so a controller sees "a new
+# session just registered" as an in-context event instead of having to poll
+# `agent-bus board` by hand. Sibling of scripts/agent-bus-monitor-loop (that
+# one watches for tell/broadcast directives; this one watches fleet
+# membership itself).
+#
+# Seeds its "already known" set from the board at arm time, so only ships
+# that join *after* arming are reported — not the whole pre-existing fleet.
+# No session-specific parameters, so (like agent-bus-monitor-loop) this is
+# the same invocation every time and can be allowlisted once.
+#
+# Usage: scripts/agent-bus-fleet-watch   (run via the Monitor tool, persistent: true)
+set -euo pipefail
+
+ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+STATUS_DIR="$ROOT/_WORK_/agent-bus/status"
+mkdir -p "$STATUS_DIR"
+
+declare -A seen
+shopt -s nullglob
+for f in "$STATUS_DIR"/*.tsv; do
+    seen["$(basename "$f" .tsv)"]=1
+done
+
+while true; do
+    shopt -s nullglob
+    for f in "$STATUS_DIR"/*.tsv; do
+        id="$(basename "$f" .tsv)"
+        [ -n "${seen[$id]:-}" ] && continue
+        seen[$id]=1
+        IFS=$'\t' read -r epoch iso agent project state pid handle note < "$f" || continue
+        echo "New ship online: $agent (project=${project:-—}, state=$state${note:+, note: $note})"
+    done
+    sleep 10
+done
