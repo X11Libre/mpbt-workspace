@@ -164,6 +164,11 @@
             "type": "command",
             "command": "setsid \"$CLAUDE_PROJECT_DIR\"/scripts/agent-bus-watch >/dev/null 2>&1 </dev/null & true",
             "statusMessage": "agent-bus: mailbox watcher"
+          },
+          {
+            "type": "command",
+            "command": "\"$CLAUDE_PROJECT_DIR\"/scripts/agent-bus-monitor-hint 2>/dev/null || true",
+            "statusMessage": "agent-bus: monitor hint"
           }
         ]
       }

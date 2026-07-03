@@ -1,0 +1,22 @@
+#!/usr/bin/env bash
+#
+# SPDX-License-Identifier: AGPL-3.0-or-later
+# Copyright © 2026 Enrico Weigelt, metux IT consult
+#
+# agent-bus-monitor-hint — SessionStart hook helper: emits a
+# hookSpecificOutput.additionalContext nudge telling the assistant to arm a
+# Monitor-tool watch on its own agent-bus inbox, so incoming tell/broadcast
+# directives surface as in-context events instead of only a desktop
+# notification a human has to relay by hand. See AGENTS.md, "agent-bus"
+# section, "Auto-surfacing directives via Monitor" for the command + rationale.
+#
+# Deliberately does nothing (exits quietly) when $AGENT_ID isn't set yet —
+# nothing useful to say without an identity to watch for.
+set -euo pipefail
+
+AGENT_ID="${AGENT_ID:-}"
+[ -n "$AGENT_ID" ] || exit 0
+
+CONTEXT="Fleet directive auto-surfacing: you are agent-bus identity $AGENT_ID. If this session will stay open a while, arm a persistent Monitor tool call now that watches your own agent-bus inbox (see AGENTS.md, agent-bus section, Auto-surfacing directives via Monitor, for the exact command), so incoming tell/broadcast directives appear directly in this conversation instead of only a desktop notification. Skip this for a short one-off task that will finish before anyone could plausibly send you a directive."
+
+printf '{"hookSpecificOutput":{"hookEventName":"SessionStart","additionalContext":"%s"}}\n' "$CONTEXT"
