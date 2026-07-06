@@ -27,6 +27,19 @@
 # Shorten further if you want lower detection latency; it's just a `stat`
 # over a handful of files.
 #
+# Since this loop is already armed continuously for every session anyway
+# (directive m0086), it also doubles as the periodic heartbeat-refresh: a
+# ship deep in a long task that never calls `agent-bus status` itself would
+# otherwise fall out of $BUS_TTL (15m default) and read as dead/pruned on
+# the board despite the session being alive. Every HEARTBEAT_INTERVAL
+# (5min, well under the TTL) it calls `agent-bus touch`, which re-reads and
+# re-posts THIS agent's own last known state/note with a fresh timestamp —
+# see agent-bus's own `do_touch()` doc comment for why re-reading (rather
+# than this loop caching a state/note itself) is what makes it impossible
+# for the refresh to ever clobber a real, more-recent `agent-bus status`
+# call with a stale value. `|| true`: a transient touch failure (e.g. lock
+# contention) must not kill this persistent Monitor-tool loop.
+#
 # Usage: scripts/agent-bus-monitor-loop   (run via the Monitor tool, persistent: true)
 set -euo pipefail
 
@@ -37,10 +50,13 @@ MSG_DIR="$BUS_DIR/msgs"
 ACK_DIR="$BUS_DIR/acks"
 SEEN_DIR="$BUS_DIR/monitor-seen"
 SEEN="$SEEN_DIR/$AGENT_ID"
+HEARTBEAT_INTERVAL="${HEARTBEAT_INTERVAL:-300}"
 
 mkdir -p "$SEEN_DIR"
 touch "$SEEN"
 
+last_heartbeat="$(date +%s)"  # skip an immediate touch — SessionStart's hook
+                               # just posted a fresh heartbeat moments ago
 while true; do
     shopt -s nullglob
     for f in "$MSG_DIR"/m*.tsv; do
@@ -53,5 +69,12 @@ while true; do
             fi
         fi
     done
+
+    now="$(date +%s)"
+    if [ "$((now - last_heartbeat))" -ge "$HEARTBEAT_INTERVAL" ]; then
+        "$ROOT/scripts/agent-bus" touch || true
+        last_heartbeat="$now"
+    fi
+
     sleep 2
 done
