@@ -1,2 +1,4 @@
 /_WORK_
 .aider*
+__pycache__/
+*.pyc
