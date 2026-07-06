@@ -2,8 +2,8 @@
 slug: xserver-build-freebsd-ci-lane-currently-red-fleet-wide-not-a
 title: "**`xserver-build-freebsd` CI lane currently red fleet-wide — NOT a transient flake, a real OS/package version-skew that won't self-clear on retry**"
 category: active
-status: "**Done, 2026-07-06 (Potemkin) — PR #3259 merged-ready, CI fully green.**"
-doc_ref: "PR #3259 (3 commits: IGNORE_OSVERSION, bzip2 package, synthesized bzip2.pc)"
+status: "**Master merged; backported to release/25.1+25.2 (25.0 N/A, no FreeBSD lane); PRs open, awaiting praetor's manual release-line merge.**"
+doc_ref: "master PR #3259 (merged a959773be9); backports PR #3260 (release/25.2), PR #3261 (release/25.1)"
 migrated_from: 8cf8692b9f0057ffe44e793b35bcf7329da83d3f
 ---
 
@@ -11,4 +11,8 @@ Found while chasing a FreeBSD failure on PR #3258 (a trivial brace-only style ch
 
 **Update: IGNORE_OSVERSION fixed the version-check, but a second, independent issue surfaced immediately behind it.** Once `pkg update -f` could proceed, the build itself failed: `meson.build:126:13: ERROR: Dependency lookup for xfont2 with method 'pkgconfig' failed` → `Package bzip2 was not found in the pkg-config search path` (`freetype2`'s own `.pc` lists `bzip2` in `Requires.private`, pulled in transitively by `xfont2`). First attempt — adding the `bzip2` package to the install list — did **not** fix it: the package installs `libbz2` + headers but, on this CI image, no `bzip2.pc` file at all (confirmed `env[PKG_CONFIG_PATH]` is correctly empty/default, ruling out a search-path problem — this is missing package metadata, not a missing library or a path issue). Second attempt, pushed: synthesize a minimal `bzip2.pc` at CI time (locating the actual installed lib/header paths via `pkg info -l bzip2` rather than hardcoding them) if `pkg-config --exists bzip2` fails.
 
-**Resolved, 2026-07-06 — CI fully green on PR #3259** (49 checks, 22 pass, 27 skip, 0 fail, 0 pending) after the third iteration. `xserver-build-freebsd` builds cleanly again. Self-reviewed (`bot-review-passed`) — CI-only change, no server code, no NVIDIA-ABI relevance. Awaiting normal master-PR merge (not auto-merged, per standing policy).
+**Resolved, 2026-07-06 — CI fully green on PR #3259** (49 checks, 22 pass, 27 skip, 0 fail, 0 pending) after the third iteration. `xserver-build-freebsd` builds cleanly again. Self-reviewed (`bot-review-passed`) — CI-only change, no server code, no NVIDIA-ABI relevance.
+
+**Praetor approval (via Enterprise, m0092): merged to master** (`a959773be9`). Checked all three release lines for the same issue: `release/25.0` has **no FreeBSD CI lane at all** (N/A — no `.github/scripts/freebsd/install-pkg.sh` there); `release/25.1` and `release/25.2` both have the identical pre-fix `release: "14.3"` pin and package list, so both are affected. Backported to both — **not** a mechanical cherry-pick, since neither release's `install-pkg.sh` has master's `retry()`/catalogue-refresh scaffolding (that's unrelated, master-only infra never backported here) — adapted the same net fix (IGNORE_OSVERSION, bzip2 package, synthesized bzip2.pc) directly onto each release's actual file, commit trailers cite all three master SHAs for provenance. **PR #3260** (release/25.2), **PR #3261** (release/25.1), both CI running.
+
+**One-time, explicitly-scoped exception from the praetor (via Enterprise, m0092) — documented here per instruction, NOT a new standing rule:** for *this specific case only*, the backport PRs to `release/25.1`/`release/25.2` may be **auto-merged once their CI is fully green**, bypassing the normal "release-branch merges are manual-only" rule (`AGENTS.md` Backport workflow) — justified because this is pure CI-workflow code (not xserver source), affects only the build pipeline, and carries materially lower risk than a source-code backport. This does **not** generalize to other backports; if a recurring "CI-only fixes may auto-merge" policy seems warranted, that's a discussion point for the praetor to decide, not something to assume from this one exception.
