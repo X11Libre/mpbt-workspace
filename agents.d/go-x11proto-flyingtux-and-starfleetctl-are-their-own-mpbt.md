@@ -26,6 +26,14 @@ and they're the template for any future one:
 **go-x11proto** (the Go X11-protocol client lib + `xnamespace`/go-xts tools, `X11Libre/go-x11proto`):
 
 - Clone *replaces* the old external `/home/nekrad/src/xorg/go-x11` checkout.
+- **Tracks `staging`, not `master` (2026-07-06, praetor decision).** `staging` is go-x11proto's own
+  equivalent of mpbt-workspace's `mtx/agent-config`: an accumulation branch for ongoing agent/dev
+  work, freely committed to without a PR each time, **not** auto-merged into `master`. Promoting
+  something from `staging` to `master` (a real PR — `make-pr.upstream-branch` below is still
+  `master`) is a deliberate, separate, later decision. `demo/editor` (an xedit-style demo that had
+  drifted onto `debian/maint-master` only) was ported to `master` first so `staging` starts from a
+  clean base including it; first real `staging` payload was the `tk/widget` rich-text
+  (Span/Highlighter) and `tk/term` (VT100/xterm terminal emulator) work built 2026-07-06.
 - **Build:** the package uses `buildsystem: exec` with `commands: build: [make]` — go-x11proto is
   pure Go with a plain `Makefile` (no autotools/meson), so mpbt just runs `make` (which does the
   `go build`s). `make-pr.*` is configured on the clone (it's an `X11Libre` repo, so
