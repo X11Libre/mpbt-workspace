@@ -25,3 +25,4 @@
 @agents.d/opencode-session-setup.md
 @agents.d/no-ci-no-tests-no-lint-no-formatter.md
 @agents.d/file-layout-reminder.md
+@agents.d/starfleetctl.md
