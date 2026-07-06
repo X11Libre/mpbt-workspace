@@ -3,7 +3,7 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 # Copyright © 2026 Enrico Weigelt, metux IT consult
 #
-# starfleetctl — thin exec wrapper for the metux/starfleetctl Go CLI (see
+# starfleetctl — thin exec wrapper for the mpbt-hq/starfleetctl Go CLI (see
 # DASHBOARD.md "starfleetctl" row), so it's invoked the same way every other
 # fleet-coordination tool in this workspace is: `scripts/<name> [args...]` —
 # matching the Bash(scripts/starfleetctl)/Bash(scripts/starfleetctl *)
