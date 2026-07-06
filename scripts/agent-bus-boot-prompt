@@ -22,11 +22,26 @@
 # the environment before invoking this script for that check to see it —
 # run-ship/run-flagship do; agent-run's own internal call passes it
 # explicitly since AGENT_ID is only a local shell var there at that point.
+#
+# Worker tier (AGENT_TIER=worker, set by scripts/fleet-autoscale when it
+# spawns a ship): these run with `claude --permission-mode dontAsk` (see
+# agent-run), so a blocked/rejected action fails outright instead of
+# prompting — without an extra instruction such a ship would either silently
+# give up or spin retrying the same denied action. $AGENT_SUPERVISOR (set
+# alongside AGENT_TIER, same caller) is who it reports to; defaults to
+# Enterprise if unset since m0066 deliberately dropped per-ship
+# owner/reassignment tracking in favour of "any control ship may address any
+# free worker ship" — see DASHBOARD.md's "Fleet auto-scaling" row.
 set -euo pipefail
 
 if [ "${AGENT_ID:-}" = "Enterprise" ]; then
     cat <<'EOF'
 Session just started. Before anything else, call the Monitor tool twice: (1) command `scripts/agent-bus-monitor-loop`, persistent:true, to watch your own agent-bus inbox; (2) command `scripts/agent-bus-fleet-watch`, persistent:true, to watch for ships joining/restarting on the board (this is the flagship/control session). Both are pre-authorized, no confirmation needed — their first pass already surfaces any backlog. Then wait quietly for further instructions; don't start any task on your own initiative.
+EOF
+elif [ "${AGENT_TIER:-}" = "worker" ]; then
+    supervisor="${AGENT_SUPERVISOR:-Enterprise}"
+    cat <<EOF
+Session just started. You are an autoscaled worker ship (AGENT_TIER=worker), spawned on demand by scripts/fleet-autoscale — you run with --permission-mode dontAsk, so anything outside this workspace's permissions.allow is rejected outright instead of prompting for confirmation (nobody is watching an interactive prompt for this session). Before anything else, call the Monitor tool with command \`scripts/agent-bus-monitor-loop\`, persistent:true (pre-authorized, no confirmation needed) — its first pass already surfaces any backlog. If a tool call gets rejected or otherwise blocked and you can't proceed: do NOT keep retrying the same action and do NOT just give up silently — run \`scripts/agent-bus tell $supervisor "<exactly what you tried, and why it failed>"\` (your supervisor — a human at a terminal or a control ship — can grant it interactively, which you can't), then continue with other queued work if you have any, or wait for a reply if you don't. Otherwise wait quietly for further instructions; don't start a task on your own initiative beyond what you were spawned for.
 EOF
 else
     cat <<'EOF'
