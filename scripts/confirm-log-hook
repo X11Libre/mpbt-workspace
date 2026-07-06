@@ -1,0 +1,257 @@
+#!/usr/bin/env python3
+#
+# SPDX-License-Identifier: AGPL-3.0-or-later
+# Copyright © 2026 Enrico Weigelt, metux IT consult
+#
+# PreToolUse hook (matcher: Bash) — PURE TELEMETRY. Reimplements the
+# permissions.allow matching logic Claude Code itself uses, and when a
+# Bash sub-command would NOT be auto-allowed under permission_mode=="default"
+# (i.e. would need an interactive confirmation), appends one JSON line to a
+# fleet-shared, gitignored log. Goal: mine that log later for recurring
+# unmatched command prefixes worth turning into a scripts/*/starfleetctl
+# wrapper — see DASHBOARD.md "Permission-confirmation telemetry" row
+# (directive m0050).
+#
+# HARD REQUIREMENT: this hook must NEVER influence the real permission
+# decision. It always exits 0 with EMPTY stdout — no `hookSpecificOutput`,
+# no `permissionDecision` field at all. Per Claude Code's hook contract,
+# that is unconditionally neutral: deny/ask rules are still evaluated
+# exactly as if this hook didn't exist, and a missing allow match still
+# prompts the user exactly as before. Any internal error is swallowed
+# (broad try/except) rather than risking a non-zero/blocking exit code.
+#
+# Known simplifications (telemetry doesn't need shell-grammar perfection —
+# occasional false positives/negatives in the *log* are fine, as long as
+# the real permission decision is never touched):
+#   - Compound-command splitting (&&, ||, ;, |, |&, &, newline) is a
+#     lightweight quote-aware tokenizer, not a full POSIX shell parser.
+#   - Wrapper-stripping covers timeout/time/nice/nohup/stdbuf/bare-xargs,
+#     per Claude Code's own documented strip list. Leading `VAR=value`
+#     assignments are deliberately NOT stripped — AGENTS.md's own
+#     documented gotcha ("export AGENT_ID=Foo && scripts/agent-bus board"
+#     prompts because the compound doesn't start with `scripts/agent-bus`)
+#     is exactly this behavior observed live, so treating a leading
+#     assignment as unstripped matches reality better than the hook docs'
+#     (explicitly hedged) suggestion that it might be stripped.
+#   - Skips only "bypassPermissions" mode, where NOTHING ever prompts by
+#     definition — logging there would be guaranteed noise. Every other
+#     mode (default, plan, acceptEdits, auto, dontAsk) is logged WITH its
+#     mode recorded, deliberately not filtered down to "default" only:
+#     live testing here showed a fleet worker session running under
+#     "acceptEdits" executes an unlisted Bash command with no visible
+#     prompt at all, so assuming "no-match ⇒ prompted" outside "default"
+#     would have been wrong. Recording the mode lets analysis (not
+#     collection) decide what each mode's no-match actually means — e.g.
+#     Pegasus's "dontAsk" autoscaled ships (m0051/m0052) get a silent
+#     auto-deny on a no-match, which is a harder signal than a mere
+#     prompt, not a softer one; that distinction belongs in the shared
+#     tooling-gaps analysis, not baked into what gets collected here.
+import json
+import os
+import sys
+import time
+
+WRAPPER_STRIP = ("timeout", "time", "nice", "nohup", "stdbuf")
+SPLIT_RE_CHARS = ("&&", "||", "|&", ";", "|", "&")
+
+
+def load_json(path):
+    try:
+        with open(path) as f:
+            return json.load(f)
+    except Exception:
+        return {}
+
+
+def collect_allow_rules(project_dir):
+    """Union of permissions.allow across project + local + user settings —
+    mirrors the layering Claude Code itself applies (we only need the set
+    of allow patterns, not which layer contributed which)."""
+    paths = [
+        os.path.join(project_dir, ".claude", "settings.json"),
+        os.path.join(project_dir, ".claude", "settings.local.json"),
+        os.path.join(os.path.expanduser("~"), ".claude", "settings.json"),
+    ]
+    rules = {"allow": [], "deny": [], "ask": []}
+    for p in paths:
+        perms = load_json(p).get("permissions", {})
+        for kind in rules:
+            rules[kind].extend(perms.get(kind, []) or [])
+    return rules
+
+
+def split_compound(command):
+    """Quote-aware split on shell control operators. Returns a list of
+    sub-command strings (control operators themselves discarded)."""
+    parts = []
+    buf = []
+    i = 0
+    n = len(command)
+    quote = None
+    while i < n:
+        c = command[i]
+        if quote:
+            buf.append(c)
+            if c == quote:
+                quote = None
+            i += 1
+            continue
+        if c in ("'", '"'):
+            quote = c
+            buf.append(c)
+            i += 1
+            continue
+        matched_op = None
+        for op in ("&&", "||", "|&"):
+            if command[i:i + len(op)] == op:
+                matched_op = op
+                break
+        if matched_op is None and c in (";", "|", "&", "\n"):
+            # A bare '&' right after '>' or '<' is FD-redirect syntax
+            # (2>&1, >&2, <&3), not a background/job-control operator —
+            # don't split there. (Found live: "cat f 2>&1" was mis-split
+            # into "cat f 2>" + "1" before this check existed.)
+            prev = buf[-1] if buf else ""
+            if c == "&" and prev in (">", "<"):
+                pass
+            else:
+                matched_op = c
+        if matched_op:
+            parts.append("".join(buf))
+            buf = []
+            i += len(matched_op)
+            continue
+        buf.append(c)
+        i += 1
+    parts.append("".join(buf))
+    return [p.strip() for p in parts if p.strip()]
+
+
+def strip_wrappers(subcmd):
+    """Repeatedly strip leading process-wrapper tokens Claude Code itself
+    strips before matching (timeout/time/nice/nohup/stdbuf/bare-xargs)."""
+    tokens = subcmd.split()
+    changed = True
+    while changed and tokens:
+        changed = False
+        head = tokens[0]
+        if head in WRAPPER_STRIP:
+            tokens = tokens[1:]
+            # timeout/nice/stdbuf commonly take their own flags/args before
+            # the wrapped command — best-effort: eat a leading run of
+            # option-looking tokens (start with "-") plus, for `timeout`,
+            # exactly one bare duration argument right after any flags.
+            while tokens and tokens[0].startswith("-"):
+                tokens = tokens[1:]
+            if head == "timeout" and tokens and not tokens[0].startswith("-"):
+                tokens = tokens[1:]
+            changed = True
+        elif head == "xargs" and len(tokens) > 1 and not tokens[1].startswith("-"):
+            tokens = tokens[1:]
+            changed = True
+    return " ".join(tokens)
+
+
+def rule_matches(pattern, subcmd):
+    if pattern.endswith(":*"):
+        base = pattern[:-2]
+        return subcmd == base or subcmd.startswith(base + " ")
+    if pattern.endswith(" *"):
+        base = pattern[:-2]
+        return subcmd == base or subcmd.startswith(base + " ")
+    if pattern.endswith("*"):
+        base = pattern[:-1]
+        return subcmd.startswith(base)
+    return subcmd == pattern
+
+
+def bash_patterns(rules):
+    out = []
+    for r in rules:
+        if r.startswith("Bash(") and r.endswith(")"):
+            out.append(r[len("Bash("):-1])
+    return out
+
+
+def classify(subcmd, rules):
+    allow_pats = bash_patterns(rules["allow"])
+    deny_pats = bash_patterns(rules["deny"])
+    ask_pats = bash_patterns(rules["ask"])
+    if any(rule_matches(p, subcmd) for p in deny_pats):
+        return "deny-match"
+    if any(rule_matches(p, subcmd) for p in ask_pats):
+        return "ask-match"
+    if any(rule_matches(p, subcmd) for p in allow_pats):
+        return None  # auto-allowed, nothing to log
+    return "no-match"
+
+
+def log_event(project_dir, entries):
+    # Shared with Pegasus's m0051 escalation-reporting effort (agent-bus
+    # m0052/m0054/m0055): one collection point for "discovered tooling gap"
+    # regardless of whether it was found passively (this hook) or actively
+    # (their agent-bus tell on a dontAsk auto-deny, once approved) — same
+    # directory name, `source` field distinguishes the two.
+    log_dir = os.path.join(project_dir, "_WORK_", "agent-bus", "tooling-gaps")
+    os.makedirs(log_dir, exist_ok=True)
+    lock_path = os.path.join(log_dir, ".lock")
+    log_path = os.path.join(log_dir, "events.jsonl")
+    import fcntl
+    with open(lock_path, "a+") as lockf:
+        fcntl.flock(lockf, fcntl.LOCK_EX)
+        try:
+            with open(log_path, "a") as f:
+                for e in entries:
+                    f.write(json.dumps(e, ensure_ascii=False) + "\n")
+        finally:
+            fcntl.flock(lockf, fcntl.LOCK_UN)
+
+
+def main():
+    try:
+        payload = json.load(sys.stdin)
+    except Exception:
+        return 0
+
+    if payload.get("tool_name") != "Bash":
+        return 0
+    mode = payload.get("permission_mode", "default")
+    if mode == "bypassPermissions":
+        return 0  # nothing ever prompts here — logging would be pure noise
+
+    command = (payload.get("tool_input") or {}).get("command", "")
+    if not command:
+        return 0
+
+    project_dir = os.environ.get("CLAUDE_PROJECT_DIR") or os.getcwd()
+    rules = collect_allow_rules(project_dir)
+
+    entries = []
+    for raw_sub in split_compound(command):
+        stripped_sub = strip_wrappers(raw_sub)
+        category = classify(stripped_sub, rules)
+        if category is None:
+            continue
+        entries.append({
+            "ts": int(time.time()),
+            "source": "hook",
+            "agent_id": os.environ.get("AGENT_ID", ""),
+            "session_id": payload.get("session_id", ""),
+            "cwd": payload.get("cwd", ""),
+            "permission_mode": mode,
+            "full_command": command,
+            "subcommand": stripped_sub,
+            "category": category,
+        })
+
+    if entries:
+        log_event(project_dir, entries)
+    return 0
+
+
+if __name__ == "__main__":
+    try:
+        sys.exit(main() or 0)
+    except Exception:
+        # Never let a bug in this observer affect the real tool call.
+        sys.exit(0)
