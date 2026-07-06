@@ -144,8 +144,23 @@ tmux has-session -t "$session" 2>/dev/null && \
     die "session '$session' already running — attach with: scripts/agent-attach $AGENT_ID   (or use --name for a second one)"
 
 # Build the program to exec inside tmux.
+#
+# claude is resolved to an absolute path HERE, in the caller's own shell, not
+# left as a bare name for the inner "bash -lc ... exec claude" below. That
+# inner command runs as a non-interactive bash login shell (tmux's pane has
+# no tty on stdin), and ~/.bashrc's standard "not interactive -> return"
+# guard skips it entirely, so ~/.profile's own PATH (which doesn't include
+# ~/.local/bin) is all it gets -- "claude: command not found" (exit 127) with
+# no visible trace once tmux's default exit-empty kills the now-empty session
+# right after. Root-caused 2026-07-06 (Constellation, directive m0108) after
+# both prior hypotheses (a leftover $TMUX var confusing nested tmux;
+# CLAUDECODE/session-ID env inherited from the launching session) turned out
+# to be red herrings -- it reproduces identically from a plain, non-sandboxed
+# shell and has nothing to do with nesting at all. bash/opencode aren't hit
+# because bash lives on the base system PATH ~/.profile inherits, and the
+# opencode wrapper is invoked by its repo-relative "./run-opencode.*" path.
 case "$client" in
-    claude)   prog=(claude); [ -n "$permission_mode" ] && prog+=(--permission-mode "$permission_mode") ;;
+    claude)   prog=("$(command -v claude || echo claude)"); [ -n "$permission_mode" ] && prog+=(--permission-mode "$permission_mode") ;;
     opencode) prog=("./run-opencode.${rel_full}") ;;   # wrapper sources config.sh + sets its own heartbeat
     shell)    prog=("${SHELL:-bash}") ;;
 esac
