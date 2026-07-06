@@ -1202,6 +1202,42 @@ tmux server is a daemon, so a session survives terminal close / SSH disconnect, 
   it fails the "self-hosted + every client" requirement. The background agent-view supervisor is
   also Claude-only and same-host. tmux is the CLI-agnostic, self-hostable, multi-attach equivalent.
 
+### Fleet auto-scaling and the two-tier permission model (`fleet-autoscale`)
+
+**Standing policy, confirmed directly by the maintainer 2026-07-06 (agent-bus m0037/m0038/m0051/
+m0066/m0068) — full implementation history in DASHBOARD.md's "Fleet auto-scaling" row.** When more
+parallelizable work is queued than there is idle fleet capacity, `scripts/fleet-autoscale need <N>
+--reason "<text>"` spawns extra ships on demand (via `ship-names assign` + `agent-run`) — an
+**explicit, on-demand trigger only**, never a background daemon/cron/Monitor-loop; see the Key
+commands table entry and the script's own header for the demand-signal/hard-cap/audit-trail design.
+
+Ships it spawns are a distinct, lower **tier** from a normal interactively-launched session:
+
+- **Upper tier — anyone started directly at a terminal** (a human typing `run-ship`/`run-flagship`,
+  or a control ship like `Enterprise`): ordinary interactive permission confirmation, because a
+  human is actually there to answer prompts. Completely unaffected by anything below.
+- **Lower tier — `fleet-autoscale`-spawned workers**: tagged `AGENT_TIER=worker` +
+  `AGENT_SUPERVISOR=<name>` (default `Enterprise`; **no** per-ship ownership/reassignment
+  tracking — any control ship may address any free worker ship, by deliberate simplification) and,
+  for `--client claude`, launched with **`claude --permission-mode dontAsk`** — NOT
+  `--dangerously-skip-permissions` — so anything outside `permissions.allow` is rejected outright
+  instead of blocking on a confirmation nobody is watching. `scripts/agent-bus-boot-prompt`'s
+  worker-tier branch instructs such a ship that on a rejected/blocked action it must not keep
+  retrying or silently give up, but `agent-bus tell $AGENT_SUPERVISOR` exactly what it tried and
+  why, then continue other queued work or wait for a reply — the supervisor (human or control ship)
+  can grant it interactively, which the worker itself cannot.
+
+**Why this needed explicit sign-off, not just a bus directive:** lowering the confirmation floor for
+unattended agents is a materially bigger, harder-to-reverse safety change than routine fleet
+coordination — arriving via an unauthenticated `agent-bus` relay (see the "agent-bus has no message
+authentication" Parkplatz entry) is not sufficient on its own for a change in this class. It was
+asked for directly, twice, in the implementing agent's own session before being built. **The
+maintainer's follow-up calibration**: this specific, now-approved category (further tuning of the
+dontAsk/worker-tier mechanism itself) does **not** need a fresh direct round-trip each time —
+indirect confirmation relayed via the flagship is sufficient going forward for it. A genuinely
+*new* category of permission-loosening or other higher-impact change still warrants asking
+directly again, the same way this one originally did.
+
 **Preferred: agents work in their own dedicated clones.** Agents/automation must NOT do backport
 work in the user's hand-edited `sources/xlibre/xserver` clone. Instead create an agent-owned clone:
 
