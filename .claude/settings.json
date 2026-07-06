@@ -27,6 +27,8 @@
       "Bash(scripts/dashboard *)",
       "Bash(scripts/fetch-all-nvidia-drivers)",
       "Bash(scripts/fetch-all-nvidia-drivers *)",
+      "Bash(scripts/fleet-autoscale)",
+      "Bash(scripts/fleet-autoscale *)",
       "Bash(scripts/fetch-nvidia-drivers)",
       "Bash(scripts/fetch-nvidia-drivers *)",
       "Bash(scripts/list-nvidia-versions)",
