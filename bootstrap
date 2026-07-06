@@ -84,6 +84,15 @@ for name in go-x11proto flyingtux starfleetctl; do
     ./run-build."$name"
 done
 
+# --- 4a. starfleetctl's own fleet-management setup --------------------------
+# Now that starfleetctl is built (previous step), let it verify/repair its
+# own narrow slice of setup (_WORK_/agent-bus + _WORK_/agent-claims dirs, the
+# starfleetctl allowlist entries in .claude/settings.json) — idempotent, and
+# only ever touches gitignored dirs + entries that ship in this checkout's
+# own tracked settings.json already, so safe to run unconditionally here.
+echo "-- starfleetctl bootstrap --fix --"
+scripts/starfleetctl bootstrap --fix || true
+
 # --- 5. optional full xserver build (heavy) ----------------------------------
 if [ "$BUILD" = 1 ]; then
     echo "-- building xserver-master (this takes a while: ~54 drivers + xts + piglit) --"
