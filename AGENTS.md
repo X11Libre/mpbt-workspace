@@ -297,6 +297,20 @@ the `mpbt-hq` GitHub org, same non-X11Libre caveat as FlyingTux):
   the canonical new one directly.
 - Naming: picked to fit the workspace's existing Star-Trek ship-name/fleet theme (agent-bus board,
   `scripts/ship-names`, the `Enterprise` flagship) rather than the more generic original `mpbtctl`.
+- **Gotcha: `./run-fetch.starfleetctl` does NOT fast-forward the local checkout to new upstream
+  commits — it only updates the `origin/master` remote-tracking ref, leaving the checked-out
+  `master` branch exactly where it was.** `./run-build.starfleetctl` then builds whatever is
+  currently checked out, so it can silently build **stale** code even right after a fetch (`git
+  branch -vv` will show e.g. `[origin/master: 2 hinterher]` — 2 commits behind — despite the fetch
+  having just run). Hit 2026-07-06 (Farragut, Phase 3): built the new `bootstrap` subcommand,
+  pushed, ran `./bootstrap` again expecting the new subcommand to be there — `run-build.starfleetctl`
+  built the pre-push commit instead. Fix: `git -C _WORK_/starfleetctl/sources/xlibre/starfleetctl
+  merge --ff-only origin/master` before rebuilding (safe — this clone should never have local
+  commits of its own to lose, per the same reasoning `mk-agent-clone`-style isolation exists
+  elsewhere in this workspace). Unconfirmed whether this is generic mpbt fetch behavior (likely
+  applies to go-x11proto/FlyingTux too) or specific to how the `starfleetctl` solution's `ref:
+  origin/master` is configured — not root-caused, just documented as a known gotcha to check for
+  when "I just pushed but the built binary doesn't have my change" comes up.
 - **Standing constraint: everything under the `mpbt-hq` GitHub org must stay independent of
   XLibre/xserver specifics.** This XLibre/mpbt-workspace usage is only the **first** major
   application of this tooling, not something it's allowed to be coupled to — a second, unrelated
