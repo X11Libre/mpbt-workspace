@@ -297,6 +297,12 @@ the `mpbt-hq` GitHub org, same non-X11Libre caveat as FlyingTux):
   the canonical new one directly.
 - Naming: picked to fit the workspace's existing Star-Trek ship-name/fleet theme (agent-bus board,
   `scripts/ship-names`, the `Enterprise` flagship) rather than the more generic original `mpbtctl`.
+- **Standing constraint: everything under the `mpbt-hq` GitHub org must stay independent of
+  XLibre/xserver specifics.** This XLibre/mpbt-workspace usage is only the **first** major
+  application of this tooling, not something it's allowed to be coupled to — a second, unrelated
+  application ("sonicde") is already planned. No hardcoded `X11Libre/xserver` repo slug, no baked-in
+  assumptions about xserver's release-line naming/layout, etc. — project-specific values stay
+  configurable (env var/flag/config), never a literal in the Go code.
 
 ## Template/symlink system
 
