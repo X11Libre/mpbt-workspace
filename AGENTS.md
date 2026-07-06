@@ -9,8 +9,8 @@ MPBT workspace that orchestrates building the XLibre X server and ~54 drivers ac
 These apply to **every** session — they keep knowledge and tooling from decaying as sessions are
 cleared:
 
-- **Language policy (2026-07-06): converse with the maintainer in German, everything else in
-  English.** Any direct communication with the maintainer — chat replies, `agent-bus tell`/
+- **Language policy (2026-07-06): converse with the praetor in German, everything else in
+  English.** Any direct communication with the praetor — chat replies, `agent-bus tell`/
   `broadcast` text directed at them, status notes meant for them to read — is in German. Anything
   that becomes part of the project's durable artifacts stays English: code, code comments, commit
   messages, PR titles/descriptions/review comments, other GitHub interactions, and files like
@@ -34,18 +34,18 @@ cleared:
   not during a dedicated triage pass. Don't add
   individual PRs or ephemeral status there; it links out to the detail doc/branch/PR instead of
   duplicating GitHub or `agent-bus`.
-- **You may commit + push directly, without asking, on the maintainer's `mtx/*` workspace
-  branches — any file, not just `AGENTS.md`.** Standing grant from the maintainer (broadened
+- **You may commit + push directly, without asking, on the praetor's `mtx/*` workspace
+  branches — any file, not just `AGENTS.md`.** Standing grant from the praetor (broadened
   2026-07-02; originally scoped to `AGENTS.md` only): on `mtx/agent-config` (and other `mtx/*`
   branches), commit and push straight away whenever it's warranted — lessons/notes in `AGENTS.md`,
   `DASHBOARD.md` updates, new/changed `scripts/*`, config tweaks, whatever the session produced.
   Use `scripts/ws-commit -m <msg> <path...>` so it goes through the `with-clone-lock` mutex. No
   confirmation needed on those branches. (Other branches — anything not `mtx/*` — still follow the
   normal "ask before committing" rule.)
-  **What `mtx/*` is for:** it's the maintainer's **personal staging branch** — freely accumulate
+  **What `mtx/*` is for:** it's the praetor's **personal staging branch** — freely accumulate
   lessons/docs/tooling there without asking each time. It is **not** auto-merged into `master`.
   Generalizing something onto `master` (so other users/contributors benefit, not just the
-  maintainer) is a deliberate, separate, later decision the maintainer makes per item — don't
+  praetor) is a deliberate, separate, later decision the praetor makes per item — don't
   propose or perform that promotion unprompted.
 - **Project knowledge lives in this repo, not in per-user agent memory.** Lessons, CI gotchas,
   failure modes, workflow quirks and PR-repair findings go into `AGENTS.md` or a topic doc
@@ -87,8 +87,8 @@ cleared:
   clone) and once in the `mpbt-workspace` root. **Always `cd` into the scratchpad dir (or pass an
   absolute output path) before any ad-hoc source/package fetch for investigation** — never rely on
   "wherever cwd currently is" for a command whose output isn't meant to land in a repo.
-- **Opening URLs (e.g. PR links) in the maintainer's browser.** In an **interactive local session**
-  the Bash tool shares the maintainer's desktop session (`DISPLAY` set, dbus reachable), so you can
+- **Opening URLs (e.g. PR links) in the praetor's browser.** In an **interactive local session**
+  the Bash tool shares the praetor's desktop session (`DISPLAY` set, dbus reachable), so you can
   open a link in their running browser with a plain local command — handy for handing over a PR to
   review. Do it **only on explicit request** (it's a visible side-effect on their desktop), and
   never in headless/CI runs (no display). The exact browser command is a per-user setting (don't
@@ -181,7 +181,7 @@ opencode sessions rather than Claude Code, and actually starting a session (`./r
 | `scripts/ws-commit -m <msg> <path...>` | atomically commit (+push) to **this** workspace repo under the `with-clone-lock` mutex — the safe way for agents to mutate the shared workspace checkout (`-a` = all tracked, `--no-push` = commit only). Use this instead of raw `git commit` here, so concurrent agent sessions don't race the index/HEAD (which produced bundled "1" commits) |
 | `scripts/dashboard pull \| show \| write <file\|-> \| commit -m <msg> [--no-push]` | dedicated read/write/commit/push cycle for `DASHBOARD.md` specifically, since it's one of the most contended files in this repo (many concurrent sessions update it — see the "modified by another session" notes agents keep hitting). `pull`/`show` sync via `git pull --rebase --autostash` under `with-clone-lock` first (so you're editing fresh content, not a stale local copy); `write` replaces the file's content for scripted/non-interactive updates (does not commit); `commit` wraps `ws-commit -m <msg> DASHBOARD.md`. Interactive use: `dashboard pull` → edit with Read/Edit as usual → `dashboard commit -m "..."`. Pre-authorized in `.claude/settings.json` |
 | `scripts/show-pr-conflict` | list all open PRs with merge conflicts |
-| `scripts/starfleetctl <agent-bus\|dashboard\|pr-claim\|ws-commit\|ship-names> [args…]` | thin exec wrapper for the `metux/starfleetctl` Go CLI (own repo, mpbt solution — see "starfleetctl" theme in `DASHBOARD.md`). Rebuilds the binary automatically when its source is newer, then runs it with the resolved workspace root. **Cut over to production: `dashboard`, `pr-claim`, `ws-commit`, `ship-names` (2026-07-03), and — 2026-07-06, maintainer go-ahead once parity was re-confirmed live — `agent-bus` too.** Each is a full Go reimplementation of its bash namesake sharing the exact same on-disk file format/lock file, so Go and bash callers interoperate transparently: `dashboard`/`ws-commit` share `<gitdir>/mpbt-clone.lock` with `scripts/with-clone-lock`/`scripts/ws-commit` (verified: a Go commit blocks while a bash `with-clone-lock` holds the lock, proceeds once released, and `pull --rebase` cleanly interleaves commits from both sides); `pr-claim` shares `_WORK_/agent-claims/`; `ship-names` shares `_WORK_/agent-bus/ships/` + its `.assign.lock`; `agent-bus` shares `_WORK_/agent-bus/{status,inbox,...}` (spot-checked 2026-07-06 against the live production bus: `board` output byte-identical to the bash version modulo row order — Go's map iteration doesn't preserve the bash version's file-listing order, cosmetic only, not a data gap). Prefer `scripts/starfleetctl <name> …` over the bash `scripts/<name>` going forward for all five: **it's pre-authorized as one blanket entry** (`Bash(scripts/starfleetctl)`/`Bash(scripts/starfleetctl *)`), so every current and future subcommand this tool gains is automatically covered without a new allowlist entry each time — the explicit trade-off (less granular; a bug in one subcommand isn't scoped out from the others) the maintainer already accepted when starfleetctl was planned. The bash originals are left in place (not removed) — both implementations coexist safely on the same files; nothing forces a caller to switch, and no session restart is needed for the cutover to take effect (each invocation is a fresh process against the same on-disk state, not a persistent daemon). **The `SessionStart`/`SessionEnd` hooks and the `agent-bus-monitor-loop`/`agent-bus-fleet-watch` Monitor scripts deliberately keep calling bash `scripts/agent-bus`** — hooks run outside the permission system entirely (switching them buys nothing this cutover was meant to solve) and the Monitor scripts read the inbox/board files directly rather than shelling out to the `agent-bus` wrapper, so neither needed touching |
+| `scripts/starfleetctl <agent-bus\|dashboard\|pr-claim\|ws-commit\|ship-names> [args…]` | thin exec wrapper for the `metux/starfleetctl` Go CLI (own repo, mpbt solution — see "starfleetctl" theme in `DASHBOARD.md`). Rebuilds the binary automatically when its source is newer, then runs it with the resolved workspace root. **Cut over to production: `dashboard`, `pr-claim`, `ws-commit`, `ship-names` (2026-07-03), and — 2026-07-06, praetor go-ahead once parity was re-confirmed live — `agent-bus` too.** Each is a full Go reimplementation of its bash namesake sharing the exact same on-disk file format/lock file, so Go and bash callers interoperate transparently: `dashboard`/`ws-commit` share `<gitdir>/mpbt-clone.lock` with `scripts/with-clone-lock`/`scripts/ws-commit` (verified: a Go commit blocks while a bash `with-clone-lock` holds the lock, proceeds once released, and `pull --rebase` cleanly interleaves commits from both sides); `pr-claim` shares `_WORK_/agent-claims/`; `ship-names` shares `_WORK_/agent-bus/ships/` + its `.assign.lock`; `agent-bus` shares `_WORK_/agent-bus/{status,inbox,...}` (spot-checked 2026-07-06 against the live production bus: `board` output byte-identical to the bash version modulo row order — Go's map iteration doesn't preserve the bash version's file-listing order, cosmetic only, not a data gap). Prefer `scripts/starfleetctl <name> …` over the bash `scripts/<name>` going forward for all five: **it's pre-authorized as one blanket entry** (`Bash(scripts/starfleetctl)`/`Bash(scripts/starfleetctl *)`), so every current and future subcommand this tool gains is automatically covered without a new allowlist entry each time — the explicit trade-off (less granular; a bug in one subcommand isn't scoped out from the others) the praetor already accepted when starfleetctl was planned. The bash originals are left in place (not removed) — both implementations coexist safely on the same files; nothing forces a caller to switch, and no session restart is needed for the cutover to take effect (each invocation is a fresh process against the same on-disk state, not a persistent daemon). **The `SessionStart`/`SessionEnd` hooks and the `agent-bus-monitor-loop`/`agent-bus-fleet-watch` Monitor scripts deliberately keep calling bash `scripts/agent-bus`** — hooks run outside the permission system entirely (switching them buys nothing this cutover was meant to solve) and the Monitor scripts read the inbox/board files directly rather than shelling out to the `agent-bus` wrapper, so neither needed touching |
 | `scripts/cancel-stale-ci [--cancel] [--branch N] [--workflow N]` | cancel still-running CI runs whose branch moved on since they started (compares each run's head SHA to the branch's current tip; dry-run by default, `--cancel`/`-y` to act). Paginates all active runs; caches branch-tip lookups |
 | `scripts/prune-stale-ci [--delete] [--keep-gone] [-v] [--branch N] [--workflow N]` | **delete** completed/outdated workflow runs whose branch moved on (head SHA ≠ current tip) **or whose branch was deleted** (clean 404). Dry-run by default (per-branch summary), `--delete` to act — **irreversible**. "Branch moved" deletes only when the tip is positively resolved and differs; gone-branch runs are deleted too unless `--keep-gone`; aborts on any non-404 tip-lookup error. Sibling of `cancel-stale-ci` (that one cancels *running* stale runs; this deletes *finished* ones) |
 | `cf/xserver-master/packages/xlibre/update-generic.sh` | re-generate symlinks from the driver template for all generic drivers |
@@ -246,7 +246,7 @@ apply to it):
   status: `go build`/`go vet`/`go test` all clean, but not yet merged to `master` and not yet
   tested against real docker/X11). This migration intentionally mirrors go-x11proto's choice to
   track the repo's actual current default/production branch, **not** an unmerged rewrite — merging
-  the Go rewrite is a separate, larger decision left to the maintainer. `flyingtux-go` was **not**
+  the Go rewrite is a separate, larger decision left to the praetor. `flyingtux-go` was **not**
   touched by this migration (still its own worktree, now pointed at the moved main worktree's
   `.git` after `git worktree repair`; see the gotcha below).
 - **Worktree gotcha:** `/home/nekrad/src/flyingtux` (the `master` checkout) and
@@ -276,7 +276,7 @@ repo, private, same non-X11Libre caveat as FlyingTux):
 
 - Unlike go-x11proto/FlyingTux, there was no pre-existing external checkout to move — the code
   started life directly inside mpbt-workspace (branch `mtx/mpbtctl`, see the DASHBOARD.md
-  `starfleetctl` row for the full history) and was extracted into its own repo once the maintainer
+  `starfleetctl` row for the full history) and was extracted into its own repo once the praetor
   decided it should follow this same sister-project pattern rather than live in-tree or be folded
   into the `mpbt`/`mpbt-builder` Go repo itself (a third option that was considered and rejected —
   keeping it separate means it can be extracted/reused independently of the build orchestrator).
@@ -444,7 +444,7 @@ The script cherry-picks commits onto a temp branch based on `$upstream_remote/$u
 **Commit-message trailer convention — `Signed-off-by` only, NEVER `Co-Authored-By`.** Commits in
 all these repos (xserver and the drivers) carry a `Signed-off-by:` trailer (kernel/X.org style)
 and nothing else. Do **not** append a `Co-Authored-By:` line (e.g. an AI co-author) — the
-maintainer does not want it in the history. This overrides any agent/harness default that says to
+praetor does not want it in the history. This overrides any agent/harness default that says to
 add one. Use `git commit -s` (or write the `Signed-off-by` explicitly) and stop there.
 
 **The `[PR #NNNN]` prefix + `PR:` trailer belong ONLY on the incubator branch (`rfc/backport-*`) — never on the PR branch or the merged upstream commit.** The PR is pushed *before* the PR number exists, so the pushed/merged commit must keep its clean original message. Leak seen on master: PR #3162 merged 4 commits all prefixed `[PR #3162]`. Root cause — `xx-make-pr.sh` `DEFAULT_MODE="rebase"`: rebase mode runs the `[PR #N]` `sed` + `PR:` `--exec` rewrite against the **PR branch** `$BRANCH_NAME` (the head that gets merged), not just the incubator (the in-script comment even says *"markers added to PR branch"*). The clean `incubator` mode rewrites only the incubator, but it uses `git rebase -i` (interactive), which is unsupported in this environment — which is why the default was flipped to the contaminating `rebase` mode. **Until the script is fixed (apply the marker `--exec` to the *incubator* rebase only, leave `$BRANCH_NAME` untouched, and make that path non-interactive via `GIT_SEQUENCE_EDITOR=true`/no `-i`): before merging any `xx-make-pr.sh` PR, verify the PR head's subject line is clean (no `[PR #…]`).** A second leak vector: re-running `xx-make-pr.sh` on an incubator commit that is *already* prefixed re-cherry-picks the prefix onto the fresh PR branch — always submit the clean commit. (Already-merged prefixed commits are left as-is; no master history rewrite.)
@@ -505,7 +505,7 @@ along `xorg/main`, no force): `git push origin <xorg/main-sha>:refs/heads/tracki
 ## Backport workflow (master PR → release branches)
 
 > **NEVER auto-merge into `release/*` branches.** Merges into any release line
-> (`release/25.2`, `release/25.1`, `release/25.0`, …) happen **only manually, by the maintainer**.
+> (`release/25.2`, `release/25.1`, `release/25.0`, …) happen **only manually, by the praetor**.
 > A green CI run and a clean bot-review are **not** sufficient to merge a release PR — agents open
 > and cross-link the PR and then **stop**. Fixes for existing releases must always be reviewed
 > independently and manually (applicability + correctness, confirmed per branch), regardless of CI
@@ -671,10 +671,10 @@ work in a dedicated agent clone, never the user's hand-edited sources tree.
    **`pr-checkout` handles both same-repo and fork PRs.** A fork PR has its head branch on the
    contributor's repo, so `origin/<headRef>` doesn't exist. pr-checkout auto-detects this
    (`isCrossRepository`), wires a dedicated `fork` remote mirroring origin's transport
-   (SSH → reuses the maintainer's key, no token), and checks out the branch tracking
+   (SSH → reuses the praetor's key, no token), and checks out the branch tracking
    `fork/<headRef>`; `pr-amend-push` then pushes the amended commit back to that `fork` remote
    (it reads `branch.<head>.remote`, falling back to origin for same-repo PRs). Push-back needs the
-   PR's *allow edits from maintainers* (`maintainerCanModify: true`) — pr-checkout warns if false.
+   PR's *allow edits from praetors* (`maintainerCanModify: true`) — pr-checkout warns if false.
    (This was originally a bug: pr-checkout did `fetch origin <headRef>` unconditionally and failed
    on forks, and pr-amend-push hard-coded a push to origin; both fixed while rebasing #625, head
    `patch-1` on fork `BrightCat14/xyzserver`.)
@@ -685,7 +685,7 @@ work in a dedicated agent clone, never the user's hand-edited sources tree.
    `calloc` entirely*, replacing the hand-managed buffer with the growable `x_rpcbuf_t` API
    (`x_rpcbuf_write_CARD8s` + `rpcbuf.error` → `BadAlloc`). Resolving toward master left an empty
    change (only a now-unused `#include <limits.h>`). When a rebase would produce a no-op, **don't
-   force-push a hollow commit** to the contributor's branch — confirm with the maintainer and close
+   force-push a hollow commit** to the contributor's branch — confirm with the praetor and close
    the PR with a bot-bannered comment explaining it's already addressed upstream (cite the function
    + the commit/mechanism that removed the old code).
 
@@ -728,12 +728,12 @@ work in a dedicated agent clone, never the user's hand-edited sources tree.
 ## Automated reviews
 
 When an agent reviews a PR, **always post the review outcome as a comment on that PR to track the
-result there** — including on the maintainer's **own** PRs (the bot banner makes the origin clear,
+result there** — including on the praetor's **own** PRs (the bot banner makes the origin clear,
 so self-authored PRs are reviewed and recorded the same way). The `gh` CLI is authenticated as
-**@metux**, so every comment appears under the maintainer's name. Four rules apply.
+**@metux**, so every comment appears under the praetor's name. Four rules apply.
 
 > **A passing review never authorizes an auto-merge into a `release/*` branch.** Merges into
-> release lines are manual-only (maintainer); see the box at the top of the Backport workflow.
+> release lines are manual-only (praetor); see the box at the top of the Backport workflow.
 > Reviewing/labeling a release PR is fine — merging it from an agent is not. Auto-merge is only
 > ever acceptable on a `master` PR, and only when the user explicitly requests it.
 
@@ -791,12 +791,12 @@ If it is backport-worthy, **flag it in the review and name the likely target bra
 ```markdown
 **Backport candidate** (security / critical fix): likely applies to `release/25.2`,
 `release/25.1`, `release/25.0`. Applicability must be confirmed per branch (code may differ,
-already be fixed, or not be present) — see the Backport workflow section. Maintainer decides
+already be fixed, or not be present) — see the Backport workflow section. Praetor decides
 whether to proceed.
 ```
 
 Leave the decision to ramp the actual backports (via `mk-agent-clone` + `xx-make-pr.sh`) to the
-maintainer.
+praetor.
 
 **3. Check for driver-ABI breakage.** The **proprietary nvidia driver is a binary blob that
 cannot be recompiled** — and *even old nvidia versions must keep working*. So the goal is to
@@ -834,7 +834,7 @@ as a "fix." The real signal is a diff to a public struct or an `_X_EXPORT`'ed de
 
 In the review, call out the specific struct or exported entry point touched and the **explicit
 nvidia impact** (e.g. "adds a field in the middle of `ScrnInfoRec` → shifts all following offsets
-→ installed nvidia blob reads garbage / crashes"). Advisory — the maintainer decides — but any
+→ installed nvidia blob reads garbage / crashes"). Advisory — the praetor decides — but any
 change to this surface must be surfaced prominently, since the constraint is to keep even old
 blobs loading.
 
@@ -878,7 +878,7 @@ exactly one outcome label so results are filterable on GitHub:
 
 - **`bot-review-passed`** (green) — no blocking findings (clean, or only minor/advisory notes).
 - **`bot-review-changes-requested`** (red) — at least one blocking finding (a real bug, a
-  regression, a security/ABI break the maintainer should act on before merge).
+  regression, a security/ABI break the praetor should act on before merge).
 
 If a later revision fixes the blocking finding (e.g. an amend + force-push), swap the label to
 `bot-review-passed` and update the review comment to match. Apply labels via
@@ -1019,15 +1019,15 @@ ordinary process-env inheritance into both the existing `SessionStart`/`SessionE
 and every Bash-tool-backed shell of that session — no `settings.json` change was needed once the
 env var is populated upstream of the client process.
 
-**Cross-repo agents can join this board too, by the maintainer's direction.** `agent-bus`/
+**Cross-repo agents can join this board too, by the praetor's direction.** `agent-bus`/
 `DASHBOARD.md` aren't limited to sessions rooted in this checkout — an agent working in a
-*sibling* repo the maintainer also maintains (e.g. **`go-x11proto`** — the Go X11-protocol client
+*sibling* repo the praetor also maintains (e.g. **`go-x11proto`** — the Go X11-protocol client
 library the `go-xts` CI suite is built on, see "go-x11proto pin sites" above) can register on this
 same board when told to, with its `$XLIBRE_RELEASE`/project column simply naming that other repo.
 (As of 2026-07-02 go-x11proto is itself an mpbt solution — see "go-x11proto is its own mpbt
 solution" below — so its clone now lives *inside* `_WORK_/go-x11proto/sources/xlibre/go-x11proto`,
 not at the old external `/home/nekrad/src/xorg/go-x11` path.) Treat such an
-entry as legitimate coordination, not stray noise — the maintainer explicitly wires up
+entry as legitimate coordination, not stray noise — the praetor explicitly wires up
 cross-project agents this way when their work affects xserver CI (e.g. a go-x11proto version bump
 needed here). Same rule applies to `DASHBOARD.md`: a cross-repo theme is fine there if it has a
 concrete effect on this workspace's build/CI/tests.
@@ -1358,13 +1358,13 @@ Two different scopes — don't conflate them:
 - **New files that end up linked into the xserver binary itself (or a driver)** — anything that
   ships as part of the actual X server/driver deliverable — are, from now on, licensed
   **X11 OR MIT OR AGPL-3.0-or-later** (multi-licensed; the recipient picks whichever of the three
-  suits them). Maintainer decision, 2026-07-02. The X11/MIT option keeps `X11Libre/xserver`'s own
+  suits them). Praetor decision, 2026-07-02. The X11/MIT option keeps `X11Libre/xserver`'s own
   convention (`COPYING`: *"copyright holders of new code should use this license statement where
   possible"*) and keeps proprietary consumers (the NVIDIA blob, see the NVIDIA-ABI section)
   unaffected, since they can just use that grant; AGPL-3.0-or-later is offered as an *additional*
   choice, not a replacement — this is why the AGPL-vs-NVIDIA-friendliness tension flagged earlier
   the same day doesn't apply once it's multi-licensed rather than AGPL-only. Applies only to a
-  genuinely **new** file wholly authored by the maintainer (or an agent on their behalf) — editing
+  genuinely **new** file wholly authored by the praetor (or an agent on their behalf) — editing
   an existing file that already carries the plain X11/MIT grant does **not** relicense that file;
   the new triple-license only attaches to brand-new files.
 - **New files that are NOT part of the final delivery** — helper scripts, CI workflow/config, dev
@@ -1376,8 +1376,8 @@ Two different scopes — don't conflate them:
   anywhere, xserver-repo helper scripts included).
 
 **Not retroactive yet — explicitly deferred, do not act on this without a fresh go-ahead:**
-applying either license to *existing* files. Maintainer's stated plan (2026-07-02): eventually
-retrofit files that were written **solely** by the maintainer (never touching code originally
+applying either license to *existing* files. Praetor's stated plan (2026-07-02): eventually
+retrofit files that were written **solely** by the praetor (never touching code originally
 authored by someone else — e.g. any of the upstream X.Org/XFree86 contributors listed in
 `X11Libre/xserver`'s `COPYING`). This is recorded here purely as a **TODO** — don't relicense any
 existing file proactively; wait for an explicit instruction each time.
