@@ -7,10 +7,19 @@
 # just runs the repo's Makefile (default target builds the tools) via mpbt's
 # `exec` builder — there is no autotools/meson here (pure Go). `make-pr.*` is
 # configured so scripts/xx-make-pr.sh works from this clone too.
+#
+# Tracks `staging`, not `master` (2026-07-06, praetor decision): staging is
+# go-x11proto's own equivalent of mpbt-workspace's mtx/agent-config — an
+# accumulation branch for ongoing agent/dev work, committed to freely without
+# needing a PR each time, NOT auto-merged into master. Promoting something
+# from staging to master (via a real PR, make-pr.upstream-branch below is
+# still master) is a deliberate, separate, later decision. First used to land
+# the tk/widget rich-text (Span/Highlighter) and tk/term (terminal emulator)
+# work built 2026-07-06.
 
 sources:
     git:
-        ref:    origin/master
+        ref:    origin/staging
         remotes:
             origin:
                 url:    ${xlibre_git}/go-x11proto.git
@@ -18,7 +27,7 @@ sources:
                   - refs/tags/*:refs/tags/origin/*
                   - refs/heads/*:refs/remotes/origin/*
                 tagopt: --no-tags
-        local-branch: master
+        local-branch: staging
         config:
             make-pr.upstream-remote: origin
             make-pr.upstream-branch: master
