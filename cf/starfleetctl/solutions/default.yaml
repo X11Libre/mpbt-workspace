@@ -7,7 +7,7 @@
 # and built here, never mixed into the xserver package set. Its sole build
 # entry is xlibre/starfleetctl below.
 
-xlibre_git:     https://github.com/metux
+xlibre_git:     https://github.com/mpbt-hq
 
 install-prefix: ${@PROJECT::@workdir}/target
 
