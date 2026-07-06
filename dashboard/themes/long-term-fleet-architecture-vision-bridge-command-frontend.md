@@ -1,6 +1,3 @@
-Von github.com:X11Libre/mpbt-workspace
- * branch            mtx/agent-config -> FETCH_HEAD
-Bereits aktuell.
 ---
 slug: long-term-fleet-architecture-vision-bridge-command-frontend
 title: "Long-term fleet architecture vision: bridge command frontend, multi-workspace federation, decentralized/isolated execution"
