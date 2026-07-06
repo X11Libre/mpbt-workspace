@@ -24,6 +24,13 @@
 #   - $BUS_DIR/notify/<agent>.log   append-only, tailable
 #   - notify-send                    desktop popup, best-effort if a bus is reachable
 # Each directive notifies once (deduped by id in $BUS_DIR/notify/.seen-<agent>).
+#
+# Desktop popups are deduped fleet-wide, not per-agent: every live ship on the
+# same desktop runs its own instance of this script, and a broadcast (mt=all)
+# matches all of them — without the $POPUP_ONCE_DIR guard below, one broadcast
+# would pop up once per live ship on the shared desktop. Directed "tell"
+# messages only ever match one agent, so they're unaffected (naturally one
+# popup already).
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
@@ -31,6 +38,7 @@ BUS_DIR="${BUS_DIR:-$ROOT/_WORK_/agent-bus}"
 MSG_DIR="$BUS_DIR/msgs"
 ACK_DIR="$BUS_DIR/acks"
 NOTIFY_DIR="$BUS_DIR/notify"
+POPUP_ONCE_DIR="$NOTIFY_DIR/.popup-once"
 
 AGENT_ID="${AGENT_ID:-$(id -un)@$(hostname -s 2>/dev/null || hostname 2>/dev/null || echo host)}"
 fsafe() { printf '%s' "$1" | tr -c 'A-Za-z0-9._-' '_'; }
@@ -39,7 +47,7 @@ AGENT_SAFE="$(fsafe "$AGENT_ID")"
 PIDFILE="$NOTIFY_DIR/.watch-$AGENT_SAFE.pid"
 SEENFILE="$NOTIFY_DIR/.seen-$AGENT_SAFE"
 LOGFILE="$NOTIFY_DIR/$AGENT_SAFE.log"
-mkdir -p "$NOTIFY_DIR"
+mkdir -p "$NOTIFY_DIR" "$POPUP_ONCE_DIR"
 
 stop() {
     if [ -f "$PIDFILE" ]; then
@@ -62,12 +70,19 @@ echo $$ > "$PIDFILE"
 trap 'rm -f "$PIDFILE"' EXIT
 touch "$SEENFILE"
 
-notify() {  # <id> <from> <text>
-    local id="$1" from="$2" text="$3" ts
+notify() {  # <id> <from> <mt> <text>
+    local id="$1" from="$2" mt="$3" text="$4" ts title="agent-bus: directive for $AGENT_ID"
     ts="$(date '+%Y-%m-%d %H:%M:%S')"
     printf '%s\t%s\tfrom %s\t%s\n' "$ts" "$id" "$from" "$text" >> "$LOGFILE"
+    if [ "$mt" = all ]; then
+        title="agent-bus: broadcast"
+        # Atomic "first ship wins" gate: mkdir either succeeds exactly once
+        # (this instance pops the notification) or fails with EEXIST (some
+        # other ship's watcher already did) — race-safe across processes.
+        mkdir "$POPUP_ONCE_DIR/$id" 2>/dev/null || return 0
+    fi
     if command -v notify-send >/dev/null 2>&1; then
-        notify-send -u normal "agent-bus: directive for $AGENT_ID" "[$id] $from: $text" 2>/dev/null || true
+        notify-send -u normal "$title" "[$id] $from: $text" 2>/dev/null || true
     fi
 }
 
@@ -79,8 +94,14 @@ while :; do
         [ "$mt" = all ] || [ "$mt" = "$AGENT_ID" ] || continue   # for me or broadcast
         [ -f "$ACK_DIR/${id}__${AGENT_SAFE}" ] && continue        # already acked
         grep -qxF "$id" "$SEENFILE" 2>/dev/null && continue       # already notified
-        notify "$id" "$mf" "$mtext"
+        notify "$id" "$mf" "$mt" "$mtext"
         echo "$id" >> "$SEENFILE"
+    done
+    # reap popup-once markers for messages that no longer exist (agent-bus prune)
+    for d in "$POPUP_ONCE_DIR"/*/; do
+        [ -e "$d" ] || continue
+        idd="$(basename "$d")"
+        [ -f "$MSG_DIR/$idd.tsv" ] || rmdir "$d" 2>/dev/null || true
     done
     sleep "$INTERVAL"
 done
