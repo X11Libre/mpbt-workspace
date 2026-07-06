@@ -10,5 +10,9 @@
 #
 #   <number>: (<author>) <title> - <author>
 #
+# Env:
+#   REPO   repo slug (default X11Libre/xserver)
 
-gh pr list --limit 100 --json number,author,title,mergeable --jq '.[] | select(.mergeable == "CONFLICTING") | "\(.number): (\(.author.login)) \(.title) - \(.author.login)"'
+REPO="${REPO:-X11Libre/xserver}"
+
+gh pr list --repo "$REPO" --limit 100 --json number,author,title,mergeable --jq '.[] | select(.mergeable == "CONFLICTING") | "\(.number): (\(.author.login)) \(.title) - \(.author.login)"'
