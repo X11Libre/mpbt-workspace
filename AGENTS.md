@@ -276,7 +276,7 @@ the `mpbt-hq` GitHub org, same non-X11Libre caveat as FlyingTux):
 
 - Unlike go-x11proto/FlyingTux, there was no pre-existing external checkout to move — the code
   started life directly inside mpbt-workspace (branch `mtx/mpbtctl`, see the DASHBOARD.md
-  `starfleetctl` row for the full history) and was extracted into its own repo once the maintainer
+  `starfleetctl` row for the full history) and was extracted into its own repo once the praetor
   decided it should follow this same sister-project pattern rather than live in-tree or be folded
   into the `mpbt`/`mpbt-builder` Go repo itself (a third option that was considered and rejected —
   keeping it separate means it can be extracted/reused independently of the build orchestrator).
@@ -285,7 +285,7 @@ the `mpbt-hq` GitHub org, same non-X11Libre caveat as FlyingTux):
   lands in the source checkout itself; no install step yet.
 - No `make-pr.*` config, for the same reason as FlyingTux (not an X11Libre repo).
 - **2026-07-06: moved from the personal `metux/starfleetctl` to `mpbt-hq/starfleetctl`** (Phase 5
-  of the starfleetctl roadmap, see the DASHBOARD.md row — maintainer-authorized org transfer, done
+  of the starfleetctl roadmap, see the DASHBOARD.md row — praetor-authorized org transfer, done
   via `gh api --method POST repos/metux/starfleetctl/transfer -f new_owner=mpbt-hq`). Still private,
   same `master` branch/history, just a different owner. Updated in the same pass: the local clone's
   `origin` remote, `cf/starfleetctl/solutions/default.yaml`'s `xlibre_git:` base URL, and the
