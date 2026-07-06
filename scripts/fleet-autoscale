@@ -19,13 +19,26 @@
 #
 # Usage:
 #   fleet-autoscale need <N> --reason "<text>" [--release <rel>] [--client claude|opencode]
-#                                    [--max <cap>] [--dry-run]
+#                                    [--max <cap>] [--supervisor <name>]
+#                                    [--permission-mode <mode>] [--dry-run]
 #       Spawn up to <cap> minus the current non-stale fleet size, capped at
 #       what's needed after subtracting currently-idle ships. Always prints a
 #       decision and appends it to the audit log; an actual spawn also posts a
 #       loud `agent-bus broadcast` — never a silent background action.
 #   fleet-autoscale status [--max <cap>]
 #       Show current fleet size / idle count / configured cap. No side effects.
+#
+# Worker tier: every spawned ship is tagged AGENT_TIER=worker and
+#   AGENT_SUPERVISOR=<--supervisor, default "Enterprise"> (see agent-run and
+#   agent-bus-boot-prompt) — no per-ship ownership/reassignment tracking, by
+#   deliberate simplification (any control ship may address any free worker
+#   ship; see DASHBOARD.md). For --client claude, --permission-mode (default
+#   "dontAsk") is forwarded to `claude` so a blocked/rejected action fails
+#   outright instead of prompting a confirmation nobody is there to answer —
+#   the worker-tier boot prompt then tells it to report that failure to its
+#   supervisor via `agent-bus tell` rather than hang or silently give up.
+#   This required explicit maintainer sign-off before being wired up (agent-bus
+#   m0051/m0066/2026-07-06) — see the DASHBOARD.md "Fleet auto-scaling" row.
 #
 # Hard cap: --max <cap> (default $FLEET_AUTOSCALE_MAX or 6) is a ceiling on the
 #   TOTAL non-stale fleet size (idle+working+etc — not just ships this command
@@ -104,6 +117,7 @@ need)
     case "$need" in '' | *[!0-9]*) die "need: <N> must be a non-negative integer" ;; esac
 
     reason="" release="master" client="claude" max="$DEFAULT_MAX" dry=0
+    supervisor="Enterprise" permission_mode="dontAsk"
     while [ "$#" -ge 1 ]; do
         case "$1" in
         --reason)
@@ -121,6 +135,14 @@ need)
         --max)
             shift
             max="${1:-$DEFAULT_MAX}"
+            ;;
+        --supervisor)
+            shift
+            supervisor="${1:-Enterprise}"
+            ;;
+        --permission-mode)
+            shift
+            permission_mode="${1:-dontAsk}"
             ;;
         --dry-run) dry=1 ;;
         *) die "unknown option: $1" ;;
@@ -151,7 +173,7 @@ need)
     fi
 
     echo "fleet-autoscale: spawning $spawn ship(s) (need=$need, idle=$idle, fleet=$total/$max) — reason: $reason"
-    audit "need=$need reason=\"$reason\" spawning=$spawn fleet=$total/$max release=$release client=$client dry_run=$dry"
+    audit "need=$need reason=\"$reason\" spawning=$spawn fleet=$total/$max release=$release client=$client supervisor=$supervisor permission_mode=$permission_mode dry_run=$dry"
 
     if [ "$dry" -eq 1 ]; then
         echo "fleet-autoscale: --dry-run, not actually spawning"
@@ -161,18 +183,20 @@ need)
     spawned=()
     for _ in $(seq 1 "$spawn"); do
         name="$("$ROOT/scripts/ship-names" assign)"
-        if ! "$ROOT/scripts/agent-run" "$release" --client "$client" --name "$name" >/dev/null; then
+        run_args=("$release" --client "$client" --name "$name" --tier worker --supervisor "$supervisor")
+        [ "$client" = "claude" ] && run_args+=(--permission-mode "$permission_mode")
+        if ! "$ROOT/scripts/agent-run" "${run_args[@]}" >/dev/null; then
             "$ROOT/scripts/ship-names" release "$name" >/dev/null 2>&1 || true
             audit "spawn FAILED name=$name release=$release client=$client reason=\"$reason\""
             echo "fleet-autoscale: spawn failed for $name, releasing name, aborting remaining spawns" >&2
             break
         fi
         spawned+=("$name")
-        audit "spawned name=$name release=$release client=$client reason=\"$reason\""
+        audit "spawned name=$name release=$release client=$client supervisor=$supervisor permission_mode=$permission_mode reason=\"$reason\""
     done
 
     if [ "${#spawned[@]}" -gt 0 ]; then
-        "$ROOT/scripts/agent-bus" broadcast "Auto-scale: spawned ${#spawned[@]} new ship(s) [${spawned[*]}] (release=$release) — reason: $reason — triggered by $AGENT_ID, fleet now $((total + ${#spawned[@]}))/$max"
+        "$ROOT/scripts/agent-bus" broadcast "Auto-scale: spawned ${#spawned[@]} new worker ship(s) [${spawned[*]}] (release=$release, supervisor=$supervisor$([ "$client" = claude ] && echo ", permission-mode=$permission_mode")) — reason: $reason — triggered by $AGENT_ID, fleet now $((total + ${#spawned[@]}))/$max"
         echo "fleet-autoscale: spawned: ${spawned[*]}"
         for s in "${spawned[@]}"; do
             echo "  scripts/agent-attach $s"
