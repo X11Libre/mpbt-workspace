@@ -53,7 +53,11 @@ usage() {
 cmd="$1"; shift
 
 sync() {
-    "$HERE/with-clone-lock" git pull --rebase --autostash origin "$(git rev-parse --abbrev-ref HEAD)"
+    # No explicit remote/branch: relies on the checked-out branch's
+    # configured upstream, so this also works on a differently-named local
+    # branch tracking a remote one (e.g. a scripts/worktree checkout) -
+    # "origin <current-branch-name>" only worked when the two matched.
+    "$HERE/with-clone-lock" git pull --rebase --autostash
 }
 
 case "$cmd" in

@@ -61,6 +61,10 @@ git commit -m "$msg"
 if [ "$push" = 1 ]; then
     # We hold the lock, so integrating a concurrent push is race-free.
     branch="$(git rev-parse --abbrev-ref HEAD)"
-    git pull --rebase --autostash origin "$branch" || true
+    # No explicit remote/branch on the pull: relies on the configured
+    # upstream, so this also works when the local branch name differs from
+    # what it tracks (e.g. a scripts/worktree checkout) - push still needs
+    # the explicit name.
+    git pull --rebase --autostash || true
     git push origin "$branch"
 fi
