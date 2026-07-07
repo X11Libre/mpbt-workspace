@@ -118,9 +118,17 @@ deterministic/no-OOM items Enterprise flagged as highest priority (m0130) are fi
   fix (`FreeGlyph()` instead of a raw `refcnt--`+`free()`) also covers Pegasus's multi-screen angle
   noted below (`FreeGlyphPicture()` iterates all screens via `DIX_FOR_EACH_SCREEN`, so a partial
   multi-GPU realization is cleaned up the same way) — one PR, not two, per Pegasus's own suggestion.
+- Item 4 (Xi `AddExtensionClient` double-free) → [PR #3271](https://github.com/X11Libre/xserver/pull/3271)
+- Item 9 (randr `AddResource`-OOM leaks, 5 files: `rrlease.c`/`rrmode.c`/`rrcrtc.c`/`rroutput.c`/
+  `rrprovider.c`) → [PR #3273](https://github.com/X11Libre/xserver/pull/3273), one bundled PR since
+  it's the same missing-cleanup shape repeated across the subsystem.
+
 None of these touch `hw/xfree86`/driver code, so the AGENTS.md "HW-Reviewer vor Merge" rule (m0130)
-doesn't apply — normal review process. Remaining OOM-gated items in this cluster (4 and below) are
-still open, picking those up next.
+doesn't apply — normal review process. **5 of 11 cluster items now have PRs out.** Still open:
+item 6 (`DeepCopyPointerClasses` NULL deref), items 7+8 (`xkeyboard` reallocarray/leak, 2 sites —
+plausible bundle), item 5 (GLX indirect stale-size, needs indirect-GLX test setup, harder to
+verify), item 10 (`mi/midispcur.c` dangling devPrivates), item 11 (`miext/rootless` dangling screen
+pixmap, Xquartz-only backend). Picking those up next unless reassigned.
 
 1. **`Xext/present/present_notify.c:41-43` + `present_screen.c:117-124` + `present_vblank.c:284-285`
    — UAF, high confidence.** `present_clear_window_notifies()` only nulls `notify->window`, never
