@@ -770,3 +770,61 @@ already-working adjacent pattern in the same function, relying on the FreeBSD CI
 
 All PRs pushed against `master`, reviewer team `X11Libre/dev` requested per each PR's config;
 `hw/xfree86`/driver-code HW-reviewer rule (m0130) doesn't apply to this cluster (pure `dix/`/`os/`).
+
+## Phase 2 (m0130): `xf86-input-{libinput,wacom,synaptics}` cluster — DONE (Agamemnon, 2026-07-07)
+
+All 9 findings in this cluster fixed, one PR each (each in its own `scripts/worktree`-isolated
+checkout of the driver's own GitHub repo — these are separate repos from `xserver` itself, each
+with its own `master`; `mk-agent-clone`/incubator concept doesn't apply here, no release lines to
+juggle). Build-verified where the local toolchain allowed: `xf86-input-libinput` and
+`xf86-input-wacom` both have working `meson` setups here and were fully rebuilt (compile+link)
+after each change — `xf86-input-wacom`'s `ENABLE_TESTS` target has a pre-existing, unrelated
+`strdupa`/`_GNU_SOURCE` build failure on this host, confirmed present on unmodified `master` too
+(not caused by any of these fixes), so only the main driver target was built there.
+`xf86-input-synaptics` uses autotools and its `configure.ac` requires `xorg-server >= 25.0.0` via
+pkg-config, but this host's system package is `21.1.16` (the workspace's own xlibre build isn't
+pkg-config-registered) — could not locally build-verify those 3 fixes; they're minimal, mechanical
+NULL-checks following the exact pattern already used a few lines above each change site in the
+same functions, so risk is low, but flagging the gap for reviewers rather than silently claiming
+"tested."
+
+**xf86-input-libinput** (2 findings):
+1. **PR #37** — `update_mode_prop_cb()`: moved the `driver_data = pInfo->private` deref to after
+   the function's own liveness check (device may have been unplugged while this `QueueWorkProc`
+   callback was pending) instead of before it — was reading through a possibly-freed `pInfo`.
+2. **PR #38** — `xf86libinput_create_subdevice()`: free the just-built `InputOption` chain
+   (`iopts`, with its duplicated name/value strings) on the `hotplug` calloc's OOM path instead of
+   leaking it.
+
+**xf86-input-wacom** (4 findings):
+3. **PR #18** — `wcmDevOpen()`: the device that performs the actual fd open never gave itself its
+   own fd reference inline, so the fallback "grab the common descriptor" block always ran for it
+   too and double-counted `common->fd_refs` — meant the fd never reached refcount 0 on close,
+   leaking it every plug/unplug cycle. Fixed by setting the opener's own fd at the point of open.
+4. **PR #19** — `wcmLog()` (unchecked `calloc` before `vsnprintf`) and the
+   `wcmTimerNew()`/`Free()`/`Cancel()`/`Set()` family (unchecked `calloc` in `New()`, no NULL guard
+   in the other three) — all NULL-deref on OOM; made all four timer functions tolerate NULL,
+   mirroring the pattern already used by the underlying xserver `TimerCancel()`/`TimerFree()`.
+5. **PR #20** — `DEVICE_ON`: release the fd reference `wcmDevOpen()` just took if the following
+   `wcmDevStart()` fails, mirroring what `DEVICE_OFF` already does — was leaking it on every
+   start failure on an otherwise-opened device.
+
+**xf86-input-synaptics** (3 findings, not locally build-verified — see above):
+6. **PR #15** — `DeviceInit()`: added the missing NULL check on the third `SynapticsHwStateAlloc()`
+   call (`priv->comm.hwState`, deref'd unconditionally by the `SynapticsReset()` right after); also
+   fixed the `fail:` cleanup to use `SynapticsHwStateFree()` (was leaking `hwState`/
+   `local_hw_state`'s nested `slot_state`/`mt_mask` allocations via raw `free()`) and to NULL
+   `open_slots` after freeing it (`SynapticsUnInit()` frees it again unconditionally later —
+   double-free on this exact failure path since `priv` outlives a failed `DeviceInit()`).
+7. **PR #16** — `eventcomm.c`/`ps2comm.c`/`psmcomm.c`: all three protocol backends stored an
+   unchecked alloc as `proto_data` and dereferenced it on the very next line(s) — hit on every
+   touchpad PreInit/probe, not an exotic path. Added the missing NULL checks.
+
+All 7 PRs requested `cepelinas9000`+`stefan11111` as reviewers per the m0130 HW-domain-routing rule
+(these are all `xf86-input-*` driver repos) — **not** relying on green CI/bot-review alone, per
+AGENTS.md "Route hardware-touching PRs to the HW domain experts before merge."
+
+**Not fixed / left for a possible follow-up:** the two speculative, not-fully-traced libinput
+issues noted in Phase 1 (`shared_device` refcount question, `unclaimed_tablet_tool_list` leak in
+`xf86libinput_shared_unref()`) — flagged as unconfirmed there, didn't attempt a fix without first
+resolving that.
