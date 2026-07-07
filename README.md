@@ -151,15 +151,14 @@ PR workflow
 
     # Create a PR from commits on the incubator (wip1) branch:
     scripts/xx-make-pr.sh <commit> [<commit> ...]
-    scripts/xx-make-pr.sh --rebase <commit> [<commit> ...]
     scripts/xx-make-pr.sh --branch my-pr-branch <commit> [<commit> ...]
 
 The script:
 1. Creates a temporary branch from the upstream ref
-2. Cherry-picks the given commits
-3. Pushes and creates a PR via `gh`
-4. Rewrites commit messages with `[PR #NNNN]` prefix and `PR:` trailer
-5. Rebases the incubator branch onto the submission branch
+2. Cherry-picks the given commits, pushes, and creates a PR via `gh`
+3. On the incubator branch only, rewrites the submitted commits' messages
+   with a `[PR #NNNN]` prefix and `PR:` trailer (the pushed/merged PR branch
+   itself is never touched again after the push, so its commits stay clean)
 
 Notes
 -----
