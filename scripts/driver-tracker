@@ -11,9 +11,12 @@
 # issue in X11Libre/xserver.
 #
 # Usage:
-#   driver-tracker                  print the report to stdout
-#   driver-tracker --update <issue#>  print + update that issue's body (via
-#                                      `gh issue edit --body-file`)
+#   driver-tracker                     print the report to stdout
+#   driver-tracker --update [issue#]   print + update that issue's body (via
+#                                       `gh issue edit --body-file`); issue#
+#                                       defaults to $TRACKER_ISSUE below, so
+#                                       the recurring refresh command is just
+#                                       `driver-tracker --update`
 #
 # Env: ORG  override org (default X11Libre)
 #
@@ -24,12 +27,13 @@ set -euo pipefail
 
 ORG="${ORG:-X11Libre}"
 TRACKER_REPO="$ORG/xserver"
+TRACKER_ISSUE=3280   # X11Libre/xserver#3280 — created 2026-07-07
 
 MODE="report"
 ISSUE=""
 if [ "${1:-}" = "--update" ]; then
     MODE="update"
-    ISSUE="${2:?usage: driver-tracker --update <issue#>}"
+    ISSUE="${2:-$TRACKER_ISSUE}"
     ISSUE="${ISSUE#\#}"
 elif [ $# -gt 0 ]; then
     echo "driver-tracker: unknown argument: $1" >&2
@@ -43,7 +47,7 @@ trap 'rm -f "$OUT"' EXIT
 {
     echo "Auto-generated cross-repo dashboard for the \`xf86-input-*\`/\`xf86-video-*\` driver"
     echo "forks — no per-repo activity is tracked here individually, this issue itself is the"
-    echo "index. Regenerate with \`scripts/driver-tracker --update ${ISSUE:-<this-issue#>}\`."
+    echo "index. Regenerate with \`scripts/driver-tracker --update\`."
     echo
     echo "_Last updated: see the \"Updated Xh ago\" note GitHub itself shows above — this line is"
     echo "deliberately not a timestamp so re-running the script produces no-op diffs when nothing"
