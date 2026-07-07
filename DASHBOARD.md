@@ -21,8 +21,9 @@ the theme itself, so it stays useful after those TTLs expire.
 
 ## Aktive Themen
 
-Thin index — each row links to its own file under `dashboard/themes/`. Edit the theme
-file directly (Read/Edit as always); this index itself is regenerated with
+Thin index — each row links to its own file under `dashboard/themes/`. Read/write it via
+`scripts/starfleetctl dashboard theme show|write|new|commit <slug>` (no direct file
+access — see AGENTS.md); this index itself is regenerated with
 `scripts/starfleetctl dashboard reindex` and should not normally be hand-edited.
 
 | Thema | Status | Datei |
@@ -91,6 +92,7 @@ Angefangen/aufgefallen, aber (noch) nicht weiterverfolgt — kurze Notiz statt V
 | opencode: keine Entsprechung zu Claude Codes Monitor-Tool → nur Notify, kein In-Context-Auto-Surfacing von agent-bus-Direktiven | praetor, 2026-07-03 | 2026-07-03 | [`dashboard/themes/opencode-keine-entsprechung-zu-claude-codes-monitor-tool-nur.md`](dashboard/themes/opencode-keine-entsprechung-zu-claude-codes-monitor-tool-nur.md) |
 | panoramiXprocs.c noch nicht auf neue X_REQUEST-Makros umgestellt | praetor, 2026-07-02 (bei #3136 Bug-2-Audit aufgefallen) | 2026-07-02 | [`dashboard/themes/panoramixprocs-c-noch-nicht-auf-neue-xrequest-makros-umgeste.md`](dashboard/themes/panoramixprocs-c-noch-nicht-auf-neue-xrequest-makros-umgeste.md) |
 | Pure-Go diagnosis tool (xdpyinfo-like) on go-x11proto | praetor idea, 2026-07-01 | 2026-07-01 | [`dashboard/themes/pure-go-diagnosis-tool-on-go-x11proto.md`](dashboard/themes/pure-go-diagnosis-tool-on-go-x11proto.md) |
+| Rename DASHBOARD "theme" terminology to "topic" (dashboard/themes/ dir + starfleetctl theme subcommand) | praetor, 2026-07-07 | 2026-07-07 | [`dashboard/themes/rename-dashboard-theme-to-topic-terminology.md`](dashboard/themes/rename-dashboard-theme-to-topic-terminology.md) |
 | RESOLVED — Vokabel-Änderung "maintainer" → "praetor" (Commit 9c7d33f), bestätigt legitim | Constellation, 2026-07-06 | 2026-07-06 | [`dashboard/themes/resolved-vokabel-nderung-maintainer-praetor-best-tigt-legiti.md`](dashboard/themes/resolved-vokabel-nderung-maintainer-praetor-best-tigt-legiti.md) |
 | Retrofit the new licensing policy onto existing files | praetor, 2026-07-02 | 2026-07-02 | [`dashboard/themes/retrofit-the-new-licensing-policy-onto-existing-files.md`](dashboard/themes/retrofit-the-new-licensing-policy-onto-existing-files.md) |
 | Scripts „rund machen" + Agent-Doku in eigenes scripts/-File, eigener Commit → master | praetor, 2026-07-02 | 2026-07-02 | [`dashboard/themes/scripts-rund-machen-agent-doku-in-eigenes-scripts-file-eigen.md`](dashboard/themes/scripts-rund-machen-agent-doku-in-eigenes-scripts-file-eigen.md) |
