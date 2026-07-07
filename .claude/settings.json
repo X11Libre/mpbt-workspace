@@ -45,8 +45,6 @@
       "Bash(scripts/fetch-nvidia-drivers *)",
       "Bash(scripts/list-nvidia-versions)",
       "Bash(scripts/list-nvidia-versions *)",
-      "Bash(scripts/mk-agent-clone)",
-      "Bash(scripts/mk-agent-clone *)",
       "Bash(scripts/nvidia-abi-check)",
       "Bash(scripts/nvidia-abi-check *)",
       "Bash(scripts/nvidia-egl-platforms)",

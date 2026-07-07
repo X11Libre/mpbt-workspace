@@ -16,7 +16,7 @@ order: 130
 
 Backporting a merged **master** PR means applying its changes to every applicable release
 line, each worked in **its own clone**. Agents must use a dedicated agent-owned clone created
-with `scripts/mk-agent-clone <release>` (see Concurrency / isolation) — not the user's
+with `scripts/starfleetctl mk-agent-clone <release>` (see Concurrency / isolation) — not the user's
 hand-edited `_WORK_/xserver-<release>/sources/xlibre/xserver` tree. Switch to the matching
 release; don't try to do it all from one clone.
 
@@ -61,8 +61,8 @@ Procedure, per applicable release:
    you do a manual/adapted backport in the agent clone and `scripts/xx-make-pr.sh <sha>` from
    inside it.
 
-   (The underlying `mk-agent-clone` + `cherry-pick -x` + `xx-make-pr.sh` steps can still be run
-   by hand if you need finer control — `backport-commit` just chains them.)
+   (The underlying `scripts/starfleetctl mk-agent-clone` + `cherry-pick -x` + `xx-make-pr.sh`
+   steps can still be run by hand if you need finer control — `backport-commit` just chains them.)
 
 **Cross-linking (required):**
 
