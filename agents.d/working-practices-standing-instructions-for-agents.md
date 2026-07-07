@@ -31,16 +31,24 @@ cleared:
   `category`/`status` or `noted_by`+`since`/`doc_ref`/`migrated_from`). This fixes the file's worst
   scaling problem — most concurrent edits used to collide on one shared file even though they
   touched unrelated themes; now two ships editing two different themes touch two different files
-  and never collide. **Editing a theme is still just `Read`/`Edit` as always** — open
-  `dashboard/themes/<slug>.md` directly, no new tool required for the content itself. What's new:
-  `scripts/starfleetctl dashboard theme list [--json]` (overview), `theme show <slug>` (print one
-  file), `theme new <slug> --title "<t>" [--status "<s>"] [--parked]` (scaffold a fresh theme),
-  and `theme commit <slug> -m "<msg>" [--no-push]` (commit+push **just that one file**, under the
-  same shared clone lock `ws-commit`/`dashboard commit` already use — this is the actual
-  concurrency fix, not a bigger hammer). After editing a theme file directly with `Edit` (not via
-  `theme write`), commit it the normal way (`scripts/ws-commit -m "<msg>"
-  dashboard/themes/<slug>.md`) — `theme commit` is just a convenience wrapper scoped to one path,
-  not a requirement. **`DASHBOARD.md`'s own thin index is regenerated, never hand-edited:**
+  and never collide. **CLI-only access (directive m0123, 2026-07-07): agents must NOT `Read`/`Edit`/
+  `Write` `DASHBOARD.md` or `dashboard/themes/*.md` directly anymore — go through
+  `scripts/starfleetctl dashboard`/`dashboard theme` for every read and write.** Reason: the fleet's
+  declared direction is ships eventually spread across different hosts, where "just `Read` the
+  file" assumes a local checkout that won't always exist — routing everything through one CLI seam
+  now means it can be repointed at a remote backend later without changing anything agent-facing.
+  Subcommands: `dashboard theme list [--json]` (overview), `theme show <slug>` (print one file),
+  `theme new <slug> --title "<t>" [--status "<s>"] [--parked]` (scaffold a fresh theme), `theme write
+  <slug> <file|->` (replace one theme file's full content, no commit), and `theme commit <slug> -m
+  "<msg>" [--no-push]` (commit+push **just that one file**, under the same shared clone lock
+  `ws-commit`/`dashboard commit` already use — this is the actual concurrency fix, not a bigger
+  hammer; also correctly `git add`s a brand-new theme file, not just already-tracked ones).
+  **Making a targeted change** (the common case, e.g. appending a status update) means: `theme show
+  <slug> > /tmp/t.md`, edit that local scratch copy with your normal editing tool, then `theme write
+  <slug> /tmp/t.md` + `theme commit <slug> -m "<msg>"` — never edit `dashboard/themes/<slug>.md`
+  in place; it's just a build artifact of the CLI now, like `DASHBOARD.md` already was. Same for a
+  brand-new theme: `theme new` first, then the show/edit-scratch/write/commit cycle to fill it in.
+  **`DASHBOARD.md`'s own thin index is regenerated, never hand-edited:**
   `scripts/starfleetctl dashboard reindex` rebuilds both tables from every theme file's
   frontmatter and is a pure function of the current file set (sorted by slug) — two ships racing a
   reindex converge to the same byte-identical output, and running it twice in a row is a no-op
