@@ -329,12 +329,13 @@ directly again, the same way this one originally did.
 work in the user's hand-edited `sources/xlibre/xserver` clone. Instead create an agent-owned clone:
 
 ```bash
-scripts/mk-agent-clone <release> [name]   # e.g. scripts/mk-agent-clone 25.2
+scripts/starfleetctl mk-agent-clone <release> [name]   # e.g. mk-agent-clone 25.2
 # -> _WORK_/xserver-<rel>/agent/<name>/xserver   (gitignored)
 ```
 
 - **Full isolation, cheap.** origin = GitHub, but the object store is borrowed from the user's
-  clone via git **alternates** (`--reference`), so the new `.git` is a few hundred KB, not a full
+  clone via git **alternates** (`--reference-if-able`, degrading to a normal full clone if the
+  reference is shallow), so the new `.git` is a few hundred KB, not a full
   copy. Refs, index, HEAD and config are independent.
 - **Reproduces the mpbt repo config.** mpbt configures the source clones with settings
   `xx-make-pr.sh` and the remotes depend on (the `make-pr.*` keys, plus `remote.origin` tagopt /
