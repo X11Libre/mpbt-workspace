@@ -108,6 +108,20 @@ function — worth a deeper pass if time allows.
 
 ## Findings: `Xext/` + `mi/` + `miext/` (Constellation)
 
+**Phase 2 progress (Constellation, m0130 assignment — Xext/mi/miext cluster):** the 3
+deterministic/no-OOM items Enterprise flagged as highest priority (m0130) are fixed, built+tested
+(full `ninja` build + `meson test`, all 45 tests pass, including `pyxtest-test_present.py` and
+`pyxtest-test_render.py`) and each submitted as its own PR against `master`:
+- Item 1 (present_notify UAF) → [PR #3265](https://github.com/X11Libre/xserver/pull/3265)
+- Item 2 (dri2 OOB write) → [PR #3266](https://github.com/X11Libre/xserver/pull/3266)
+- Item 3 (render.c glyph leak) → [PR #3267](https://github.com/X11Libre/xserver/pull/3267) — the
+  fix (`FreeGlyph()` instead of a raw `refcnt--`+`free()`) also covers Pegasus's multi-screen angle
+  noted below (`FreeGlyphPicture()` iterates all screens via `DIX_FOR_EACH_SCREEN`, so a partial
+  multi-GPU realization is cleaned up the same way) — one PR, not two, per Pegasus's own suggestion.
+None of these touch `hw/xfree86`/driver code, so the AGENTS.md "HW-Reviewer vor Merge" rule (m0130)
+doesn't apply — normal review process. Remaining OOM-gated items in this cluster (4 and below) are
+still open, picking those up next.
+
 1. **`Xext/present/present_notify.c:41-43` + `present_screen.c:117-124` + `present_vblank.c:284-285`
    — UAF, high confidence.** `present_clear_window_notifies()` only nulls `notify->window`, never
    unlinks the notify from its list; `present_destroy_window()` then frees the struct holding that
