@@ -736,3 +736,29 @@ worth doing even under time pressure — it caught 4 areas (`Xext/security/`, `X
 valuable signal for Phase 2 triage than either verdict alone. If claiming a "still unscanned" area
 below, a second independent pass on a *supposedly already-clean* file is also useful once the
 unscanned list is short.
+
+## Phase 2 (m0130): `dix/`+`os/` cluster — DONE (Intrepid, 2026-07-07)
+
+All 5 findings in this cluster fixed, one PR each (isolated agent clone, build-verified before
+each PR — `dix/`+`os/` object files/libs rebuilt clean; the one FreeBSD/DragonFly-only branch in
+`os/client.c` could not be locally compile-tested, no such toolchain available here — mirrors an
+already-working adjacent pattern in the same function, relying on the FreeBSD CI lane):
+
+1. **PR #3264** — `dix/getevents.c`: reset `numMotionEvents` to 0 alongside a failed motion-history
+   `calloc`, so existing consumer guards treat the device as history-less instead of
+   indexing/memcpy'ing through the NULL buffer.
+2. **PR #3268** — `dix/registry.c`: `double_size()` now only commits `realloc()`'s result on
+   success (temp-var pattern) instead of overwriting `*ptr` with NULL and calling
+   `dixResetRegistry()`, which could crash walking `requests[]`/`events[]`/`errors[]` against a
+   stale nonzero count over a now-NULL array.
+3. **PR #3269** — `dix/ptrveloc.c`: `InitTrackers()` now only replaces the tracker buffer/count
+   together on success; `InitPredictableAccelerationScheme()` bails out (matching its existing
+   two other alloc-failure checks) instead of ever letting a device go live with
+   `num_tracker == 0`, which every tracker access divides by.
+4. **PR #3270** — `os/client.c`: added the same NULL check the adjacent macOS branch in the same
+   function already has, before the FreeBSD/DragonFly `sysctl(KERN_PROC_ARGS)` call.
+5. **PR #3272** — `os/log.c`: `LogSetDisplay()` now resets `saved_log_fname`/`saved_log_backup` to
+   NULL after freeing them, closing the latent (not currently reachable) UAF/double-free gap.
+
+All PRs pushed against `master`, reviewer team `X11Libre/dev` requested per each PR's config;
+`hw/xfree86`/driver-code HW-reviewer rule (m0130) doesn't apply to this cluster (pure `dix/`/`os/`).
