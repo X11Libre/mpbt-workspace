@@ -123,12 +123,27 @@ deterministic/no-OOM items Enterprise flagged as highest priority (m0130) are fi
   `rrprovider.c`) → [PR #3273](https://github.com/X11Libre/xserver/pull/3273), one bundled PR since
   it's the same missing-cleanup shape repeated across the subsystem.
 
+- Item 6 (`DeepCopyPointerClasses` wrong/late NULL check on touch alloc) → [PR #3275](https://github.com/X11Libre/xserver/pull/3275)
+- Items 7+8 (`xkeyboard` unchecked/self-overwriting `reallocarray()`, 3 sites across
+  `maprules.c`+`xkb.c`) → [PR #3274](https://github.com/X11Libre/xserver/pull/3274), one bundled PR
+- Item 5 (GLX indirect `__GLX_GET_ANSWER_BUFFER` stale-`returnBufSize` NULL deref) →
+  [PR #3278](https://github.com/X11Libre/xserver/pull/3278) — lighter verification than the rest:
+  confirmed the header actually compiles into `libxserver_glx` (both call sites recompiled after
+  the edit) and the full build+test suite passes, but no indirect-GLX client was available in this
+  environment to exercise the actual request path at runtime.
+- Item 10 (`mi/midispcur.c` dangling devPrivates + already-armed CloseScreen hook) →
+  [PR #3276](https://github.com/X11Libre/xserver/pull/3276) — worse than originally scoped: not
+  just "a caller might look it up later", the hook this same function already registers guarantees
+  a UAF + double-free on every subsequent screen close after the OOM.
+- Item 11 (`miext/rootless` dangling screen pixmap on OOM) →
+  [PR #3277](https://github.com/X11Libre/xserver/pull/3277) — Xquartz-only backend, not part of
+  this Linux build; verified with a standalone `gcc -fsyntax-only` pass instead of the normal
+  build+test cycle.
+
 None of these touch `hw/xfree86`/driver code, so the AGENTS.md "HW-Reviewer vor Merge" rule (m0130)
-doesn't apply — normal review process. **5 of 11 cluster items now have PRs out.** Still open:
-item 6 (`DeepCopyPointerClasses` NULL deref), items 7+8 (`xkeyboard` reallocarray/leak, 2 sites —
-plausible bundle), item 5 (GLX indirect stale-size, needs indirect-GLX test setup, harder to
-verify), item 10 (`mi/midispcur.c` dangling devPrivates), item 11 (`miext/rootless` dangling screen
-pixmap, Xquartz-only backend). Picking those up next unless reassigned.
+doesn't apply — normal review process. **All 11 cluster items now have PRs out** (10 PRs total,
+two bundled): #3265, #3266, #3267, #3271, #3273, #3274, #3275, #3276, #3277, #3278. My m0130
+assignment (Xext/mi/miext cluster) is complete pending review/merge.
 
 1. **`Xext/present/present_notify.c:41-43` + `present_screen.c:117-124` + `present_vblank.c:284-285`
    — UAF, high confidence.** `present_clear_window_notifies()` only nulls `notify->window`, never
