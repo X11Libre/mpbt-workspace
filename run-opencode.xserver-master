@@ -20,4 +20,13 @@ export AGENT_ID
 # possible (`exec` replaces this shell) — agent-bus's TTL / `prune` reaps it.
 scripts/agent-bus status idle "opencode session" >/dev/null 2>&1 || true
 
-exec opencode "$@"
+# Auto-start monitor-loop and desktop-notify watcher in background
+# (opencode has no Monitor tool). Logs land in _WORK_/agent-bus/logs/
+# for later review.
+LOGDIR="_WORK_/agent-bus/logs"
+mkdir -p "$LOGDIR"
+nohup scripts/agent-bus-monitor-loop >> "$LOGDIR/monitor-loop.log" 2>&1 &
+nohup scripts/agent-bus-watch >> "$LOGDIR/watch.log" 2>&1 &
+
+export OPENCODE_CONFIG_CONTENT="{\"username\":\"${AGENT_ID}\"}"
+exec opencode --prompt "$(scripts/agent-bus-opencode-boot-prompt)" "$@"

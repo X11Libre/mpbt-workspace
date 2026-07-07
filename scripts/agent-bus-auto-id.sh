@@ -65,7 +65,24 @@ _mpbt_agent_id_autoassign() {
         "$_MPBT_WS_ROOT" | "$_MPBT_WS_ROOT"/*)
             if [ -z "${AGENT_ID:-}" ]; then
                 _mpbt_assign_ship_name
+            else
+                _mpbt_prompt_with_ship
             fi
+            ;;
+        *)
+
+            ;;
+    esac
+}
+
+# Always show AGENT_ID in the prompt (even when inherited from parent).
+_mpbt_prompt_with_ship() {
+    local ship="${AGENT_ID}"
+    case "${PS1:-}" in
+        "(${ship}) "*) ;;  # already has it
+        *)
+            # terminal title may be embedded before our part
+            PS1="(${ship}) ${PS1:-\\$ }"
             ;;
     esac
 }

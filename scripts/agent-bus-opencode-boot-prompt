@@ -1,0 +1,22 @@
+#!/usr/bin/env bash
+#
+# SPDX-License-Identifier: AGPL-3.0-or-later
+# Copyright © 2026 Enrico Weigelt, metux IT consult
+#
+# agent-bus-opencode-boot-prompt — prints the initial prompt fed to opencode
+# sessions via --prompt, so the very first turn fires immediately at launch
+# instead of showing the TUI home screen. The plugin at
+# .opencode/plugins/agent-bus-poller.ts handles inbox polling automatically,
+# so no Monitor-tool arming is needed (unlike Claude Code's boot prompt).
+set -euo pipefail
+
+if [ "${AGENT_ID:-}" = "Enterprise" ]; then
+    echo "Session just started. Wait for user input."
+elif [ "${AGENT_TIER:-}" = "worker" ]; then
+    supervisor="${AGENT_SUPERVISOR:-Enterprise}"
+    cat <<EOF
+Session just started. You are an autoscaled worker ship, running with auto-approved permissions. If a tool call is blocked, report it to $supervisor via \`scripts/agent-bus tell $supervisor "<what failed>"\`. Wait for further instructions.
+EOF
+else
+    echo "Session just started. Wait for user input."
+fi

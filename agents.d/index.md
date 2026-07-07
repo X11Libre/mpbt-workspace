@@ -23,6 +23,7 @@
 @agents.d/coding-style-xserver-source-new-code-always-braces-if-while.md
 @agents.d/licensing-policy.md
 @agents.d/opencode-session-setup.md
+@agents.d/agent-bus-opencode-polling.md
 @agents.d/no-ci-no-tests-no-lint-no-formatter.md
 @agents.d/file-layout-reminder.md
 @agents.d/starfleetctl.md
