@@ -69,7 +69,14 @@ else
     mkdir -p "$(dirname "$DEST")"
     # origin = real upstream (so PRs push to GitHub); objects borrowed from the
     # user's local clone via --reference (alternates) to save disk/bandwidth.
-    git clone --reference "$REF" "$URL" "$DEST"
+    # --reference-if-able (not --reference): the reference clones under
+    # _WORK_/ are shallow (mpbt fetches a limited depth), and a shallow repo
+    # can't be used as a --reference alternate (missing objects) — git just
+    # errors out ("hat eine unvollständige Historie"/"reference repository
+    # is shallow") instead of falling back. -if-able degrades gracefully to a
+    # normal full clone from $URL in that case, at the cost of the
+    # disk/bandwidth saving, instead of hard-failing every agent clone.
+    git clone --reference-if-able "$REF" "$URL" "$DEST"
 fi
 
 # always (re)apply — idempotent, so a refresh repairs config drift too
