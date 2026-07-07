@@ -1,0 +1,102 @@
+#!/usr/bin/env bash
+#
+# SPDX-License-Identifier: AGPL-3.0-or-later
+# Copyright © 2026 Enrico Weigelt, metux IT consult
+#
+# Cross-repo dashboard for the xf86-input-*/xf86-video-* driver forks: there is
+# no GitHub/GitLab view that spans all of them at once, so open PRs/issues on
+# a driver repo are easy to lose track of from the xserver side. This script
+# builds one markdown report (open PRs + open issues, grouped per repo,
+# skipping repos with nothing open) and can push it straight into a tracking
+# issue in X11Libre/xserver.
+#
+# Usage:
+#   driver-tracker                  print the report to stdout
+#   driver-tracker --update <issue#>  print + update that issue's body (via
+#                                      `gh issue edit --body-file`)
+#
+# Env: ORG  override org (default X11Libre)
+#
+# The repo list is discovered dynamically (gh repo list, name prefix
+# xf86-input-/xf86-video-), so a newly added driver fork is picked up on the
+# next run with no script change needed.
+set -euo pipefail
+
+ORG="${ORG:-X11Libre}"
+TRACKER_REPO="$ORG/xserver"
+
+MODE="report"
+ISSUE=""
+if [ "${1:-}" = "--update" ]; then
+    MODE="update"
+    ISSUE="${2:?usage: driver-tracker --update <issue#>}"
+    ISSUE="${ISSUE#\#}"
+elif [ $# -gt 0 ]; then
+    echo "driver-tracker: unknown argument: $1" >&2
+    echo "usage: driver-tracker [--update <issue#>]" >&2
+    exit 1
+fi
+
+OUT="$(mktemp)"
+trap 'rm -f "$OUT"' EXIT
+
+{
+    echo "Auto-generated cross-repo dashboard for the \`xf86-input-*\`/\`xf86-video-*\` driver"
+    echo "forks — no per-repo activity is tracked here individually, this issue itself is the"
+    echo "index. Regenerate with \`scripts/driver-tracker --update ${ISSUE:-<this-issue#>}\`."
+    echo
+    echo "_Last updated: see the \"Updated Xh ago\" note GitHub itself shows above — this line is"
+    echo "deliberately not a timestamp so re-running the script produces no-op diffs when nothing"
+    echo "changed._"
+    echo
+} >> "$OUT"
+
+REPOS="$(gh repo list "$ORG" --limit 300 --json name --jq '.[].name' \
+    | grep -E '^xf86-(input|video)-' | sort)"
+
+any_open=0
+for repo in $REPOS; do
+    prs="$(gh pr list --repo "$ORG/$repo" --state open --limit 100 \
+        --json number,title,isDraft,updatedAt,labels \
+        --jq 'sort_by(.number) | .[] | [
+            "- [#\(.number)](https://github.com/'"$ORG"'/'"$repo"'/pull/\(.number)) \(.title)"
+            + (if .isDraft then " _(draft)_" else "" end)
+            + (
+                [.labels[].name | select(startswith("bot-review-"))]
+                | if length > 0 then " `" + .[0] + "`" else "" end
+              )
+          ] | .[]' 2>/dev/null || true)"
+    issues="$(gh issue list --repo "$ORG/$repo" --state open --limit 100 \
+        --json number,title \
+        --jq 'sort_by(.number) | .[] | "- [#\(.number)](https://github.com/'"$ORG"'/'"$repo"'/issues/\(.number)) \(.title)"' \
+        2>/dev/null || true)"
+
+    [ -z "$prs" ] && [ -z "$issues" ] && continue
+    any_open=1
+
+    {
+        echo "## \`$repo\`"
+        echo
+        if [ -n "$prs" ]; then
+            echo "**Open PRs:**"
+            echo "$prs"
+            echo
+        fi
+        if [ -n "$issues" ]; then
+            echo "**Open issues:**"
+            echo "$issues"
+            echo
+        fi
+    } >> "$OUT"
+done
+
+if [ "$any_open" -eq 0 ]; then
+    echo "No open PRs or issues on any tracked driver repo right now." >> "$OUT"
+fi
+
+cat "$OUT"
+
+if [ "$MODE" = "update" ]; then
+    gh issue edit "$ISSUE" --repo "$TRACKER_REPO" --body-file "$OUT"
+    echo "driver-tracker: updated $TRACKER_REPO#$ISSUE" >&2
+fi
