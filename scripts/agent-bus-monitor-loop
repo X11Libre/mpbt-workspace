@@ -66,6 +66,11 @@ while true; do
             if [ ! -f "$ACK_DIR/${id}__${AGENT_ID}" ] && ! grep -qxF "$id" "$SEEN" 2>/dev/null; then
                 echo "[$id] from $mf: $mtext"
                 echo "$id" >> "$SEEN"
+                # auto-respond to pings from Enterprise
+                if [ "$mf" = Enterprise ] && echo "$mtext" | grep -qi ping; then
+                    "$ROOT/scripts/agent-bus" ack "$id" "auto-pong" 2>/dev/null || true
+                    "$ROOT/scripts/agent-bus" tell Enterprise "Pong! (auto-reply to $id)" 2>/dev/null || true
+                fi
             fi
         fi
     done

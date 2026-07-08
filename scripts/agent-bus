@@ -334,7 +334,7 @@ do_prune() {
 
 [ "$#" -ge 1 ] || { do_board; exit 0; }
 case "$1" in
-    -h|--help)        usage ;;
+    -h|--help|help)        usage ;;
     status)           shift; do_status "${1:-}" "${2:-}" ;;
     clear)            do_clear ;;
     touch)            do_touch ;;
