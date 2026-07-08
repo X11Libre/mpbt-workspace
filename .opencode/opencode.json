@@ -3,6 +3,7 @@
   "plugin": [
     "list",
     ".opencode/plugins/agent-bus-poller.ts",
-    ".opencode/plugins/session-title.ts"
+    ".opencode/plugins/session-title.ts",
+    "opencode-auto-continue"
   ]
 }
