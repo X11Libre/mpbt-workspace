@@ -11,7 +11,7 @@
 set -euo pipefail
 
 if [ "${AGENT_ID:-}" = "Enterprise" ]; then
-    echo "Session just started. Wait for user input."
+    echo "Session just started. Check your inbox (\`scripts/agent-bus inbox\`) and process any pending messages from other agents — acknowledge them, handle requests, and reply where needed. Then report what you did and wait for further input."
 elif [ "${AGENT_TIER:-}" = "worker" ]; then
     supervisor="${AGENT_SUPERVISOR:-Enterprise}"
     cat <<EOF
