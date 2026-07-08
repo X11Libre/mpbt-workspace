@@ -1,5 +1,4 @@
-#!/usr/bin/env bash
-export PATH="/home/nekrad/.local/bin:$PATH"
+#!/bin/bash
 #
 # SPDX-License-Identifier: AGPL-3.0-or-later
 #
@@ -26,7 +25,7 @@ LOCKFILE="$BUS_DIR/processor-${SELF}.lock"
 exec 8>"$LOCKFILE" || exit 1
 flock -n 8 || exit 0
 
-# Redirect all output to agent-specific log file
+# Redirect all output to agent-specific log file.
 mkdir -p "$LOGDIR"
 exec >> "$LOGDIR/processor-${SELF}.log" 2>&1
 
@@ -59,7 +58,7 @@ while :; do
         : > "$ackFile"
 
         echo "processor: injecting $id into session $sess_id: $what"
-        opencode run -s "$sess_id" -c "$what" 2>&1 || echo "processor: inject failed for $id (exit $?)"
+        timeout 5 opencode run -s "$sess_id" -c "$what" 2>&1 || echo "processor: inject failed for $id (exit $?)"
         echo "processor: done $id"
     done
     sleep 2

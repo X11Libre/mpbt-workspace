@@ -9,22 +9,16 @@
 #
 
 export AGENT_ID="Enterprise"
-export STARFLEET_MODEL="nvidia/nvidia/nemotron-3-nano-30b-a3b"
-#export STARFLEET_MODEL="nvidia/nvidia/nemotron-3-ultra-550b-a55b"
 
-# Register an initial heartbeat on the board. opencode does NOT fire Claude
-# Code's SessionStart/SessionEnd hooks, so do it here. No exit cleanup is
-# possible (exec replaces this shell) — agent-bus's TTL / prune reaps it.
+# Register initial heartbeat (agent‑bus TTL / prune reaps on exit)
 scripts/agent-bus status idle "flagship opencode session" >/dev/null 2>&1 || true
 
-# Auto-start fleet-watch, monitor-loop, and desktop-notify watcher in
-# background (opencode has no Monitor tool). Logs land in _WORK_/agent-bus/logs/
-# for later review.
-LOGDIR="_WORK_/agent-bus/logs"
-mkdir -p "$LOGDIR"
-nohup scripts/agent-bus-fleet-watch >> "$LOGDIR/fleet-watch.log" 2>&1 &
-nohup scripts/agent-bus-monitor-loop >> "$LOGDIR/monitor-loop.log" 2>&1 &
-nohup scripts/agent-bus-watch >> "$LOGDIR/watch.log" 2>&1 &
+# (no background processes — plugins handle inbox/board monitoring)
+
+# Override model via $STARFLEET_MODEL (e.g. nvidia/nvidia/nemotron-3-nano-30b-a3b)
+MODEL=""
+[ -n "${STARFLEET_MODEL:-}" ] && MODEL="--model ${STARFLEET_MODEL}"
 
 export OPENCODE_CONFIG_CONTENT="{\"username\":\"${AGENT_ID}\"}"
-exec opencode --model "${STARFLEET_MODEL}" --prompt "$(scripts/agent-bus-opencode-boot-prompt)" "$@"
+#shellcheck disable=SC2086
+exec opencode ${MODEL} --prompt "$(scripts/agent-bus-opencode-boot-prompt)" "$@"
