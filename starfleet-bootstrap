@@ -1,0 +1,117 @@
+#!/usr/bin/env bash
+#
+# SPDX-License-Identifier: AGPL-3.0-or-later
+# Copyright © 2026 Enrico Weigelt, metux IT consult
+#
+# starfleet-bootstrap — deploy starfleetctl into .starfleet/ (Phase 2).
+# Phase A (once): starfleetctl genesis-init installs this script (committed).
+# Phase B (fresh clone / update): this script pulls starfleetctl (optionally
+# pinned), builds it, places all artifacts under .starfleet/, installs skills/
+# agent-config for claude & opencode, and generates launch scripts.
+#
+# All artifacts under .starfleet/ (gitignored). Only this script is committed.
+# Re-run anytime for updates.
+#
+# Usage: ./starfleet-bootstrap [--pin <version>] [--launch-scripts] [--skills-only] [--clean]
+set -euo pipefail
+
+ROOT="$(cd "$(dirname "$0")" && pwd)"
+cd "$ROOT"
+
+STARFLEET=".starfleet"
+SRC="$STARFLEET/src/starfleetctl"
+BIN="$STARFLEET/bin/starfleetctl"
+
+PIN=""
+LAUNCH=0
+SKILLS_ONLY=0
+CLEAN=0
+
+for arg in "$@"; do
+    case "$arg" in
+        --pin=*) PIN="${arg#*=}" ;;
+        --pin) PIN="__NEXT_ARG__" ;;
+        --launch-scripts) LAUNCH=1 ;;
+        --skills-only) SKILLS_ONLY=1 ;;
+        --clean) CLEAN=1 ;;
+        -h|--help)
+            echo "Usage: $0 [--pin <version>] [--launch-scripts] [--skills-only] [--clean]"
+            echo "  --pin <ver>       checkout specific tag/commit instead of origin/master"
+            echo "  --launch-scripts  generate opencode launch scripts (flagship + ship)"
+            echo "  --skills-only     only install/update skills (skip build)"
+            echo "  --clean           remove .starfleet/ before re-installing (fresh install)"
+            exit 0
+            ;;
+        *) echo "starfleet-bootstrap: unknown option: $arg" >&2; exit 2 ;;
+    esac
+done
+
+if [[ "$PIN" == "__NEXT_ARG__" ]]; then
+    PIN="${1:-}"
+    shift || { echo "starfleet-bootstrap: --pin requires a version" >&2; exit 2; }
+fi
+
+if [[ "$CLEAN" == 1 ]]; then
+    echo "-- cleaning .starfleet --"
+    rm -rf .starfleet
+fi
+
+for t in git go gh; do
+    command -v "$t" >/dev/null 2>&1 || { echo "missing: $t" >&2; exit 1; }
+done
+
+mkdir -p .starfleet/src .starfleet/bin
+
+SRC=".starfleet/src/starfleetctl"
+BIN=".starfleet/bin/starfleetctl"
+REPO="git@github.com:mpbt-hq/starfleetctl.git"
+
+if [[ -d ".starfleet/src/starfleetctl/.git" ]]; then
+    echo "-- updating starfleetctl source --"
+    git -C .starfleet/src/starfleetctl fetch -q origin
+    if [[ -n "$PIN" ]]; then
+        git -C .starfleet/src/starfleetctl checkout -q "$PIN"
+    else
+        git -C .starfleet/src/starfleetctl merge --ff-only origin/master || true
+    fi
+else
+    echo "-- cloning starfleetctl --"
+    mkdir -p .starfleet/src
+    git clone git@github.com:mpbt-hq/starfleetctl.git .starfleet/src/starfleetctl
+    if [[ -n "$PIN" ]]; then
+        git -C .starfleet/src/starfleetctl checkout -q "$PIN"
+    fi
+fi
+
+if [[ "${SKILLS_ONLY:-0}" != 1 ]]; then
+    echo "-- building starfleetctl --"
+    rm -f .starfleet/src/starfleetctl/starfleetctl
+    ( cd .starfleet/src/starfleetctl && go build -o starfleetctl ./cmd/starfleetctl )
+    mkdir -p .starfleet/bin
+    ln -sf ../src/starfleetctl/starfleetctl .starfleet/bin/starfleetctl
+fi
+
+# wire .bin/starfleetctl -> .starfleet/bin/starfleetctl (absolute path to avoid nested symlink issues)
+mkdir -p .bin
+ln -sf "$ROOT/.starfleet/bin/starfleetctl" .bin/starfleetctl
+
+# Use absolute path for all starfleetctl invocations to avoid nested symlink resolution issues
+SB="$ROOT/.bin/starfleetctl"
+
+# 4. run starfleetctl's own bootstrap fix (agent-bus dirs, settings.json allowlist)
+echo "-- starfleetctl bootstrap --fix --"
+"$SB" bootstrap --fix || true
+
+# 5. install/update skills (claude & opencode) via starfleetctl
+echo "-- installing/updating skills --"
+"$SB" skills install || true
+
+# 6. generate opencode launch scripts (flagship & ship)
+if [[ "${LAUNCH:-0}" == 1 ]]; then
+    echo "-- generating launch scripts --"
+    # Note: starfleetctl genesis launch-scripts not yet implemented; skip for now
+    echo "  (launch script generation not yet implemented in starfleetctl)"
+    # .bin/starfleetctl genesis launch-scripts || true
+fi
+
+echo "starfleet-bootstrap: done — starfleetctl at .starfleet/bin/starfleetctl (also .bin/starfleetctl)"

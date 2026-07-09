@@ -5,8 +5,6 @@ order: 160
 owner: "starfleetctl"
 ---
 
-<!-- Auto-installed by `starfleetctl agents install-starfleet` into agents.d/starfleet/concurrency-isolation-multiple-sessions-manual-work.md — do not hand-edit the installed copy; edit this source fragment in the starfleetctl repo instead. -->
-
 ## Concurrency / isolation (multiple sessions + manual work)
 
 **The unit of isolation is the clone (working tree + index), not the repo.** All safety rules
@@ -76,7 +74,7 @@ Ships spawned by `starfleetctl fleet-autoscale` are a distinct, lower **tier**:
 - **Lower tier** — auto-spawned workers: launched with `--permission-mode dontAsk` (Claude Code),
   so anything outside the pre-authorized allowlist is rejected outright instead of blocking on a
   confirmation nobody is watching. A worker that hits a blocked action must report it to its
-   supervisor via `starfleetctl agent-bus tell` and continue other queued work.
+  supervisor via `agent-bus tell` and continue other queued work.
 
 **Preferred: agents work in their own dedicated clones.** Create an agent-owned clone:
 

@@ -17,7 +17,7 @@ orchestrator + fleet-coordination workspace for the [XLibre](https://github.com/
 project), where the original bash scripts still live under `scripts/*` and remain the reference
 implementation for anything not yet ported here. This README documents `starfleetctl` on its own
 terms — no need to read `mpbt-workspace`'s `AGENTS.md` first — but if you're actually running this
-inside that workspace, `.bin/starfleetctl <subcommand>` is the way every subcommand is normally
+inside that workspace, `scripts/starfleetctl <subcommand>` is the way every subcommand is normally
 invoked there (see [Usage](#usage) below).
 
 ## Why a Go rewrite of working bash scripts?
@@ -25,7 +25,7 @@ invoked there (see [Usage](#usage) below).
 1. **One allowlist entry covers every subcommand.** Tools like Claude Code gate shell commands
    behind a per-command permission allowlist. ~30 separate bash scripts needed ~30 separate
    allowlist entries (`Bash(scripts/foo)` + `Bash(scripts/foo *)` each); a single
-   `Bash(.bin/starfleetctl)`/`Bash(.bin/starfleetctl *)` pair covers every subcommand this
+   `Bash(scripts/starfleetctl)`/`Bash(scripts/starfleetctl *)` pair covers every subcommand this
    binary has now *and* every one it gains later. The trade-off, accepted deliberately: less
    granular — a bug in one subcommand isn't scoped out from the others by the allowlist.
 2. **`encoding/json` + `os/exec` argument arrays eliminate a real class of bash bugs** — quoting
@@ -69,12 +69,10 @@ coordination" group below) needs to know the workspace root: it's resolved from
 works run from the workspace root or any subdirectory of it. The GitHub-interaction subcommands and
 `with-clone-lock` don't need any of that; they work from any `cwd`.
 
-Inside `mpbt-workspace` itself, the built binary lives at the fixed location `.bin/starfleetctl`
-(a symlink to the binary in the shared `_WORK_/starfleetctl` checkout, created by
-`scripts/run-build.starfleetctl` / `./bootstrap`). It auto-detects the workspace root (walking up
-from `cwd` for `AGENTS.md` + `scripts/`), so no `MPBT_WORKSPACE_ROOT` env is needed when invoked
-from anywhere inside the workspace tree — so the normal way to invoke any subcommand there is
-`.bin/starfleetctl <subcommand> [args…]`, not calling the `_WORK_` binary directly.
+Inside `mpbt-workspace` itself, the thin wrapper `scripts/starfleetctl` rebuilds this binary
+automatically whenever its source is newer, then execs it with the workspace root already
+resolved — so the normal way to invoke any subcommand there is
+`scripts/starfleetctl <subcommand> [args…]`, not calling this binary directly.
 
 Run `starfleetctl <subcommand> --help` (or with no args) for that subcommand's own usage text —
 this README summarizes them, the `--help` output is authoritative.
@@ -83,11 +81,9 @@ this README summarizes them, the `--help` output is authoritative.
 
 ### Fleet coordination
 
-These share on-disk file formats/lock files with their former bash-original namesakes (the bash
-`scripts/agent-bus` CLI in `mpbt-workspace` has been removed; its Go replacement is
-`.bin/starfleetctl agent-bus`), so a Go and a bash invocation against the same workspace
-interoperate transparently — one session can run the Go binary while another runs a still-present
-bash helper (e.g. `scripts/agent-bus-monitor-loop`) against the
+These share on-disk file formats/lock files with their bash-original namesakes (`scripts/agent-bus`
+etc. in `mpbt-workspace`), so a Go and a bash invocation against the same workspace interoperate
+transparently — one session can run the Go binary while another runs the bash script against the
 same `_WORK_/agent-bus/` files without racing or misreading each other's state.
 
 | Subcommand | Purpose |
@@ -97,9 +93,9 @@ same `_WORK_/agent-bus/` files without racing or misreading each other's state.
 | `pr-claim <cmd>` | Advisory cross-agent PR-branch lock + shared work log, keyed by PR number: `pr-claim <pr#> ["what"]`, `--list [--json]`, `--release <pr#>`, `--release-all`, `--steal <pr#> ["what"]`, `--who <pr#>`. |
 | `ws-commit` | `ws-commit -m "<msg>" <path> [<path>...]` (or `-a` for all tracked changes, `--no-push` to skip the push) — commit+push under the shared clone lock, so concurrent sessions don't race the same working tree's index/HEAD. |
 | `ship-names <cmd>` | Star-Trek-themed per-session identity registry: `assign [flagship]`, `release <name>`, `list [--json]`, `gc`, `flagship`. |
+| `with-clone-lock [cmd...]` | Generic "serialize mutating work in this git working tree" primitive everything above is built on — acquires `<gitdir>/mpbt-clone.lock`, then execs the given command (or an interactive shell with none given) with the lock held. Works in *any* git working tree, not just an `mpbt-workspace` checkout. |
 | `hook claude monitor-hint` | Claude Code `SessionStart` hook helper: emits `hookSpecificOutput.additionalContext` JSON telling the assistant to unconditionally arm Monitor-tool watchers on its agent-bus inbox (and, for `Enterprise`, fleet-watch too). Wired as a `SessionStart` hook in `.claude/settings.json`. Quiet no-op when `$AGENT_ID` is unset. |
 | `hook claude permission` | Claude Code `PreToolUse` hook helper: reads the tool-invocation JSON from stdin, asks the control agent (`$AGENT_CONTROLLER`) via agent-bus `ask`/`reply` for an allow/deny decision, blocks up to `$AGENT_PERM_TIMEOUT` (default 60s), and emits a `permissionDecision` JSON. Fail-closed (deny on timeout unless `$AGENT_PERM_TIMEOUT_DECISION=ask`). Used by `scripts/agent-permission-hook`. |
-| `with-clone-lock [cmd...]` | Generic "serialize mutating work in this git working tree" primitive everything above is built on — acquires `<gitdir>/mpbt-clone.lock`, then execs the given command (or an interactive shell with none given) with the lock held. Works in *any* git working tree, not just an `mpbt-workspace` checkout. |
 | `session attach <id> [--read-only] [--independent]` | Resolve an agent ID / handle / tmux session name / unique substring to a concrete tmux session and print it (tab-separated with mode). Used by `scripts/agent-attach` which then `exec tmux attach -t`. |
 | `session attach --list` | List running `mpbt-` tmux sessions and the agent-bus board in one call. |
 | `session run <release> [--client claude\|opencode\|shell] [--name <id>] [--tier <tier>] [--supervisor <name>] [--permission-mode <mode>] [-- <args>]` | Print shell-evaluable variables (`AGENT_ID`, `SESSION`, `RELEASE_FULL`, `CLIENT`, `INNER_CMD`) for launching a detached tmux session. Used by `scripts/agent-run` which creates the tmux pane and posts the initial heartbeat. |

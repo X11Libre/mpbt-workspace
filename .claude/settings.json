@@ -1,10 +1,12 @@
 {
   "permissions": {
     "allow": [
+      "Bash(scripts/starfleetctl)",
+      "Bash(scripts/starfleetctl *)",
       "Bash(chromium)",
       "Bash(chromium *)",
-      "Bash(./bootstrap)",
-      "Bash(./bootstrap *)",
+      "Bash(./starfleet-bootstrap)",
+      "Bash(./starfleet-bootstrap *)",
       "Bash(scripts/json)",
       "Bash(scripts/json *)",
       "Bash(scripts/confirm-log-report)",

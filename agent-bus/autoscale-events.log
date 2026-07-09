@@ -1,4 +1,0 @@
-2026-07-09T12:05:57Z	Reliant	need=3 reason="testing autoscale port" spawning=3 fleet=0/6 release=master client=claude supervisor=Enterprise permission_mode=dontAsk dry_run=true
-2026-07-09T12:07:06Z	Reliant	need=3 reason="testing fleet counts" spawning=3 fleet=0/6 release=master client=claude supervisor=Enterprise permission_mode=dontAsk dry_run=true
-2026-07-09T12:07:06Z	Reliant	need=0 reason="nothing needed" no-op: 0 idle ship(s) already cover need=0 (fleet=0/6)
-2026-07-09T12:07:06Z	Reliant	need=10 reason="over cap" spawning=2 fleet=0/2 release=master client=claude supervisor=Enterprise permission_mode=dontAsk dry_run=true
