@@ -1,7 +1,3 @@
----
-title: "CI platform lanes — Docker images + VM builds"
-order: 100
----
 
 ## CI platform lanes — Docker images + VM builds
 

@@ -13,12 +13,7 @@
 @agents.d/project/go-x11proto-flyingtux-and-starfleetctl-are-their-own-mpbt.md
 @agents.d/project/template-symlink-system.md
 @agents.d/project/important-quirks.md
-@agents.d/project/ci-platform-lanes-docker-images-vm-builds.md
 @agents.d/project/pr-workflow-scripts-xx-make-pr-sh.md
-@agents.d/project/xorg-upstream-tracking-what-s-new-on-xorg-main.md
-@agents.d/project/backport-workflow-master-pr-release-branches.md
-@agents.d/project/pr-repair-workflow-fix-an-open-master-pr-e-g-failing-ci.md
-@agents.d/project/automated-reviews.md
 @agents.d/starfleet/concurrency-isolation-multiple-sessions-manual-work.md
 @agents.d/project/submit-branch-hygiene-is-a-branch-already-in-master.md
 @agents.d/project/x-server-reply-wire-format-rpcbuf-padding-is-done-by-the-os.md

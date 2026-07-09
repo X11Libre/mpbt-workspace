@@ -1,7 +1,3 @@
----
-title: "PR repair workflow (fix an open master PR — e.g. failing CI)"
-order: 140
----
 
 ## PR repair workflow (fix an open master PR — e.g. failing CI)
 

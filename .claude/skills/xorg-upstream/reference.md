@@ -1,7 +1,3 @@
----
-title: "xorg upstream tracking (what's new on `xorg/main`)"
-order: 120
----
 
 ## xorg upstream tracking (what's new on `xorg/main`)
 

@@ -1,7 +1,3 @@
----
-title: "Automated reviews"
-order: 150
----
 
 ## Automated reviews
 

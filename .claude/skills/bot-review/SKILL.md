@@ -10,7 +10,7 @@ bot banner makes the origin clear). The `gh` CLI is authenticated as **@metux**,
 appears under the maintainer's name. Run commands from the workspace root
 (`/home/nekrad/src/xorg/mpbt-workspace`).
 
-Full reference: **AGENTS.md → "Automated reviews"** and **NVIDIA-ABI.md**. This skill is the
+Full reference: **`reference.md`** in this skill's directory (full detail, moved out of AGENTS.md) and **NVIDIA-ABI.md**. This skill is the
 actionable checklist. Four rules apply.
 
 ## Rule 1 — Disclose it's a bot (and which ship)
