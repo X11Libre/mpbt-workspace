@@ -50,7 +50,7 @@ fi
 export AGENT_ID="$NAME"
 
 # Register initial heartbeat (no cleanup possible; agent‑bus TTL / prune will reap it)
-scripts/starfleetctl agent-bus status idle "opencode ship" >/dev/null 2>&1 || true
+.bin/starfleetctl agent-bus status idle "opencode ship" >/dev/null 2>&1 || true
 
 # (no background processes — plugins handle inbox/board monitoring)
 

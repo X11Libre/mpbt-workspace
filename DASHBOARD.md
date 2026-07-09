@@ -22,9 +22,9 @@ the theme itself, so it stays useful after those TTLs expire.
 ## Aktive Themen
 
 Thin index — each row links to its own file under `dashboard/themes/`. Read/write it via
-`scripts/starfleetctl dashboard theme show|write|new|commit <slug>` (no direct file
+`.bin/starfleetctl dashboard theme show|write|new|commit <slug>` (no direct file
 access — see AGENTS.md); this index itself is regenerated with
-`scripts/starfleetctl dashboard reindex` and should not normally be hand-edited.
+`.bin/starfleetctl dashboard reindex` and should not normally be hand-edited.
 
 | Thema | Status | Datei |
 |---|---|---|

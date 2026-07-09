@@ -7,7 +7,7 @@
 # parallelizable work queued than idle capacity on the board.
 #
 # Delegates to `starfleetctl session autoscale` (Go backend).  See
-# `scripts/starfleetctl session autoscale --help`.
+# `.bin/starfleetctl session autoscale --help`.
 #
 # Usage:
 #   fleet-autoscale need <N> --reason "<text>" [--release <rel>] [--client claude|opencode]

@@ -71,8 +71,8 @@
       "Bash(scripts/show-branch-file *)",
       "Bash(scripts/ship-names)",
       "Bash(scripts/ship-names *)",
-      "Bash(scripts/starfleetctl)",
-      "Bash(scripts/starfleetctl *)",
+      "Bash(.bin/starfleetctl)",
+      "Bash(.bin/starfleetctl *)",
       "Bash(scripts/with-clone-lock)",
       "Bash(scripts/with-clone-lock *)",
       "Bash(scripts/worktree)",
@@ -169,17 +169,17 @@
         "hooks": [
           {
             "type": "command",
-            "command": "\"$CLAUDE_PROJECT_DIR\"/scripts/starfleetctl agent-bus status idle \"session started\" >/dev/null 2>&1 || true",
+            "command": "\"$CLAUDE_PROJECT_DIR\"/.bin/starfleetctl agent-bus status idle \"session started\" >/dev/null 2>&1 || true",
             "statusMessage": "agent-bus: heartbeat"
           },
           {
             "type": "command",
-            "command": "setsid \"$CLAUDE_PROJECT_DIR\"/scripts/starfleetctl agent-bus watch >/dev/null 2>&1 </dev/null & true",
+            "command": "setsid \"$CLAUDE_PROJECT_DIR\"/.bin/starfleetctl agent-bus watch >/dev/null 2>&1 </dev/null & true",
             "statusMessage": "agent-bus: mailbox watcher"
           },
           {
             "type": "command",
-            "command": "\"$CLAUDE_PROJECT_DIR\"/scripts/starfleetctl hook claude monitor-hint 2>/dev/null || true",
+            "command": "\"$CLAUDE_PROJECT_DIR\"/.bin/starfleetctl hook claude monitor-hint 2>/dev/null || true",
             "statusMessage": "agent-bus: monitor hint"
           }
         ]
@@ -190,11 +190,11 @@
         "hooks": [
           {
             "type": "command",
-            "command": "\"$CLAUDE_PROJECT_DIR\"/scripts/starfleetctl agent-bus clear >/dev/null 2>&1 || true"
+            "command": "\"$CLAUDE_PROJECT_DIR\"/.bin/starfleetctl agent-bus clear >/dev/null 2>&1 || true"
           },
           {
             "type": "command",
-            "command": "\"$CLAUDE_PROJECT_DIR\"/scripts/starfleetctl agent-bus watch --stop >/dev/null 2>&1 || true"
+            "command": "\"$CLAUDE_PROJECT_DIR\"/.bin/starfleetctl agent-bus watch --stop >/dev/null 2>&1 || true"
           },
           {
             "type": "command",

@@ -3,7 +3,7 @@ slug: agent-control-plane
 title: "Agent control plane (\"1st officer\" — one central contact for many workers)"
 category: active
 status: "Steps 1 **and** 2 **done** (ask/reply + notify watcher + permission-forward hook); tested"
-doc_ref: "`AGENT-CONTROL-PLANE.md`; `scripts/agent-bus` (`ask`/`reply`/`asks`), `scripts/starfleetctl hook claude permission`, `scripts/agent-bus-watch`, `scripts/agent-permission-hook`"
+doc_ref: "`AGENT-CONTROL-PLANE.md`; `scripts/agent-bus` (`ask`/`reply`/`asks`), `.bin/starfleetctl hook claude permission`, `scripts/agent-bus-watch`, `scripts/agent-permission-hook`"
 migrated_from: 8cf8692b9f0057ffe44e793b35bcf7329da83d3f
 ---
 

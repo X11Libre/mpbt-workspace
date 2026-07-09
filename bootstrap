@@ -91,7 +91,7 @@ done
 # only ever touches gitignored dirs + entries that ship in this checkout's
 # own tracked settings.json already, so safe to run unconditionally here.
 echo "-- starfleetctl bootstrap --fix --"
-scripts/starfleetctl bootstrap --fix || true
+.bin/starfleetctl bootstrap --fix || true
 
 # --- 5. optional full xserver build (heavy) ----------------------------------
 if [ "$BUILD" = 1 ]; then

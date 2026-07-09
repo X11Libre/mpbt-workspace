@@ -28,8 +28,8 @@
 #   - Wrapper-stripping covers timeout/time/nice/nohup/stdbuf/bare-xargs,
 #     per Claude Code's own documented strip list. Leading `VAR=value`
 #     assignments are deliberately NOT stripped — AGENTS.md's own
-#     documented gotcha ("export AGENT_ID=Foo && scripts/starfleetctl agent-bus board"
-#     prompts because the compound doesn't start with `scripts/starfleetctl`)
+#     documented gotcha ("export AGENT_ID=Foo && .bin/starfleetctl agent-bus board"
+#     prompts because the compound doesn't start with `.bin/starfleetctl`)
 #     is exactly this behavior observed live, so treating a leading
 #     assignment as unstripped matches reality better than the hook docs'
 #     (explicitly hedged) suggestion that it might be stripped.

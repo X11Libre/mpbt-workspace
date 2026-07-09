@@ -16,4 +16,5 @@
 set -euo pipefail
 
 HERE="$(cd "$(dirname "$0")" && pwd)"
-exec "$HERE/starfleetctl" ws-commit "$@"
+ROOT="$(git -C "$HERE" rev-parse --show-toplevel)"
+exec env MPBT_WORKSPACE_ROOT="$ROOT" "$ROOT/.bin/starfleetctl" ws-commit "$@"

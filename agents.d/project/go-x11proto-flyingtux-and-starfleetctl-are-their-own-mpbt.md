@@ -93,7 +93,7 @@ the `mpbt-hq` GitHub org, same non-X11Libre caveat as FlyingTux):
   via `gh api --method POST repos/metux/starfleetctl/transfer -f new_owner=mpbt-hq`). Still private,
   same `master` branch/history, just a different owner. Updated in the same pass: the local clone's
   `origin` remote, `cf/starfleetctl/solutions/default.yaml`'s `xlibre_git:` base URL, and the
-  comments in `cf/starfleetctl/config.sh`/`scripts/starfleetctl` that named the old path. GitHub
+  comments in `cf/starfleetctl/config.sh`/`.bin/starfleetctl` that named the old path. GitHub
   transparently redirects the old `metux/starfleetctl` URL, but every reference here now points at
   the canonical new one directly.
 - Naming: picked to fit the workspace's existing Star-Trek ship-name/fleet theme (agent-bus board,

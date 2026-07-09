@@ -36,14 +36,14 @@ eval "$("$HERE/starfleetctl" session run "$@" 2>/dev/null)" || {
 
 tmux new-session -d -s "$SESSION" -c "$ROOT" bash -lc "$INNER_CMD"
 
-AGENT_ID="$AGENT_ID" AGENT_HANDLE="$SESSION" ${RELEASE_FULL:+XLIBRE_RELEASE="$RELEASE_FULL"} \
-    "$ROOT/scripts/starfleetctl agent-bus" status starting "launched via agent-run ($CLIENT)" >/dev/null 2>&1 || true
+AGENT_ID="$AGENT_ID" AGENT_HANDLE="$SESSION" MPBT_WORKSPACE_ROOT="$ROOT" ${RELEASE_FULL:+XLIBRE_RELEASE="$RELEASE_FULL"} \
+    "$ROOT/.bin/starfleetctl agent-bus" status starting "launched via agent-run ($CLIENT)" >/dev/null 2>&1 || true
 
 cat <<EOF
 agent-run: launched '$AGENT_ID' ($CLIENT${RELEASE_FULL:+, $RELEASE_FULL}) detached.
   tmux session : $SESSION
   attach       : scripts/agent-attach $AGENT_ID
   view-only    : scripts/agent-attach --read-only $AGENT_ID
-  board        : scripts/starfleetctl agent-bus board
+  board        : .bin/starfleetctl agent-bus board
   stop         : scripts/agent-run --stop $AGENT_ID
 EOF

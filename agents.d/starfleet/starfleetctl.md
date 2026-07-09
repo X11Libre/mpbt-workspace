@@ -17,7 +17,7 @@ orchestrator + fleet-coordination workspace for the [XLibre](https://github.com/
 project), where the original bash scripts still live under `scripts/*` and remain the reference
 implementation for anything not yet ported here. This README documents `starfleetctl` on its own
 terms — no need to read `mpbt-workspace`'s `AGENTS.md` first — but if you're actually running this
-inside that workspace, `scripts/starfleetctl <subcommand>` is the way every subcommand is normally
+inside that workspace, `.bin/starfleetctl <subcommand>` is the way every subcommand is normally
 invoked there (see [Usage](#usage) below).
 
 ## Why a Go rewrite of working bash scripts?
@@ -25,7 +25,7 @@ invoked there (see [Usage](#usage) below).
 1. **One allowlist entry covers every subcommand.** Tools like Claude Code gate shell commands
    behind a per-command permission allowlist. ~30 separate bash scripts needed ~30 separate
    allowlist entries (`Bash(scripts/foo)` + `Bash(scripts/foo *)` each); a single
-   `Bash(scripts/starfleetctl)`/`Bash(scripts/starfleetctl *)` pair covers every subcommand this
+   `Bash(.bin/starfleetctl)`/`Bash(.bin/starfleetctl *)` pair covers every subcommand this
    binary has now *and* every one it gains later. The trade-off, accepted deliberately: less
    granular — a bug in one subcommand isn't scoped out from the others by the allowlist.
 2. **`encoding/json` + `os/exec` argument arrays eliminate a real class of bash bugs** — quoting
@@ -69,10 +69,12 @@ coordination" group below) needs to know the workspace root: it's resolved from
 works run from the workspace root or any subdirectory of it. The GitHub-interaction subcommands and
 `with-clone-lock` don't need any of that; they work from any `cwd`.
 
-Inside `mpbt-workspace` itself, the thin wrapper `scripts/starfleetctl` rebuilds this binary
-automatically whenever its source is newer, then execs it with the workspace root already
-resolved — so the normal way to invoke any subcommand there is
-`scripts/starfleetctl <subcommand> [args…]`, not calling this binary directly.
+Inside `mpbt-workspace` itself, the built binary lives at the fixed location `.bin/starfleetctl`
+(a symlink to the binary in the shared `_WORK_/starfleetctl` checkout, created by
+`scripts/run-build.starfleetctl` / `./bootstrap`). It auto-detects the workspace root (walking up
+from `cwd` for `AGENTS.md` + `scripts/`), so no `MPBT_WORKSPACE_ROOT` env is needed when invoked
+from anywhere inside the workspace tree — so the normal way to invoke any subcommand there is
+`.bin/starfleetctl <subcommand> [args…]`, not calling the `_WORK_` binary directly.
 
 Run `starfleetctl <subcommand> --help` (or with no args) for that subcommand's own usage text —
 this README summarizes them, the `--help` output is authoritative.
@@ -83,7 +85,7 @@ this README summarizes them, the `--help` output is authoritative.
 
 These share on-disk file formats/lock files with their former bash-original namesakes (the bash
 `scripts/agent-bus` CLI in `mpbt-workspace` has been removed; its Go replacement is
-`scripts/starfleetctl agent-bus`), so a Go and a bash invocation against the same workspace
+`.bin/starfleetctl agent-bus`), so a Go and a bash invocation against the same workspace
 interoperate transparently — one session can run the Go binary while another runs a still-present
 bash helper (e.g. `scripts/agent-bus-monitor-loop`) against the
 same `_WORK_/agent-bus/` files without racing or misreading each other's state.

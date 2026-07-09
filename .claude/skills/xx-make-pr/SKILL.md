@@ -1,6 +1,6 @@
 ---
 name: xx-make-pr
-description: Create a PR from one or more commits via `scripts/xx-make-pr.sh` (or `scripts/starfleetctl xx-make-pr`) — git config setup, the Signed-off-by-only / no Co-Authored-By rule, the [PR #NNNN] prefix + PR: trailer (incubator branch only), always pass an explicit SHA (never HEAD), and cherry-pick conflict recovery. Use when opening a master/backport PR.
+description: Create a PR from one or more commits via `scripts/xx-make-pr.sh` (or `.bin/starfleetctl xx-make-pr`) — git config setup, the Signed-off-by-only / no Co-Authored-By rule, the [PR #NNNN] prefix + PR: trailer (incubator branch only), always pass an explicit SHA (never HEAD), and cherry-pick conflict recovery. Use when opening a master/backport PR.
 ---
 
 # PR workflow (`scripts/xx-make-pr.sh`)
