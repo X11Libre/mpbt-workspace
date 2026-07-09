@@ -3,84 +3,16 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 # Copyright © 2026 Enrico Weigelt, metux IT consult
 #
-# dashboard — safe read/write/commit/push cycle for DASHBOARD.md, the
-# cross-session "what's in flight / what got parked" index (see AGENTS.md
-# "Working practices").
+# dashboard — safe read/write/commit/push cycle for DASHBOARD.md.
 #
-# DASHBOARD.md is touched by many concurrent agent sessions sharing this one
-# workspace checkout (see the repeated "DASHBOARD.md was modified by another
-# session" notes across sessions), so a plain local edit risks being based on
-# stale content, and a plain `git commit` risks racing another session's
-# staged changes (see ws-commit's header for the concrete bundled-commit
-# incident this caused). This wraps the whole lifecycle under
-# with-clone-lock/ws-commit so agents don't have to re-derive the safe
-# sequence — and don't need a fresh permission prompt for it — each time.
+# Delegates to `starfleetctl dashboard` (Go backend).
 #
 # Usage:
-#   dashboard pull                sync local DASHBOARD.md (and repo) with
-#                                  origin before editing (git pull --rebase
-#                                  --autostash, under with-clone-lock)
-#   dashboard show                print the current DASHBOARD.md (implies pull)
-#   dashboard write <file|->      replace DASHBOARD.md's content from <file>
-#                                  (or - for stdin); for scripted/non-interactive
-#                                  updates. Does NOT commit.
+#   dashboard pull                sync local DASHBOARD.md with origin
+#   dashboard show                print current DASHBOARD.md (implies pull)
+#   dashboard write <file|->      replace DASHBOARD.md's content
 #   dashboard commit -m "<msg>" [--no-push]
-#                                  stage + commit (+ pull --rebase + push)
-#                                  DASHBOARD.md — wraps ws-commit
-#
-# Typical interactive use (agent has Read/Edit tools):
-#   scripts/dashboard pull                  # make sure local content is fresh
-#   <Read + Edit DASHBOARD.md as usual>
-#   scripts/dashboard commit -m "..."
-#
-# Typical scripted/non-interactive use:
-#   scripts/dashboard pull
-#   scripts/dashboard write new-content.md
-#   scripts/dashboard commit -m "..."
 set -euo pipefail
 
 HERE="$(cd "$(dirname "$0")" && pwd)"
-cd "$(git -C "$HERE" rev-parse --show-toplevel)"
-
-FILE="DASHBOARD.md"
-
-usage() {
-    echo "usage: dashboard pull | show | write <file|-> | commit -m <msg> [--no-push]" >&2
-    exit 2
-}
-
-[ $# -ge 1 ] || usage
-cmd="$1"; shift
-
-sync() {
-    # No explicit remote/branch: relies on the checked-out branch's
-    # configured upstream, so this also works on a differently-named local
-    # branch tracking a remote one (e.g. a scripts/worktree checkout) -
-    # "origin <current-branch-name>" only worked when the two matched.
-    "$HERE/with-clone-lock" git pull --rebase --autostash
-}
-
-case "$cmd" in
-    pull)
-        sync
-        ;;
-    show)
-        sync >&2   # keep git's pull chatter off stdout — only the file content belongs there
-        cat "$FILE"
-        ;;
-    write)
-        [ $# -eq 1 ] || usage
-        src="$1"
-        if [ "$src" = "-" ]; then
-            cat >"$FILE"
-        else
-            cp -- "$src" "$FILE"
-        fi
-        ;;
-    commit)
-        exec "$HERE/ws-commit" "$@" "$FILE"
-        ;;
-    *)
-        usage
-        ;;
-esac
+exec "$HERE/starfleetctl" dashboard "$@"

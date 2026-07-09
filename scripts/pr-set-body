@@ -5,21 +5,11 @@
 #
 # Set a pull-request body from a file, via the GitHub REST API.
 #
-# `gh pr edit` currently fails on the xserver repo with a GraphQL "Projects
-# classic deprecation" error, so we PATCH the body directly instead. Used for
-# the required backport cross-linking (the "Backport dashboard" on the master
-# PR, and the back-link on each backport PR).
+# Delegates to `starfleetctl pr-set-body` (Go backend).
 #
 # Usage:  pr-set-body <pr-number> <body-file>
 # Env:    REPO  override repo (default X11Libre/xserver)
-#
-# Prints the PR's URL on success.
 set -euo pipefail
 
-REPO="${REPO:-X11Libre/xserver}"
-PR="${1:?usage: pr-set-body <pr-number> <body-file>}"
-FILE="${2:?usage: pr-set-body <pr-number> <body-file>}"
-
-[ -f "$FILE" ] || { echo "pr-set-body: no such file: $FILE" >&2; exit 1; }
-
-gh api --method PATCH "repos/$REPO/pulls/${PR#\#}" -F body=@"$FILE" --jq '.html_url'
+HERE="$(cd "$(dirname "$0")" && pwd)"
+exec "$HERE/starfleetctl" pr-set-body "$@"

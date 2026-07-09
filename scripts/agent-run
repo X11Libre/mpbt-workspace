@@ -5,201 +5,43 @@
 #
 # agent-run — launch an agent/CLI session DETACHED in a named tmux session.
 #
-# The session keeps running after you close the terminal or drop the SSH
-# connection (the tmux server is a daemon), and ANY number of controllers can
-# attach to it concurrently (`scripts/agent-attach`, i.e. tmux multi-attach) —
-# that is the fully self-hosted answer to "detach + N controllers reach every
-# running agent", and it works for ANY CLI (Claude Code, opencode, a plain
-# shell), not just Claude. It registers the tmux session as the agent-bus
-# attach handle, so `scripts/agent-bus board` shows how to reach each agent.
+# Delegates parameter validation, AGENT_ID resolution, and inner-command
+# construction to `starfleetctl session run`, then creates the tmux session
+# and posts the initial heartbeat.  `--list` and `--stop` also delegate.
 #
 # Usage:
 #   agent-run <release> [--client claude|opencode|shell] [--name <id>] [-- <args…>]
-#       launch a detached session for a release line (default client: claude).
-#       <release> may be "master" / "25.2" / … or the full "xserver-25.2".
-#       Anything after -- is passed to the client.
 #   agent-run "" --name <id> [--client claude|shell] [-- <args…>]
-#       cross-project session with no release/XLIBRE_RELEASE (e.g. the
-#       control agent) — pass an empty <release> and a mandatory --name.
-#       Not supported for --client opencode (its wrapper needs a release).
-#   agent-run --list                 list running mpbt sessions + the board
-#   agent-run --stop <id|session>    kill a session (best-effort clears its heartbeat)
-#
-# Identity/handle: AGENT_ID defaults to "<release>-<client>" (override with
-#   --name, required when <release> is empty); the tmux session is
-#   "mpbt-<AGENT_ID>" sanitized to tmux-safe chars, and is exported as
-#   $AGENT_HANDLE so it lands on the board.
-#
-# Unattended/worker tier (--client claude only):
-#   --permission-mode <mode>  forwarded verbatim as `claude --permission-mode
-#       <mode>` (e.g. "dontAsk" — auto-rejects anything outside
-#       permissions.allow instead of blocking/hanging; this is the
-#       documented mode for unattended operation, NOT
-#       --dangerously-skip-permissions, which is never set here).
-#   --tier <tier>              exported as $AGENT_TIER (e.g. "worker") —
-#       read by scripts/agent-bus-boot-prompt to add tier-specific boot
-#       instructions (currently: report blocked actions to $AGENT_SUPERVISOR
-#       instead of hanging).
-#   --supervisor <name>        exported as $AGENT_SUPERVISOR — who a worker
-#       tier ship escalates blocked/rejected actions to (agent-bus tell).
-#   These three exist for scripts/fleet-autoscale, which passes all three on
-#   every ship it spawns; a plain interactive `agent-run` invocation (a human
-#   or a control ship at a real terminal) has no reason to set them — normal
-#   interactive permission confirmation is what you want when a human is
-#   actually there. See DASHBOARD.md's "Fleet auto-scaling" row for the
-#   design rationale and the maintainer sign-off this required.
-# Persistence note: a tmux session survives terminal close and SSH disconnect
-#   out of the box. To also survive a full logout reliably, enable lingering once:
-#   `loginctl enable-linger "$USER"`. It does NOT survive reboot (agents are
-#   in-flight conversations; just relaunch).
+#   agent-run --list
+#   agent-run --stop <id|session>
 set -euo pipefail
 
-ROOT="$(cd "$(dirname "$0")/.." && pwd)"
-SESS_PREFIX="mpbt-"
+HERE="$(cd "$(dirname "$0")" && pwd)"
+ROOT="$(cd "$HERE/.." && pwd)"
 
-usage() { sed -n '2,/^set -euo/p' "$0" | sed 's/^# \{0,1\}//; /^set -euo/d'; }
-die()   { echo "agent-run: $*" >&2; exit 1; }
-have_tmux() { command -v tmux >/dev/null 2>&1 || die "tmux not found — install it (e.g. 'sudo apt install tmux'); it is the detach/multi-attach backend."; }
-tmux_safe() { printf '%s' "$1" | tr -c 'A-Za-z0-9_-' '_'; }
-
-list_sessions() {
-    have_tmux
-    echo "== running mpbt tmux sessions =="
-    tmux ls 2>/dev/null | grep "^${SESS_PREFIX}" || echo "(none)"
-    echo
-    echo "== agent-bus board =="
-    "$ROOT/scripts/agent-bus" board
-}
-
-stop_session() {  # <id|session>
-    have_tmux
-    local arg="$1" session
-    if tmux has-session -t "$arg" 2>/dev/null; then session="$arg"
-    else session="$(tmux_safe "${SESS_PREFIX}${arg}")"; fi
-    tmux has-session -t "$session" 2>/dev/null || die "no such session: $arg"
-    # best-effort: clear the matching heartbeat by reading its AGENT_ID off the board
-    local sf aid
-    for sf in "$ROOT"/_WORK_/agent-bus/status/*.tsv; do
-        [ -f "$sf" ] || continue
-        local e i a p s pid h n; IFS=$'\t' read -r e i a p s pid h n < "$sf" || continue
-        if [ "$h" = "$session" ]; then aid="$a"; break; fi
-    done
-    tmux kill-session -t "$session"
-    echo "agent-run: stopped session '$session'"
-    [ -n "${aid:-}" ] && AGENT_ID="$aid" "$ROOT/scripts/agent-bus" clear >/dev/null 2>&1 || true
-    [ -n "${aid:-}" ] && "$ROOT/scripts/ship-names" release "$aid" >/dev/null 2>&1 || true
-}
-
-# ---- arg parsing ----
-[ "$#" -ge 1 ] || { usage; exit 1; }
+[ "$#" -ge 1 ] || { "$HERE/starfleetctl" session run -h; exit 1; }
 case "$1" in
-    -h|--help) usage; exit 0 ;;
-    --list)    list_sessions; exit 0 ;;
-    --stop)    shift; [ "$#" -ge 1 ] || die "--stop needs <id|session>"; stop_session "$1"; exit 0 ;;
+    -h|--help) "$HERE/starfleetctl" session run -h; exit 0 ;;
+    --list)    exec "$HERE/starfleetctl" session attach --list ;;
+    --stop)    shift; [ "$#" -ge 1 ] || { echo "agent-run: --stop needs <id|session>" >&2; exit 1; }
+               exec "$HERE/starfleetctl" session stop "$@" ;;
 esac
 
-release="$1"; shift
-client="claude"; name=""; permission_mode=""; tier=""; supervisor=""
-while [ "$#" -ge 1 ]; do
-    case "$1" in
-        --client)          shift; client="${1:-}";;
-        --name)            shift; name="${1:-}";;
-        --permission-mode) shift; permission_mode="${1:-}";;
-        --tier)            shift; tier="${1:-}";;
-        --supervisor)      shift; supervisor="${1:-}";;
-        --)                shift; break;;
-        --*)               die "unknown option: $1";;
-        *)                 break;;
-    esac
-    shift
-done
-# remaining "$@" = client args
+command -v tmux >/dev/null 2>&1 || { echo "agent-run: tmux not found — install it (e.g. 'sudo apt install tmux'); it is the detach/multi-attach backend." >&2; exit 1; }
 
-[ -n "$permission_mode" ] && [ "$client" != "claude" ] && die "--permission-mode only applies to --client claude"
+eval "$("$HERE/starfleetctl" session run "$@" 2>/dev/null)" || {
+    echo "agent-run: failed to prepare session params" >&2
+    exit 1
+}
 
-case "$client" in claude|opencode|shell) ;; *) die "unknown --client '$client' (claude|opencode|shell)";; esac
+tmux new-session -d -s "$SESSION" -c "$ROOT" bash -lc "$INNER_CMD"
 
-have_tmux
-
-if [ -n "$release" ]; then
-    rel_full="xserver-${release#xserver-}"
-    rel_short="${rel_full#xserver-}"
-    [ -f "$ROOT/cf/$rel_full/config.sh" ] || die "no such release '$release' (missing cf/$rel_full/config.sh)"
-else
-    # Cross-project session (e.g. control): no release, no XLIBRE_RELEASE.
-    [ "$client" = "opencode" ] && die "--client opencode needs a <release> (its wrapper sources cf/<release>/config.sh)"
-    [ -n "$name" ] || die "empty <release> needs an explicit --name (nothing to derive AGENT_ID from)"
-    rel_full=""
-    rel_short=""
-fi
-
-if [ -n "$name" ]; then
-    AGENT_ID="$name"
-else
-    AGENT_ID="$("$ROOT/scripts/ship-names" assign 2>/dev/null)" || true
-    [ -z "${AGENT_ID:-}" ] && AGENT_ID="${rel_short:-cross}-${client}"
-fi
-session="$(tmux_safe "${SESS_PREFIX}${AGENT_ID}")"
-tmux has-session -t "$session" 2>/dev/null && \
-    die "session '$session' already running — attach with: scripts/agent-attach $AGENT_ID   (or use --name for a second one)"
-
-# Build the program to exec inside tmux.
-#
-# claude is resolved to an absolute path HERE, in the caller's own shell, not
-# left as a bare name for the inner "bash -lc ... exec claude" below. That
-# inner command runs as a non-interactive bash login shell (tmux's pane has
-# no tty on stdin), and ~/.bashrc's standard "not interactive -> return"
-# guard skips it entirely, so ~/.profile's own PATH (which doesn't include
-# ~/.local/bin) is all it gets -- "claude: command not found" (exit 127) with
-# no visible trace once tmux's default exit-empty kills the now-empty session
-# right after. Root-caused 2026-07-06 (Constellation, directive m0108) after
-# both prior hypotheses (a leftover $TMUX var confusing nested tmux;
-# CLAUDECODE/session-ID env inherited from the launching session) turned out
-# to be red herrings -- it reproduces identically from a plain, non-sandboxed
-# shell and has nothing to do with nesting at all. bash/opencode aren't hit
-# because bash lives on the base system PATH ~/.profile inherits, and the
-# opencode wrapper is invoked by its repo-relative "./run-opencode.*" path.
-case "$client" in
-    claude)   prog=("$(command -v claude || echo claude)"); [ -n "$permission_mode" ] && prog+=(--permission-mode "$permission_mode") ;;
-    opencode) prog=("./run-opencode.${rel_full}") ;;   # wrapper sources config.sh + sets its own heartbeat
-    shell)    prog=("${SHELL:-bash}") ;;
-esac
-if [ "$client" = "claude" ] && [ "$#" -eq 0 ]; then
-    if [ "$AGENT_ID" = "Enterprise" ]; then
-        set -- "Session just started. Before anything else, call the Monitor tool twice: (1) command \`scripts/starfleetctl agent-bus monitor-loop\`, persistent:true, to watch your own agent-bus inbox; (2) command \`scripts/starfleetctl agent-bus fleet-watch\`, persistent:true, to watch for ships joining/restarting on the board (this is the flagship/control session). Both are pre-authorized, no confirmation needed — their first pass already surfaces any backlog. Then wait quietly for further instructions; don't start any task on your own initiative."
-    elif [ "$tier" = "worker" ]; then
-        sup="${supervisor:-Enterprise}"
-        set -- "Session just started. You are an autoscaled worker ship (AGENT_TIER=worker), spawned on demand by scripts/fleet-autoscale — you run with --permission-mode dontAsk, so anything outside this workspace's permissions.allow is rejected outright instead of prompting for confirmation (nobody is watching an interactive prompt for this session). Before anything else, call the Monitor tool with command \`scripts/starfleetctl agent-bus monitor-loop\`, persistent:true (pre-authorized, no confirmation needed) — its first pass already surfaces any backlog. If a tool call gets rejected or otherwise blocked and you can't proceed: do NOT keep retrying the same action and do NOT just give up silently — run \`scripts/agent-bus tell $sup \"<exactly what you tried, and why it failed>\"\` (your supervisor — a human at a terminal or a control ship — can grant it interactively, which you can't), then continue with other queued work if you have any, or wait for a reply if you don't. Otherwise wait quietly for further instructions; don't start a task on your own initiative beyond what you were spawned for."
-    else
-        set -- "Session just started. Before anything else, call the Monitor tool with command \`scripts/starfleetctl agent-bus monitor-loop\`, persistent:true (pre-authorized, no confirmation needed) — its first pass already surfaces any backlog. Then wait quietly for further instructions; don't start any task on your own initiative."
-    fi
-fi
-prog+=("$@")
-
-# Inner command string: set identity (+ tier/supervisor, release env, if any), then exec the client.
-inner="export AGENT_ID=$(printf '%q' "$AGENT_ID") AGENT_HANDLE=$(printf '%q' "$session"); "
-if [ -n "$tier" ]; then
-    inner+="export AGENT_TIER=$(printf '%q' "$tier"); "
-fi
-if [ -n "$supervisor" ]; then
-    inner+="export AGENT_SUPERVISOR=$(printf '%q' "$supervisor"); "
-fi
-if [ -n "$rel_full" ]; then
-    inner+=". cf/$(printf '%q' "$rel_full")/config.sh; export XLIBRE_RELEASE; "
-fi
-inner+="exec"
-for a in "${prog[@]}"; do inner+=" $(printf '%q' "$a")"; done
-
-tmux new-session -d -s "$session" -c "$ROOT" bash -lc "$inner"
-
-# Initial heartbeat so the board shows it immediately (the client's own
-# hook/wrapper will refresh it to 'idle' once it's up).
-AGENT_ID="$AGENT_ID" AGENT_HANDLE="$session" ${rel_full:+XLIBRE_RELEASE="$rel_full"} \
-    "$ROOT/scripts/agent-bus" status starting "launched via agent-run ($client)" >/dev/null 2>&1 || true
+AGENT_ID="$AGENT_ID" AGENT_HANDLE="$SESSION" ${RELEASE_FULL:+XLIBRE_RELEASE="$RELEASE_FULL"} \
+    "$ROOT/scripts/agent-bus" status starting "launched via agent-run ($CLIENT)" >/dev/null 2>&1 || true
 
 cat <<EOF
-agent-run: launched '$AGENT_ID' ($client${rel_full:+, $rel_full}) detached.
-  tmux session : $session
+agent-run: launched '$AGENT_ID' ($CLIENT${RELEASE_FULL:+, $RELEASE_FULL}) detached.
+  tmux session : $SESSION
   attach       : scripts/agent-attach $AGENT_ID
   view-only    : scripts/agent-attach --read-only $AGENT_ID
   board        : scripts/agent-bus board

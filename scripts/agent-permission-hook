@@ -7,10 +7,9 @@
 # permission decision to the central control agent (the "1st officer", see
 # AGENT-CONTROL-PLANE.md) instead of prompting the local session.
 #
-# It reads the PreToolUse JSON on stdin, asks the controller
-# "[perm] allow <tool>: <summary> — for <agent>?" over agent-bus, BLOCKS for the
-# answer, and emits a permissionDecision (allow/deny). The controller answers
-# with `agent-bus reply <qid> allow|deny`.
+# Delegates to `starfleetctl hook claude permission`, which reads the
+# PreToolUse JSON from stdin, asks the controller via agent-bus, blocks for
+# the answer, and emits the decision JSON.
 #
 # OPT-IN, PER WORKER. Enable by adding a PreToolUse entry pointing at this script
 # to a worker's .claude/settings.local.json, e.g.:
@@ -20,48 +19,11 @@
 # Do NOT wire it globally / into shared settings.json: a control agent that never
 # answers would gate every matched tool call in every session.
 #
-# Fail-safe: Claude Code's own hook timeout FAILS OPEN (the tool proceeds), so
-# this script enforces its OWN, shorter timeout and returns a decision first:
-#   $AGENT_PERM_TIMEOUT           seconds to wait for the controller (default 60;
-#                                 keep it < the hook's Claude Code "timeout")
-#   $AGENT_PERM_TIMEOUT_DECISION  deny|ask on no answer (default deny = fail-closed)
-#   $AGENT_CONTROLLER             controller agent id (default control)
+# Environment:
+#   AGENT_PERM_TIMEOUT           seconds to wait (default 60)
+#   AGENT_PERM_TIMEOUT_DECISION  decision on timeout (default deny)
+#   AGENT_CONTROLLER             controller agent id (default control)
 set -euo pipefail
 
 HERE="$(cd "$(dirname "$0")" && pwd)"
-BUS="$HERE/agent-bus"
-TIMEOUT="${AGENT_PERM_TIMEOUT:-60}"
-ONTIMEOUT="${AGENT_PERM_TIMEOUT_DECISION:-deny}"
-
-payload="$(cat)"
-
-# pull fields out of the PreToolUse payload (python3 is already a hard dep here)
-pyget() { printf '%s' "$payload" | python3 -c "import sys,json
-d=json.load(sys.stdin)
-ti=d.get('tool_input',{}) or {}
-print({'tool':d.get('tool_name',''),
-       'agent':d.get('agent_id',''),
-       'summary':(ti.get('command') or ti.get('file_path') or (json.dumps(ti)[:200]))}[sys.argv[1]])" "$1" 2>/dev/null || true; }
-
-tool="$(pyget tool)"
-agent="${AGENT_ID:-$(pyget agent)}"; [ -n "$agent" ] || agent="?"
-summary="$(pyget summary)"
-
-# emit a PreToolUse decision as valid JSON and exit
-decide() {  # <allow|deny|ask> <reason>
-    python3 -c "import json,sys
-print(json.dumps({'hookSpecificOutput':{'hookEventName':'PreToolUse',
-      'permissionDecision':sys.argv[1],'permissionDecisionReason':sys.argv[2]}}))" "$1" "$2"
-    exit 0
-}
-
-# ask the controller (blocks up to $TIMEOUT); prints the answer, or exits 3 on timeout
-if ans="$(AGENT_ID="$agent" "$BUS" ask --timeout "$TIMEOUT" "[perm] allow $tool: $summary — for $agent?" 2>/dev/null)"; then
-    case "$(printf '%s' "$ans" | tr 'A-Z' 'a-z' | tr -d ' ')" in
-        allow|yes|y|approve|ok|1)  decide allow "approved by control agent" ;;
-        deny|no|n|block|0)         decide deny  "denied by control agent" ;;
-        *)                         decide "$ONTIMEOUT" "unrecognised control reply: $ans" ;;
-    esac
-else
-    decide "$ONTIMEOUT" "control agent did not answer within ${TIMEOUT}s (fail-$ONTIMEOUT)"
-fi
+exec "$HERE/starfleetctl" hook claude permission
