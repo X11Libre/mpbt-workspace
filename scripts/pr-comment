@@ -13,7 +13,7 @@
 # Usage:   pr-comment <pr#> <body-file> [--bot-review]
 # Env:     REPO      override repo (default X11Libre/xserver)
 #          AGENT_ID  ship name shown in the --bot-review banner (falls back
-#                    to user@host if unset, same fallback as scripts/agent-bus)
+#                    to user@host if unset, same fallback as scripts/starfleetctl agent-bus)
 #
 # Examples:
 #   pr-comment 3103 /tmp/reply.md                 # plain comment, no banner

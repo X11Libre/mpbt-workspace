@@ -81,9 +81,11 @@ this README summarizes them, the `--help` output is authoritative.
 
 ### Fleet coordination
 
-These share on-disk file formats/lock files with their bash-original namesakes (`scripts/agent-bus`
-etc. in `mpbt-workspace`), so a Go and a bash invocation against the same workspace interoperate
-transparently — one session can run the Go binary while another runs the bash script against the
+These share on-disk file formats/lock files with their former bash-original namesakes (the bash
+`scripts/agent-bus` CLI in `mpbt-workspace` has been removed; its Go replacement is
+`scripts/starfleetctl agent-bus`), so a Go and a bash invocation against the same workspace
+interoperate transparently — one session can run the Go binary while another runs a still-present
+bash helper (e.g. `scripts/agent-bus-monitor-loop`) against the
 same `_WORK_/agent-bus/` files without racing or misreading each other's state.
 
 | Subcommand | Purpose |
