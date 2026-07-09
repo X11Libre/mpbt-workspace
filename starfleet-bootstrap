@@ -3,13 +3,13 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 # Copyright © 2026 Enrico Weigelt, metux IT consult
 #
-# starfleet-bootstrap — deploy starfleetctl into .starfleet/ (Phase 2).
+# starfleet-bootstrap — deploy starfleetctl into .starfleet-ai/ (Phase 2).
 # Phase A (once): starfleetctl genesis-init installs this script (committed).
 # Phase B (fresh clone / update): this script pulls starfleetctl (optionally
-# pinned), builds it, places all artifacts under .starfleet/, installs skills/
+# pinned), builds it, places all artifacts under .starfleet-ai/, installs skills/
 # agent-config for claude & opencode, and generates launch scripts.
 #
-# All artifacts under .starfleet/ (gitignored). Only this script is committed.
+# All artifacts under .starfleet-ai/ (gitignored). Only this script is committed.
 # Re-run anytime for updates.
 #
 # Usage: ./starfleet-bootstrap [--pin <version>] [--launch-scripts] [--skills-only] [--clean]
@@ -18,7 +18,7 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "$0")" && pwd)"
 cd "$ROOT"
 
-STARFLEET=".starfleet"
+STARFLEET=".starfleet-ai"
 SRC="$STARFLEET/src/starfleetctl"
 BIN="$STARFLEET/bin/starfleetctl"
 
@@ -60,13 +60,13 @@ for t in git go gh; do
     command -v "$t" >/dev/null 2>&1 || { echo "missing: $t" >&2; exit 1; }
 done
 
-mkdir -p .starfleet/src .starfleet/bin
+mkdir -p .starfleet-ai/src .starfleet-ai/bin
 
-SRC=".starfleet/src/starfleetctl"
-BIN=".starfleet/bin/starfleetctl"
+SRC=".starfleet-ai/src/starfleetctl"
+BIN=".starfleet-ai/bin/starfleetctl"
 REPO="git@github.com:mpbt-hq/starfleetctl.git"
 
-if [[ -d ".starfleet/src/starfleetctl/.git" ]]; then
+if [[ -d ".starfleet-ai/src/starfleetctl/.git" ]]; then
     echo "-- updating starfleetctl source --"
     git -C .starfleet/src/starfleetctl fetch -q origin
     if [[ -n "$PIN" ]]; then
