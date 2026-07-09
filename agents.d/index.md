@@ -4,7 +4,7 @@
 
 @agents.d/what-this-is.md
 @agents.d/inter-ship-communication.md
-@agents.d/titan-autonomous.md
+@agents.d/fleet-autonomous.md
 @agents.d/working-practices-standing-instructions-for-agents.md
 @agents.d/bootstrapping-a-fresh-clone.md
 @agents.d/key-commands.md
