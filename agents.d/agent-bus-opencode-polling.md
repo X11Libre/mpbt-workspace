@@ -18,3 +18,14 @@ if they had surfaced via a Monitor event — ack, act, or defer as
 appropriate. The plugin shares dedup state with `agent-bus-monitor-loop`
 so the same message is only shown once regardless of which mechanism
 surfaced it first.
+
+### Rules for the assistant
+
+1. **Never manually call `agent-bus inbox`.** The poller already injects
+   new messages into the next turn's context. Doing so wastes a turn and
+   is redundant.
+
+2. **Never call `agent-bus --help`.** The full interface (tell, ack, ask,
+   board, status, etc.) is documented in
+   `agents.d/inter-ship-communication.md`. This fragment and that one are
+   loaded every session — reach for the docs, not the `--help` output.
