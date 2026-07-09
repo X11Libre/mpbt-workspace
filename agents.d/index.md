@@ -3,6 +3,7 @@
      re-run reindex (agents new/write do this for you automatically). -->
 
 @agents.d/what-this-is.md
+@agents.d/inter-ship-communication.md
 @agents.d/working-practices-standing-instructions-for-agents.md
 @agents.d/bootstrapping-a-fresh-clone.md
 @agents.d/key-commands.md
