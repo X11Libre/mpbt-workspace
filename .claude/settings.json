@@ -25,7 +25,6 @@
       "Bash(scripts/agent-attach *)",
       "Bash(scripts/agent-bus)",
       "Bash(scripts/agent-bus *)",
-      "Bash(scripts/agent-bus-fleet-watch)",
       "Bash(scripts/agent-bus-monitor-loop)",
       "Monitor",
       "Bash(scripts/agent-run)",
@@ -177,12 +176,12 @@
           },
           {
             "type": "command",
-            "command": "setsid \"$CLAUDE_PROJECT_DIR\"/scripts/agent-bus-watch >/dev/null 2>&1 </dev/null & true",
+            "command": "setsid \"$CLAUDE_PROJECT_DIR\"/scripts/starfleetctl agent-bus watch >/dev/null 2>&1 </dev/null & true",
             "statusMessage": "agent-bus: mailbox watcher"
           },
           {
             "type": "command",
-            "command": "\"$CLAUDE_PROJECT_DIR\"/scripts/agent-bus-monitor-hint 2>/dev/null || true",
+            "command": "\"$CLAUDE_PROJECT_DIR\"/scripts/starfleetctl hook claude monitor-hint 2>/dev/null || true",
             "statusMessage": "agent-bus: monitor hint"
           }
         ]
@@ -197,7 +196,7 @@
           },
           {
             "type": "command",
-            "command": "\"$CLAUDE_PROJECT_DIR\"/scripts/agent-bus-watch --stop >/dev/null 2>&1 || true"
+            "command": "\"$CLAUDE_PROJECT_DIR\"/scripts/starfleetctl agent-bus watch --stop >/dev/null 2>&1 || true"
           },
           {
             "type": "command",

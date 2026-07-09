@@ -93,6 +93,7 @@ same `_WORK_/agent-bus/` files without racing or misreading each other's state.
 | `pr-claim <cmd>` | Advisory cross-agent PR-branch lock + shared work log, keyed by PR number: `pr-claim <pr#> ["what"]`, `--list [--json]`, `--release <pr#>`, `--release-all`, `--steal <pr#> ["what"]`, `--who <pr#>`. |
 | `ws-commit` | `ws-commit -m "<msg>" <path> [<path>...]` (or `-a` for all tracked changes, `--no-push` to skip the push) — commit+push under the shared clone lock, so concurrent sessions don't race the same working tree's index/HEAD. |
 | `ship-names <cmd>` | Star-Trek-themed per-session identity registry: `assign [flagship]`, `release <name>`, `list [--json]`, `gc`, `flagship`. |
+| `hook claude monitor-hint` | Claude Code `SessionStart` hook helper: emits `hookSpecificOutput.additionalContext` JSON telling the assistant to unconditionally arm Monitor-tool watchers on its agent-bus inbox (and, for `Enterprise`, fleet-watch too). Wired as a `SessionStart` hook in `.claude/settings.json`. Quiet no-op when `$AGENT_ID` is unset. |
 | `with-clone-lock [cmd...]` | Generic "serialize mutating work in this git working tree" primitive everything above is built on — acquires `<gitdir>/mpbt-clone.lock`, then execs the given command (or an interactive shell with none given) with the lock held. Works in *any* git working tree, not just an `mpbt-workspace` checkout. |
 
 ### GitHub interaction — read-only

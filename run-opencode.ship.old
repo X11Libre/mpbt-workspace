@@ -77,7 +77,7 @@ scripts/agent-bus status idle "opencode ship" >/dev/null 2>&1 || true
 LOGDIR="_WORK_/agent-bus/logs"
 mkdir -p "$LOGDIR"
 nohup scripts/agent-bus-monitor-loop >> "$LOGDIR/monitor-loop.log" 2>&1 &
-nohup scripts/agent-bus-watch >> "$LOGDIR/watch.log" 2>&1 &
+nohup scripts/starfleetctl agent-bus watch >> "$LOGDIR/watch.log" 2>&1 &
 
 export OPENCODE_CONFIG_CONTENT="{\"username\":\"${AGENT_ID}\"}"
-exec opencode --prompt "$(scripts/agent-bus-opencode-boot-prompt)" "${EXTRA[@]+"${EXTRA[@]}"}"
+exec opencode --prompt "Session just started for ship ${AGENT_ID:-unknown}. Check your inbox with 'scripts/agent-bus inbox'." "${EXTRA[@]+"${EXTRA[@]}"}"

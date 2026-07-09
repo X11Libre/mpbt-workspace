@@ -47,7 +47,7 @@ this in shared/committed settings — an absent controller would block everythin
 
 - **Control agent** — a human-attended session, `AGENT_ID=control` by convention
   (`$AGENT_CONTROLLER` overrides the target). Runs the notify watcher
-  (`agent-bus-watch`, see AGENTS.md) so new questions surface; answers the human
+  (`scripts/starfleetctl agent-bus watch`, see AGENTS.md) so new questions surface; answers the human
   (e.g. via the client's question UI) and replies on the bus.
 - **Workers** — every other session (interactive, headless `claude -p`, or
   detached `agent-run` tmux). They `ask` the controller and block locally for the
@@ -64,7 +64,7 @@ On the directive channel: a question is a directive to the controller tagged
 - Controller: `agent-bus asks` lists pending questions; `agent-bus reply <qid>
   "<answer>"` routes the answer back and acks the question.
 
-Because it's the existing directive channel, the controller's `agent-bus-watch`
+Because it's the existing directive channel, the controller's `scripts/starfleetctl agent-bus watch`
 already notifies on incoming questions — no extra plumbing.
 
 ## Step 2 — tool-permission forwarding (BUILT, opt-in)
