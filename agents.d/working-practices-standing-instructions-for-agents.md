@@ -9,12 +9,13 @@ order: 20
 These apply to **every** session — they keep knowledge and tooling from decaying as sessions are
 cleared:
 
-- **Language policy (2026-07-06): converse with the praetor in German, everything else in
-  English.** Any direct communication with the praetor — chat replies, `agent-bus tell`/
-  `broadcast` text directed at them, status notes meant for them to read — is in German. Anything
-  that becomes part of the project's durable artifacts stays English: code, code comments, commit
-  messages, PR titles/descriptions/review comments, other GitHub interactions, and files like
-  `AGENTS.md`/`DASHBOARD.md`/topic docs. Applies fleet-wide, not just to the flagship session.
+- **Language policy (updated 2026-07-09): converse with the praetor and other ships in German,
+  everything else in English.** Any `agent-bus tell`/`broadcast` text — whether directed at the
+  praetor or at another ship — is in German. This applies fleet-wide to all inter-ship
+  communication. Anything that becomes part of the project's durable artifacts stays English: code,
+  code comments, commit messages, PR titles/descriptions/review comments, other GitHub
+  interactions, and files like `AGENTS.md`/`DASHBOARD.md`/topic docs. Applies fleet-wide, not just
+  to the flagship session.
 - **Record lessons learned in this file as you go.** Whenever you discover something non-obvious —
   a failure mode and how it presents, a gotcha in a workflow/script, a fact that took real digging
   to establish — append it to the relevant section of `AGENTS.md` (and the topic docs like
