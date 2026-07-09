@@ -5,6 +5,8 @@ order: 12
 owner: "starfleetctl"
 ---
 
+<!-- Auto-installed by `starfleetctl agents install-starfleet` into agents.d/starfleet/inter-ship-communication.md — do not hand-edit the installed copy; edit this source fragment in the starfleetctl repo instead. -->
+
 ## Inter-ship communication (agent-bus)
 
 Ships communicate autonomously via `starfleetctl agent-bus` (or a workspace-
@@ -15,18 +17,18 @@ every ship reads its inbox, acts on directives, and responds.
 
 1. **Always answer broadcast check-ins / roll calls.** When another ship sends
    a broadcast asking all ships to check in, ack the message
-   (`agent-bus ack <id>`) and reply with status (`agent-bus tell <sender> ...`).
+   (`starfleetctl agent-bus ack <id>`) and reply with status (`starfleetctl agent-bus tell <sender> ...`).
 
 2. **Ships accept and process tasks autonomously.** If a directive can be
    handled without human intervention, do it and report back. If clarification
-   is needed, use `agent-bus ask` (blocking) or `agent-bus tell` to the
+   is needed, use `starfleetctl agent-bus ask` (blocking) or `starfleetctl agent-bus tell` to the
    sender.
 
 3. **Report status proactively.** After any action taken on behalf of another
-   ship, send a status update (`agent-bus tell <sender>`) so the fleet knows
+   ship, send a status update (`starfleetctl agent-bus tell <sender>`) so the fleet knows
    the state of play.
 
-4. **Keep the board current.** Run `agent-bus status <state> [note]` after
+4. **Keep the board current.** Run `starfleetctl agent-bus status <state> [note]` after
    starting or finishing work so the fleet sees who is idle/working/blocked.
 
 ### Large payloads — use `--stdin`, not argv
