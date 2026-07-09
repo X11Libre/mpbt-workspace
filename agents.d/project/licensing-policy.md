@@ -1,5 +1,4 @@
 ---
-slug: licensing-policy
 title: "Licensing policy"
 order: 200
 ---

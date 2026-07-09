@@ -1,5 +1,4 @@
 ---
-slug: automated-reviews
 title: "Automated reviews"
 order: 150
 ---

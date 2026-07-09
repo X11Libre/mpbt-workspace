@@ -1,5 +1,4 @@
 ---
-slug: file-layout-reminder
 title: "File layout reminder"
 order: 230
 ---

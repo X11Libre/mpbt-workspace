@@ -1,5 +1,4 @@
 ---
-slug: go-x11proto-flyingtux-and-starfleetctl-are-their-own-mpbt
 title: "go-x11proto, FlyingTux and starfleetctl are their own mpbt solutions"
 order: 70
 ---

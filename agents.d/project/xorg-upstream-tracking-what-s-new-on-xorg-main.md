@@ -1,5 +1,4 @@
 ---
-slug: xorg-upstream-tracking-what-s-new-on-xorg-main
 title: "xorg upstream tracking (what's new on `xorg/main`)"
 order: 120
 ---

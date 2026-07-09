@@ -1,5 +1,4 @@
 ---
-slug: backport-workflow-master-pr-release-branches
 title: "Backport workflow (master PR → release branches)"
 order: 130
 ---

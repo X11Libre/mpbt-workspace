@@ -1,5 +1,4 @@
 ---
-slug: architecture
 title: "Architecture"
 order: 60
 ---

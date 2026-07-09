@@ -1,5 +1,4 @@
 ---
-slug: key-commands
 title: "Key commands"
 order: 40
 ---

@@ -1,5 +1,4 @@
 ---
-slug: no-ci-no-tests-no-lint-no-formatter
 title: "No CI, no tests, no lint, no formatter"
 order: 220
 ---

@@ -1,5 +1,4 @@
 ---
-slug: concurrency-isolation-multiple-sessions-manual-work
 title: "Concurrency / isolation (multiple sessions + manual work)"
 order: 160
 ---

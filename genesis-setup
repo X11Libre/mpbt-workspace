@@ -55,4 +55,4 @@ echo "genesis-setup: building starfleetctl"
 echo "genesis-setup: handing off to 'starfleetctl genesis-init $TARGET'"
 "$SRC/starfleetctl" genesis-init "$TARGET"
 
-echo "genesis-setup: done — see AGENTS.md / agents.d/starfleetctl.md for what's next"
+echo "genesis-setup: done — see AGENTS.md / agents.d/starfleet/starfleetctl.md for what's next"

@@ -1,5 +1,4 @@
 ---
-slug: skills-claude-skills
 title: "Skills (`.claude/skills/`)"
 order: 50
 ---

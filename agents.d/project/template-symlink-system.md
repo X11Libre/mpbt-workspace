@@ -1,5 +1,4 @@
 ---
-slug: template-symlink-system
 title: "Template/symlink system"
 order: 80
 ---

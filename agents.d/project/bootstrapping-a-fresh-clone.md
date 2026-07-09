@@ -1,5 +1,4 @@
 ---
-slug: bootstrapping-a-fresh-clone
 title: "Bootstrapping a fresh clone"
 order: 30
 ---

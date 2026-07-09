@@ -1,5 +1,4 @@
 ---
-slug: fleet-autonomous
 title: "Flottenweite Autonomie: Aufgaben selbstständig ausführen und delegieren"
 order: 13
 ---

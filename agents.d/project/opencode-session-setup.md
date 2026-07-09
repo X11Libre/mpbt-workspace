@@ -1,5 +1,4 @@
 ---
-slug: opencode-session-setup
 title: "opencode session setup"
 order: 210
 ---

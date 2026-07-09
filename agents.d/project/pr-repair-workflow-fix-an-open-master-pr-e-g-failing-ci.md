@@ -1,5 +1,4 @@
 ---
-slug: pr-repair-workflow-fix-an-open-master-pr-e-g-failing-ci
 title: "PR repair workflow (fix an open master PR — e.g. failing CI)"
 order: 140
 ---

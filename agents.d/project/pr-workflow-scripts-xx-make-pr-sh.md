@@ -1,5 +1,4 @@
 ---
-slug: pr-workflow-scripts-xx-make-pr-sh
 title: "PR workflow (`scripts/xx-make-pr.sh`)"
 order: 110
 ---

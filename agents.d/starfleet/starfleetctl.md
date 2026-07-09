@@ -1,5 +1,5 @@
 ---
-slug: starfleetctl
+slug: starfleet/starfleetctl
 title: "starfleetctl — fleet-management CLI (auto-installed by `agents install-self`, do not hand-edit)"
 order: 900
 owner: "starfleetctl"

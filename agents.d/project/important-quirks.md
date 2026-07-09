@@ -1,5 +1,4 @@
 ---
-slug: important-quirks
 title: "Important quirks"
 order: 90
 ---

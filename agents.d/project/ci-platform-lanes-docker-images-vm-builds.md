@@ -1,5 +1,4 @@
 ---
-slug: ci-platform-lanes-docker-images-vm-builds
 title: "CI platform lanes — Docker images + VM builds"
 order: 100
 ---

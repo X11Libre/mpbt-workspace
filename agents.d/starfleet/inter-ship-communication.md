@@ -1,5 +1,4 @@
 ---
-slug: inter-ship-communication
 title: "Inter-ship communication (agent-bus)"
 order: 12
 ---

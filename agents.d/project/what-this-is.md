@@ -1,5 +1,4 @@
 ---
-slug: what-this-is
 title: "What this is"
 order: 10
 ---

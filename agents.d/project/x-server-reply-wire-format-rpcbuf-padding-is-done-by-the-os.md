@@ -1,5 +1,4 @@
 ---
-slug: x-server-reply-wire-format-rpcbuf-padding-is-done-by-the-os
 title: "X-server reply wire format — rpcbuf padding is done by the OS layer, not the handler"
 order: 180
 ---

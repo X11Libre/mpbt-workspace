@@ -1,5 +1,4 @@
 ---
-slug: submit-branch-hygiene-is-a-branch-already-in-master
 title: "submit/* branch hygiene — is a branch already in master?"
 order: 170
 ---

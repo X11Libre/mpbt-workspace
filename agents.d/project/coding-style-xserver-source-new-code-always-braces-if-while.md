@@ -1,5 +1,4 @@
 ---
-slug: coding-style-xserver-source-new-code-always-braces-if-while
 title: "Coding style (xserver source) — new code always braces if/while/for bodies"
 order: 190
 ---
