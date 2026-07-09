@@ -21,4 +21,4 @@ MODEL=""
 
 export OPENCODE_CONFIG_CONTENT="{\"username\":\"${AGENT_ID}\"}"
 #shellcheck disable=SC2086
-exec opencode ${MODEL} --prompt "Session just started for ship ${AGENT_ID:-unknown}. Check your inbox with 'scripts/agent-bus inbox'." "$@"
+exec opencode ${MODEL} --prompt "You are the flagship ${AGENT_ID:-unknown}. agent instructions in ./agents.d/index.md" "$@"

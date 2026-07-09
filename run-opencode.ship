@@ -18,6 +18,7 @@
 #
 # -------------------------------------------------------------------------
 
+FLAGSHIP="Enterprise"
 NAME=""
 
 # Parse options
@@ -57,6 +58,7 @@ scripts/agent-bus status idle "opencode ship" >/dev/null 2>&1 || true
 MODEL=""
 [ -n "${STARFLEET_MODEL:-}" ] && MODEL="--model ${STARFLEET_MODEL}"
 
+WORKDIR=`pwd`
 export OPENCODE_CONFIG_CONTENT="{\"username\":\"${AGENT_ID}\"}"
 #shellcheck disable=SC2086
-exec opencode ${MODEL} --prompt "Session just started for ship ${AGENT_ID:-unknown}. Check your inbox with 'scripts/agent-bus inbox'." "$@"
+exec opencode ${MODEL} --prompt "agent instructions in ${WORKDIR}/agents.d/index.md -- You are fleet ship ${AGENT_ID:-unknown}, report to flagship ${FLAGSHIP}." "$@"
