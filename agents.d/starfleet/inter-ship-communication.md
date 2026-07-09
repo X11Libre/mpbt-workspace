@@ -1,17 +1,20 @@
 ---
+slug: starfleet/inter-ship-communication
 title: "Inter-ship communication (agent-bus)"
 order: 12
+owner: "starfleetctl"
 ---
 
 ## Inter-ship communication (agent-bus)
 
-Ships communicate autonomously via `scripts/agent-bus`. No central orchestrator
-is required — every ship reads its inbox, acts on directives, and responds.
+Ships communicate autonomously via `starfleetctl agent-bus` (or a workspace-
+specific `scripts/agent-bus` wrapper). No central orchestrator is required —
+every ship reads its inbox, acts on directives, and responds.
 
 ### Standing rules
 
-1. **Always answer broadcast check-ins / roll calls.** When another ship (e.g.
-   Enterprise) sends a broadcast asking all ships to check in, ack the message
+1. **Always answer broadcast check-ins / roll calls.** When another ship sends
+   a broadcast asking all ships to check in, ack the message
    (`agent-bus ack <id>`) and reply with status (`agent-bus tell <sender> ...`).
 
 2. **Ships accept and process tasks autonomously.** If a directive can be

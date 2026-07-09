@@ -1,6 +1,8 @@
 ---
+slug: starfleet/agent-bus-opencode-polling
 title: "Agent-bus opencode polling"
 order: 215
+owner: "starfleetctl"
 ---
 
 ## Agent-bus opencode polling
@@ -25,6 +27,7 @@ surfaced it first.
    is redundant.
 
 2. **Never call `agent-bus --help`.** The full interface (tell, ack, ask,
-   board, status, etc.) is documented in
-   `agents.d/inter-ship-communication.md`. This fragment and that one are
+   board, status, etc.) is documented in the inter-ship-communication
+   fragment (typically `agents.d/inter-ship-communication.md` or
+   `agents.d/starfleet/inter-ship-communication.md`). These fragments are
    loaded every session — reach for the docs, not the `--help` output.
