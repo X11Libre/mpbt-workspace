@@ -21,3 +21,4 @@ changes.
 | `bot-review` | `/bot-review` | Automated reviews — bot banner, backport-worthiness, NVIDIA-ABI check, label (named `bot-review` to avoid the built-in `/review`; full ref: `bot-review/reference.md`) |
 | `ci-platform` | `/ci-platform` | CI platform lanes — deps images, Hurd QEMU boot, RHEL/AlmaLinux, werror, NetBSD mirror (full ref: `ci-platform/reference.md`) |
 | `xorg-upstream` | `/xorg-upstream` | Upstream `xorg/main` tracking via `tracking/xorg/main-on-<rel>` branches (full ref: `xorg-upstream/reference.md`) |
+| `xx-make-pr` | `/xx-make-pr` | PR workflow — `xx-make-pr.sh`/`starfleetctl xx-make-pr`: git config, Signed-off-by-only, [PR #NNNN]/PR: trailer on incubator only, explicit-SHA-only, conflict recovery (full ref: `xx-make-pr/reference.md`) |

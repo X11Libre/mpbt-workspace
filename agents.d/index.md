@@ -13,11 +13,11 @@
 @agents.d/project/go-x11proto-flyingtux-and-starfleetctl-are-their-own-mpbt.md
 @agents.d/project/template-symlink-system.md
 @agents.d/project/important-quirks.md
-@agents.d/project/pr-workflow-scripts-xx-make-pr-sh.md
 @agents.d/starfleet/concurrency-isolation-multiple-sessions-manual-work.md
 @agents.d/project/submit-branch-hygiene-is-a-branch-already-in-master.md
 @agents.d/project/x-server-reply-wire-format-rpcbuf-padding-is-done-by-the-os.md
 @agents.d/project/coding-style-xserver-source-new-code-always-braces-if-while.md
+@agents.d/project/auto-commit-mtx-agent-config.md
 @agents.d/project/licensing-policy.md
 @agents.d/project/opencode-session-setup.md
 @agents.d/starfleet/agent-bus-opencode-polling.md

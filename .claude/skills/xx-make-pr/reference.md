@@ -1,7 +1,3 @@
----
-title: "PR workflow (`scripts/xx-make-pr.sh`)"
-order: 110
----
 
 ## PR workflow (`scripts/xx-make-pr.sh`)
 
