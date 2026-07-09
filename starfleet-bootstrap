@@ -52,8 +52,8 @@ if [[ "$PIN" == "__NEXT_ARG__" ]]; then
 fi
 
 if [[ "$CLEAN" == 1 ]]; then
-    echo "-- cleaning .starfleet --"
-    rm -rf .starfleet
+    echo "-- cleaning .starfleet-ai --"
+    rm -rf .starfleet-ai
 fi
 
 for t in git go gh; do
@@ -68,50 +68,54 @@ REPO="git@github.com:mpbt-hq/starfleetctl.git"
 
 if [[ -d ".starfleet-ai/src/starfleetctl/.git" ]]; then
     echo "-- updating starfleetctl source --"
-    git -C .starfleet/src/starfleetctl fetch -q origin
+    git -C .starfleet-ai/src/starfleetctl fetch -q origin
     if [[ -n "$PIN" ]]; then
-        git -C .starfleet/src/starfleetctl checkout -q "$PIN"
+        git -C .starfleet-ai/src/starfleetctl checkout -q "$PIN"
     else
-        git -C .starfleet/src/starfleetctl merge --ff-only origin/master || true
+        git -C .starfleet-ai/src/starfleetctl merge --ff-only origin/master || true
     fi
 else
     echo "-- cloning starfleetctl --"
-    mkdir -p .starfleet/src
-    git clone git@github.com:mpbt-hq/starfleetctl.git .starfleet/src/starfleetctl
+    mkdir -p .starfleet-ai/src
+    git clone git@github.com:mpbt-hq/starfleetctl.git .starfleet-ai/src/starfleetctl
     if [[ -n "$PIN" ]]; then
-        git -C .starfleet/src/starfleetctl checkout -q "$PIN"
+        git -C .starfleet-ai/src/starfleetctl checkout -q "$PIN"
     fi
 fi
 
 if [[ "${SKILLS_ONLY:-0}" != 1 ]]; then
     echo "-- building starfleetctl --"
-    rm -f .starfleet/src/starfleetctl/starfleetctl
-    ( cd .starfleet/src/starfleetctl && go build -o starfleetctl ./cmd/starfleetctl )
-    mkdir -p .starfleet/bin
-    ln -sf ../src/starfleetctl/starfleetctl .starfleet/bin/starfleetctl
+    rm -f .starfleet-ai/src/starfleetctl/starfleetctl
+    ( cd .starfleet-ai/src/starfleetctl && go build -o starfleetctl ./cmd/starfleetctl )
+    mkdir -p .starfleet-ai/bin
+    ln -sf ../src/starfleetctl/starfleetctl .starfleet-ai/bin/starfleetctl
 fi
 
-# wire .bin/starfleetctl -> .starfleet/bin/starfleetctl (absolute path to avoid nested symlink issues)
+# wire .bin/starfleetctl -> .starfleet-ai/bin/starfleetctl (absolute path to avoid nested symlink issues)
 mkdir -p .bin
-ln -sf "$ROOT/.starfleet/bin/starfleetctl" .bin/starfleetctl
+ln -sf "$ROOT/.starfleet-ai/bin/starfleetctl" .bin/starfleetctl
 
 # Use absolute path for all starfleetctl invocations to avoid nested symlink resolution issues
 SB="$ROOT/.bin/starfleetctl"
 
+# Set BUS_DIR for starfleetctl to use .starfleet-ai/agent-bus
+export BUS_DIR="$ROOT/.starfleet-ai/agent-bus"
+
 # 4. run starfleetctl's own bootstrap fix (agent-bus dirs, settings.json allowlist)
 echo "-- starfleetctl bootstrap --fix --"
-"$SB" bootstrap --fix || true
+BUS_DIR="$ROOT/.starfleet-ai/agent-bus" "$SB" bootstrap --fix || true
 
 # 5. install/update skills (claude & opencode) via starfleetctl
-echo "-- installing/updating skills --"
-"$SB" skills install || true
+# Note: skills command not yet implemented in starfleetctl; skip for now
+# echo "-- installing/updating skills --"
+# BUS_DIR="$ROOT/.starfleet-ai/agent-bus" "$SB" skills install || true
 
 # 6. generate opencode launch scripts (flagship & ship)
 if [[ "${LAUNCH:-0}" == 1 ]]; then
     echo "-- generating launch scripts --"
     # Note: starfleetctl genesis launch-scripts not yet implemented; skip for now
     echo "  (launch script generation not yet implemented in starfleetctl)"
-    # .bin/starfleetctl genesis launch-scripts || true
+    # BUS_DIR="$ROOT/.starfleet-ai/agent-bus" "$SB" genesis launch-scripts || true
 fi
 
-echo "starfleet-bootstrap: done — starfleetctl at .starfleet/bin/starfleetctl (also .bin/starfleetctl)"
+echo "starfleet-bootstrap: done — starfleetctl at .starfleet-ai/bin/starfleetctl (also .bin/starfleetctl)"
