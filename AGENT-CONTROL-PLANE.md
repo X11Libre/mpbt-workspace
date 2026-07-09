@@ -43,10 +43,6 @@ this in shared/committed settings — an absent controller would block everythin
 (pending questions time out → workers get the fail decision). Remove the
 `PreToolUse` block to stop routing a worker's approvals.
 
-**For fun:** `scripts/starfleet` — a read-only, Starfleet-themed "bridge" view of
-the fleet (Admiral `$ADMIRAL`, default Archer, commanding; the `control` agent is
-the First Officer). Reflavours the same bus files; changes nothing functional.
-
 ## Roles
 
 - **Control agent** — a human-attended session, `AGENT_ID=control` by convention

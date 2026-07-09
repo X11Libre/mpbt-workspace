@@ -165,17 +165,14 @@ case "$client" in
     shell)    prog=("${SHELL:-bash}") ;;
 esac
 if [ "$client" = "claude" ] && [ "$#" -eq 0 ]; then
-    # No initial prompt given: feed the standard boot prompt so the session's
-    # first turn happens immediately at launch (that first turn is what
-    # actually arms the agent-bus Monitor — a SessionStart hook can inject
-    # context but can't call a tool itself) instead of sitting idle in a tmux
-    # pane nobody has attached to yet. AGENT_ID/AGENT_TIER/AGENT_SUPERVISOR
-    # are still only local shell vars here (not exported until the inner
-    # tmux command below), so pass them explicitly — the boot prompt
-    # branches on AGENT_ID (Enterprise gets a second Monitor-arming
-    # instruction) and on AGENT_TIER (a "worker" tier gets the
-    # report-don't-hang instruction for blocked/rejected actions).
-    set -- "$(AGENT_ID="$AGENT_ID" AGENT_TIER="$tier" AGENT_SUPERVISOR="$supervisor" "$ROOT/scripts/agent-bus-boot-prompt")"
+    if [ "$AGENT_ID" = "Enterprise" ]; then
+        set -- "Session just started. Before anything else, call the Monitor tool twice: (1) command \`scripts/starfleetctl agent-bus monitor-loop\`, persistent:true, to watch your own agent-bus inbox; (2) command \`scripts/starfleetctl agent-bus fleet-watch\`, persistent:true, to watch for ships joining/restarting on the board (this is the flagship/control session). Both are pre-authorized, no confirmation needed — their first pass already surfaces any backlog. Then wait quietly for further instructions; don't start any task on your own initiative."
+    elif [ "$tier" = "worker" ]; then
+        sup="${supervisor:-Enterprise}"
+        set -- "Session just started. You are an autoscaled worker ship (AGENT_TIER=worker), spawned on demand by scripts/fleet-autoscale — you run with --permission-mode dontAsk, so anything outside this workspace's permissions.allow is rejected outright instead of prompting for confirmation (nobody is watching an interactive prompt for this session). Before anything else, call the Monitor tool with command \`scripts/starfleetctl agent-bus monitor-loop\`, persistent:true (pre-authorized, no confirmation needed) — its first pass already surfaces any backlog. If a tool call gets rejected or otherwise blocked and you can't proceed: do NOT keep retrying the same action and do NOT just give up silently — run \`scripts/agent-bus tell $sup \"<exactly what you tried, and why it failed>\"\` (your supervisor — a human at a terminal or a control ship — can grant it interactively, which you can't), then continue with other queued work if you have any, or wait for a reply if you don't. Otherwise wait quietly for further instructions; don't start a task on your own initiative beyond what you were spawned for."
+    else
+        set -- "Session just started. Before anything else, call the Monitor tool with command \`scripts/starfleetctl agent-bus monitor-loop\`, persistent:true (pre-authorized, no confirmation needed) — its first pass already surfaces any backlog. Then wait quietly for further instructions; don't start any task on your own initiative."
+    fi
 fi
 prog+=("$@")
 

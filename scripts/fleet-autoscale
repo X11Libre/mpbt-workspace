@@ -29,8 +29,8 @@
 #       Show current fleet size / idle count / configured cap. No side effects.
 #
 # Worker tier: every spawned ship is tagged AGENT_TIER=worker and
-#   AGENT_SUPERVISOR=<--supervisor, default "Enterprise"> (see agent-run and
-#   agent-bus-boot-prompt) — no per-ship ownership/reassignment tracking, by
+#   AGENT_SUPERVISOR=<--supervisor, default "Enterprise"> (see agent-run) — no
+#   per-ship ownership/reassignment tracking, by
 #   deliberate simplification (any control ship may address any free worker
 #   ship; see DASHBOARD.md). For --client claude, --permission-mode (default
 #   "dontAsk") is forwarded to `claude` so a blocked/rejected action fails
