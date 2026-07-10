@@ -16,6 +16,7 @@
 @agents.d/project/go-x11proto-flyingtux-and-starfleetctl-are-their-own-mpbt.md
 @agents.d/project/template-symlink-system.md
 @agents.d/project/important-quirks.md
+@agents.d/xlibre/backport-security-fixes-2026-07-10.md
 @agents.d/starfleet/concurrency-isolation-multiple-sessions-manual-work.md
 @agents.d/project/submit-branch-hygiene-is-a-branch-already-in-master.md
 @agents.d/project/x-server-reply-wire-format-rpcbuf-padding-is-done-by-the-os.md
@@ -27,4 +28,3 @@
 @agents.d/project/no-ci-no-tests-no-lint-no-formatter.md
 @agents.d/project/file-layout-reminder.md
 @agents.d/starfleet/starfleetctl.md
-@agents.d/xlibre/backport-security-fixes-2026-07-10.md
