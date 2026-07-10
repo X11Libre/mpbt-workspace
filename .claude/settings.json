@@ -211,6 +211,12 @@
             "type": "command",
             "command": "\"$CLAUDE_PROJECT_DIR\"/scripts/confirm-log-hook 2>/dev/null || true",
             "statusMessage": "confirm-log: telemetry"
+          },
+          {
+            "type": "command",
+            "timeout": 120,
+            "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/agent-permission-hook",
+            "statusMessage": "agent-permission: 1st officer"
           }
         ]
       }
