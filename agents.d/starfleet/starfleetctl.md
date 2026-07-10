@@ -26,7 +26,7 @@ starfleetctl is deployed into a workspace via the **genesis → bootstrap** two-
    ```
    starfleetctl genesis-init .
    ```
-   This also runs `bootstrap --fix` to set up AGENTS.md, `.starfleet-ai/DASHBOARD.md`, allowlist entries,
+   This also runs `bootstrap --fix` to set up AGENTS.md, DASHBOARD.md, allowlist entries,
    `_WORK_/` directories, agent fragments, and opencode plugins/scripts.
 
 2. **Phase B (bootstrap):** The committed `starfleet-bootstrap` script clones or pulls the
@@ -115,7 +115,7 @@ same `_WORK_/agent-bus/` files without racing or misreading each other's state.
 | Subcommand | Purpose |
 |---|---|
 | `agent-bus <cmd>` | Cross-session status board + directive bus. Worker side: `status <state> ["note"]`, `inbox [--json]`, `ack <id>`, `ask "<q>"`, `clear`. Control side: `board [--json]`, `tell <agent> <text>`, `broadcast <text>`, `reply <qid> <answer>`, `asks`, `msgs [--json]`, `events [N]`, `prune`. `--json` on `board`/`inbox`/`msgs`/`asks` prints a JSON array instead of the human table. `tell`/`broadcast` also accept `--stdin` to read the message body from stdin, bypassing the OS `ARG_MAX` limit on argv (use it for payloads > ~100 KB). Also has `monitor-loop`/`fleet-watch`/`watch` polling loops — **see [Known limitations](#known-limitations-and-parity-notes)**, they are not wired into any production polling harness. |
-| `dashboard <cmd>` | Read/write/commit cycle for `mpbt-workspace`'s `.starfleet-ai/DASHBOARD.md` (the thin, regenerated index, kept under `.starfleet-ai/` with the rest of the starfleetctl state): `pull`, `show`, `write <file\|->`, `commit -m "<msg>" [--no-push]`, `reindex` (rebuild the index from every `dashboard/themes/*.md` file's frontmatter). `dashboard theme <cmd>` is the per-theme-file counterpart, the only sanctioned way to read/write `dashboard/themes/*.md` (agents must not touch it via `Read`/`Edit`/`Write` directly — see `mpbt-workspace`'s `AGENTS.md`): `theme list [--json]`, `theme show <slug>`, `theme write <slug> <file\|->`, `theme new <slug> --title "<t>" [--status "<s>"] [--parked]`, `theme commit <slug> -m "<msg>" [--no-push]` (commits+pushes just that one file, correctly `git add`s it whether already tracked or brand new). |
+| `dashboard <cmd>` | Read/write/commit cycle for `mpbt-workspace`'s `DASHBOARD.md` (the thin, regenerated index): `pull`, `show`, `write <file\|->`, `commit -m "<msg>" [--no-push]`, `reindex` (rebuild the index from every `dashboard/themes/*.md` file's frontmatter). `dashboard theme <cmd>` is the per-theme-file counterpart, the only sanctioned way to read/write `dashboard/themes/*.md` (agents must not touch it via `Read`/`Edit`/`Write` directly — see `mpbt-workspace`'s `AGENTS.md`): `theme list [--json]`, `theme show <slug>`, `theme write <slug> <file\|->`, `theme new <slug> --title "<t>" [--status "<s>"] [--parked]`, `theme commit <slug> -m "<msg>" [--no-push]` (commits+pushes just that one file, correctly `git add`s it whether already tracked or brand new). |
 | `pr-claim <cmd>` | Advisory cross-agent PR-branch lock + shared work log, keyed by PR number: `pr-claim <pr#> ["what"]`, `--list [--json]`, `--release <pr#>`, `--release-all`, `--steal <pr#> ["what"]`, `--who <pr#>`. |
 | `ws-commit` | `ws-commit -m "<msg>" <path> [<path>...]` (or `-a` for all tracked changes, `--no-push` to skip the push) — commit+push under the shared clone lock, so concurrent sessions don't race the same working tree's index/HEAD. |
 | `ship-names <cmd>` | Star-Trek-themed per-session identity registry: `assign [flagship]`, `release <name>`, `list [--json]`, `gc`, `flagship`. |
@@ -172,10 +172,13 @@ separate decision gated on review, same as the read-only set was before it got t
   three independent from-scratch minimal Go reproductions of the same shape (a bare sleep-loop, a
   directory-poll loop, and that loop plus a held file handle) all worked fine under `Monitor` too.
   Directory-cache staleness, held-fd interference, and workspace-root resolution were all
-  specifically ruled out; the actual cause is not understood. Until it is, the bash originals
-  (`scripts/agent-bus-monitor-loop`, `scripts/agent-bus-fleet-watch`) remain the only
-  `Monitor`-tool-safe implementation. `agent-bus watch` (a `setsid`-detached background daemon, a
-  different execution model entirely) was not tested against this failure mode.
+  specifically ruled out; the original reporter (Farragut, m0047) could not reproduce it on
+  re-test (m0104/m0107), nor could Constellation (m0087) — the bug is very likely gone (a
+  Claude Code/`Monitor`-tool-side fix landing between sessions). Per m0087/m0120 (monitor-loop)
+  and m0138 (fleet-watch), both were **cut over to the Go `agent-bus monitor-loop`/`fleet-watch`
+  subcommands** (2026-07-07) and the bash originals retired (kept at most as fallback). `agent-bus
+  watch` (a `setsid`-detached background daemon, a different execution model entirely) remains
+  untested against this failure mode.
 - **`backport-commit`'s path-remap fallback uses a literal string replace, not a regex, unlike the
   bash original.** The bash script's directory-reorg remap runs the old/new path pair through
   `sed`, so a `.` in a path is technically a basic-regex wildcard there; this port uses
