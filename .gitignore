@@ -8,3 +8,4 @@ __pycache__/
 /.starfleet/
 /.starfleet-ai/
 /.claude/hooks/
+/agents.d/starfleet/
