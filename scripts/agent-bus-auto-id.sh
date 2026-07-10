@@ -29,18 +29,42 @@
 #
 # Usage: source this from ~/.bashrc (bash) or ~/.zshrc (zsh):
 #
-#   [ -f /home/nekrad/src/xorg/mpbt-workspace/scripts/agent-bus-auto-id.sh ] && \
-#     . /home/nekrad/src/xorg/mpbt-workspace/scripts/agent-bus-auto-id.sh
+#   [ -f /path/to/workspace/scripts/agent-bus-auto-id.sh ] && \
+#     . /path/to/workspace/scripts/agent-bus-auto-id.sh
 #
-# Deliberately does NOT overwrite an already-set $AGENT_ID, so it composes
-# with the run-opencode.xserver-* wrappers and run-control (which export their
-# own identity before spawning the client).
+# The workspace root is auto-discovered by walking up from the script's
+# on-disk location looking for AGENTS.md + scripts/ (same landmarks a human
+# would use). Works from any path, no hardcoded absolute paths.
+#
+# Deliberately does NOT overwrite an already-set $STARFLEET_SHIP_ID, so it
+# composes with the run-opencode.xserver-* wrappers and run-control (which
+# export their own identity before spawning the client).
 
-_MPBT_WS_ROOT="/home/nekrad/src/xorg/mpbt-workspace"
+# Resolve workspace root: walk up from this script's real path looking for
+# AGENTS.md next to scripts/ (the same landmarks starfleetctl uses).
+_mpbt_find_ws_root() {
+    local dir
+    dir="$(cd "$(dirname "$(realpath "${BASH_SOURCE[0]}")")" && pwd)"
+    while [ "$dir" != "/" ]; do
+        if [ -f "$dir/AGENTS.md" ] && [ -d "$dir/scripts" ]; then
+            echo "$dir"
+            return 0
+        fi
+        dir="$(dirname "$dir")"
+    done
+    return 1
+}
+
+_MPBT_WS_ROOT="$(_mpbt_find_ws_root)" || {
+    echo "agent-bus-auto-id.sh: could not locate workspace root (no AGENTS.md + scripts/ found walking up from script location)" >&2
+    return 1 2>/dev/null || exit 1
+}
+
+_STARFLEETCTL_BIN="$_MPBT_WS_ROOT/.starfleet-ai/bin/starfleetctl"
 
 # Called on first entry into the workspace when STARFLEET_SHIP_ID is unset.
 _mpbt_assign_ship_name() {
-    STARFLEET_SHIP_ID="$("$_MPBT_WS_ROOT/.starfleet-ai/bin/starfleetctl ship-names" assign 2>/dev/null)" || true
+    STARFLEET_SHIP_ID="$("$_STARFLEETCTL_BIN" ship-names assign 2>/dev/null)" || true
     [ -z "${STARFLEET_SHIP_ID:-}" ] && STARFLEET_SHIP_ID="ws-$$"
     export STARFLEET_SHIP_ID
 
@@ -51,10 +75,10 @@ _mpbt_assign_ship_name() {
     # Release the reservation when this interactive shell exits.
     if [ -n "${BASH_VERSION:-}" ]; then
         # shellcheck disable=SC2064  (intentional: capture current STARFLEET_SHIP_ID value)
-        trap "\"$_MPBT_WS_ROOT/.starfleet-ai/bin/starfleetctl ship-names\" release \"$STARFLEET_SHIP_ID\" >/dev/null 2>&1 || true" EXIT
+        trap "\"$_STARFLEETCTL_BIN ship-names\" release \"$STARFLEET_SHIP_ID\" >/dev/null 2>&1 || true" EXIT
     elif [ -n "${ZSH_VERSION:-}" ]; then
         _mpbt_ship_exit() {
-            "$_MPBT_WS_ROOT/.starfleet-ai/bin/starfleetctl ship-names" release "$STARFLEET_SHIP_ID" >/dev/null 2>&1 || true
+            "$_STARFLEETCTL_BIN" ship-names release "$STARFLEET_SHIP_ID" >/dev/null 2>&1 || true
         }
         add-zsh-hook zshexit _mpbt_ship_exit 2>/dev/null || true
     fi
@@ -89,6 +113,7 @@ _mpbt_prompt_with_ship() {
 
 if [ -n "${BASH_VERSION:-}" ]; then
     PROMPT_COMMAND="_mpbt_agent_id_autoassign${PROMPT_COMMAND:+; $PROMPT_COMMAND}"
+    _mpbt_agent_id_autoassign
 elif [ -n "${ZSH_VERSION:-}" ]; then
     autoload -Uz add-zsh-hook 2>/dev/null
     add-zsh-hook chpwd _mpbt_agent_id_autoassign 2>/dev/null
