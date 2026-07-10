@@ -11,7 +11,7 @@ agent, who asks the human once and routes the answer back. Built on `agent-bus`
 **Be the 1st officer.** In the one session you want to man, start it as the
 controller and watch the board:
 
-    export AGENT_ID=control          # this session is the controller
+    export STARFLEET_SHIP_ID=control          # this session is the controller
     scripts/agent-bus board          # who's online, who has unanswered mail
     scripts/agent-bus asks           # questions waiting for you
 
@@ -45,7 +45,7 @@ this in shared/committed settings — an absent controller would block everythin
 
 ## Roles
 
-- **Control agent** — a human-attended session, `AGENT_ID=control` by convention
+- **Control agent** — a human-attended session, `STARFLEET_SHIP_ID=control` by convention
   (`$AGENT_CONTROLLER` overrides the target). Runs the notify watcher
   (`.bin/starfleetctl agent-bus watch`, see AGENTS.md) so new questions surface; answers the human
   (e.g. via the client's question UI) and replies on the bus.

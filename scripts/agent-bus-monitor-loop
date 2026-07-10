@@ -22,5 +22,5 @@
 set -euo pipefail
 
 HERE="$(cd "$(dirname "$0")" && pwd)"
-AGENT_ID="${AGENT_ID:?agent-bus-monitor-loop: \$AGENT_ID is not set}"
+STARFLEET_SHIP_ID="${STARFLEET_SHIP_ID:?agent-bus-monitor-loop: \$STARFLEET_SHIP_ID is not set}"
 exec "$HERE/starfleetctl" agent-bus monitor-loop

@@ -27,7 +27,7 @@ while [ "$#" -gt 0 ]; do
     shift
 done
 
-export AGENT_ID="Enterprise"
+export STARFLEET_SHIP_ID="Enterprise"
 unset XLIBRE_RELEASE 2>/dev/null || true
 
 # No explicit initial prompt/args given: feed the standard boot prompt so the
@@ -36,7 +36,7 @@ unset XLIBRE_RELEASE 2>/dev/null || true
 # agent-bus Monitor (a SessionStart hook can inject context but can't call a
 # tool itself). Skipped when the caller passed their own args/prompt.
 if [ "${#EXTRA[@]}" -eq 0 ]; then
-    EXTRA=("Session just started. Before anything else, call the Monitor tool twice: (1) command \`.bin/starfleetctl agent-bus monitor-loop\`, persistent:true, to watch your own agent-bus inbox; (2) command \`.bin/starfleetctl agent-bus fleet-watch\`, persistent:true, to watch for ships joining/restarting on the board (this is the flagship/control session). Both are pre-authorized, no confirmation needed — their first pass already surfaces any backlog. Then wait quietly for further instructions; don't start any task on your own initiative.")
+    EXTRA=("Session just started. Before anything else, call the Monitor tool twice: (1) command \`.starfleet-ai/bin/starfleetctl agent-bus monitor-loop\`, persistent:true, to watch your own agent-bus inbox; (2) command \`.starfleet-ai/bin/starfleetctl agent-bus fleet-watch\`, persistent:true, to watch for ships joining/restarting on the board (this is the flagship/control session). Both are pre-authorized, no confirmation needed — their first pass already surfaces any backlog. Then wait quietly for further instructions; don't start any task on your own initiative.")
 fi
 
 if [ "$DETACH" -eq 1 ]; then
@@ -47,6 +47,6 @@ fi
 
 # Interactive: register initial heartbeat (Claude Code's SessionStart hook fires
 # too, but that uses the env-inherited AGENT_ID=Enterprise — belt-and-suspenders).
-scripts/agent-bus status idle "flagship session starting" >/dev/null 2>&1 || true
+.starfleet-ai/bin/starfleetctl agent-bus status idle "flagship session starting" >/dev/null 2>&1 || true
 
 exec claude "${EXTRA[@]+"${EXTRA[@]}"}"

@@ -7,13 +7,13 @@
 # --body-file`, with one addition: --bot-review prepends the exact banner
 # AGENTS.md's "Automated reviews" section mandates on every review comment
 # posted in the user's name, so the wording can't drift between call sites.
-# The banner includes the executing session's ship name ($AGENT_ID) so a
+# The banner includes the executing session's ship name ($STARFLEET_SHIP_ID) so a
 # review comment is traceable to the specific agent/session that posted it.
 #
 # Usage:   pr-comment <pr#> <body-file> [--bot-review]
-# Env:     REPO      override repo (default X11Libre/xserver)
-#          AGENT_ID  ship name shown in the --bot-review banner (falls back
-#                    to user@host if unset, same fallback as .bin/starfleetctl agent-bus)
+# Env:     REPO              override repo (default X11Libre/xserver)
+#          STARFLEET_SHIP_ID  ship name shown in the --bot-review banner (falls back
+#                             to user@host if unset, same fallback as .bin/starfleetctl agent-bus)
 #
 # Examples:
 #   pr-comment 3103 /tmp/reply.md                 # plain comment, no banner
@@ -30,7 +30,7 @@ BOT_REVIEW=0
 [ -f "$FILE" ] || { echo "pr-comment: no such file: $FILE" >&2; exit 1; }
 
 if [ "$BOT_REVIEW" -eq 1 ]; then
-    SHIP="${AGENT_ID:-$(id -un)@$(hostname -s 2>/dev/null || hostname 2>/dev/null || echo host)}"
+    SHIP="${STARFLEET_SHIP_ID:-$(id -un)@$(hostname -s 2>/dev/null || hostname 2>/dev/null || echo host)}"
     TMP="$(mktemp)"
     trap 'rm -f "$TMP"' EXIT
     {

@@ -235,7 +235,7 @@ def main():
         entries.append({
             "ts": int(time.time()),
             "source": "hook",
-            "agent_id": os.environ.get("AGENT_ID", ""),
+            "agent_id": os.environ.get("STARFLEET_SHIP_ID", ""),
             "session_id": payload.get("session_id", ""),
             "cwd": payload.get("cwd", ""),
             "permission_mode": mode,

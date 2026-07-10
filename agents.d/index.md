@@ -2,14 +2,12 @@
      Edit the fragment files themselves (agents.d/<slug>.md) instead, then
      re-run reindex (agents new/write do this for you automatically). -->
 
-@agents.d/local/local-knowledge-dump.md
-
 @agents.d/mpbt/what-this-is.md
-@agents.d/mpbt/use-work-tempdir.md
-
+@agents.d/local/local-knowledge-dump.md
 @agents.d/project/what-this-is.md
 @agents.d/starfleet/inter-ship-communication.md
 @agents.d/starfleet/fleet-autonomous.md
+@agents.d/mpbt/use-work-tempdir.md
 @agents.d/starfleet/working-practices-standing-instructions-for-agents.md
 @agents.d/project/bootstrapping-a-fresh-clone.md
 @agents.d/project/key-commands.md

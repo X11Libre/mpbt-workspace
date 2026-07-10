@@ -1,7 +1,7 @@
 import type { Plugin } from "@opencode-ai/plugin";
 
 export default (async ({ client }) => {
-  const shipName = process.env.AGENT_ID;
+  const shipName = process.env.STARFLEET_SHIP_ID;
   if (!shipName) return {};
 
   return {

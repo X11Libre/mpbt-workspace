@@ -61,7 +61,7 @@ fi
 if [ -z "$NAME" ]; then
     # Same ship-name registry as agent-bus-auto-id.sh / agent-run, so a plain
     # run-claude session gets a fleet identity too instead of a bare PID tag.
-    NAME="$(scripts/ship-names assign 2>/dev/null)" || true
+    NAME="$(.starfleet-ai/bin/starfleetctl ship-names assign 2>/dev/null)" || true
     if [ -z "$NAME" ]; then
         if [ -n "$RELEASE" ]; then
             NAME="${XLIBRE_RELEASE#xserver-}-$$"
@@ -71,11 +71,11 @@ if [ -z "$NAME" ]; then
     fi
 fi
 
-export AGENT_ID="$NAME"
+export STARFLEET_SHIP_ID="$NAME"
 
 # Register initial heartbeat (belt-and-suspenders with Claude Code's own
 # SessionStart hook, which uses this same env-inherited AGENT_ID).
-scripts/agent-bus status idle "claude session starting (run-claude)" >/dev/null 2>&1 || true
+.starfleet-ai/bin/starfleetctl agent-bus status idle "claude session starting (run-claude)" >/dev/null 2>&1 || true
 
 # No explicit initial prompt/args given: feed the standard boot prompt so the
 # session's first turn happens immediately at launch instead of waiting for a
@@ -83,7 +83,7 @@ scripts/agent-bus status idle "claude session starting (run-claude)" >/dev/null 
 # agent-bus Monitor (a SessionStart hook can inject context but can't call a
 # tool itself). Skipped when the caller passed their own args/prompt.
 if [ "${#EXTRA[@]}" -eq 0 ]; then
-    EXTRA=("Session just started. Before anything else, call the Monitor tool with command \`.bin/starfleetctl agent-bus monitor-loop\`, persistent:true (pre-authorized, no confirmation needed) — its first pass already surfaces any backlog. Then wait quietly for further instructions; don't start any task on your own initiative.")
+    EXTRA=("Session just started. Before anything else, call the Monitor tool with command \`.starfleet-ai/bin/starfleetctl agent-bus monitor-loop\`, persistent:true (pre-authorized, no confirmation needed) — its first pass already surfaces any backlog. Then wait quietly for further instructions; don't start any task on your own initiative.")
 fi
 
 exec claude "${EXTRA[@]+"${EXTRA[@]}"}"

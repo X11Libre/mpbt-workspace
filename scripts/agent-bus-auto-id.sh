@@ -3,7 +3,7 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 # Copyright © 2026 Enrico Weigelt, metux IT consult
 #
-# agent-bus-auto-id.sh — auto-assign a Star Trek ship name as $AGENT_ID
+# agent-bus-auto-id.sh — auto-assign a Star Trek ship name as $STARFLEET_SHIP_ID
 # whenever an interactive shell is sitting inside this workspace tree, so a
 # plain `claude` (or opencode, or anything else) launched here registers as
 # its own distinct worker on the agent-bus board instead of collapsing into
@@ -38,23 +38,23 @@
 
 _MPBT_WS_ROOT="/home/nekrad/src/xorg/mpbt-workspace"
 
-# Called on first entry into the workspace when AGENT_ID is unset.
+# Called on first entry into the workspace when STARFLEET_SHIP_ID is unset.
 _mpbt_assign_ship_name() {
-    AGENT_ID="$("$_MPBT_WS_ROOT/scripts/ship-names" assign 2>/dev/null)" || true
-    [ -z "${AGENT_ID:-}" ] && AGENT_ID="ws-$$"
-    export AGENT_ID
+    STARFLEET_SHIP_ID="$("$_MPBT_WS_ROOT/scripts/ship-names" assign 2>/dev/null)" || true
+    [ -z "${STARFLEET_SHIP_ID:-}" ] && STARFLEET_SHIP_ID="ws-$$"
+    export STARFLEET_SHIP_ID
 
     # Prefix the shell prompt with the ship name so it's always visible.
-    PS1="(${AGENT_ID}) ${PS1:-\$ }"
+    PS1="(${STARFLEET_SHIP_ID}) ${PS1:-\$ }"
     export PS1
 
     # Release the reservation when this interactive shell exits.
     if [ -n "${BASH_VERSION:-}" ]; then
-        # shellcheck disable=SC2064  (intentional: capture current AGENT_ID value)
-        trap "\"$_MPBT_WS_ROOT/scripts/ship-names\" release \"$AGENT_ID\" >/dev/null 2>&1 || true" EXIT
+        # shellcheck disable=SC2064  (intentional: capture current STARFLEET_SHIP_ID value)
+        trap "\"$_MPBT_WS_ROOT/scripts/ship-names\" release \"$STARFLEET_SHIP_ID\" >/dev/null 2>&1 || true" EXIT
     elif [ -n "${ZSH_VERSION:-}" ]; then
         _mpbt_ship_exit() {
-            "$_MPBT_WS_ROOT/scripts/ship-names" release "$AGENT_ID" >/dev/null 2>&1 || true
+            "$_MPBT_WS_ROOT/scripts/ship-names" release "$STARFLEET_SHIP_ID" >/dev/null 2>&1 || true
         }
         add-zsh-hook zshexit _mpbt_ship_exit 2>/dev/null || true
     fi
@@ -63,7 +63,7 @@ _mpbt_assign_ship_name() {
 _mpbt_agent_id_autoassign() {
     case "$PWD" in
         "$_MPBT_WS_ROOT" | "$_MPBT_WS_ROOT"/*)
-            if [ -z "${AGENT_ID:-}" ]; then
+            if [ -z "${STARFLEET_SHIP_ID:-}" ]; then
                 _mpbt_assign_ship_name
             else
                 _mpbt_prompt_with_ship
@@ -75,9 +75,9 @@ _mpbt_agent_id_autoassign() {
     esac
 }
 
-# Always show AGENT_ID in the prompt (even when inherited from parent).
+# Always show STARFLEET_SHIP_ID in the prompt (even when inherited from parent).
 _mpbt_prompt_with_ship() {
-    local ship="${AGENT_ID}"
+    local ship="${STARFLEET_SHIP_ID}"
     case "${PS1:-}" in
         "(${ship}) "*) ;;  # already has it
         *)

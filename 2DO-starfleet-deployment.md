@@ -38,15 +38,15 @@ Phase 2: bootstrapping (zb. frisch geklonte repo oder spätere aktualisierung)
 ✅ ./scripts/ws-commit noch nötig ? -- ja (thin wrapper, von scripts/dashboard gecallt)
 ✅ sind die scripts/pr-* scripte generisch oder Xlibre-spezifisch ? -- AUDIT DONE: pr-amend-push/pr-claim generisch, rest per $REPO konfigurierbar mit X11Libre/xserver default, pr-checkout hat XLibre-Pfadannahmen
 ✅ ./scripts/json noch nötig ? -- ja (convenience, in settings.json allowlist)
-*️ ./scripts/agent-bus-monitor-loop noch nötig ? -- ja, noch von Claude Monitor Tool benötigt => automatisch installieren lassen (evtl. gitignore ?)
+*️ ./scripts/agent-bus-monitor-loop noch nötig ? -- JA, Go monitor-loop hat bekannten Monitor-Tool-Bug (README Known limitations). Kann später als embedded fragment in starfleetctl (claude-hooks/) + auto-install via bootstrap, aber bash-Version bleibt bis Go-Bug gefixt ist.
 ✅ command manual für starfleetctl --> in starfleet repo --> als .md und mit README verlinkt, sodaß man's schnell via github finden / anschauen kann -- DONE: README.md aktualisiert mit genesis/bootstrap deployment, genesis-init/self-install docs
-* xlibre-spezfische dinge im starfleetctl --> sollten dort nicht sein
-* wozu dient $AGENT_HANDLE ?
+✅ xlibre-spezfische dinge im starfleetctl --> DONE: DefaultRepo entfernt, Repo() eingeführt mit STARFLEET_GITHUB_REPO env, Kommentare gesäubert. Verbleibend: session/pkg *xserver-* release prefix noch XLibre-spezifisch (nicht kritisch)
+✅ wozu dient $AGENT_HANDLE ? -- tmux session name (flagship/worker01), gesetzt in session/launch.go, von agentbus als status-label verwendet
 * Vorbereitung für multi-fleet: ein Flottille ist immer auf einem Host innerhalb eines Workspace (startrek-metapher: steht in einem System)
   später sollen verschiedene Flottillen (separate hosts oder workspaces) miteinander reden können 
-* AGENT-CONTROL-PLANE.md --> outdated --> überhaupt noch nötig ?
-* BIGFONT.md --> noch nötig ? evtl aufs dashboard ?
-* CI-GOXTS-XEPHYR.md --> gibts einen besseren Platz ? xlibre-spezifische instructions oder dashboard ?
-* DASHBOARD-RESTRUCTURE.md --> same
-* scripts/ship-names --> brauchen wir den symlink noch ?
-* ./starfleet-bootstrap --> auto-installed notice fehlt noch (auch kommentar mit welchem kommando das installiert wurde)
+* AGENT-CONTROL-PLANE.md --> outdated? --> NEIN, aktives Architektur-Dokument. Keep.
+* BIGFONT.md --> noch nötig ? --> JA, Referenz für BigFont extension. Keep (evtl später nach docs/).
+* CI-GOXTS-XEPHYR.md --> gibts einen besseren Platz ? --> Warum verschieben? Ist operational knowledge, genau richtig im root. Keep.
+* DASHBOARD-RESTRUCTURE.md --> aktueller Design-Entwurf (pending review vom 2026-07-06). Keep.
+✅ scripts/ship-names.txt symlink --> JA, agent-bus-auto-id.sh referenziert es noch. Keep.
+✅ ./starfleet-bootstrap --> auto-install notice ergänzt (auch im genesis-template)
