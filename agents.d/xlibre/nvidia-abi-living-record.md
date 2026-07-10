@@ -1,10 +1,17 @@
-# NVIDIA driver ABI dependencies
+---
+slug: xlibre/nvidia-abi-living-record
+title: "NVIDIA driver ABI — living record of empirical findings"
+order: 200
+owner: "Excelsior"
+---
+
+## NVIDIA driver ABI — living record of empirical findings
 
 **Living document.** What the proprietary NVIDIA X driver actually consumes from the X server's
-driver ABI. Used during PR review (see the "Automated reviews → driver-ABI" section in
-`AGENTS.md`) to decide whether a change can break an installed — possibly *old* — nvidia blob,
-which **cannot be recompiled**. Maintained by **both humans and agents**: append confirmed
-findings, prune false positives, and bump the "versions checked" list as new drivers are tested.
+driver ABI. Used during PR review (see `bot-review` skill, rule 3) to decide whether a change
+breaks an installed — possibly *old* — nvidia blob, which **cannot be recompiled**. Maintained
+by **both humans and agents**: append confirmed findings, prune false positives, bump the
+"versions checked" list as new drivers are tested.
 
 ## Why this matters
 
@@ -45,8 +52,8 @@ hold across **all** of these unless noted. **TODO:** widen with
 
 Server-ABI symbols the blob references (excluding libc/system): **~335 hard imports + ~40
 runtime-lookups**. By subsystem (hard imports): `xf86*` 76, `mi*` 49, `RR*` 33, `dix*` 11,
-`miOverlay*` 5 (←!), `Picture*` 3, `Composite*` 2, `Loader*` 1. Plus public structs read at fixed
-offsets (`ScrnInfoRec`, `ScreenRec`, …) — **do not reorder/insert fields except at the tail**.
+`miOverlay*` 5 (←!), `Picture*` 3, `Composite*` 2, `Loader*` 1. Plus public structs read at
+fixed offsets (`ScrnInfoRec`, `ScreenRec`, …) — **do not reorder/insert fields except at the tail**.
 
 ### Runtime-lookup-only symbols (resolved by name — `nm` does NOT see these)
 
@@ -73,7 +80,7 @@ These are the dangerous, easy-to-miss ones. **Must stay `_X_EXPORT`.**
 | `miInitOverlay`, `miOverlayComputeCompositeClip`, `miOverlayCollectUnderlayRegions`, `miOverlayCopyUnderlay`, `miOverlayGetPrivateClips`, `miOverlaySetRootClip` | keep exported — **link-imported by all of 390/470/550/570** | #1786 (delete) breaks all; #1787 (dummy-export) is safe |
 | `xf86CursorScreenKeyRec` | keep `_X_EXPORT` — **runtime-looked-up by all 4** | #2070 |
 | `monitorResolution` | keep `_X_EXPORT` — **runtime-looked-up by all 4** | (still exported in `include/globals.h`; watch it) |
-| `PictureMatchVisual`, `PictureFindFilter`, `SetPictureFilter` | keep exported | #1469 keeps them; drivers use them |
+| `PictureMatchVisual`, `PictureFindFilter`, `PictureMatchFilter`, `SetPictureFilter` | keep exported | #1469 keeps them; drivers use them |
 | `ScreenRec` / `ScrnInfoRec` etc. | append new fields only at the **tail** (past the PRIVATE marker) | #2662 (tail-append) was safe |
 
 ### Confirmed *not* used (safe to remove, per these versions)
@@ -89,13 +96,13 @@ These are the dangerous, easy-to-miss ones. **Must stay `_X_EXPORT`.**
 - DIX internal region helpers `InitRegions`, `RegionRectAlloc`, `RegionIsValid`, `RegionPrint`
   unexported by #1389 (moved to a private `dix/region_priv.h`) — neither imported nor looked up by
   name in any of the 4. `InitRegions` is a one-time DIX init (`dix/main.c`); `RegionRectAlloc` is an
-  internal pixman-region grow helper; `RegionIsValid`/`RegionPrint` are `DEBUG`-only. Drivers use the
-  exported `Region*` API (`RegionCreate`/`RegionInit`/…), not these. Safe to unexport.
+  internal pixman-region grow helper; `RegionIsValid`/`RegionPrint` are `DEBUG`-only. Drivers use
+  the exported `Region*` API (`RegionCreate`/`RegionInit`/…), not these. Safe to unexport.
 
 ### Batch sweep of open `unexport` PRs (2026-06-25, vs 390.157 / 470.256.02 / 550.142 / 570.133.07)
 
 All open `unexport`-labelled PRs were checked (link-import ∪ runtime-lookup). The label
-`needs-nvidia-verification` was added to each to gate the merge on maintainer sign-off. **Net**-
+`needs-nvidia-verification` was added to each to gate the merge on maintainer sign-off. **Net**
 unexported symbols only (a symbol re-added with `_X_EXPORT` in the same diff stays exported and was
 excluded). All of the below are **unreferenced by all 4** → safe:
 
@@ -119,7 +126,8 @@ by runtime string concatenation would evade detection. None observed so far, but
 ## NVIDIA GL/GLX protocol surface (how the closed stack plugs in)
 
 Reverse-engineered from `nvidia_drv.so`, `libglx.so.390.157`, `libglxserver_nvidia.so.{470,550,570}`
-(strings/symbols). NVIDIA is closed-source, so wire layouts of the private opcodes are **not** public.
+(strings/symbols). NVIDIA is closed-source, so wire layouts of the private opcodes are **not**
+public.
 
 - **Standard GLX** — public X extension; full GLX 1.4. Carries context/drawable/fbconfig *setup*
   (and, for *indirect* rendering only, the GL stream). Direct rendering does **not** flow over GLX.
@@ -150,5 +158,6 @@ compositors and single-screen EGL apps use — instead of NVIDIA's X-specific bl
 consumer that *cannot be recompiled* (the blob). **Replacing it with an open, recompilable driver
 lifts that constraint** — the unexport/struct-layout rules stop being load-bearing for the NVIDIA
 path once the blob is gone. So this doc is the map of what must hold *until* the replacement lands,
-and the checklist of what the open driver must re-provide. (See architecture notes in the project
-discussion / a future `NVIDIA-OPEN-DDX.md`.)
+and the checklist of what the open driver must re-provide. (See architecture notes in
+`NVIDIA-OPEN-DDX.md`.)
+
