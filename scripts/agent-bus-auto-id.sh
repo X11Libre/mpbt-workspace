@@ -9,8 +9,8 @@
 # its own distinct worker on the agent-bus board instead of collapsing into
 # the `user@host` fallback identity (see AGENTS.md "Concurrency / isolation").
 #
-# Each new shell in the workspace is assigned the next unused ship name from
-# scripts/ship-names.txt via scripts/ship-names (flock-serialized, atomic).
+# Each new shell in the workspace is assigned the next unused ship name via
+# `.starfleet-ai/bin/starfleetctl ship-names assign` (flock-serialized, atomic).
 # Enterprise is reserved for the flagship/control session. The ship name is
 # released automatically when the interactive shell exits (via EXIT trap / zsh
 # zshexit hook), and also by Claude Code's SessionEnd hook.
@@ -40,7 +40,7 @@ _MPBT_WS_ROOT="/home/nekrad/src/xorg/mpbt-workspace"
 
 # Called on first entry into the workspace when STARFLEET_SHIP_ID is unset.
 _mpbt_assign_ship_name() {
-    STARFLEET_SHIP_ID="$("$_MPBT_WS_ROOT/scripts/ship-names" assign 2>/dev/null)" || true
+    STARFLEET_SHIP_ID="$("$_MPBT_WS_ROOT/.starfleet-ai/bin/starfleetctl ship-names" assign 2>/dev/null)" || true
     [ -z "${STARFLEET_SHIP_ID:-}" ] && STARFLEET_SHIP_ID="ws-$$"
     export STARFLEET_SHIP_ID
 
@@ -51,10 +51,10 @@ _mpbt_assign_ship_name() {
     # Release the reservation when this interactive shell exits.
     if [ -n "${BASH_VERSION:-}" ]; then
         # shellcheck disable=SC2064  (intentional: capture current STARFLEET_SHIP_ID value)
-        trap "\"$_MPBT_WS_ROOT/scripts/ship-names\" release \"$STARFLEET_SHIP_ID\" >/dev/null 2>&1 || true" EXIT
+        trap "\"$_MPBT_WS_ROOT/.starfleet-ai/bin/starfleetctl ship-names\" release \"$STARFLEET_SHIP_ID\" >/dev/null 2>&1 || true" EXIT
     elif [ -n "${ZSH_VERSION:-}" ]; then
         _mpbt_ship_exit() {
-            "$_MPBT_WS_ROOT/scripts/ship-names" release "$STARFLEET_SHIP_ID" >/dev/null 2>&1 || true
+            "$_MPBT_WS_ROOT/.starfleet-ai/bin/starfleetctl ship-names" release "$STARFLEET_SHIP_ID" >/dev/null 2>&1 || true
         }
         add-zsh-hook zshexit _mpbt_ship_exit 2>/dev/null || true
     fi
