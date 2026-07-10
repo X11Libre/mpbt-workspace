@@ -34,3 +34,21 @@ Phase 2: bootstrapping (zb. frisch geklonte repo oder spätere aktualisierung)
 ✅ agent-bus files (mbox, logs, ...) auch unterhalb von .starfleet-ai/agent-bus/
 🔄 agent-bus-poller.ts opencode plugin in starfleetctl repo verschieben (decide: .gitignore or commit?)
 🔄 run-opencode.(flag|)ship scripts: projekt-root oder .starfleet-ai/ ? (user convenience)
+* starfleet-bootstrap --> im starfleetctl eingebaut, wird automatisch ausgerollt (bei update)
+* genesis-setup --> durch ein starfleetctl-kommando ersetzen. nicht in individuellen repos benötigt
+* symlink .bin/starfleetctl ausmustern -> alles soll über .starfleet-ai/... gehen
+* automatisch installierte files sollten entsprechenden hinweis als comment tragen
+* ./opencode.json noch nötig ?
+* agent-bus-auto-id.sh noch nötig ?
+* $AGENT_ID in $STARFLEET_SHIP_ID umbenennen ?
+* ./scripts/dashboard noch nötig ?
+* ./scripts/ship-names noch nötig ?
+* ./scripts/ship-names.txt --> sollte eher in .starfleet-ai/ sein
+* ./scripts/with-one-lock noch nötig ?
+* ./scripts/worktree noch nötig ?
+* ./scripts/ws-commit noch nötig ?
+* sind die scripts/pr-* scripte generisch oder Xlibre-spezifisch ?
+* ./scripts/json noch nötig ?
+* ./scripts/agent-permission-hook --> automatisch installieren (unter .claude) & .gitignore ?
+* ./scripts/agent-bus-monitor-loop noch nötig ?
+* command manual für starfleetctl --> in starfleet repo --> als .md und mit README verlinkt, sodaß man's schnell via github finden / anschauen kann
