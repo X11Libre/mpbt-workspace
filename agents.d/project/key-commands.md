@@ -7,7 +7,7 @@ order: 40
 
 | command | purpose |
 |---------|---------|
-| `./bootstrap [--shell-hook] [--build] [--all-releases]` | **one-shot fresh-clone setup** — see "Bootstrapping a fresh clone" above; idempotent, safe to re-run |
+| `./mpbt-workspace-bootstrap [--shell-hook] [--build] [--all-releases]` | **one-shot fresh-clone setup** — see "Bootstrapping a fresh clone" above; idempotent, safe to re-run |
 | `./install-mpbt` | `go install github.com/metux/mpbt/cmd/mpbt-builder@latest` |
 | `./run-flagship [--detach]` | start a Claude Code **flagship** session (`AGENT_ID=Enterprise`, no `XLIBRE_RELEASE`); `--detach` launches it in a named tmux session via `agent-run` so it survives terminal close |
 | `scripts/ship-names assign [flagship]` \| `release <name>` \| `list` \| `gc` | **Star Trek ship name registry** — each agent instance gets a unique ship name as its `AGENT_ID`. `assign` picks the next unused name (50 names, flock-serialized); `assign flagship` reserves `Enterprise` for the control/flagship session; `release` frees a name; `gc` reaps reservations with no live agent-bus heartbeat. Names shown in the shell prompt (PS1), Claude Code status line (⚓), and tmux session title. `Enterprise` is the reserved flagship — never auto-assigned to worker sessions |

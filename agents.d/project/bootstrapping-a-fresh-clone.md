@@ -10,7 +10,7 @@ command**, instead of an agent/human having to remember and manually replay the 
 `install-mpbt` → `run-fetch.*` → `run-build.*` → shell-integration steps that had accumulated
 across many sessions before this existed.
 
-**`./bootstrap [--shell-hook] [--build] [--all-releases]`** is that one command:
+**`./mpbt-workspace-bootstrap [--shell-hook] [--build] [--all-releases]`** is that one command:
 
 1. Checks required tools (`git`, `go`, `gh`) — fails fast if any are missing; warns (non-fatal) on
    optional ones (`tmux`, `meson`, `ninja`, `pkg-config`) and on `gh` not being authenticated.
