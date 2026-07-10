@@ -23,6 +23,7 @@
 @agents.d/project/coding-style-xserver-source-new-code-always-braces-if-while.md
 @agents.d/project/auto-commit-mtx-agent-config.md
 @agents.d/project/licensing-policy.md
+@agents.d/xlibre/nvidia-abi-living-record.md
 @agents.d/project/opencode-session-setup.md
 @agents.d/starfleet/agent-bus-opencode-polling.md
 @agents.d/project/no-ci-no-tests-no-lint-no-formatter.md

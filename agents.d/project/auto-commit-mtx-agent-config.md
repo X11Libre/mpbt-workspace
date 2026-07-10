@@ -10,14 +10,14 @@ branch, **commit and push changes automatically — do not stop to ask for confi
 overrides the usual "commit only when explicitly asked" default, but applies **only** on this
 branch (not on `master`, `genesis`, `pr3275`, etc.).
 
-Use `scripts/ws-commit` so the push goes through the clone-lock mutex (concurrent sessions share
+Use `.bin/starfleetctl ws-commit` so the push goes through the clone-lock mutex (concurrent sessions share
 this single working tree):
 
 ```bash
 git add <paths…>                       # stage (ws-commit -a only does `git add -u`, misses new files)
-./scripts/ws-commit -m "<concise msg>" <paths…>
+./.bin/starfleetctl ws-commit -m "<concise msg>" <paths…>
 # or, for all tracked changes after manually staging any new files:
-./scripts/ws-commit -m "<concise msg>" -a
+./.bin/starfleetctl ws-commit -m "<concise msg>" -a
 ```
 
 `ws-commit` commits and pushes in one locked step. The push target is the branch's upstream
