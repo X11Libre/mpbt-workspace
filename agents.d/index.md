@@ -3,7 +3,9 @@
      re-run reindex (agents new/write do this for you automatically). -->
 
 @agents.d/local/local-knowledge-dump.md
-@agents.d/local/use-work-tempdir.md
+
+@agents.d/mpbt/what-this-is.md
+@agents.d/mpbt/use-work-tempdir.md
 
 @agents.d/project/what-this-is.md
 @agents.d/starfleet/inter-ship-communication.md

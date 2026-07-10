@@ -1,5 +1,5 @@
 ---
-slug: local/use-work-tempdir
+slug: mpbt/use-work-tempdir
 title: "Use _WORK_ for temp dirs, not /tmp"
 order: 20
 ---
