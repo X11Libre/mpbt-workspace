@@ -1,5 +1,8 @@
 #!/usr/bin/env bash
 #
+# SPDX-License-Identifier: AGPL-3.0-or-later
+# Copyright © 2026 Enrico Weigelt, metux IT consult
+#
 # Print the UNDEFINED (imported) dynamic symbols of the extracted NVIDIA X
 # server modules — i.e. the server-ABI symbols an installed nvidia blob
 # resolves at load time. This is the input to ABI-change review: if a PR

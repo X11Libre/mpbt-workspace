@@ -1,5 +1,8 @@
 #!/bin/bash
 #
+# SPDX-License-Identifier: AGPL-3.0-or-later
+# Copyright © 2026 Enrico Weigelt, metux IT consult
+#
 # Install the mpbt-builder binary used by the run-* scripts.
 # Requires Go to be installed.
 #

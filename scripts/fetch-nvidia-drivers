@@ -1,5 +1,8 @@
 #!/usr/bin/env bash
 #
+# SPDX-License-Identifier: AGPL-3.0-or-later
+# Copyright © 2026 Enrico Weigelt, metux IT consult
+#
 # Download proprietary NVIDIA driver .run installers and extract ONLY the
 # X-server-loadable modules (nvidia_drv.so, libglxserver_nvidia.so, libglx.so).
 # Nothing is installed. The extracted modules are used to check the xserver's

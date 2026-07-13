@@ -1,5 +1,8 @@
 #!/usr/bin/env bash
 #
+# SPDX-License-Identifier: AGPL-3.0-or-later
+# Copyright © 2026 Enrico Weigelt, metux IT consult
+#
 # Classify candidate symbol names against the extracted NVIDIA blobs, accounting
 # for BOTH ways a driver can reference a server symbol:
 #   1. LINK-TIME import      — undefined dynamic symbol (nm -D --undefined-only)

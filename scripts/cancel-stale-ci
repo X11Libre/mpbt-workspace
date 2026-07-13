@@ -1,5 +1,8 @@
 #!/usr/bin/env bash
 #
+# SPDX-License-Identifier: AGPL-3.0-or-later
+# Copyright © 2026 Enrico Weigelt, metux IT consult
+#
 # Cancel still-running CI runs that have been superseded — i.e. their branch
 # moved on (a newer commit was pushed) since the run started, so the run is
 # burning runner minutes on a commit nobody cares about anymore.

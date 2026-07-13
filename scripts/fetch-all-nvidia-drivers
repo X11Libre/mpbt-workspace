@@ -1,5 +1,8 @@
 #!/usr/bin/env bash
 #
+# SPDX-License-Identifier: AGPL-3.0-or-later
+# Copyright © 2026 Enrico Weigelt, metux IT consult
+#
 # Fetch & extract the X-server modules for MANY NVIDIA driver versions, for
 # broad driver-ABI coverage ("even old blobs must keep loading"). Wraps
 # scripts/list-nvidia-versions + scripts/fetch-nvidia-drivers, and prunes each

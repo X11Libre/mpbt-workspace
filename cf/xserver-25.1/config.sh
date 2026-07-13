@@ -1,3 +1,6 @@
+# SPDX-License-Identifier: AGPL-3.0-or-later
+# Copyright © 2026 Enrico Weigelt, metux IT consult
+#
 # Config sourced by run-* scripts for the xserver-25.1 release line.
 export XLIBRE_RELEASE="xserver-25.1"
 export PATH="$PATH:$HOME/go/bin"
