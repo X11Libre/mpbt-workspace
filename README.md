@@ -37,14 +37,13 @@ Prerequisites
 Each interactive shell in the workspace gets a unique Star Trek ship name
 (`STARFLEET_SHIP_ID`) used by the agent-bus for session identity. Setup:
 
-1. Ensure `starfleetctl` is in `PATH`:
+1. Add to `~/.bashrc` (or `~/.zshrc`):
 
-       ln -sf .starfleet-ai/bin/starfleetctl ~/.local/bin/starfleetctl
+       .starfleet-ai/bin/starfleetctl ship-names shell-env >/dev/null 2>&1 && \
+         eval "$(.starfleet-ai/bin/starfleetctl ship-names shell-env 2>/dev/null)"
 
-2. Add to `~/.bashrc` (or `~/.zshrc`):
-
-       command -v starfleetctl >/dev/null 2>&1 && \
-         eval "$(starfleetctl ship-names shell-env 2>/dev/null)"
+   Always use the workspace-local copy (`.starfleet-ai/bin/starfleetctl`),
+   never a global install or symlink.
 
 This sets `STARFLEET_SHIP_ID`, prepends the ship name to `PS1`, and installs
 an `EXIT` trap to release the name when the shell exits. If
