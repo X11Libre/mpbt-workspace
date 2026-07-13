@@ -32,6 +32,38 @@ Prerequisites
    The `run-opencode.*` scripts source the per-release config and set
    `XLIBRE_RELEASE` automatically.
 
+### Shell integration (ship names)
+
+Each opencode session needs a unique Star Trek ship name (`STARFLEET_SHIP_ID`)
+for the agent-bus identity. There are two approaches — **pick one**:
+
+#### Option A: Persistent name (recommended for opencode)
+
+Set a fixed name in `~/.bashrc` (or `~/.zshrc`):
+
+    export STARFLEET_SHIP_ID="Pagh"
+
+This ensures the same name is reused across restarts, so the agent-bus
+seen-file stays consistent and old messages don't reappear as new.
+Choose any name except "Enterprise" (reserved for the flagship).
+
+#### Option B: Auto-assigned per shell (for ad-hoc `claude` sessions)
+
+Add to `~/.bashrc` (or `~/.zshrc`):
+
+    command -v starfleetctl >/dev/null 2>&1 && \
+      eval "$(starfleetctl ship-names shell-env 2>/dev/null)"
+
+This assigns the next unused name when a new shell opens inside the
+workspace. Names are released on shell exit. Better suited for quick
+`claude` sessions where each terminal gets its own identity, but causes
+old messages to reappear if used with `run-opencode.ship` (each restart
+gets a new name → new seen-file).
+
+**Prerequisite:** ensure `starfleetctl` is in `PATH`:
+
+    ln -sf .starfleet-ai/bin/starfleetctl ~/.local/bin/starfleetctl
+
 Quick start
 -----------
 
