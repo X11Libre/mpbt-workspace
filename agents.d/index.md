@@ -2,21 +2,21 @@
      Edit the fragment files themselves (agents.d/<slug>.md) instead, then
      re-run reindex (agents new/write do this for you automatically). -->
 
-@agents.d/mpbt/what-this-is.md
-@agents.d/local/local-knowledge-dump.md
-@agents.d/project/what-this-is.md
-@agents.d/starfleet/inter-ship-communication.md
-@agents.d/starfleet/fleet-autonomous.md
-@agents.d/mpbt/use-work-tempdir.md
-@agents.d/starfleet/working-practices-standing-instructions-for-agents.md
-@agents.d/project/key-commands.md
-@agents.d/project/architecture.md
-@agents.d/project/important-quirks.md
-@agents.d/project/simple-xinit-for-testing.md
-@agents.d/project/coding-style-xserver-source-new-code-always-braces-if-while.md
-@agents.d/project/auto-commit-mtx-agent-config.md
-@agents.d/project/licensing-policy.md
-@agents.d/project/opencode-session-setup.md
-@agents.d/starfleet/agent-bus-opencode-polling.md
-@agents.d/project/no-ci-no-tests-no-lint-no-formatter.md
-@agents.d/project/file-layout-reminder.md
+<!-- inline: agents.d/mpbt/what-this-is.md -->
+<!-- inline: agents.d/local/local-knowledge-dump.md -->
+<!-- inline: agents.d/project/what-this-is.md -->
+<!-- inline: agents.d/starfleet/inter-ship-communication.md -->
+<!-- inline: agents.d/starfleet/fleet-autonomous.md -->
+<!-- inline: agents.d/mpbt/use-work-tempdir.md -->
+<!-- inline: agents.d/starfleet/working-practices-standing-instructions-for-agents.md -->
+<!-- inline: agents.d/project/key-commands.md -->
+<!-- inline: agents.d/project/architecture.md -->
+<!-- inline: agents.d/project/important-quirks.md -->
+<!-- inline: agents.d/project/simple-xinit-for-testing.md -->
+<!-- inline: agents.d/project/coding-style-xserver-source-new-code-always-braces-if-while.md -->
+<!-- inline: agents.d/project/auto-commit-mtx-agent-config.md -->
+<!-- inline: agents.d/project/licensing-policy.md -->
+<!-- inline: agents.d/project/opencode-session-setup.md -->
+<!-- inline: agents.d/starfleet/agent-bus-opencode-polling.md -->
+<!-- inline: agents.d/project/no-ci-no-tests-no-lint-no-formatter.md -->
+<!-- inline: agents.d/project/file-layout-reminder.md -->
