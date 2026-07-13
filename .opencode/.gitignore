@@ -1,0 +1,9 @@
+node_modules
+package.json
+package-lock.json
+bun.lock
+.gitignore
+
+# Rolled out by `starfleetctl bootstrap --fix` (embedded fragment), not tracked.
+plugins/agent-bus-poller.ts
+plugins/starfleet-dispatch.ts

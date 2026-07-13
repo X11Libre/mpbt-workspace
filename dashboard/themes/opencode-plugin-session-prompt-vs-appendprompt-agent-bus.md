@@ -1,5 +1,4 @@
 ---
-slug: opencode-plugin-session-prompt-vs-appendprompt-agent-bus
 title: "opencode plugin: session.prompt() vs tui.appendPrompt() for agent-bus"
 category: active
 status: "Entwurf / in Diskussion"
@@ -9,7 +8,7 @@ doc_ref: "—"
 # opencode plugin: session.prompt() vs tui.appendPrompt() for agent-bus messages
 
 ## Problem
-The current `agent-bus-poller.ts` uses:
+The current `starfleet-dispatch.ts` uses:
 ```typescript
 await client.tui.appendPrompt({ body: { text: `\n📨 ${text}` } })
 await client.tui.submitPrompt()
@@ -41,7 +40,7 @@ parts: [{ type: "text", text: `📨 [${msg.id}] from ${msg.from}: ${msg.text}` }
 | `session.prompt()` | Immediately | **No** | Yes | Yes |
 | `session.promptAsync()` | Immediately | **No** | Yes | No (fire-and-forget) |
 
-## Implementation plan for agent-bus-poller.ts
+## Implementation plan for starfleet-dispatch.ts
 
 1. Track current `sessionId` in plugin state (set on `session.created`, `session.cleared`, `session.reset`)
 2. Replace `submit()` function with:
@@ -66,4 +65,4 @@ const submit = async (text: string) => {
 - `promptAsync` avoids blocking the poll loop
 
 ## Files to modify
-- `.opencode/plugins/agent-bus-poller.ts` (canonical in `starfleetctl` repo fragments)
+- `.opencode/plugins/starfleet-dispatch.ts` (canonical in `starfleetctl` repo fragments)
