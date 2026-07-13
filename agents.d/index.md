@@ -13,7 +13,6 @@
 @agents.d/project/architecture.md
 @agents.d/project/important-quirks.md
 @agents.d/project/simple-xinit-for-testing.md
-@agents.d/starfleet/concurrency-isolation-multiple-sessions-manual-work.md
 @agents.d/project/coding-style-xserver-source-new-code-always-braces-if-while.md
 @agents.d/project/auto-commit-mtx-agent-config.md
 @agents.d/project/licensing-policy.md
@@ -21,4 +20,3 @@
 @agents.d/starfleet/agent-bus-opencode-polling.md
 @agents.d/project/no-ci-no-tests-no-lint-no-formatter.md
 @agents.d/project/file-layout-reminder.md
-@agents.d/starfleet/starfleetctl.md
