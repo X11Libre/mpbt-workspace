@@ -1,0 +1,168 @@
+#!/usr/bin/env bash
+#
+# SPDX-License-Identifier: AGPL-3.0-or-later
+# Copyright © 2026 Enrico Weigelt, metux IT consult
+#
+# task-capture — pure commandeering helper for the starfleet fleet.
+#
+# Captures a task into the workspace dashboard (as a `dashboard/themes/*.md`
+# theme entry) via the sanctioned `starfleetctl dashboard theme` commands
+# ONLY — it never touches DASHBOARD.md / dashboard/themes/*.md as files, and
+# it NEVER executes the task itself. Optionally commissions a free (idle,
+# non-stale) ship to work on it, by sending it an agent-bus directive.
+#
+# Designed to be driven by a small/fast model: one deterministic command,
+# no judgement required. All the real work is done here.
+#
+# Usage:
+#   scripts/task-capture --title "<title>" [options]
+#
+# Options:
+#   --title "<t>"        Task title (required).
+#   --desc  "<text>"     Free-form task description / acceptance criteria.
+#   --slug  "<slug>"     Override the auto-derived dashboard theme slug.
+#   --assign [<ship>]    Commission a ship. With no arg, pick the first idle,
+#                        non-stale ship from `agent-bus board --json`. With a
+#                        ship name, commission that specific ship.
+#   --no-push            Stage + commit locally but do not push to origin.
+#
+# Exit codes:
+#   0  task captured (and assigned, if requested)
+#   2  bad arguments
+#   3  slug already exists (collision — pick a different title/slug)
+#   4  no free ship available for --assign (without explicit ship)
+
+set -euo pipefail
+
+HERE="$(cd "$(dirname "$0")" && pwd)"
+ROOT="$(git -C "$HERE" rev-parse --show-toplevel)"
+CTL="$ROOT/scripts/starfleetctl"
+TMP="$(mkdir -p "$ROOT/_WORK_/.tmp" && mktemp -p "$ROOT/_WORK_/.tmp" task.XXXXXX.md)"
+
+cleanup() { rm -f "$TMP"; }
+trap cleanup EXIT
+
+title=""
+desc=""
+slug=""
+assign=""
+assign_mode=""   # "" = none, "auto" = pick idle, "<name>" = explicit ship
+no_push=0
+
+while [ $# -gt 0 ]; do
+    case "$1" in
+        --title)   title="${2:-}"; shift 2 ;;
+        --desc)    desc="${2:-}"; shift 2 ;;
+        --slug)    slug="${2:-}"; shift 2 ;;
+        --assign)
+            if [ "${2:-}" != "" ] && [[ "$2" != --* ]]; then
+                assign="$2"; assign_mode="$2"; shift 2
+            else
+                assign_mode="auto"; shift 1
+            fi
+            ;;
+        --no-push) no_push=1; shift 1 ;;
+        -h|--help)
+            sed -n '3,40p' "$0"; exit 0 ;;
+        *) echo "task-capture: unknown argument: $1" >&2; exit 2 ;;
+    esac
+done
+
+if [ -z "$title" ]; then
+    echo "task-capture: --title is required" >&2
+    exit 2
+fi
+
+# Derive a slug if none given: lowercase, ascii-fold-ish, dash-separated,
+# namespaced with "task-". Non-ASCII (umlauts etc.) collapse to a dash.
+if [ -z "$slug" ]; then
+    slug="task-$(printf '%s' "$title" \
+        | LC_ALL=C tr '[:upper:]' '[:lower:]' \
+        | LC_ALL=C sed -E 's/[^a-z0-9]+/-/g; s/^-+//; s/-+$//')"
+fi
+# Never let an empty slug through.
+[ -z "$slug" ] && slug="task-$(date +%s)"
+
+created_by="${STARFLEET_SHIP_ID:-unknown}"
+created="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+
+# Reserve the slug (refuses if it already exists — collision guard).
+if ! "$CTL" dashboard theme new "$slug" --title "$title" --status "offen" >/dev/null 2>&1; then
+    echo "task-capture: slug already exists: $slug" >&2
+    exit 3
+fi
+
+# Optional: pick a free ship before we write the final frontmatter.
+status="offen"
+assigned_to="—"
+if [ "$assign_mode" = "auto" ]; then
+    pick="$("$CTL" agent-bus board --json 2>/dev/null \
+        | python3 -c 'import json,sys
+try:
+    d=json.load(sys.stdin)
+except Exception:
+    d=[]
+cand=[a["agent"] for a in d if a.get("state")=="idle" and not a.get("stale")]
+print(cand[0] if cand else "")' 2>/dev/null)" || pick=""
+    if [ -z "$pick" ]; then
+        echo "task-capture: no free (idle, non-stale) ship available — capturing as offen" >&2
+        assign_mode=""
+    else
+        assign="$pick"
+        assign_mode="$pick"
+    fi
+fi
+
+if [ -n "$assign_mode" ]; then
+    status="beauftragt"
+    assigned_to="$assign"
+fi
+
+# Build the theme file content (frontmatter + body). Extra fields beyond the
+# canonical slug/title/category/status are preserved verbatim by starfleetctl
+# and ignored by `dashboard reindex`, so the task stays visible in
+# "Aktive Themen" (category: active) while carrying task-specific metadata.
+{
+    echo "---"
+    echo "slug: $slug"
+    echo "title: \"$title\""
+    echo "category: active"
+    echo "kind: task"
+    echo "status: $status"
+    echo "created-by: $created_by"
+    echo "created: $created"
+    echo "assigned-to: $assigned_to"
+    echo "doc_ref: \"—\""
+    echo "---"
+    echo ""
+    echo "$desc"
+} > "$TMP"
+
+"$CTL" dashboard theme write "$slug" "$TMP"
+
+push_flag=()
+[ "$no_push" -eq 1 ] && push_flag=(--no-push)
+"$CTL" dashboard theme commit "$slug" -m "task: $title" "${push_flag[@]}"
+
+# Reindex so the new task shows up in DASHBOARD.md's "Aktive Themen" table,
+# then commit the regenerated index (sanctioned path — never hand-edit it).
+# Best-effort: a malformed sibling theme can break reindex fleet-wide; the
+# task itself is already captured + committed, so don't fail the whole
+# command on a reindex problem — just warn.
+if "$CTL" dashboard reindex 2>/dev/null; then
+    "$CTL" dashboard commit -m "reindex: add task $slug" "${push_flag[@]}"
+else
+    echo "task-capture: dashboard reindex failed (pre-existing malformed theme?) — task $slug is captured but not yet in DASHBOARD.md index" >&2
+fi
+
+# Commission the ship (after the dashboard state is durable).
+if [ -n "$assign_mode" ] && [ "$assign" != "" ]; then
+    msg="Neue Aufgabe für dich erfasst: $title (Dashboard-Theme \`$slug\`). "
+    msg+="Bitte dort Details lesen und abarbeiten. Status danach via agent-bus melden."
+    "$CTL" agent-bus tell "$assign" "$msg"
+fi
+
+# Concise summary for the calling model to forward / log.
+echo "task-captured: slug=$slug status=$status assigned-to=$assigned_to"
+[ -n "$assign_mode" ] && [ "$assign" != "" ] && echo "commissioned-ship: $assign"
+exit 0
