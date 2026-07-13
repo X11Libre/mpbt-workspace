@@ -34,35 +34,22 @@ Prerequisites
 
 ### Shell integration (ship names)
 
-Each opencode session needs a unique Star Trek ship name (`STARFLEET_SHIP_ID`)
-for the agent-bus identity. There are two approaches — **pick one**:
+Each interactive shell in the workspace gets a unique Star Trek ship name
+(`STARFLEET_SHIP_ID`) used by the agent-bus for session identity. Setup:
 
-#### Option A: Persistent name (recommended for opencode)
+1. Ensure `starfleetctl` is in `PATH`:
 
-Set a fixed name in `~/.bashrc` (or `~/.zshrc`):
+       ln -sf .starfleet-ai/bin/starfleetctl ~/.local/bin/starfleetctl
 
-    export STARFLEET_SHIP_ID="Pagh"
+2. Add to `~/.bashrc` (or `~/.zshrc`):
 
-This ensures the same name is reused across restarts, so the agent-bus
-seen-file stays consistent and old messages don't reappear as new.
-Choose any name except "Enterprise" (reserved for the flagship).
+       command -v starfleetctl >/dev/null 2>&1 && \
+         eval "$(starfleetctl ship-names shell-env 2>/dev/null)"
 
-#### Option B: Auto-assigned per shell (for ad-hoc `claude` sessions)
-
-Add to `~/.bashrc` (or `~/.zshrc`):
-
-    command -v starfleetctl >/dev/null 2>&1 && \
-      eval "$(starfleetctl ship-names shell-env 2>/dev/null)"
-
-This assigns the next unused name when a new shell opens inside the
-workspace. Names are released on shell exit. Better suited for quick
-`claude` sessions where each terminal gets its own identity, but causes
-old messages to reappear if used with `run-opencode.ship` (each restart
-gets a new name → new seen-file).
-
-**Prerequisite:** ensure `starfleetctl` is in `PATH`:
-
-    ln -sf .starfleet-ai/bin/starfleetctl ~/.local/bin/starfleetctl
+This sets `STARFLEET_SHIP_ID`, prepends the ship name to `PS1`, and installs
+an `EXIT` trap to release the name when the shell exits. If
+`STARFLEET_SHIP_ID` is already set (e.g. by a wrapper script), the existing
+value is preserved.
 
 Quick start
 -----------
