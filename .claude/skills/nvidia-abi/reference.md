@@ -1,10 +1,3 @@
----
-slug: xlibre/nvidia-abi-living-record
-title: "NVIDIA driver ABI — living record of empirical findings"
-order: 200
-owner: "Excelsior"
----
-
 ## NVIDIA driver ABI — living record of empirical findings
 
 **Living document.** What the proprietary NVIDIA X driver actually consumes from the X server's
@@ -160,4 +153,3 @@ lifts that constraint** — the unexport/struct-layout rules stop being load-bea
 path once the blob is gone. So this doc is the map of what must hold *until* the replacement lands,
 and the checklist of what the open driver must re-provide. (See architecture notes in
 `NVIDIA-OPEN-DDX.md`.)
-

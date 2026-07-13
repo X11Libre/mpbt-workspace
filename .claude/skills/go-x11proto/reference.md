@@ -1,8 +1,3 @@
----
-title: "go-x11proto, FlyingTux and starfleetctl are their own mpbt solutions"
-order: 70
----
-
 ## go-x11proto, FlyingTux and starfleetctl are their own mpbt solutions
 
 Since 2026-07-02, sister projects that aren't part of the xserver source tree itself are cloned
@@ -63,7 +58,7 @@ apply to it):
   commit, clean working tree, all branches intact.
 - **No real build step.** Plain Python, no `setup.py`/`pyproject.toml`, no compiled artifact — the
   package uses `buildsystem: exec` with **no `commands:` block at all**, which mpbt's exec builder
-  treats as a documented no-op per stage (`core/workflow/build/exec.go`: `doExec` returns `nil`
+  treats as a documented no-op per stage (`core/workflow/exec.go`: `doExec` returns `nil`
   when the stage's command list is empty). `run-build.flyingtux` therefore just re-verifies the
   checkout and writes a source tarball; there's nothing to compile. (A `python -m compileall`
   smoke check was considered and rejected: the `master` tree has pre-existing Python-2-only syntax,

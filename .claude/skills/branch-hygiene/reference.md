@@ -1,8 +1,3 @@
----
-title: "submit/* branch hygiene — is a branch already in master?"
-order: 170
----
-
 ## submit/* branch hygiene — is a branch already in master?
 
 The `submit/*` branches are old staging branches that diverge from current `master` by

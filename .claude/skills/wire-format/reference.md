@@ -1,8 +1,3 @@
----
-title: "X-server reply wire format — rpcbuf padding is done by the OS layer, not the handler"
-order: 180
----
-
 ## X-server reply wire format — rpcbuf padding is done by the OS layer, not the handler
 
 A recurring false-alarm trap when auditing reply handlers that build their payload with the
