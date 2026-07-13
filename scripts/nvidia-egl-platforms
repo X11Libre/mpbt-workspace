@@ -1,5 +1,8 @@
 #!/usr/bin/env bash
 #
+# SPDX-License-Identifier: AGPL-3.0-or-later
+# Copyright © 2026 Enrico Weigelt, metux IT consult
+#
 # Report which EGL platforms each extracted NVIDIA driver supports — the key
 # input to the open-DDX plan (GBM is the modern, simpler path; EGLStream is the
 # pre-GBM fallback). Detected from the extracted userspace EGL libs/JSON
