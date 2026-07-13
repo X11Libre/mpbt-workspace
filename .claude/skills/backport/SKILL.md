@@ -51,14 +51,14 @@ It refreshes the isolated agent clone (`mk-agent-clone`), `cherry-pick -x`'s ont
 - A **path-only** mismatch from the `Xext/<ext>/` ↔ `<ext>/` reorg is auto-remapped → still
   one-shot.
 - Only a genuine **content** conflict bails. Then do a manual/adapted backport inside the agent
-  clone (`.bin/starfleetctl mk-agent-clone <release>` → cherry-pick → resolve → build-verify) and
+  clone (`.starfleet-ai/bin/starfleetctl mk-agent-clone <release>` → cherry-pick → resolve → build-verify) and
   `scripts/xx-make-pr.sh <sha>` from within that clone.
 
 ### 3. Parallelize across releases freely
 
 Different release clones are fully isolated (separate working trees, push to distinct
 `rfc/backport-<rel>` branches). Run 25.2 / 25.1 / 25.0 concurrently. Within one release, give each
-agent its own clone name: `.bin/starfleetctl mk-agent-clone <rel> <name>`.
+agent its own clone name: `.starfleet-ai/bin/starfleetctl mk-agent-clone <rel> <name>`.
 
 ### 4. Cross-link (required)
 

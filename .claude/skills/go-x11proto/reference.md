@@ -1,10 +1,10 @@
-## go-x11proto, FlyingTux and starfleetctl are their own mpbt solutions
+## go-x11proto and FlyingTux are their own mpbt solutions
 
 Since 2026-07-02, sister projects that aren't part of the xserver source tree itself are cloned
 and (optionally) built by mpbt as **standalone solutions**, each deliberately kept **separate from
 the xserver build** (own workdir, own `build:` list). This is the "all agent work on that project
-now happens under the mpbt-workspace, instead of an ad-hoc external checkout" migration. Three
-projects have been done this way so far — **go-x11proto**, **FlyingTux**, and **starfleetctl** —
+now happens under the mpbt-workspace, instead of an ad-hoc external checkout" migration. Two
+projects currently use this pattern — **go-x11proto** and **FlyingTux** —
 and they're the template for any future one:
 
 - **Config:** `cf/<name>/{config.sh,solutions/default.yaml,packages/xlibre/<name>.yaml}`.
@@ -70,43 +70,20 @@ apply to it):
   don't apply to a personal repo.
 
 **starfleetctl** (the Go CLI consolidating the flock/race-prone fleet-coordination scripts —
-`agent-bus`, `pr-claim`, `ws-commit` — into one tool, `mpbt-hq/starfleetctl` — a private repo under
-the `mpbt-hq` GitHub org, same non-X11Libre caveat as FlyingTux):
+`agent-bus`, `pr-claim`, `ws-commit` — into one tool, `mpbt-hq/starfleetctl`) **used to** be a
+sister mpbt solution like the two above, but **no longer is** (removed 2026-07-13). It now lives
+solely under `.starfleet-ai/` and is managed by `./starfleet-bootstrap` — see the starfleetctl
+skill and `agents.d/local/local-knowledge-dump.md`. Kept here for the still-relevant standing
+constraint and a note on what was removed:
 
-- Unlike go-x11proto/FlyingTux, there was no pre-existing external checkout to move — the code
-  started life directly inside mpbt-workspace (branch `mtx/mpbtctl`, see the DASHBOARD.md
-  `starfleetctl` row for the full history) and was extracted into its own repo once the praetor
-  decided it should follow this same sister-project pattern rather than live in-tree or be folded
-  into the `mpbt`/`mpbt-builder` Go repo itself (a third option that was considered and rejected —
-  keeping it separate means it can be extracted/reused independently of the build orchestrator).
-- **Build:** `buildsystem: exec` with `commands: build: [make]`, same shape as go-x11proto — plain
-  Go, a `Makefile` that just runs `go build -o starfleetctl ./cmd/starfleetctl`. The built binary
-  lands in the source checkout itself; no install step yet.
-- No `make-pr.*` config, for the same reason as FlyingTux (not an X11Libre repo).
-- **2026-07-06: moved from the personal `metux/starfleetctl` to `mpbt-hq/starfleetctl`** (Phase 5
-  of the starfleetctl roadmap, see the DASHBOARD.md row — praetor-authorized org transfer, done
-  via `gh api --method POST repos/metux/starfleetctl/transfer -f new_owner=mpbt-hq`). Still private,
-  same `master` branch/history, just a different owner. Updated in the same pass: the local clone's
-  `origin` remote, `cf/starfleetctl/solutions/default.yaml`'s `xlibre_git:` base URL, and the
-  comments in `cf/starfleetctl/config.sh`/`.bin/starfleetctl` that named the old path. GitHub
-  transparently redirects the old `metux/starfleetctl` URL, but every reference here now points at
-  the canonical new one directly.
-- Naming: picked to fit the workspace's existing Star-Trek ship-name/fleet theme (agent-bus board,
-  `scripts/ship-names`, the `Enterprise` flagship) rather than the more generic original `mpbtctl`.
-- **Gotcha: `./run-fetch.starfleetctl` does NOT fast-forward the local checkout to new upstream
-  commits — it only updates the `origin/master` remote-tracking ref, leaving the checked-out
-  `master` branch exactly where it was.** `./run-build.starfleetctl` then builds whatever is
-  currently checked out, so it can silently build **stale** code even right after a fetch (`git
-  branch -vv` will show e.g. `[origin/master: 2 hinterher]` — 2 commits behind — despite the fetch
-  having just run). Hit 2026-07-06 (Farragut, Phase 3): built the new `bootstrap` subcommand,
-  pushed, ran `./bootstrap` again expecting the new subcommand to be there — `run-build.starfleetctl`
-  built the pre-push commit instead. Fix: `git -C _WORK_/starfleetctl/sources/xlibre/starfleetctl
-  merge --ff-only origin/master` before rebuilding (safe — this clone should never have local
-  commits of its own to lose, per the same reasoning `mk-agent-clone`-style isolation exists
-  elsewhere in this workspace). Unconfirmed whether this is generic mpbt fetch behavior (likely
-  applies to go-x11proto/FlyingTux too) or specific to how the `starfleetctl` solution's `ref:
-  origin/master` is configured — not root-caused, just documented as a known gotcha to check for
-  when "I just pushed but the built binary doesn't have my change" comes up.
+- **Removed 2026-07-13:** its mpbt solution (`cf/starfleetctl/`), the `./run-fetch.starfleetctl`
+  / `./run-build.starfleetctl` wrappers, and the `_WORK_/starfleetctl/` clone. The workspace no
+  longer keeps a second starfleetctl checkout; the source + built binary live at
+  `.starfleet-ai/src/starfleetctl/` and `.starfleet-ai/bin/starfleetctl`. `scripts/starfleetctl`
+  is now a thin wrapper that execs that binary.
+- History: started life in-tree (branch `mtx/mpbtctl`), extracted to its own repo, then moved
+  from `metux/starfleetctl` to `mpbt-hq/starfleetctl` (2026-07-06, praetor-authorized org
+  transfer). Naming fits the workspace's Star-Trek ship-name/fleet theme.
 - **Standing constraint: everything under the `mpbt-hq` GitHub org must stay independent of
   XLibre/xserver specifics.** This XLibre/mpbt-workspace usage is only the **first** major
   application of this tooling, not something it's allowed to be coupled to — a second, unrelated
