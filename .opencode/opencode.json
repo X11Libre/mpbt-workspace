@@ -1,0 +1,18 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "MPBT_WORKSPACE_ROOT=\"${MPBT_WORKSPACE_ROOT:-$(pwd)}\" .starfleet-ai/bin/starfleetctl hook opencode telemetry 2>/dev/null || true",
+            "timeout": 5000,
+            "statusMessage": "starfleetctl telemetry"
+          }
+        ]
+      }
+    ]
+  }
+}
