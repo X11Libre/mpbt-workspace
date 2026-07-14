@@ -6,7 +6,7 @@
 # Cloned into _WORK_/go-x11proto/sources/xlibre/go-x11proto. The optional build
 # just runs the repo's Makefile (default target builds the tools) via mpbt's
 # `exec` builder — there is no autotools/meson here (pure Go). `make-pr.*` is
-# configured so scripts/xx-make-pr.sh works from this clone too.
+# configured so starfleetctl github pr make works from this clone too.
 #
 # Tracks `staging`, not `master` (2026-07-06, praetor decision): staging is
 # go-x11proto's own equivalent of mpbt-workspace's mtx/agent-config — an

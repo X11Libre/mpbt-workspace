@@ -1,0 +1,41 @@
+---
+title: "Xinerama-Umbau: interner (unsichtbarer) Proxy-Screen statt Screen-0-Sonderrolle"
+category: parked
+noted_by: "praetor, 2026-07-02"
+since: "2026-07-02"
+migrated_from: 8cf8692b9f0057ffe44e793b35bcf7329da83d3f
+---
+
+**Zukunftsaufgabe, noch nichts begonnen — nur Architektur-Idee + erste Ist-Stand-Recherche.** Idee (Praetor): Clients,
+die den Default-Screen ansprechen, landen nicht mehr auf dem ersten echten Screen, sondern auf einem internen, nach
+außen unsichtbaren Xinerama-`ScreenRec`, das Requests dann intern auf die echten Screens verteilt — kein Hooken des
+primären Screens mehr, keine direkten dix→Xinerama-Calls mehr, alles nur noch indirekt über diesen internen Screen.
+Später soll das Screen-Setup zur Laufzeit änderbar sein (z.B. via XRandR-artiges Interface). **Fernziel:** dynamische
+Konfiguration mehrerer *verschiedener* Karten ohne gemeinsamen Framebuffer soll genauso einfach/transparent werden wie
+heute Multi-Output innerhalb einer Karte via XRandR. **Ist-Stand-Recherche (2026-07-02, `Xext/panoramiX/`, ~4125 Zeilen,
+aktiv gepflegt — letzter Commit 2026-04-29):** Screen 0 ist heute fest der "primäre" Screen — beim Connection-Setup wird
+`screenInfo.numScreens` kurz auf `1` gesetzt (`panoramiX.c:614`), sodass Clients de facto auf Screen 0 landen; die
+anderen Screens existieren nur geometrisch (Xinerama-Protokoll `GetScreenSize` etc.), nicht als eigene Root-Fenster.
+**Kein sauberer Screen-Hook-Mechanismus** — Umleitung passiert per **ProcVector-Interception auf
+Request-Dispatch-Ebene** (`panoramiX.c:510-565`, 23+ Handler wie `PanoramiXCreateWindow`/`PanoramiXConfigureWindow`
+ersetzen die core-Dispatcher direkt), nicht per Wrapping von `ScreenRec`-Funktionszeigern (einzige Ausnahme: `CreateGC`
+wird gewrapped, `panoramiX.c:156,172-186`). **dix ruft heute direkt/unconditional in Xinerama-Zustand rein**, nicht nur
+hinter `#ifdef`: `dix/main.c:248-249,271-272` (`PanoramiXConsolidate()`/`PanoramiXCreateConnectionBlock()`), plus
+verstreute `!noPanoramiXExtension`- und `pScreen->myNum`-Checks in `dix/events.c`, `dix/window.c` (Zeilen
+~2276/2360/2506/2768/2996), `dix/colormap.c`, `dix/resource.c:1179` — **genau das direkte Koppeln, das laut
+Aufgabenstellung weg soll**. Xinerama-Screen-Anzahl/-Geometrie ist heute reines 1:1-Mapping auf `screenInfo.screens[]`
+(`PanoramiXNumScreens = screenInfo.numScreens`, `panoramiX.c:442`), keine Indirektion, kein synthetischer Screen.
+**Multi-GPU-Verträglichkeit schon teilweise vorhanden:** Screen-Offsets (`pScreen->x/y`) werden für
+Koordinatentransformation genutzt (`panoramiXprocs.c:143-150`), keine GPU/Device-Identity-Checks gefunden (kein
+`xf86ScrnToScreen`/DRM-Device-Lookup) — aber **harte Annahme gleicher Pixel-Formate/Depths über alle Screens**
+(`panoramiX.c:598`: `rootDepth`-Mismatch → Fehler; unterschiedliche Backing-Store-Unterstützung deaktiviert Xinerama
+komplett für alle Screens, `panoramiX.c:602-610`). **Für die Umsetzung relevant:** ein echter Proxy-Screen bräuchte
+entweder eine Erweiterung des Screen-Hook-Mechanismus (`dixScreenHook*`-Familie, siehe `dix/screen_hooks_priv.h`) auf
+die fehlenden Fälle, oder einen kompletten Ersatz der ProcVector-Interception-Technik; die verstreuten
+`myNum`/`noPanoramiXExtension`-Direktchecks in dix müssten durch den neuen indirekten Pfad ersetzt werden; die
+Depth/Backing-Store-Kompatibilitätsannahmen müssten für "verschiedene Karten" gelockert werden. Nächster Schritt: kein
+Code, sondern eine echte Design-Skizze (wie sieht der interne Screen aus, wie registriert/dispatcht er, wie interagiert
+er mit RandR für die spätere Laufzeit-Rekonfiguration) — erst dann Machbarkeit wirklich beurteilbar. **Siehe auch**
+Aktive-Themen-Zeile "Xinerama/PanoramiX refactor — replace proc-vector hooking with a frontend/backend split" — eine am
+selben Tag von einer anderen Session aufgenommene, verwandte aber andere Praetor-Idee für dieselbe Subsystem-Baustelle.
+Beide Ideen noch nicht miteinander abgeglichen
