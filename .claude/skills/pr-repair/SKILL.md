@@ -9,7 +9,7 @@ Amend an existing, **unmerged** master PR (distinct from backporting a merged on
 dedicated agent clone — never the user's hand-edited `sources/xlibre/xserver` tree. Run commands
 from the workspace root (`/home/nekrad/src/xorg/mpbt-workspace`).
 
-Full reference: **AGENTS.md → "PR repair workflow"**. This skill is the actionable checklist.
+Full reference: **`reference.md`** in this skill's directory (full detail, moved out of AGENTS.md). This skill is the actionable checklist.
 
 ## 1. Get the REAL failure first — don't reason blind
 
