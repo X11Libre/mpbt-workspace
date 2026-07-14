@@ -1,68 +1,233 @@
 {
   "permissions": {
     "allow": [
-      "Bash(scripts/backport-applies)",
-      "Bash(scripts/backport-applies *)",
+      "Bash(.starfleet-ai/bin/starfleetctl *)",
+      "Bash(.starfleet-ai/bin/starfleetctl)",
+      "Bash(chromium)",
+      "Bash(chromium *)",
+      "Bash(./starfleet-bootstrap)",
+      "Bash(./starfleet-bootstrap *)",
+      "Bash(scripts/json)",
+      "Bash(scripts/json *)",
+      "Bash(scripts/confirm-log-report)",
+      "Bash(scripts/confirm-log-report *)",
+      "Bash(echo *)",
+      "Bash(cat *)",
+      "Bash(ls)",
+      "Bash(ls *)",
+      "Bash(head *)",
+      "Bash(tail *)",
+      "Bash(wc *)",
+      "Bash(grep *)",
+      "Bash(sed -n *)",
+      "Bash(sleep *)",
+      "Bash(pwd)",
+      "Bash(pwd *)",
+      "Bash(scripts/agent-attach)",
+      "Bash(scripts/agent-attach *)",
+      "Monitor",
+      "Bash(scripts/agent-run)",
+      "Bash(scripts/agent-run *)",
       "Bash(scripts/backport-commit)",
       "Bash(scripts/backport-commit *)",
       "Bash(scripts/cancel-stale-ci)",
       "Bash(scripts/cancel-stale-ci *)",
+      "Bash(scripts/dashboard)",
+      "Bash(scripts/dashboard *)",
       "Bash(scripts/fetch-all-nvidia-drivers)",
       "Bash(scripts/fetch-all-nvidia-drivers *)",
+      "Bash(.starfleet-ai/bin/starfleetctl session autoscale)",
       "Bash(scripts/fetch-nvidia-drivers)",
       "Bash(scripts/fetch-nvidia-drivers *)",
       "Bash(scripts/list-nvidia-versions)",
       "Bash(scripts/list-nvidia-versions *)",
-      "Bash(scripts/mk-agent-clone)",
-      "Bash(scripts/mk-agent-clone *)",
       "Bash(scripts/nvidia-abi-check)",
       "Bash(scripts/nvidia-abi-check *)",
       "Bash(scripts/nvidia-egl-platforms)",
       "Bash(scripts/nvidia-egl-platforms *)",
       "Bash(scripts/nvidia-undefined-symbols)",
       "Bash(scripts/nvidia-undefined-symbols *)",
-      "Bash(scripts/pr-amend-push)",
-      "Bash(scripts/pr-amend-push *)",
-      "Bash(scripts/pr-checkout)",
-      "Bash(scripts/pr-checkout *)",
-      "Bash(scripts/pr-claim)",
-      "Bash(scripts/pr-claim *)",
-      "Bash(scripts/pr-job-logs)",
-      "Bash(scripts/pr-job-logs *)",
-      "Bash(scripts/pr-set-body)",
-      "Bash(scripts/pr-set-body *)",
+      "Bash(.starfleet-ai/bin/starfleetctl pr-amend-push)",
+      "Bash(.starfleet-ai/bin/starfleetctl pr-append-body)",
+      "Bash(.starfleet-ai/bin/starfleetctl pr-checkout)",
+      "Bash(.starfleet-ai/bin/starfleetctl pr-claim)",
+      "Bash(.starfleet-ai/bin/starfleetctl pr-comment)",
+      "Bash(.starfleet-ai/bin/starfleetctl pr-job-logs)",
+      "Bash(.starfleet-ai/bin/starfleetctl pr-label)",
+      "Bash(.starfleet-ai/bin/starfleetctl pr-request-reviewers)",
+      "Bash(.starfleet-ai/bin/starfleetctl pr-set-body)",
       "Bash(scripts/prune-stale-ci)",
       "Bash(scripts/prune-stale-ci *)",
       "Bash(scripts/show-branch-file)",
       "Bash(scripts/show-branch-file *)",
-      "Bash(scripts/show-pr-conflict)",
-      "Bash(scripts/show-pr-conflict *)",
-      "Bash(scripts/with-clone-lock)",
-      "Bash(scripts/with-clone-lock *)",
+      "Bash(.starfleet-ai/bin/starfleetctl with-clone-lock)",
+      "Bash(scripts/worktree)",
+      "Bash(scripts/worktree *)",
+      "Bash(.starfleet-ai/bin/starfleetctl ws-commit)",
       "Bash(scripts/xx-make-pr.sh)",
       "Bash(scripts/xx-make-pr.sh *)",
       "Bash(meson *)",
       "Bash(ninja *)",
       "Bash(cc *)",
+      "Bash(gh)",
+      "Bash(gh *)",
       "Bash(gh pr *)",
       "Bash(gh api *)",
       "Bash(gh run *)",
       "Bash(gh workflow *)",
       "Bash(gh issue *)",
       "Bash(.starfleet-ai/bin/starfleetctl)",
-      "Bash(.starfleet-ai/bin/starfleetctl *)"
+      "Bash(.starfleet-ai/bin/starfleetctl *)",
+      "Read(AGENTS.md)",
+      "Read(**/AGENTS.md)",
+      "Read(DASHBOARD.md)",
+      "Read(**/DASHBOARD.md)",
+      "Edit(AGENTS.md)",
+      "Edit(**/AGENTS.md)",
+      "Edit(DASHBOARD.md)",
+      "Edit(**/DASHBOARD.md)",
+      "Write(AGENTS.md)",
+      "Write(**/AGENTS.md)",
+      "Write(DASHBOARD.md)",
+      "Write(**/DASHBOARD.md)",
+      "Edit(BIGFONT.md)",
+      "Edit(**/BIGFONT.md)",
+      "Write(BIGFONT.md)",
+      "Write(**/BIGFONT.md)",
+      "Edit(CI-GOXTS-XEPHYR.md)",
+      "Edit(**/CI-GOXTS-XEPHYR.md)",
+      "Write(CI-GOXTS-XEPHYR.md)",
+      "Write(**/CI-GOXTS-XEPHYR.md)",
+      "Edit(NVIDIA-ABI.md)",
+      "Edit(**/NVIDIA-ABI.md)",
+      "Write(NVIDIA-ABI.md)",
+      "Write(**/NVIDIA-ABI.md)",
+      "Edit(NVIDIA-OPEN-DDX.md)",
+      "Edit(**/NVIDIA-OPEN-DDX.md)",
+      "Write(NVIDIA-OPEN-DDX.md)",
+      "Write(**/NVIDIA-OPEN-DDX.md)",
+      "Edit(TODO.md)",
+      "Edit(**/TODO.md)",
+      "Write(TODO.md)",
+      "Write(**/TODO.md)",
+      "Edit(VULN-FIX-BACKPORT.md)",
+      "Edit(**/VULN-FIX-BACKPORT.md)",
+      "Write(VULN-FIX-BACKPORT.md)",
+      "Write(**/VULN-FIX-BACKPORT.md)",
+      "Edit(VULN-FIX-PR.md)",
+      "Edit(**/VULN-FIX-PR.md)",
+      "Write(VULN-FIX-PR.md)",
+      "Write(**/VULN-FIX-PR.md)",
+      "Edit(VULN-SCAN-FULL.md)",
+      "Edit(**/VULN-SCAN-FULL.md)",
+      "Write(VULN-SCAN-FULL.md)",
+      "Write(**/VULN-SCAN-FULL.md)",
+      "Edit(VULN-SCAN-extension-handlers.md)",
+      "Edit(**/VULN-SCAN-extension-handlers.md)",
+      "Write(VULN-SCAN-extension-handlers.md)",
+      "Write(**/VULN-SCAN-extension-handlers.md)",
+      "Edit(X86EMU-CLEANUP.md)",
+      "Edit(**/X86EMU-CLEANUP.md)",
+      "Write(X86EMU-CLEANUP.md)",
+      "Write(**/X86EMU-CLEANUP.md)",
+      "Edit(README.md)",
+      "Edit(**/README.md)",
+      "Write(README.md)",
+      "Write(**/README.md)",
+      "Edit(CLAUDE.md)",
+      "Edit(**/CLAUDE.md)",
+      "Write(CLAUDE.md)",
+      "Write(**/CLAUDE.md)",
+      "Edit(**/SKILL.md)",
+      "Write(**/SKILL.md)",
+      "Bash(go build:*)",
+      "Bash(go test:*)",
+      "Bash(go vet:*)",
+      "Bash(go mod:*)",
+      "Bash(gofmt:*)",
+      "Bash(git commit:*)",
+      "Bash(git add:*)",
+      "Bash(git push:*)",
+      "Bash(git fetch:*)",
+      "Bash(git rebase:*)",
+      "Bash(git checkout:*)",
+      "Bash(git worktree:*)",
+      "Bash(git config:*)"
     ]
   },
-  "PreToolUse": [
-    {
-      "matcher": "Bash",
-      "hooks": [
-        {
-          "type": "command",
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
             "command": "MPBT_WORKSPACE_ROOT=\"${MPBT_WORKSPACE_ROOT:-$CLAUDE_PROJECT_DIR}\" \"$CLAUDE_PROJECT_DIR\"/.starfleet-ai/bin/starfleetctl hook claude telemetry 2>/dev/null || true",
-          "statusMessage": "confirm-log: telemetry"
-        }
-      ]
-    }
-  ]
+            "statusMessage": "confirm-log: telemetry"
+          }
+        ]
+      }
+    ],
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"$CLAUDE_PROJECT_DIR\"/.starfleet-ai/bin/starfleetctl agent-bus status idle \"session started\" >/dev/null 2>&1 || true",
+            "statusMessage": "agent-bus: heartbeat"
+          },
+          {
+            "type": "command",
+            "command": "setsid \"$CLAUDE_PROJECT_DIR\"/.starfleet-ai/bin/starfleetctl agent-bus watch >/dev/null 2>&1 </dev/null & true",
+            "statusMessage": "agent-bus: mailbox watcher"
+          },
+          {
+            "type": "command",
+            "command": "\"$CLAUDE_PROJECT_DIR\"/.starfleet-ai/bin/starfleetctl hook claude monitor-hint 2>/dev/null || true",
+            "statusMessage": "agent-bus: monitor hint"
+          }
+        ]
+      }
+    ],
+    "SessionEnd": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"$CLAUDE_PROJECT_DIR\"/.starfleet-ai/bin/starfleetctl agent-bus clear >/dev/null 2>&1 || true"
+          },
+          {
+            "type": "command",
+            "command": "\"$CLAUDE_PROJECT_DIR\"/.starfleet-ai/bin/starfleetctl agent-bus watch --stop >/dev/null 2>&1 || true"
+          },
+          {
+            "type": "command",
+            "command": "[ -n \"$STARFLEET_SHIP_ID\" ] && \"$CLAUDE_PROJECT_DIR\"/.starfleet-ai/bin/starfleetctl ship-names release \"$STARFLEET_SHIP_ID\" >/dev/null 2>&1 || true"
+          }
+        ]
+      }
+    ],
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"$CLAUDE_PROJECT_DIR\"/scripts/confirm-log-hook 2>/dev/null || true",
+            "statusMessage": "confirm-log: telemetry"
+          },
+          {
+            "type": "command",
+            "timeout": 120,
+            "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/agent-permission-hook",
+            "statusMessage": "agent-permission: 1st officer"
+          }
+        ]
+      }
+    ]
+  },
+  "statusLine": {
+    "type": "command",
+    "command": "printf '\ud83d\udd96 %s' \"${STARFLEET_SHIP_ID:-?}\""
+  }
 }
