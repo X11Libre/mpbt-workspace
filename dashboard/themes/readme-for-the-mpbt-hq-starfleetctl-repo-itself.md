@@ -1,0 +1,10 @@
+---
+slug: readme-for-the-mpbt-hq-starfleetctl-repo-itself
+title: "README for the `mpbt-hq/starfleetctl` repo itself"
+category: active
+status: "see body"
+doc_ref: "(informally noted under the `starfleetctl-consolidate-the-flock-race-prone-agent-scripts` theme in the pre-migration file, not a separate table row there)"
+migrated_from: 8cf8692b9f0057ffe44e793b35bcf7329da83d3f
+---
+
+- **README for the `mpbt-hq/starfleetctl` repo itself** (directive m0061, Enterprise, 2026-07-06) — **done, Potemkin.** The repo had only code+`LICENSE`+`Makefile`, no docs of its own; all prior knowledge lived in *this* file's prose, written workflow-first, not as something someone could read to understand the tool standalone. Added `README.md` (commit `5ff1736`): what it is + why a Go rewrite, build (`make`/`go build`, plus the mpbt-solution build path), standalone vs. `.bin/starfleetctl` wrapper usage, and a full subcommand reference across all **19** current subcommands grouped into fleet-coordination (`agent-bus`, `dashboard`, `pr-claim`, `ws-commit`, `ship-names`, `with-clone-lock`), read-only GitHub interaction (`pr-view`, `pr-ci`, `show-branch-file`, `backport-applies`, `show-pr-conflict`), and mutating GitHub interaction (`pr-comment`, `pr-label`, `pr-request-reviewers`, `pr-set-body`, `pr-append-body`, `pr-checkout`, `pr-amend-push`, `backport-commit`, `xx-make-pr` — Constellation's Phase-2 work, checked against their current `e77934c` state first per the directive so nothing got documented twice). Also surfaces, in one place, the three parity caveats that were previously only in scattered doc comments: `agent-bus monitor-loop`/`fleet-watch`'s known Monitor-tool incompatibility (m0047/Farragut), `backport-commit`'s disclosed `sed`-BRE-vs-`strings.ReplaceAll` divergence, and `xx-make-pr`'s deliberately-preserved `[PR #N]`-onto-PR-branch bug (parity port, not a redesign). Written in English, per the standing rule that project artifacts (docs, code, PRs) stay English regardless of chat/status language.
