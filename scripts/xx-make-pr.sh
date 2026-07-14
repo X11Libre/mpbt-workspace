@@ -27,8 +27,6 @@ set -euo pipefail
 UPSTREAM_REMOTE="$(git config make-pr.upstream-remote || true)"
 UPSTREAM_BRANCH="$(git config make-pr.upstream-branch || true)"
 UPSTREAM_REF="$UPSTREAM_REMOTE/$UPSTREAM_BRANCH"
-#DEFAULT_MODE="incubator"        # default mode: incubator | rebase
-DEFAULT_MODE="rebase"
 REVIEWERS="$(git config make-pr.reviewers || true)"
 
 die() {
@@ -78,7 +76,6 @@ if [[ $# -lt 1 ]]; then
 Usage: $(basename "$0") [options] <commit> [<commit> ...]
 
 Options:
-  --rebase            Use rebase mode (markers added to PR branch, then incubator rebased).
   --branch <name>     Explicitly set PR branch name instead of auto-generating it.
 
 Arguments:
@@ -89,15 +86,10 @@ EOF
 fi
 
 ### PARSE OPTIONS
-MODE="$DEFAULT_MODE"
 BRANCH_NAME=""
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
-    --rebase)
-      MODE="rebase"
-      shift
-      ;;
     --branch)
       BRANCH_NAME="$2"
       shift 2
@@ -126,7 +118,6 @@ fi
 
 TMP_BRANCH="tmp-${BRANCH_NAME}"
 
-echo "Mode: $MODE"
 echo "Incubator: $INCUBATOR_BRANCH"
 echo "New PR branch: $BRANCH_NAME"
 echo "Commits: ${COMMITS[*]}"
@@ -176,22 +167,61 @@ PR_URL=$(gh_retry gh pr view --json url -q .url "$BRANCH_NAME")
 PR_NUMBER=$(echo "$PR_URL" | grep -o '[0-9]*$')
 
 ### HANDLE MARKERS
-if [[ "$MODE" == "incubator" ]]; then
-  # Rewrite incubator branch directly
-  git checkout "$INCUBATOR_BRANCH"
-  for c in "${COMMITS[@]}"; do
-    git rebase -i --autosquash --keep-empty --exec "git log --format=%B -1 HEAD | sed \"1s/^/[PR #$PR_NUMBER] /\" | git commit --amend -F - --trailer \"PR: $PR_URL\""
-  done
-else
-  # Rebase incubator onto PR branch (markers first in PR branch)
-  git checkout "$BRANCH_NAME"
-  git rebase "$UPSTREAM_REF" --exec "git log --format=%B -1 HEAD | sed \"1s/^/[PR #$PR_NUMBER] /\" | git commit --amend -F - --trailer \"PR: $PR_URL\""
-  git checkout "$INCUBATOR_BRANCH"
-  git rebase "$BRANCH_NAME"
-fi
+# Mark only the incubator's own copies of the submitted commits with the
+# "[PR #N] " subject prefix + "PR: <url>" trailer. $BRANCH_NAME was already
+# pushed above to create the PR and must never be rewritten again — doing so
+# here previously leaked the marker onto the merged upstream commit (seen on
+# PR #3162, all 4 commits merged with a "[PR #3162] " subject prefix).
+git checkout "$INCUBATOR_BRANCH"
+
+# Explicit base for the rebase below, instead of relying on the incubator
+# branch having an @{upstream} configured (git rebase -i with no argument
+# needs one).
+MARK_BASE=$(git merge-base "$UPSTREAM_REF" "$INCUBATOR_BRANCH")
+
+MARK_EXEC="git log --format=%B -1 HEAD | sed \"1s/^/[PR #$PR_NUMBER] /\" | git commit --amend -F - --trailer \"PR: $PR_URL\""
+
+# A GIT_SEQUENCE_EDITOR that appends "exec $MARK_EXEC" after the todo "pick"
+# line for each submitted commit and leaves every other line untouched —
+# scripting exactly what a human doing `rebase -i` by hand would type, so the
+# rebase runs non-interactively. (The previous "incubator" mode did this via
+# a bare `rebase -i`, which needs an interactive editor and is unsupported in
+# an agent/CI environment — that's why the default was flipped to the
+# leak-prone "rebase" mode in the first place.)
+SEQ_EDITOR=$(mktemp)
+cat >"$SEQ_EDITOR" <<'EDITOR_EOF'
+#!/usr/bin/env bash
+set -euo pipefail
+todo="$1"
+tmp=$(mktemp)
+while IFS= read -r line; do
+  echo "$line" >>"$tmp"
+  case "$line" in
+    pick\ *)
+      sha=$(echo "$line" | awk '{print $2}')
+      while IFS= read -r target; do
+        [ -z "$target" ] && continue
+        case "$target" in
+          "$sha"*) echo "exec $MARK_EXEC" >>"$tmp" ;;
+        esac
+      done <<<"$MARK_SHAS"
+      ;;
+  esac
+done <"$todo"
+mv "$tmp" "$todo"
+EDITOR_EOF
+chmod +x "$SEQ_EDITOR"
+
+MARK_SHAS=""
+for c in "${COMMITS[@]}"; do
+  MARK_SHAS+="$(git rev-parse "$c")"$'\n'
+done
+export MARK_EXEC MARK_SHAS
+
+GIT_SEQUENCE_EDITOR="$SEQ_EDITOR" git rebase -i --autosquash --keep-empty "$MARK_BASE"
+rm -f "$SEQ_EDITOR"
 
 ### RESTORE
-git checkout "$INCUBATOR_BRANCH"
 git branch -D "$BRANCH_NAME"
 
 echo "Done. PR created: $PR_URL"

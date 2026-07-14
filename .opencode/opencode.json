@@ -1,0 +1,8 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "plugin": [
+    "some-other-npm-plugin",
+    "./plugins/starfleet-dispatch.ts"
+  ],
+  "instructions": [".starfleet-ai/agents.d/index.md"]
+}

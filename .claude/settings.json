@@ -2,8 +2,26 @@
   "permissions": {
     "allow": [
       "Bash(./starfleet-bootstrap)",
+      "Bash(.starfleet-ai/bin/starfleetctl *)",
+      "Bash(.starfleet-ai/bin/starfleetctl)",
+      "Bash(chromium)",
+      "Bash(chromium *)",
+      "Bash(echo *)",
+      "Bash(cat *)",
+      "Bash(ls)",
+      "Bash(ls *)",
+      "Bash(head *)",
+      "Bash(tail *)",
+      "Bash(wc *)",
+      "Bash(grep *)",
+      "Bash(sed -n *)",
+      "Bash(sleep *)",
+      "Bash(pwd)",
+      "Bash(pwd *)",
+      "Monitor",
       "Bash(scripts/fetch-all-nvidia-drivers)",
       "Bash(scripts/fetch-all-nvidia-drivers *)",
+      "Bash(.starfleet-ai/bin/starfleetctl session autoscale)",
       "Bash(scripts/fetch-nvidia-drivers)",
       "Bash(scripts/fetch-nvidia-drivers *)",
       "Bash(scripts/list-nvidia-versions)",
@@ -17,25 +35,91 @@
       "Bash(meson *)",
       "Bash(ninja *)",
       "Bash(cc *)",
+      "Bash(gh)",
+      "Bash(gh *)",
       "Bash(gh pr *)",
       "Bash(gh api *)",
       "Bash(gh run *)",
       "Bash(gh workflow *)",
       "Bash(gh issue *)",
       "Bash(.starfleet-ai/bin/starfleetctl)",
-      "Bash(.starfleet-ai/bin/starfleetctl *)"
+      "Bash(.starfleet-ai/bin/starfleetctl *)",
+      "Bash(go build:*)",
+      "Bash(go test:*)",
+      "Bash(go vet:*)",
+      "Bash(go mod:*)",
+      "Bash(gofmt:*)",
+      "Bash(git commit:*)",
+      "Bash(git add:*)",
+      "Bash(git push:*)",
+      "Bash(git fetch:*)",
+      "Bash(git rebase:*)",
+      "Bash(git checkout:*)",
+      "Bash(git worktree:*)",
+      "Bash(git config:*)"
     ]
   },
-  "PreToolUse": [
-    {
-      "matcher": "Bash",
-      "hooks": [
-        {
-          "type": "command",
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
             "command": "MPBT_WORKSPACE_ROOT=\"${MPBT_WORKSPACE_ROOT:-$CLAUDE_PROJECT_DIR}\" \"$CLAUDE_PROJECT_DIR\"/.starfleet-ai/bin/starfleetctl hook claude telemetry 2>/dev/null || true",
-          "statusMessage": "confirm-log: telemetry"
-        }
-      ]
-    }
-  ]
+            "statusMessage": "confirm-log: telemetry"
+          },
+          {
+            "type": "command",
+            "timeout": 120,
+            "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/agent-permission-hook",
+            "statusMessage": "agent-permission: 1st officer"
+          }
+        ]
+      }
+    ],
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"$CLAUDE_PROJECT_DIR\"/.starfleet-ai/bin/starfleetctl comms status idle \"session started\" >/dev/null 2>&1 || true",
+            "statusMessage": "comms: heartbeat"
+          },
+          {
+            "type": "command",
+            "command": "setsid \"$CLAUDE_PROJECT_DIR\"/.starfleet-ai/bin/starfleetctl comms watch >/dev/null 2>&1 </dev/null & true",
+            "statusMessage": "comms: mailbox watcher"
+          },
+          {
+            "type": "command",
+            "command": "\"$CLAUDE_PROJECT_DIR\"/.starfleet-ai/bin/starfleetctl hook claude monitor-hint 2>/dev/null || true",
+            "statusMessage": "comms: monitor hint"
+          }
+        ]
+      }
+    ],
+    "SessionEnd": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"$CLAUDE_PROJECT_DIR\"/.starfleet-ai/bin/starfleetctl comms clear >/dev/null 2>&1 || true"
+          },
+          {
+            "type": "command",
+            "command": "\"$CLAUDE_PROJECT_DIR\"/.starfleet-ai/bin/starfleetctl comms watch --stop >/dev/null 2>&1 || true"
+          },
+          {
+            "type": "command",
+            "command": "[ -n \"$STARFLEET_SHIP_ID\" ] && \"$CLAUDE_PROJECT_DIR\"/.starfleet-ai/bin/starfleetctl ship-names release \"$STARFLEET_SHIP_ID\" >/dev/null 2>&1 || true"
+          }
+        ]
+      }
+    ]
+  },
+  "statusLine": {
+    "type": "command",
+    "command": "printf '\ud83d\udd96 %s' \"${STARFLEET_SHIP_ID:-?}\""
+  }
 }
