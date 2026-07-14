@@ -48,7 +48,21 @@
       "Bash(gh api *)",
       "Bash(gh run *)",
       "Bash(gh workflow *)",
-      "Bash(gh issue *)"
+      "Bash(gh issue *)",
+      "Bash(.starfleet-ai/bin/starfleetctl)",
+      "Bash(.starfleet-ai/bin/starfleetctl *)"
     ]
-  }
+  },
+  "PreToolUse": [
+    {
+      "matcher": "Bash",
+      "hooks": [
+        {
+          "type": "command",
+            "command": "MPBT_WORKSPACE_ROOT=\"${MPBT_WORKSPACE_ROOT:-$CLAUDE_PROJECT_DIR}\" \"$CLAUDE_PROJECT_DIR\"/.starfleet-ai/bin/starfleetctl hook claude telemetry 2>/dev/null || true",
+          "statusMessage": "confirm-log: telemetry"
+        }
+      ]
+    }
+  ]
 }
