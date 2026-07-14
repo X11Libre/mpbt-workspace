@@ -1,3 +1,9 @@
 /_WORK_
 /.starfleet-ai/
 /.claude/hooks/
+/AGENTS.md
+/agents.d/starfleet/
+/agents.d/index.md
+/.claude/skills/concurrency/
+/.claude/skills/starfleetctl/
+/.claude/skills/task-capture/
