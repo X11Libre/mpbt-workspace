@@ -1,0 +1,146 @@
+#!/bin/bash
+# SPDX-License-Identifier: AGPL-3.0-or-later
+# Copyright © 2026 Enrico Weigelt, metux IT consult
+#
+# Fleet health watchdog — reads _WORK_/agent-bus/health/*.json and
+# reports unresponsive ships. Run in a loop or as a cron job.
+#
+# Exit codes:
+#   0 — all ships healthy
+#   1 — at least one ship unhealthy
+#   2 — usage error
+
+set -euo pipefail
+
+WORKSPACE="$(cd "$(dirname "$0")/.." && pwd)"
+HEALTH_DIR="$WORKSPACE/_WORK_/agent-bus/health"
+SHIPS_DIR="$WORKSPACE/_WORK_/agent-bus/ships"
+
+# Thresholds (seconds)
+STALE_PLUGIN=120      # plugin_last_run older than this → blocked
+STALE_MODEL=300       # model_last_action older than this → idle/stuck
+PID_DEAD=true         # check if PID is still alive
+
+NOW=$(date +%s)
+EXIT=0
+
+usage() {
+    echo "Usage: $0 [--json] [--loop [INTERVAL]]"
+    echo ""
+    echo "  --json         output JSON instead of human-readable text"
+    echo "  --loop [SEC]   run continuously (default interval: 30s)"
+    echo "  --once         run once (default)"
+    exit 2
+}
+
+JSON=false
+LOOP=false
+INTERVAL=30
+
+while [[ $# -gt 0 ]]; do
+    case "$1" in
+        --json) JSON=true; shift ;;
+        --loop) LOOP=true; shift; [[ "${1:-}" =~ ^[0-9]+$ ]] && INTERVAL="$1" && shift ;;
+        --once) LOOP=false; shift ;;
+        -h|--help) usage ;;
+        *) echo "Unknown option: $1"; usage ;;
+    esac
+done
+
+check_health() {
+    local unhealthy=0
+
+    if [[ ! -d "$HEALTH_DIR" ]]; then
+        echo "No health directory found — no ships reporting."
+        return 0
+    fi
+
+    if $JSON; then
+        echo "["
+    else
+        printf "%-15s %-10s %-8s %-25s %-25s %s\n" "SHIP" "STATE" "PID" "PLUGIN_LAST_RUN" "MODEL_LAST_ACTION" "AGE"
+        printf "%-15s %-10s %-8s %-25s %-25s %s\n" "---" "-----" "---" "----------------" "-----------------" "---"
+    fi
+
+    local first=true
+    for f in "$HEALTH_DIR"/*.json; do
+        [[ -f "$f" ]] || continue
+        local ship
+        ship=$(basename "$f" .json)
+
+        local plugin_ts model_ts state pid
+        plugin_ts=$(jq -r '.plugin_last_run // empty' "$f" 2>/dev/null) || continue
+        model_ts=$(jq -r '.model_last_action // empty' "$f" 2>/dev/null) || continue
+        state=$(jq -r '.state // "unknown"' "$f" 2>/dev/null) || state="unknown"
+        pid=$(jq -r '.pid // 0' "$f" 2>/dev/null) || pid=0
+
+        # Convert ISO timestamps to epoch
+        local plugin_age=0 model_age=0
+        if [[ -n "$plugin_ts" ]]; then
+            local plugin_epoch
+            plugin_epoch=$(date -d "$plugin_ts" +%s 2>/dev/null) || plugin_epoch=0
+            plugin_age=$(( NOW - plugin_epoch ))
+        fi
+        if [[ -n "$model_ts" ]]; then
+            local model_epoch
+            model_epoch=$(date -d "$model_ts" +%s 2>/dev/null) || model_epoch=0
+            model_age=$(( NOW - model_epoch ))
+        fi
+
+        # Check PID liveness
+        local pid_alive=true
+        if [[ "$pid" -gt 0 ]] && ! kill -0 "$pid" 2>/dev/null; then
+            pid_alive=false
+        fi
+
+        # Determine effective state
+        local effective="$state"
+        if [[ "$state" == "blocked" ]]; then
+            effective="BLOCKED"
+            unhealthy=1
+        elif [[ "$pid_alive" == "false" ]]; then
+            effective="DEAD"
+            unhealthy=1
+        elif [[ "$plugin_age" -gt "$STALE_PLUGIN" ]]; then
+            effective="STALE"
+            unhealthy=1
+        elif [[ "$model_age" -gt "$STALE_MODEL" && "$state" == "working" ]]; then
+            effective="STUCK"
+            unhealthy=1
+        fi
+
+        if $JSON; then
+            $first || echo ","
+            first=false
+            cat <<ENTRY
+  {"ship":"$ship","state":"$effective","raw_state":"$state","pid":$pid,"pid_alive":$pid_alive,"plugin_age_s":$plugin_age,"model_age_s":$model_age}
+ENTRY
+        else
+            printf "%-15s %-10s %-8s %-25s %-25s %ds ago\n" \
+                "$ship" "$effective" "$pid" "$plugin_ts" "$model_ts" "$plugin_age"
+        fi
+    done
+
+    if $JSON; then
+        echo ""
+        echo "]"
+    fi
+
+    return $unhealthy
+}
+
+if $LOOP; then
+    while true; do
+        clear 2>/dev/null || true
+        echo "=== Fleet Health Watchdog — $(date) ==="
+        echo ""
+        check_health || EXIT=1
+        echo ""
+        echo "Next check in ${INTERVAL}s — Ctrl-C to stop"
+        sleep "$INTERVAL"
+    done
+else
+    check_health || EXIT=1
+fi
+
+exit $EXIT

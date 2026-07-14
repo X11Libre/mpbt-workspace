@@ -1,1 +1,11 @@
 /_WORK_
+.aider*
+__pycache__/
+*.pyc
+
+/.bin/
+/core.*
+/.starfleet/
+/.starfleet-ai/
+/.claude/hooks/
+/agents.d/starfleet/

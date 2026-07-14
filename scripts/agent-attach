@@ -1,0 +1,52 @@
+#!/usr/bin/env bash
+#
+# SPDX-License-Identifier: AGPL-3.0-or-later
+# Copyright © 2026 Enrico Weigelt, metux IT consult
+#
+# agent-attach — connect a controller to a detached agent session (launched via
+# scripts/agent-run). Multiple controllers can attach to the SAME agent at once
+# (tmux multi-attach): everyone sees and drives the same live session. Detach
+# again with the tmux key (default Ctrl-b d) — the agent keeps running.
+#
+# Delegates the ID-resolution + board listing to
+# `starfleetctl session attach`, then exec's tmux.
+#
+# Usage:
+#   agent-attach <id|session|partial>   attach (shared view — all clients share size)
+#   agent-attach --read-only <id>       attach view-only (can watch, can't type)
+#   agent-attach --independent <id>     own view/window-size (grouped session)
+#   agent-attach --list                 list attachable sessions + the board
+set -euo pipefail
+
+HERE="$(cd "$(dirname "$0")" && pwd)"
+
+[ "$#" -ge 1 ] || { "$HERE/starfleetctl" session attach -h; exit 1; }
+
+case "$1" in
+    -h|--help)   "$HERE/starfleetctl" session attach -h; exit 0 ;;
+    --list)      exec "$HERE/starfleetctl" session attach --list ;;
+esac
+
+mode=""
+case "$1" in --read-only) mode=ro; shift;; --independent) mode=ind; shift;; esac
+
+[ "$#" -ge 1 ] || { echo "agent-attach: need <id|session>" >&2; exit 1; }
+
+output="$("$HERE/starfleetctl" session attach "$@" 2>/dev/null)" || {
+    echo "agent-attach: no running session matches '$*' (try: scripts/agent-attach --list)" >&2
+    exit 1
+}
+
+session="${output%%$'\t'*}"
+parsed_mode="${output#*$'\t'}"
+[ -n "$mode" ] || mode="$parsed_mode"
+
+command -v tmux >/dev/null 2>&1 || { echo "agent-attach: tmux not found — install it (e.g. 'sudo apt install tmux')." >&2; exit 1; }
+[ -t 1 ] || { echo "agent-attach: not a terminal — attach from an interactive shell (controllers are humans/TTYs, not the agent tool)." >&2; exit 1; }
+
+echo "agent-attach: attaching to '$session' (mode: $mode). Detach with Ctrl-b d; the agent keeps running."
+case "$mode" in
+    shared) exec tmux attach -t "$session" ;;
+    ro)     exec tmux attach -r -t "$session" ;;
+    ind)    exec tmux new-session -t "$session" -s "${session}-view-$$" ;;
+esac

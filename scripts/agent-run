@@ -1,0 +1,49 @@
+#!/usr/bin/env bash
+#
+# SPDX-License-Identifier: AGPL-3.0-or-later
+# Copyright © 2026 Enrico Weigelt, metux IT consult
+#
+# agent-run — launch an agent/CLI session DETACHED in a named tmux session.
+#
+# Delegates parameter validation, AGENT_ID resolution, and inner-command
+# construction to `starfleetctl session run`, then creates the tmux session
+# and posts the initial heartbeat.  `--list` and `--stop` also delegate.
+#
+# Usage:
+#   agent-run <release> [--client claude|opencode|shell] [--name <id>] [-- <args…>]
+#   agent-run "" --name <id> [--client claude|shell] [-- <args…>]
+#   agent-run --list
+#   agent-run --stop <id|session>
+set -euo pipefail
+
+HERE="$(cd "$(dirname "$0")" && pwd)"
+ROOT="$(cd "$HERE/.." && pwd)"
+
+[ "$#" -ge 1 ] || { "$HERE/starfleetctl" session run -h; exit 1; }
+case "$1" in
+    -h|--help) "$HERE/starfleetctl" session run -h; exit 0 ;;
+    --list)    exec "$HERE/starfleetctl" session attach --list ;;
+    --stop)    shift; [ "$#" -ge 1 ] || { echo "agent-run: --stop needs <id|session>" >&2; exit 1; }
+               exec "$HERE/starfleetctl" session stop "$@" ;;
+esac
+
+command -v tmux >/dev/null 2>&1 || { echo "agent-run: tmux not found — install it (e.g. 'sudo apt install tmux'); it is the detach/multi-attach backend." >&2; exit 1; }
+
+eval "$("$HERE/starfleetctl" session run "$@" 2>/dev/null)" || {
+    echo "agent-run: failed to prepare session params" >&2
+    exit 1
+}
+
+tmux new-session -d -s "$SESSION" -c "$ROOT" bash -lc "$INNER_CMD"
+
+STARFLEET_SHIP_ID="$STARFLEET_SHIP_ID" AGENT_HANDLE="$SESSION" MPBT_WORKSPACE_ROOT="$ROOT" ${RELEASE_FULL:+XLIBRE_RELEASE="$RELEASE_FULL"} \
+    "$ROOT/.starfleet-ai/bin/starfleetctl agent-bus" status starting "launched via agent-run ($CLIENT)" >/dev/null 2>&1 || true
+
+cat <<EOF
+agent-run: launched '$STARFLEET_SHIP_ID' ($CLIENT${RELEASE_FULL:+, $RELEASE_FULL}) detached.
+  tmux session : $SESSION
+  attach       : scripts/agent-attach $STARFLEET_SHIP_ID
+  view-only    : scripts/agent-attach --read-only $STARFLEET_SHIP_ID
+  board        : .starfleet-ai/bin/starfleetctl agent-bus board
+  stop         : scripts/agent-run --stop $STARFLEET_SHIP_ID
+EOF

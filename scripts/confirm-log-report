@@ -1,0 +1,96 @@
+#!/usr/bin/env python3
+#
+# SPDX-License-Identifier: AGPL-3.0-or-later
+# Copyright © 2026 Enrico Weigelt, metux IT consult
+#
+# Aggregator for the confirm-log-hook telemetry (see scripts/confirm-log-hook
+# and DASHBOARD.md "Permission-confirmation telemetry" row, directive m0050).
+# Reads the fleet-shared _WORK_/agent-bus/tooling-gaps/events.jsonl and ranks
+# the most common command prefixes that would have needed an interactive
+# permission prompt — i.e. candidates for a new scripts/*/starfleetctl
+# wrapper + matching allowlist entry.
+#
+# Usage:
+#   confirm-log-report [--top N] [--words N] [--category no-match|ask-match|deny-match]
+#     --top N       show the N most common prefixes (default 20)
+#     --words N     how many leading whitespace-separated words of each
+#                    subcommand form the grouping key (default 2, e.g.
+#                    "git log" groups "git log --oneline" with "git log -5")
+#     --category    only count entries of this category (default: all)
+import json
+import os
+import sys
+from collections import Counter
+
+
+USAGE = """usage: confirm-log-report [--top N] [--words N] [--category no-match|ask-match|deny-match]
+  --top N       show the N most common prefixes (default 20)
+  --words N     leading whitespace-separated words per grouping key (default 2)
+  --category    only count entries of this category (default: all)
+"""
+
+
+def usage():
+    print(USAGE, end="")
+
+
+def main(argv):
+    top = 20
+    words = 2
+    category = None
+    i = 0
+    while i < len(argv):
+        a = argv[i]
+        if a in ("-h", "--help"):
+            usage()
+            return 0
+        elif a == "--top":
+            i += 1
+            top = int(argv[i])
+        elif a == "--words":
+            i += 1
+            words = int(argv[i])
+        elif a == "--category":
+            i += 1
+            category = argv[i]
+        else:
+            print(f"confirm-log-report: unknown arg: {a}", file=sys.stderr)
+            return 2
+        i += 1
+
+    project_dir = os.environ.get("CLAUDE_PROJECT_DIR") or os.getcwd()
+    log_path = os.path.join(project_dir, "_WORK_", "agent-bus", "tooling-gaps", "events.jsonl")
+    if not os.path.exists(log_path):
+        print(f"confirm-log-report: no log yet at {log_path}")
+        return 0
+
+    counts = Counter()
+    examples = {}
+    total = 0
+    with open(log_path) as f:
+        for line in f:
+            line = line.strip()
+            if not line:
+                continue
+            try:
+                e = json.loads(line)
+            except Exception:
+                continue
+            if category and e.get("category") != category:
+                continue
+            total += 1
+            sub = e.get("subcommand", "")
+            key = " ".join(sub.split()[:words]) or "(empty)"
+            counts[key] += 1
+            examples.setdefault(key, sub)
+
+    print(f"confirm-log-report: {total} logged event(s), {len(counts)} distinct prefix(es) "
+          f"(grouped by first {words} word(s))")
+    print()
+    for key, n in counts.most_common(top):
+        print(f"{n:6d}  {key}   (e.g. {examples[key]!r})")
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main(sys.argv[1:]))
