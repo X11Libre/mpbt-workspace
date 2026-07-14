@@ -1,0 +1,30 @@
+# SPDX-License-Identifier: AGPL-3.0-or-later
+# Copyright © 2026 Enrico Weigelt, metux IT consult
+#
+# FlyingTux: Python-based container/image-builder sister project (X11 app
+# isolation via xnamespace, docker image orchestration).
+#
+# Cloned into _WORK_/flyingtux/sources/xlibre/flyingtux, tracking its `master`
+# branch (the current production/deployed code) — NOT the in-progress Go
+# rewrite on `wip/golang-rewrite` (that branch lives in its own worktree at
+# /home/nekrad/src/flyingtux-go and is intentionally left alone here; see the
+# "FlyingTux is its own mpbt solution" AGENTS.md section for the rationale).
+#
+# There is no real build step: plain Python, no compiled artifact, no
+# setup.py/pyproject.toml. `buildsystem: exec` with no `commands:` block makes
+# `build` a documented no-op (mpbt's exec builder just skips a stage with no
+# command list) — this is a fetch-only solution for now.
+
+sources:
+    git:
+        ref:    origin/master
+        remotes:
+            origin:
+                url:    ${xlibre_git}/flyingtux.git
+                fetch:
+                  - refs/tags/*:refs/tags/origin/*
+                  - refs/heads/*:refs/remotes/origin/*
+                tagopt: --no-tags
+        local-branch: master
+
+buildsystem: exec
