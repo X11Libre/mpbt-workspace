@@ -58,6 +58,7 @@ Ephemeral live-status (who's online right now) stays in
 | starfleetctl: User-Dokumentation erstellen | offen | [`dashboard/topics/starfleetctl-user-docs.md`](dashboard/topics/starfleetctl-user-docs.md) |
 | submit/ stale-branch cleanup | In progress — most already cleared | [`dashboard/topics/submit-stale-branch-cleanup.md`](dashboard/topics/submit-stale-branch-cleanup.md) |
 | confirm-log-hook + confirm-log-report nach starfleetctl migrieren | offen | [`dashboard/topics/task-confirm-log-starfleetctl.md`](dashboard/topics/task-confirm-log-starfleetctl.md) |
+| go-x11 terminal: fully detachable (tmux-like) | open | [`dashboard/topics/task-go-x11-terminal-fully-detachable-tmux-like.md`](dashboard/topics/task-go-x11-terminal-fully-detachable-tmux-like.md) |
 | starfleetctl: GitHub-Commands in Subcommands untergliedern | open | [`dashboard/topics/task-starfleetctl-github-commands-in-subcommands-untergliedern.md`](dashboard/topics/task-starfleetctl-github-commands-in-subcommands-untergliedern.md) |
 | xx-make-pr.sh in starfleetctl einbauen | offen | [`dashboard/topics/task-xx-make-pr-starfleetctl.md`](dashboard/topics/task-xx-make-pr-starfleetctl.md) |
 | Unnumbered idea (optional, "evtl." per praetor — not a commitment): | see body | [`dashboard/topics/unnumbered-idea.md`](dashboard/topics/unnumbered-idea.md) |
