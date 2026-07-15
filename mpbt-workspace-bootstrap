@@ -1,0 +1,124 @@
+#!/bin/bash
+#
+# SPDX-License-Identifier: AGPL-3.0-or-later
+# Copyright © 2026 Enrico Weigelt, metux IT consult
+#
+# One-shot setup for a completely fresh mpbt-workspace clone: checks
+# prerequisites, installs mpbt-builder, fetches the primary release line
+# (xserver-master) plus all sister-project solutions (go-x11proto, flyingtux,
+# starfleetctl — building the latter two since they're cheap), and reports
+# what's still manual. Safe to re-run on an already-bootstrapped clone: every
+# step is idempotent (go install, git fetch, mpbt fetch/build all no-op or
+# incrementally update when there's nothing new).
+#
+# The full xserver-master build (~54 drivers + xts + piglit) and the other
+# release lines (25.0/25.1/25.2) are deliberately NOT fetched/built by
+# default — they're slow/heavy and most sessions only need one release line.
+# Opt in with --build / --all-releases.
+#
+# Usage: ./bootstrap [--shell-hook] [--build] [--all-releases]
+#   --shell-hook    also append the ship-name/comms shell integration
+#                   line to ~/.bashrc and/or ~/.zshrc (whichever exist);
+#                   without this flag, bootstrap only prints the line to add
+#                   — it never touches your dotfiles unasked.
+#   --build         also run the full xserver-master build (slow).
+#   --all-releases  also fetch (not build) xserver-25.0/25.1/25.2.
+#
+set -euo pipefail
+
+ROOT="$(cd "$(dirname "$0")" && pwd)"
+cd "$ROOT"
+
+usage() { sed -n '2,/^set -euo/p' "$0" | sed 's/^# \{0,1\}//; /^set -euo/d'; }
+
+SHELL_HOOK=0
+BUILD=0
+ALL_RELEASES=0
+for arg in "$@"; do
+    case "$arg" in
+        --shell-hook)   SHELL_HOOK=1 ;;
+        --build)        BUILD=1 ;;
+        --all-releases) ALL_RELEASES=1 ;;
+        -h|--help)      usage; exit 0 ;;
+        *)              echo "bootstrap: unknown option: $arg" >&2; exit 2 ;;
+    esac
+done
+
+echo "== mpbt-workspace bootstrap =="
+
+# --- 1. required tools ------------------------------------------------------
+missing=()
+for t in git go gh; do
+    command -v "$t" >/dev/null 2>&1 || missing+=("$t")
+done
+if [ "${#missing[@]}" -gt 0 ]; then
+    echo "bootstrap: missing required tool(s): ${missing[*]}" >&2
+    echo "  git, go and gh (GitHub CLI) are required — see README.md Prerequisites." >&2
+    exit 1
+fi
+for t in tmux meson ninja pkg-config; do
+    command -v "$t" >/dev/null 2>&1 || echo "bootstrap: note: '$t' not found — needed for some workflows (see README.md), not fatal here."
+done
+gh auth status >/dev/null 2>&1 || echo "bootstrap: note: 'gh' is not authenticated — run 'gh auth login' before using the PR workflow."
+
+# --- 2. mpbt-builder ---------------------------------------------------------
+echo "-- installing mpbt-builder --"
+./install-mpbt
+
+# --- 3. primary release line -------------------------------------------------
+echo "-- fetching xserver-master --"
+./run-fetch.xserver-master
+
+if [ "$ALL_RELEASES" = 1 ]; then
+    for rel in 25.0 25.1 25.2; do
+        echo "-- fetching xserver-$rel --"
+        ./run-fetch.xserver-"$rel"
+    done
+fi
+
+# --- 4. starfleetctl (delegated to starfleet-bootstrap) -----------------------
+echo "-- starfleet bootstrap (delegated to starfleet-bootstrap) --"
+./starfleet-bootstrap
+
+# --- 5. optional full xserver build (heavy) ----------------------------------
+if [ "$BUILD" = 1 ]; then
+    echo "-- building xserver-master (this takes a while: ~54 drivers + xts + piglit) --"
+    ./run-build.xserver-master
+else
+    echo "bootstrap: skipping the full xserver-master build (slow, ~54 drivers + xts + piglit)."
+    echo "  Run './run-build.xserver-master' yourself when ready, or re-run bootstrap with --build."
+fi
+
+# --- 6. shell integration: ship-name / comms identity per session -------
+HOOK_LINE="eval \"\$(.starfleet-ai/bin/starfleetctl ship-names shell-env)\""
+rc_files=()
+[ -f "$HOME/.bashrc" ] && rc_files+=("$HOME/.bashrc")
+[ -f "$HOME/.zshrc" ]  && rc_files+=("$HOME/.zshrc")
+
+already=0
+for f in "${rc_files[@]}"; do
+    grep -qF "starfleetctl ship-names shell-env" "$f" 2>/dev/null && already=1
+done
+
+if [ "$already" = 1 ]; then
+    echo "bootstrap: shell integration already present."
+elif [ "$SHELL_HOOK" = 1 ]; then
+    if [ "${#rc_files[@]}" -eq 0 ]; then
+        rc_files=("$HOME/.bashrc")
+    fi
+    for f in "${rc_files[@]}"; do
+        {
+            echo ""
+            echo "# mpbt-workspace: per-session ship-name / comms identity (added by bootstrap)"
+            echo "$HOOK_LINE"
+        } >> "$f"
+        echo "bootstrap: appended shell integration to $f"
+    done
+    echo "bootstrap: restart your shell (or 'source' the file above) to pick it up."
+else
+    echo "bootstrap: shell integration NOT installed (this script never edits your dotfiles unasked)."
+    echo "  Add this line to your ~/.bashrc or ~/.zshrc yourself, or re-run with --shell-hook:"
+    echo "    $HOOK_LINE"
+fi
+
+echo "== bootstrap done =="
