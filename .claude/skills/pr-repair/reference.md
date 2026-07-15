@@ -5,7 +5,7 @@ Distinct from backporting: here you *amend an existing, unmerged* master PR (typ
 broken build) rather than cherry-picking a merged one onto a release line. Same isolation rule —
 work in a dedicated agent clone, never the user's hand-edited sources tree.
 
-1. **Get the real failure first — don't reason blind.** Easiest: `scripts/pr-job-logs <pr#>`
+1. **Get the real failure first — don't reason blind.** Easiest: `scripts/github pr job-logs <pr#>`
    downloads every failing job's raw log and prints a failure summary in one shot (use
    `--job <id>` for a specific job, `--all` for every job). Under the hood: `gh pr checks <pr#>`
    shows which jobs failed, but `gh run view --log` / `--log-failed` frequently return **nothing**
@@ -89,19 +89,19 @@ work in a dedicated agent clone, never the user's hand-edited sources tree.
    Commit … übersprungen`), leaving PR-B's own commit alone. The two changes must touch **disjoint**
    regions for the textual rebase to stay clean either way.
 
-2. **Check out the PR branch in an isolated clone:** `scripts/pr-checkout <pr#>` → makes/refreshes
+2. **Check out the PR branch in an isolated clone:** `scripts/github pr checkout <pr#>` → makes/refreshes
    `_WORK_/xserver-master/agent/repair/xserver`, checks out the PR's head branch, prints the
    clone dir.
 
-   **`pr-checkout` handles both same-repo and fork PRs.** A fork PR has its head branch on the
-   contributor's repo, so `origin/<headRef>` doesn't exist. pr-checkout auto-detects this
+   **`github pr checkout` handles both same-repo and fork PRs.** A fork PR has its head branch on the
+   contributor's repo, so `origin/<headRef>` doesn't exist. github pr checkout auto-detects this
    (`isCrossRepository`), wires a dedicated `fork` remote mirroring origin's transport
    (SSH → reuses the praetor's key, no token), and checks out the branch tracking
-   `fork/<headRef>`; `pr-amend-push` then pushes the amended commit back to that `fork` remote
+   `fork/<headRef>`; `github pr amend-push` then pushes the amended commit back to that `fork` remote
    (it reads `branch.<head>.remote`, falling back to origin for same-repo PRs). Push-back needs the
-   PR's *allow edits from praetors* (`maintainerCanModify: true`) — pr-checkout warns if false.
-   (This was originally a bug: pr-checkout did `fetch origin <headRef>` unconditionally and failed
-   on forks, and pr-amend-push hard-coded a push to origin; both fixed while rebasing #625, head
+   PR's *allow edits from praetors* (`maintainerCanModify: true`) — github pr checkout warns if false.
+   (This was originally a bug: github pr checkout did `fetch origin <headRef>` unconditionally and failed
+   on forks, and github pr amend-push hard-coded a push to origin; both fixed while rebasing #625, head
    `patch-1` on fork `BrightCat14/xyzserver`.)
 
    **Rebasing a long-stale PR may reveal it's obsolete, not conflicting.** #625 (Aug 2025, an
@@ -144,7 +144,7 @@ work in a dedicated agent clone, never the user's hand-edited sources tree.
    unfixed build and stayed alive on the fixed one. Toggling the one-line fix in/out (rebuild
    `Xvfb` each way) cleanly proves cause *and* sufficiency — far tighter than waiting on CI.
 
-4. **Amend + push:** `scripts/pr-amend-push <clone-dir> [files...]` folds the edits into the PR's
+4. **Amend + push:** `scripts/github pr amend-push <clone-dir> [files...]` folds the edits into the PR's
    single commit (`--amend --no-edit`, preserving message + `Signed-off-by`) and
    `--force-with-lease` back to the branch. CI re-triggers automatically on the new head.
 

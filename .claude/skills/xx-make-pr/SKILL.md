@@ -1,16 +1,16 @@
 ---
-name: xx-make-pr
-description: Create a PR from one or more commits via `scripts/xx-make-pr.sh` (or `.starfleet-ai/bin/starfleetctl xx-make-pr`) — git config setup, the Signed-off-by-only / no Co-Authored-By rule, the [PR #NNNN] prefix + PR: trailer (incubator branch only), always pass an explicit SHA (never HEAD), and cherry-pick conflict recovery. Use when opening a master/backport PR.
+name: github pr make
+description: Create a PR from one or more commits via `scripts/github pr make.sh` (or `.starfleet-ai/bin/starfleetctl github pr make`) — git config setup, the Signed-off-by-only / no Co-Authored-By rule, the [PR #NNNN] prefix + PR: trailer (incubator branch only), always pass an explicit SHA (never HEAD), and cherry-pick conflict recovery. Use when opening a master/backport PR.
 ---
 
-# PR workflow (`scripts/xx-make-pr.sh`)
+# PR workflow (`scripts/github pr make.sh`)
 
 Full detail: **`reference.md`** in this skill's directory (moved out of AGENTS.md). Run commands from
 the workspace root (`/home/nekrad/src/xorg/mpbt-workspace`).
 
 ## Prereqs
 
-`scripts/xx-make-pr.sh` reads `git config`'s `make-pr.*` keys (auto-added by the `run-fetch*` scripts):
+`scripts/github pr make.sh` reads `git config`'s `make-pr.*` keys (auto-added by the `run-fetch*` scripts):
 
 ```ini
 [make-pr]
@@ -30,7 +30,7 @@ rebases the incubator branch.
 - **`[PR #NNNN]` prefix + `PR:` trailer go ONLY on the incubator branch (`rfc/backport-*`)** — never
   on the PR branch or the merged upstream commit. The PR is pushed *before* the number exists, so the
   pushed/merged commit keeps its clean original message. (Historical leak fixed 2026-07-07 in both the
-  bash original and the `starfleetctl xx-make-pr` Go port: the marker rewrite now always targets only
+  bash original and the `starfleetctl github pr make` Go port: the marker rewrite now always targets only
   the incubator via a scripted `GIT_SEQUENCE_EDITOR`, never `$BRANCH_NAME`/the pushed head. For any PR
   made with the *old* script, still verify the merged subject line is clean.)
 - **Always pass an explicit commit SHA — never symbolic `HEAD`.** The script checks out a fresh

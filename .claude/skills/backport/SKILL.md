@@ -29,9 +29,9 @@ The fix may already be present, or the buggy code may not exist / not be vulnera
 branch. Inspect the actual code on each release branch:
 
 - One file/symbol across all branches at once:
-  `scripts/backport-applies <master-path> '<grep-ERE>' [release ...]`
+  `scripts/github backport applies <master-path> '<grep-ERE>' [release ...]`
 - A single function on one branch:
-  `scripts/show-branch-file release/<rel> <master-path> '<symbol>'`
+  `scripts/github pr show-branch-file release/<rel> <master-path> '<symbol>'`
   (auto-resolves the `Xext/<ext>/` ↔ `<ext>/` directory reorg between releases)
 
 Classify each branch: **vulnerable** / **already-fixed** / **N-A**. Only proceed for vulnerable
@@ -40,25 +40,25 @@ branches; record the rest in the dashboard (step 4) — don't open an empty PR.
 ### 2. Apply + submit in one shot
 
 ```bash
-scripts/backport-commit <release> <commit-ish|PR#>
+scripts/github backport commit <release> <commit-ish|PR#>
 ```
 
-It refreshes the isolated agent clone (`mk-agent-clone`), `cherry-pick -x`'s onto
+It refreshes the isolated agent clone (`github pr mk-agent-clone`), `cherry-pick -x`'s onto
 `rfc/backport-<release>` (keeps original message + `Signed-off-by`, appends
-`(cherry picked from commit <sha>)`), then runs `xx-make-pr.sh` to push the PR against
+`(cherry picked from commit <sha>)`), then runs `github pr make.sh` to push the PR against
 `release/<release>` and tag the incubator with `[PR #NNNN]` + `PR:` trailer.
 
 - A **path-only** mismatch from the `Xext/<ext>/` ↔ `<ext>/` reorg is auto-remapped → still
   one-shot.
 - Only a genuine **content** conflict bails. Then do a manual/adapted backport inside the agent
-  clone (`.starfleet-ai/bin/starfleetctl mk-agent-clone <release>` → cherry-pick → resolve → build-verify) and
-  `scripts/xx-make-pr.sh <sha>` from within that clone.
+  clone (`.starfleet-ai/bin/starfleetctl github pr mk-agent-clone <release>` → cherry-pick → resolve → build-verify) and
+  `scripts/github pr make.sh <sha>` from within that clone.
 
 ### 3. Parallelize across releases freely
 
 Different release clones are fully isolated (separate working trees, push to distinct
 `rfc/backport-<rel>` branches). Run 25.2 / 25.1 / 25.0 concurrently. Within one release, give each
-agent its own clone name: `.starfleet-ai/bin/starfleetctl mk-agent-clone <rel> <name>`.
+agent its own clone name: `.starfleet-ai/bin/starfleetctl github pr mk-agent-clone <rel> <name>`.
 
 ### 4. Cross-link (required)
 
@@ -67,11 +67,11 @@ agent its own clone name: `.starfleet-ai/bin/starfleetctl mk-agent-clone <rel> <
 - Each **backport PR** links back to the original master PR.
 - Edit PR bodies via REST, not `gh pr edit` (which fails with the *"Projects classic
   deprecation"* GraphQL error). Write the body to a file, then:
-  `scripts/pr-set-body <pr#> <body-file>`
+  `scripts/github pr set-body <pr#> <body-file>`
 
 ## Gotchas
 
 - Never run `git gc --prune` / aggressive `repack` in the user's `sources/…` clone while agent
   clones (which borrow its objects via alternates) exist.
-- `xx-make-pr.sh` rewrites the `rfc/backport-<rel>` history and needs **exclusive** access to its
+- `github pr make.sh` rewrites the `rfc/backport-<rel>` history and needs **exclusive** access to its
   clone for its whole runtime — that's why each agent uses its own clone, not a worktree.

@@ -11,7 +11,7 @@
 
 Backporting a merged **master** PR means applying its changes to every applicable release
 line, each worked in **its own clone**. Agents must use a dedicated agent-owned clone created
-with `.starfleet-ai/bin/starfleetctl mk-agent-clone <release>` (see Concurrency / isolation) — not the user's
+with `.starfleet-ai/bin/starfleetctl github pr mk-agent-clone <release>` (see Concurrency / isolation) — not the user's
 hand-edited `_WORK_/xserver-<release>/sources/xlibre/xserver` tree. Switch to the matching
 release; don't try to do it all from one clone.
 
@@ -35,29 +35,29 @@ Procedure, per applicable release:
    commits in the shared `rfc/backport-<release>` incubator. (Hit 2026-07-03: `agent-bus board`
    only shows *currently running* agents — a session that finished before a suspend/reboot leaves
    no trace there, so the board being "empty of workers" does NOT mean a PR hasn't already been
-   backported. Recovered cleanly because `backport-commit`'s incubator rebase never got pushed —
+   backported. Recovered cleanly because `github backport commit`'s incubator rebase never got pushed —
    the divergence was caught locally — but always check first regardless.)
 1. **Check applicability** by inspecting the actual code on that branch — the fix may already
    be present, or the buggy code may not exist / not be vulnerable there. (See
    `VULN-FIX-BACKPORT.md` for an example applicability matrix.) Use
-   `scripts/show-branch-file <release-branch> <master-path> '<symbol>'` to read the relevant
+   `scripts/github pr show-branch-file <release-branch> <master-path> '<symbol>'` to read the relevant
    function on each release branch straight from GitHub (it auto-resolves the
    `Xext/<ext>/` ↔ `<ext>/` directory reorg between newer and older releases). If it's already
    contained or N/A, **don't open a PR** — just record that in the dashboard.
-2. **Apply + submit in one shot** with `scripts/backport-commit <release> <commit-ish|PR#>`. It
-   refreshes the isolated agent clone (`mk-agent-clone`), `cherry-pick -x`'s the commit onto
+2. **Apply + submit in one shot** with `scripts/github backport commit <release> <commit-ish|PR#>`. It
+   refreshes the isolated agent clone (`github pr mk-agent-clone`), `cherry-pick -x`'s the commit onto
    `rfc/backport-<release>` (keeping the original message + `Signed-off-by` and appending the
-   `(cherry picked from commit <sha>)` line), then runs `xx-make-pr.sh` to push the PR against
+   `(cherry picked from commit <sha>)` line), then runs `github pr make.sh` to push the PR against
    `release/<release>` and mark the incubator with a `[PR #NNNN]` prefix + `PR:` trailer.
    Passing a PR number resolves its merge commit automatically. If the cherry-pick fails only
    because the file moved (the `Xext/<ext>/` ↔ `<ext>/` reorg between master and the older
    releases), it auto-remaps the diff's paths and applies it, reconstructing the same commit —
    so cross-reorg backports are one-shot too. Only a genuine **content** conflict bails; then
-   you do a manual/adapted backport in the agent clone and `scripts/xx-make-pr.sh <sha>` from
+   you do a manual/adapted backport in the agent clone and `scripts/github pr make.sh <sha>` from
    inside it.
 
-   (The underlying `.starfleet-ai/bin/starfleetctl mk-agent-clone` + `cherry-pick -x` + `xx-make-pr.sh`
-   steps can still be run by hand if you need finer control — `backport-commit` just chains them.)
+   (The underlying `.starfleet-ai/bin/starfleetctl github pr mk-agent-clone` + `cherry-pick -x` + `github pr make.sh`
+   steps can still be run by hand if you need finer control — `github backport commit` just chains them.)
 
 **Cross-linking (required):**
 
@@ -67,6 +67,6 @@ Procedure, per applicable release:
 - Each **backport PR** links back to the original master PR.
 - `gh pr edit` currently fails on the xserver repo with a GraphQL *"Projects classic
   deprecation"* error, so edit PR bodies via the REST API. Use
-  `scripts/pr-set-body <pr#> <body-file>` (wraps
+  `scripts/github pr set-body <pr#> <body-file>` (wraps
   `gh api --method PATCH repos/X11Libre/xserver/pulls/<n> -F body=@<file>`) — write the new body
   to a file first, then apply it.

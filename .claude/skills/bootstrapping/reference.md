@@ -25,7 +25,7 @@ across many sessions before this existed.
 **Deliberately NOT done by default** (opt in, since they're slow/heavy and most sessions only need
 one release line): the full `xserver-master` build (~54 drivers + xts + piglit, `--build`), and
 fetching the other release lines `xserver-25.0`/`25.1`/`25.2` (`--all-releases`, fetch only —
-building those is normally done from a dedicated `mk-agent-clone`, not the user's own checkout
+building those is normally done from a dedicated `github pr mk-agent-clone`, not the user's own checkout
 anyway, see Concurrency).
 
 **Idempotent by construction** — every step it calls (`go install ...@latest`, mpbt's `fetch`/
