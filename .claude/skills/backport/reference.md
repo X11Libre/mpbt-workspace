@@ -40,23 +40,23 @@ Procedure, per applicable release:
 1. **Check applicability** by inspecting the actual code on that branch — the fix may already
    be present, or the buggy code may not exist / not be vulnerable there. (See
    `VULN-FIX-BACKPORT.md` for an example applicability matrix.) Use
-   `scripts/github pr show-branch-file <release-branch> <master-path> '<symbol>'` to read the relevant
+   `scripts/starfleetctl github pr show-branch-file <release-branch> <master-path> '<symbol>'` to read the relevant
    function on each release branch straight from GitHub (it auto-resolves the
    `Xext/<ext>/` ↔ `<ext>/` directory reorg between newer and older releases). If it's already
    contained or N/A, **don't open a PR** — just record that in the dashboard.
-2. **Apply + submit in one shot** with `scripts/github backport commit <release> <commit-ish|PR#>`. It
+2. **Apply + submit in one shot** with `scripts/starfleetctl github backport commit <release> <commit-ish|PR#>`. It
    refreshes the isolated agent clone (`github pr mk-agent-clone`), `cherry-pick -x`'s the commit onto
    `rfc/backport-<release>` (keeping the original message + `Signed-off-by` and appending the
-   `(cherry picked from commit <sha>)` line), then runs `github pr make.sh` to push the PR against
+   `(cherry picked from commit <sha>)` line), then runs `github pr make` to push the PR against
    `release/<release>` and mark the incubator with a `[PR #NNNN]` prefix + `PR:` trailer.
    Passing a PR number resolves its merge commit automatically. If the cherry-pick fails only
    because the file moved (the `Xext/<ext>/` ↔ `<ext>/` reorg between master and the older
    releases), it auto-remaps the diff's paths and applies it, reconstructing the same commit —
    so cross-reorg backports are one-shot too. Only a genuine **content** conflict bails; then
-   you do a manual/adapted backport in the agent clone and `scripts/github pr make.sh <sha>` from
+   you do a manual/adapted backport in the agent clone and `scripts/starfleetctl github pr make <sha>` from
    inside it.
 
-   (The underlying `.starfleet-ai/bin/starfleetctl github pr mk-agent-clone` + `cherry-pick -x` + `github pr make.sh`
+   (The underlying `.starfleet-ai/bin/starfleetctl github pr mk-agent-clone` + `cherry-pick -x` + `github pr make`
    steps can still be run by hand if you need finer control — `github backport commit` just chains them.)
 
 **Cross-linking (required):**
@@ -67,6 +67,6 @@ Procedure, per applicable release:
 - Each **backport PR** links back to the original master PR.
 - `gh pr edit` currently fails on the xserver repo with a GraphQL *"Projects classic
   deprecation"* error, so edit PR bodies via the REST API. Use
-  `scripts/github pr set-body <pr#> <body-file>` (wraps
+  `scripts/starfleetctl github pr set-body <pr#> <body-file>` (wraps
   `gh api --method PATCH repos/X11Libre/xserver/pulls/<n> -F body=@<file>`) — write the new body
   to a file first, then apply it.

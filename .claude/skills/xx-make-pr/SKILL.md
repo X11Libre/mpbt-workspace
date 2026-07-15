@@ -1,16 +1,16 @@
 ---
 name: github pr make
-description: Create a PR from one or more commits via `scripts/github pr make.sh` (or `.starfleet-ai/bin/starfleetctl github pr make`) — git config setup, the Signed-off-by-only / no Co-Authored-By rule, the [PR #NNNN] prefix + PR: trailer (incubator branch only), always pass an explicit SHA (never HEAD), and cherry-pick conflict recovery. Use when opening a master/backport PR.
+description: Create a PR from one or more commits via `scripts/starfleetctl github pr make` (or `.starfleet-ai/bin/starfleetctl github pr make`) — git config setup, the Signed-off-by-only / no Co-Authored-By rule, the [PR #NNNN] prefix + PR: trailer (incubator branch only), always pass an explicit SHA (never HEAD), and cherry-pick conflict recovery. Use when opening a master/backport PR.
 ---
 
-# PR workflow (`scripts/github pr make.sh`)
+# PR workflow (`scripts/starfleetctl github pr make`)
 
 Full detail: **`reference.md`** in this skill's directory (moved out of AGENTS.md). Run commands from
 the workspace root (`/home/nekrad/src/xorg/mpbt-workspace`).
 
 ## Prereqs
 
-`scripts/github pr make.sh` reads `git config`'s `make-pr.*` keys (auto-added by the `run-fetch*` scripts):
+`scripts/starfleetctl github pr make` reads `git config`'s `make-pr.*` keys (auto-added by the `run-fetch*` scripts):
 
 ```ini
 [make-pr]

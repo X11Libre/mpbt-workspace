@@ -31,7 +31,7 @@ and they're the template for any future one:
 - **Build:** the package uses `buildsystem: exec` with `commands: build: [make]` — go-x11proto is
   pure Go with a plain `Makefile` (no autotools/meson), so mpbt just runs `make` (which does the
   `go build`s). `make-pr.*` is configured on the clone (it's an `X11Libre` repo, so
-  `scripts/github pr make.sh` works from it, same as an xserver clone).
+  `scripts/starfleetctl github pr make` works from it, same as an xserver clone).
 
 **FlyingTux** (the Python-based container/image-builder sister project, `metux/flyingtux` — a
 **personal** GitHub repo, not `X11Libre`, so none of the xserver PR/backport/CI-repair conventions
@@ -66,7 +66,7 @@ apply to it):
   `src/imagebuilder/flyingtux/app/deploy.py`, so a compile-all "build" would be red from day one for
   reasons unrelated to this migration. Not fixed here — out of scope, flagged as a Parkplatz item.)
 - No `make-pr.*` config: FlyingTux isn't part of the xserver PR ecosystem and
-  `scripts/github pr make.sh`'s assumptions (X11Libre remotes, `[PR #NNNN]` conventions, reviewers)
+  `scripts/starfleetctl github pr make`'s assumptions (X11Libre remotes, `[PR #NNNN]` conventions, reviewers)
   don't apply to a personal repo.
 
 **starfleetctl** (the Go CLI consolidating the flock/race-prone fleet-coordination scripts —

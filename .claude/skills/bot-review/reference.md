@@ -15,7 +15,7 @@ so self-authored PRs are reviewed and recorded the same way). The `gh` CLI is au
 **modesetting** driver, **kdrive**, **xfbdev**, or the **xfree86 DDX bus/output/primary-device**
 paths should get a human review from **@cepelinas9000** and **@stefan11111** — the two contributors
 deepest into the HW side. **@stefan11111** is the **kdrive** expert and wrote **xfbdev**. For such a
-PR, request both as reviewers (`scripts/github pr request-reviewers <pr#> cepelinas9000 stefan11111`)
+PR, request both as reviewers (`scripts/starfleetctl github pr request-reviewers <pr#> cepelinas9000 stefan11111`)
 and **do not auto-merge on a green
 bot-review + CI alone** — wait for an `APPROVED` review from one of them. (Seen on #3181,
 `xfree86: prefer boot_display over boot_vga`, a primary-device-selection behaviour change.)
@@ -48,7 +48,7 @@ back to `user@host` if unset, same as `.starfleet-ai/bin/starfleetctl agent-bus`
 ship name is unattributable after the fact — you can't tell which session to ask if a finding
 turns out wrong, or correlate it with that session's `agent-bus events`/DASHBOARD.md notes.
 
-`scripts/github pr comment <pr#> <body-file> --bot-review` fills in `<ship>` from `$AGENT_ID` and
+`scripts/starfleetctl github pr comment <pr#> <body-file> --bot-review` fills in `<ship>` from `$AGENT_ID` and
 prepends this exact banner for you — prefer it over hand-copying the banner text into every
 comment (which would drift, and can't know the ship name of a different session anyway).
 
@@ -69,7 +69,7 @@ already be fixed, or not be present) — see the Backport workflow section. Prae
 whether to proceed.
 ```
 
-Leave the decision to ramp the actual backports (via `github pr mk-agent-clone` + `github pr make.sh`) to the
+Leave the decision to ramp the actual backports (via `github pr mk-agent-clone` + `github pr make`) to the
 praetor.
 
 **3. Check for driver-ABI breakage.** The **proprietary nvidia driver is a binary blob that
@@ -156,6 +156,6 @@ exactly one outcome label so results are filterable on GitHub:
 
 If a later revision fixes the blocking finding (e.g. an amend + force-push), swap the label to
 `bot-review-passed` and update the review comment to match. Apply labels via
-`scripts/github pr label <pr#> set-review passed|changes-requested`, **not** `gh pr edit` — the latter
+`scripts/starfleetctl github pr label <pr#> set-review passed|changes-requested`, **not** `gh pr edit` — the latter
 currently fails on this repo with the *"Projects classic deprecation"* GraphQL error (same
 breakage as `github pr set-body` works around).
