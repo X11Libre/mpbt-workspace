@@ -3,10 +3,10 @@ slug: task-go-x11-terminal-extra-osc-codes-implementieren
 title: "go-x11 terminal: extra OSC-Codes implementieren"
 category: active
 kind: task
-status: open
+status: done
 created-by: Yamato
 created: 2026-07-15T15:07:32Z
-assigned-to: —
+assigned-to: Phoenix
 doc_ref: "—"
 ---
 
