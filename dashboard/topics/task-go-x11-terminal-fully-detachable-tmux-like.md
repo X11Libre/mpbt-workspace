@@ -3,7 +3,7 @@ slug: task-go-x11-terminal-fully-detachable-tmux-like
 title: "go-x11 terminal: fully detachable (tmux-like)"
 category: active
 kind: task
-status: erledigt
+status: done
 created-by: Yamato
 created: 2026-07-15T15:03:23Z
 assigned-to: Yamato
