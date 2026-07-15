@@ -1,3 +1,11 @@
+---
+slug: opencode-telemetry-hook-via-plugin
+title: "opencode: Telemetry-Hook via Plugin"
+category: active
+status: open
+since: 2026-07-15
+---
+
 # opencode: Telemetry-Hook via Plugin
 
 ## Status
