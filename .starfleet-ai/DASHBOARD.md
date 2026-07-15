@@ -58,9 +58,10 @@ Ephemeral live-status (who's online right now) stays in
 | starfleetctl: User-Dokumentation erstellen | offen | [`dashboard/topics/starfleetctl-user-docs.md`](dashboard/topics/starfleetctl-user-docs.md) |
 | submit/ stale-branch cleanup | In progress — most already cleared | [`dashboard/topics/submit-stale-branch-cleanup.md`](dashboard/topics/submit-stale-branch-cleanup.md) |
 | confirm-log-hook + confirm-log-report nach starfleetctl migrieren | offen | [`dashboard/topics/task-confirm-log-starfleetctl.md`](dashboard/topics/task-confirm-log-starfleetctl.md) |
-| go-x11 terminal: extra OSC-Codes implementieren | open | [`dashboard/topics/task-go-x11-terminal-extra-osc-codes-implementieren.md`](dashboard/topics/task-go-x11-terminal-extra-osc-codes-implementieren.md) |
-| go-x11 terminal: fully detachable (tmux-like) | open | [`dashboard/topics/task-go-x11-terminal-fully-detachable-tmux-like.md`](dashboard/topics/task-go-x11-terminal-fully-detachable-tmux-like.md) |
+| go-x11 terminal: extra OSC-Codes implementieren | done | [`dashboard/topics/task-go-x11-terminal-extra-osc-codes-implementieren.md`](dashboard/topics/task-go-x11-terminal-extra-osc-codes-implementieren.md) |
+| go-x11 terminal: fully detachable (tmux-like) | done | [`dashboard/topics/task-go-x11-terminal-fully-detachable-tmux-like.md`](dashboard/topics/task-go-x11-terminal-fully-detachable-tmux-like.md) |
 | starfleetctl: GitHub-Commands in Subcommands untergliedern | open | [`dashboard/topics/task-starfleetctl-github-commands-in-subcommands-untergliedern.md`](dashboard/topics/task-starfleetctl-github-commands-in-subcommands-untergliedern.md) |
+| terminal-aa-detach: Race Condition bei attach/detach beheben | open | [`dashboard/topics/task-terminal-aa-detach-race-condition-bei-attach-detach-beheben.md`](dashboard/topics/task-terminal-aa-detach-race-condition-bei-attach-detach-beheben.md) |
 | xx-make-pr.sh in starfleetctl einbauen | offen | [`dashboard/topics/task-xx-make-pr-starfleetctl.md`](dashboard/topics/task-xx-make-pr-starfleetctl.md) |
 | Unnumbered idea (optional, "evtl." per praetor — not a commitment): | see body | [`dashboard/topics/unnumbered-idea.md`](dashboard/topics/unnumbered-idea.md) |
 | Vendor libXfont2 in-tree (like os/Xtrans.c already is), then strip the dead fc/ backend | Idea stage — sized/scoped 2026-07-01, nothing written yet | [`dashboard/topics/vendor-libxfont2-in-tree-then-strip-the-dead-fc-backend.md`](dashboard/topics/vendor-libxfont2-in-tree-then-strip-the-dead-fc-backend.md) |
