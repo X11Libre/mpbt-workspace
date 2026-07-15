@@ -2,11 +2,11 @@
 slug: task-starfleetctl-github-commands-in-subcommands-untergliedern
 title: "starfleetctl: GitHub-Commands in Subcommands untergliedern"
 category: active
-kind: task
-status: open
-created-by: Yamato
-created: 2026-07-15T14:41:57Z
-assigned-to: —
+kind: "task"
+status: "done"
+assigned-to: "—"
+created-by: "Yamato"
+created: "2026-07-15T14:41:57Z"
 doc_ref: "—"
 ---
 
