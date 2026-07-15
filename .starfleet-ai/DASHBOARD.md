@@ -61,7 +61,7 @@ Ephemeral live-status (who's online right now) stays in
 | go-x11 terminal: extra OSC-Codes implementieren | done | [`dashboard/topics/task-go-x11-terminal-extra-osc-codes-implementieren.md`](dashboard/topics/task-go-x11-terminal-extra-osc-codes-implementieren.md) |
 | go-x11 terminal: fully detachable (tmux-like) | done | [`dashboard/topics/task-go-x11-terminal-fully-detachable-tmux-like.md`](dashboard/topics/task-go-x11-terminal-fully-detachable-tmux-like.md) |
 | starfleetctl: direkter Dashboard-Dateizugriff verbieten | open | [`dashboard/topics/task-starfleetctl-direkter-dashboard-dateizugriff-verbieten.md`](dashboard/topics/task-starfleetctl-direkter-dashboard-dateizugriff-verbieten.md) |
-| starfleetctl: GitHub-Commands in Subcommands untergliedern | open | [`dashboard/topics/task-starfleetctl-github-commands-in-subcommands-untergliedern.md`](dashboard/topics/task-starfleetctl-github-commands-in-subcommands-untergliedern.md) |
+| starfleetctl: GitHub-Commands in Subcommands untergliedern | done | [`dashboard/topics/task-starfleetctl-github-commands-in-subcommands-untergliedern.md`](dashboard/topics/task-starfleetctl-github-commands-in-subcommands-untergliedern.md) |
 | terminal-aa-detach: Race Condition bei attach/detach beheben | open | [`dashboard/topics/task-terminal-aa-detach-race-condition-bei-attach-detach-beheben.md`](dashboard/topics/task-terminal-aa-detach-race-condition-bei-attach-detach-beheben.md) |
 | xx-make-pr.sh in starfleetctl einbauen | offen | [`dashboard/topics/task-xx-make-pr-starfleetctl.md`](dashboard/topics/task-xx-make-pr-starfleetctl.md) |
 | Unnumbered idea (optional, "evtl." per praetor — not a commitment): | see body | [`dashboard/topics/unnumbered-idea.md`](dashboard/topics/unnumbered-idea.md) |
