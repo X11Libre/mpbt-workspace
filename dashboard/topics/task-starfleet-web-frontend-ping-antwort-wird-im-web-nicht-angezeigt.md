@@ -2,11 +2,11 @@
 slug: task-starfleet-web-frontend-ping-antwort-wird-im-web-nicht-angezeigt
 title: "Starfleet web-frontend: Ping-Antwort wird im Web nicht angezeigt"
 category: active
-kind: task
-status: open
-created-by: Phoenix
-created: 2026-07-16T16:46:01Z
-assigned-to: —
+kind: "task"
+status: "done"
+assigned-to: "—"
+created-by: "Phoenix"
+created: "2026-07-16T16:46:01Z"
 doc_ref: "—"
 ---
 
