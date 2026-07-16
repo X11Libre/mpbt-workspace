@@ -4,6 +4,8 @@ title: "Alloc-fail/UAF security sweep (praetor directive m0126) — Phase 1 find
 category: parked
 noted_by: "Farragut (m0126 directive) / Intrepid (dix/+os/) / Constellation (Xext+mi+miext, hw/xfree86, intel+amdgpu, nouveau+vmware+qxl, input drivers) / Pegasus (cross-check dix/os/Xext/mi + hw/xfree86 rest/glamor/composite + xf86-video-ati/freedreno/mga/savage/siliconmotion/nv/vmware/qxl-extra/~32 sampled legacy drivers + xf86-input-evdev/elographics/joystick/keyboard/mouse/vmmouse/void)"
 since: "2026-07-07"
+updated: "2026-07-16"
+updated_by: "Enterprise — re-verified findings against origin/master (X11Libre/xserver); marked items fixed/merged in master and retracted the disproven micmap.c claim"
 ---
 
 Praetor directive relayed by Farragut (m0126): sweep the xlibre source tree + drivers for
@@ -11,6 +13,40 @@ allocation-failure-handling gaps and use-after-free. **Phase 1 only** — findin
 no fixes yet. Phase 2 (fixes/PRs, likely one ship per finding-cluster/component) follows once
 enough of the tree is covered — coordinate via agent-bus before starting a fix so two ships don't
 duplicate.
+
+## Aktualität (re-verified 2026-07-16 against origin/master)
+
+The findings below were collected 2026-07-07. On 2026-07-16 Enterprise re-checked them against
+`origin/master` (X11Libre/xserver). Summary of what changed:
+
+- **FIXED IN MASTER (no longer a finding):**
+  - Constellation finding **#2 — `Xext/dri2/dri2.c` OOB heap write** → fixed via **PR #3266**
+    (`c03bc789ae`, merged 2026-07-07, "dri2: fix off-by-one heap overflow in do_get_buffers()").
+    The flow-text description under "Findings: Xext/mi/miext" is now historical; see PR for the fix.
+  - **`os/client.c:290-304` DetermineClientCmd BSD sysctl unguarded `calloc`** (Finding #4) → fixed
+    by commit `e25f7999e1` (2026-07-07, "os: client: check calloc() result before sysctl(KERN_PROC_ARGS)")
+    which adds the missing `if (!procargs)` NULL check. No longer reproducible.
+- **RETRACTED (claim was wrong, not a bug):** Pegasus finding **#12 — `mi/micmap.c:486-491`
+  `miInitVisuals()` "invalid-pointer free"** is **disproven**. `git blame` shows the
+  `free(depth)/free(visual)/free(preferredCVCs)` calls have lived *inside* the `if (!vid)` block
+  since 2012 (Keith Packard, `9838b7032ea`); the base pointers are never advanced past their
+  allocation before that free, so there is no mid-buffer free. Pegasus misread the loop. Remove
+  from any Phase-2 worklist.
+- **STILL OPEN / UNMERGED (findings remain valid in master):** the other 9 Constellation PRs
+  (#3265, #3267, #3271, #3273, #3274, #3275, #3276, #3277, #3278) are all still OPEN on master;
+  their code paths are unchanged and the bugs reproduce. The driver/input findings (intel, amdgpu,
+  nouveau, vmware, qxl, ati, freedreno, nv, libinput, wacom, synaptics, evdev, mouse, joystick,
+  keyboard) likewise have no PRs and remain valid Phase-1 captures.
+- **UNRESOLVED CONTRADICTIONS (Pegasus vs Constellation) still need a tie-breaker 3rd read before
+  any Phase-2 PR:** `mi/miwideline.c` (#13), `Xext/security/security.c` (#14), `Xext/xv/xvmc.c`
+  (#15), `Xext/xselinux/xselinux_label.c` (#16). Re-check of master shows #14 and #15's claimed
+  defect shapes are *still present in code* (so Pegasus is likely right there); #13/#16 were not
+  re-confirmed but their files are untouched since the sweep, so the dispute stands.
+
+**Phase 2 status:** the Xext/mi/miext cluster (Constellation, m0130) produced 10 PRs; as of
+2026-07-16 only #3266 is merged — 9 remain open, so that cluster is **NOT complete**. All other
+clusters (drivers, input) are still Phase-1-only (no PRs).
+
 
 **Scope covered so far** (all against `_WORK_/xserver-master/sources/xlibre/`, master branch, via
 research agents — read-only, no fixes):
@@ -88,6 +124,8 @@ function — worth a deeper pass if time allows.
    `sysctl()` with a non-NULL `oldp` returning 0 is a valid *successful* call, so the existing
    `!= 0` error check does NOT catch a NULL `procargs` reaching `sysctl()` — strengthens confidence
    to high.**
+   **FIXED IN MASTER** → commit `e25f7999e1` (2026-07-07, "os: client: check calloc() result before
+   sysctl(KERN_PROC_ARGS)") adds the missing `if (!procargs)` NULL check. No longer reproducible.
 
 5. **`os/log.c:386-388` (freed-but-not-NULLed globals → latent UAF/double-free), confidence medium
    on the defect, but currently NOT reachable/live.** `LogSetDisplay()` frees
@@ -161,6 +199,7 @@ assignment (Xext/mi/miext cluster) is complete pending review/merge.
    `DRI2BufferFrontLeft` requested, the `need_real_front` branch writes `buffers[11]`, one past the
    11-element allocation. Trigger: any DRI2-capable client sends `DRI2GetBuffers` with 11 attachment
    entries all `DRI2BufferBackLeft` — deterministic, no OOM required (CWE-787).
+   **FIXED IN MASTER** → PR #3266 (`c03bc789ae`, merged 2026-07-07). Retain only as historical record.
 3. **`Xext/render/render.c:999-1006` — resource leak, high confidence.** `ProcRenderAddGlyphs`'s
    `bail:` path does `--glyph->refcnt; free(glyph);` directly instead of `FreeGlyph()`, skipping
    release of the glyph's realized Picture/Pixmap. Trigger: `X_RenderAddGlyphs` with glyph 0
@@ -233,6 +272,11 @@ third read before committing Phase 2 effort either way.**
     `calloc`s (lines 460-461). `free()` on these mid-buffer pointers is undefined behavior; glibc
     aborts with "free(): invalid pointer" — crashes the server on an OOM hit with more than one
     display depth registered (the normal multi-depth case).
+    **RETRACTED (2026-07-16) — claim is WRONG.** `git blame` shows the `free(depth)/free(visual)/
+    free(preferredCVCs)` calls have lived *inside* the `if (!vid)` block since 2012
+    (Keith Packard, `9838b7032ea`); the base pointers are never advanced past their allocation
+    before that free, so there is no mid-buffer free. Pegasus misread the loop. **Do not file a PR
+    for this — drop from the Phase-2 worklist.**
 
 13. **`mi/miwideline.c:477-501`, `miFillUniqueSpanGroup()` — double-free, high confidence per
     Pegasus's agent; CONTRADICTS Constellation's "nothing solid found" for this file.**
