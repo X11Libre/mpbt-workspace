@@ -30,29 +30,3 @@ sessions — anything that doesn't yet belong in the structured
 
 4. **On `mtx/agent-config`, auto-commit applies** — changes here are
    committed and pushed automatically per the auto-commit policy.
-
-## starfleetctl: single local clone (under .starfleet-ai/)
-
-There is now exactly **one** starfleetctl source clone:
-
-- `.starfleet-ai/src/starfleetctl/` — the source tree the workspace binary
-  symlink (`.starfleet-ai/bin/starfleetctl`) is built from. Managed by
-  `./starfleet-bootstrap`.
-
-The former second clone (`_WORK_/starfleetctl/`, its own mpbt solution —
-`cf/starfleetctl/`, `run-fetch.starfleetctl`, `run-build.starfleetctl`) was
-removed on 2026-07-13, along with `scripts/starfleetctl` (the thin wrapper
-that used to exec `.starfleet-ai/bin/starfleetctl`). The binary at
-`.starfleet-ai/bin/starfleetctl` is now invoked directly.
-
-### Workflow (standing, since 2026-07-13)
-
-1. Edit fragments/code in `.starfleet-ai/src/starfleetctl/`, commit, push.
-2. Rebuild: `cd .starfleet-ai/src/starfleetctl && go build -o starfleetctl ./cmd/starfleetctl`
-   (or just re-run `./starfleet-bootstrap`).
-3. Roll out in the workspace: `./.starfleet-ai/bin/starfleetctl bootstrap --fix`.
-
-Gotcha: `bootstrap` installs from the **binary's embedded** fragments
-(`//go:embed all:fragments`), not the source tree — so a rebuild (step 2)
-is mandatory after any fragment edit, or `bootstrap --fix` silently clobbers
-local edits with the stale embedded copy.
