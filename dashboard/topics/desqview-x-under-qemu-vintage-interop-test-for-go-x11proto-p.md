@@ -2,7 +2,10 @@
 slug: desqview-x-under-qemu-vintage-interop-test-for-go-x11proto-p
 title: "DESQview/X (X11R5 DOS server, Quarterdeck, early 90s) under QEMU — vintage interop test for go-x11proto/pyxtest"
 category: active
-status: "**Phase 1 (proof-of-life networking) DONE 2026-07-06 — FreeDOS 1.4 boots from virtual HDD under qemu-system-i386, mTCP+NE2000 packet driver confirmed working (mTCP ping to QEMU gateway 10.0.2.2: 4/4 replies, ~0.6ms). Now starting Phase 2 (sourcing + installing DESQview/X itself).**"
+status: "open"
+assigned-to: ""
+created-by: ""
+created: ""
 doc_ref: "`_WORK_/desqview-x/` (gitignored, not an mpbt solution — just VM/notes storage)"
 migrated_from: 8cf8692b9f0057ffe44e793b35bcf7329da83d3f
 ---
