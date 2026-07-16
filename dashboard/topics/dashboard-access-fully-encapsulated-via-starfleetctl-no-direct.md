@@ -2,7 +2,11 @@
 slug: dashboard-access-fully-encapsulated-via-starfleetctl-no-direct
 title: "Dashboard access fully encapsulated via starfleetctl — no more direct file access by agents"
 category: active
-status: "**CLI-only guidance landed 2026-07-07 (Constellation, m0123). Open questions resolved, enforcement deliberately deferred (convention-only for now) — see below.**"
+status: "open"
+assigned-to: ""
+created-by: ""
+created: ""
+doc_ref: ""
 ---
 
 Motivation: agents currently read/write `DASHBOARD.md` and `dashboard/themes/*.md` directly with
