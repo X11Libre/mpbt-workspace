@@ -2,11 +2,11 @@
 slug: task-background-ships-attach-detach-f-r-background-ships
 title: "Background-Ships: attach/detach für Background-Ships"
 category: active
-kind: task
-status: open
-created-by: Phoenix
-created: 2026-07-16T18:23:41Z
-assigned-to: —
+kind: "task"
+status: "in-progress"
+assigned-to: "—"
+created-by: "Phoenix"
+created: "2026-07-16T18:23:41Z"
 doc_ref: "—"
 ---
 
