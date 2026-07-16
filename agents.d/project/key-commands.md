@@ -72,7 +72,7 @@ Essential quick reference — full details in the `starfleetctl` skill's `refere
 
 | command | purpose |
 |---------|---------|
-| `scripts/json validate\|pretty\|get` | JSON helper (avoid ad-hoc python3 one-liners) |
+| `.starfleet-ai/bin/starfleetctl json validate\|pretty\|get` | JSON helper (avoid ad-hoc python3 one-liners) |
 | `scripts/cancel-stale-ci [--cancel]` | cancel CI runs whose branch moved on |
 | `scripts/prune-stale-ci [--delete]` | delete completed stale workflow runs |
 | `starfleetctl dashboard show\|pull\|write\|commit` | DASHBOARD.md read/write cycle |

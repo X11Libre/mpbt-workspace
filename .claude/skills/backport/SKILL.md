@@ -29,9 +29,9 @@ The fix may already be present, or the buggy code may not exist / not be vulnera
 branch. Inspect the actual code on each release branch:
 
 - One file/symbol across all branches at once:
-  `scripts/starfleetctl github backport applies <master-path> '<grep-ERE>' [release ...]`
+  `.starfleet-ai/bin/starfleetctl github backport applies <master-path> '<grep-ERE>' [release ...]`
 - A single function on one branch:
-  `scripts/starfleetctl github pr show-branch-file release/<rel> <master-path> '<symbol>'`
+  `.starfleet-ai/bin/starfleetctl github pr show-branch-file release/<rel> <master-path> '<symbol>'`
   (auto-resolves the `Xext/<ext>/` ↔ `<ext>/` directory reorg between releases)
 
 Classify each branch: **vulnerable** / **already-fixed** / **N-A**. Only proceed for vulnerable
@@ -40,7 +40,7 @@ branches; record the rest in the dashboard (step 4) — don't open an empty PR.
 ### 2. Apply + submit in one shot
 
 ```bash
-scripts/starfleetctl github backport commit <release> <commit-ish|PR#>
+.starfleet-ai/bin/starfleetctl github backport commit <release> <commit-ish|PR#>
 ```
 
 It refreshes the isolated agent clone (`github pr mk-agent-clone`), `cherry-pick -x`'s onto
@@ -52,7 +52,7 @@ It refreshes the isolated agent clone (`github pr mk-agent-clone`), `cherry-pick
   one-shot.
 - Only a genuine **content** conflict bails. Then do a manual/adapted backport inside the agent
   clone (`.starfleet-ai/bin/starfleetctl github pr mk-agent-clone <release>` → cherry-pick → resolve → build-verify) and
-  `scripts/starfleetctl github pr make <sha>` from within that clone.
+  `.starfleet-ai/bin/starfleetctl github pr make <sha>` from within that clone.
 
 ### 3. Parallelize across releases freely
 
@@ -67,7 +67,7 @@ agent its own clone name: `.starfleet-ai/bin/starfleetctl github pr mk-agent-clo
 - Each **backport PR** links back to the original master PR.
 - Edit PR bodies via REST, not `gh pr edit` (which fails with the *"Projects classic
   deprecation"* GraphQL error). Write the body to a file, then:
-  `scripts/starfleetctl github pr set-body <pr#> <body-file>`
+  `.starfleet-ai/bin/starfleetctl github pr set-body <pr#> <body-file>`
 
 ## Gotchas
 

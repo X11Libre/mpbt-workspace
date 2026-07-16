@@ -31,7 +31,7 @@ and they're the template for any future one:
 - **Build:** the package uses `buildsystem: exec` with `commands: build: [make]` — go-x11proto is
   pure Go with a plain `Makefile` (no autotools/meson), so mpbt just runs `make` (which does the
   `go build`s). `make-pr.*` is configured on the clone (it's an `X11Libre` repo, so
-  `scripts/starfleetctl github pr make` works from it, same as an xserver clone).
+  `.starfleet-ai/bin/starfleetctl github pr make` works from it, same as an xserver clone).
 
 **FlyingTux** (the Python-based container/image-builder sister project, `metux/flyingtux` — a
 **personal** GitHub repo, not `X11Libre`, so none of the xserver PR/backport/CI-repair conventions
@@ -66,7 +66,7 @@ apply to it):
   `src/imagebuilder/flyingtux/app/deploy.py`, so a compile-all "build" would be red from day one for
   reasons unrelated to this migration. Not fixed here — out of scope, flagged as a Parkplatz item.)
 - No `make-pr.*` config: FlyingTux isn't part of the xserver PR ecosystem and
-  `scripts/starfleetctl github pr make`'s assumptions (X11Libre remotes, `[PR #NNNN]` conventions, reviewers)
+  `.starfleet-ai/bin/starfleetctl github pr make`'s assumptions (X11Libre remotes, `[PR #NNNN]` conventions, reviewers)
   don't apply to a personal repo.
 
 **starfleetctl** (the Go CLI consolidating the flock/race-prone fleet-coordination scripts —
@@ -79,7 +79,7 @@ constraint and a note on what was removed:
 - **Removed 2026-07-13:** its mpbt solution (`cf/starfleetctl/`), the `./run-fetch.starfleetctl`
   / `./run-build.starfleetctl` wrappers, and the `_WORK_/starfleetctl/` clone. The workspace no
   longer keeps a second starfleetctl checkout; the source + built binary live at
-  `.starfleet-ai/src/starfleetctl/` and `.starfleet-ai/bin/starfleetctl`. `scripts/starfleetctl`
+  `.starfleet-ai/src/starfleetctl/` and `.starfleet-ai/bin/starfleetctl`. `.starfleet-ai/bin/starfleetctl`
   is now a thin wrapper that execs that binary.
 - History: started life in-tree (branch `mtx/mpbtctl`), extracted to its own repo, then moved
   from `metux/starfleetctl` to `mpbt-hq/starfleetctl` (2026-07-06, praetor-authorized org

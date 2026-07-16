@@ -25,7 +25,7 @@ name; falls back to `user@host` if unset):
 <comment body>
 ```
 
-`scripts/starfleetctl github pr comment <pr#> <body-file> --bot-review` fills in `<ship>` and prepends this for you —
+`.starfleet-ai/bin/starfleetctl github pr comment <pr#> <body-file> --bot-review` fills in `<ship>` and prepends this for you —
 prefer it over hand-copying the banner.
 
 ## Rule 2 — Assess backport-worthiness

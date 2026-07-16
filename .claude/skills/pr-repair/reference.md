@@ -5,7 +5,7 @@ Distinct from backporting: here you *amend an existing, unmerged* master PR (typ
 broken build) rather than cherry-picking a merged one onto a release line. Same isolation rule —
 work in a dedicated agent clone, never the user's hand-edited sources tree.
 
-1. **Get the real failure first — don't reason blind.** Easiest: `scripts/starfleetctl github pr job-logs <pr#>`
+1. **Get the real failure first — don't reason blind.** Easiest: `.starfleet-ai/bin/starfleetctl github pr job-logs <pr#>`
    downloads every failing job's raw log and prints a failure summary in one shot (use
    `--job <id>` for a specific job, `--all` for every job). Under the hood: `gh pr checks <pr#>`
    shows which jobs failed, but `gh run view --log` / `--log-failed` frequently return **nothing**
@@ -89,7 +89,7 @@ work in a dedicated agent clone, never the user's hand-edited sources tree.
    Commit … übersprungen`), leaving PR-B's own commit alone. The two changes must touch **disjoint**
    regions for the textual rebase to stay clean either way.
 
-2. **Check out the PR branch in an isolated clone:** `scripts/starfleetctl github pr checkout <pr#>` → makes/refreshes
+2. **Check out the PR branch in an isolated clone:** `.starfleet-ai/bin/starfleetctl github pr checkout <pr#>` → makes/refreshes
    `_WORK_/xserver-master/agent/repair/xserver`, checks out the PR's head branch, prints the
    clone dir.
 
@@ -144,7 +144,7 @@ work in a dedicated agent clone, never the user's hand-edited sources tree.
    unfixed build and stayed alive on the fixed one. Toggling the one-line fix in/out (rebuild
    `Xvfb` each way) cleanly proves cause *and* sufficiency — far tighter than waiting on CI.
 
-4. **Amend + push:** `scripts/starfleetctl github pr amend-push <clone-dir> [files...]` folds the edits into the PR's
+4. **Amend + push:** `.starfleet-ai/bin/starfleetctl github pr amend-push <clone-dir> [files...]` folds the edits into the PR's
    single commit (`--amend --no-edit`, preserving message + `Signed-off-by`) and
    `--force-with-lease` back to the branch. CI re-triggers automatically on the new head.
 

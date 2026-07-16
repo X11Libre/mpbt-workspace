@@ -1,5 +1,5 @@
 
-## PR workflow (`scripts/starfleetctl github pr make`)
+## PR workflow (`.starfleet-ai/bin/starfleetctl github pr make`)
 
 Requires git config entries (these are automatically added by the run-fetch* scripts):
 

@@ -41,8 +41,9 @@ There is now exactly **one** starfleetctl source clone:
 
 The former second clone (`_WORK_/starfleetctl/`, its own mpbt solution —
 `cf/starfleetctl/`, `run-fetch.starfleetctl`, `run-build.starfleetctl`) was
-removed on 2026-07-13. `scripts/starfleetctl` is now a thin wrapper that
-execs `.starfleet-ai/bin/starfleetctl`.
+removed on 2026-07-13, along with `scripts/starfleetctl` (the thin wrapper
+that used to exec `.starfleet-ai/bin/starfleetctl`). The binary at
+`.starfleet-ai/bin/starfleetctl` is now invoked directly.
 
 ### Workflow (standing, since 2026-07-13)
 
