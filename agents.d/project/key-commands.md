@@ -36,11 +36,11 @@ Essential quick reference — full details in the `starfleetctl` skill's `refere
 | command | purpose |
 |---------|---------|
 | `scripts/xx-make-pr.sh <commits...>` | create PR from commits on incubator branch |
-| `scripts/backport-commit <release> <commit-ish\|PR#>` | one-shot backport: clone → cherry-pick → PR |
-| `scripts/pr-checkout <pr#> [name]` | isolated clone for PR repair |
-| `scripts/pr-amend-push <clone-dir> [files...]` | amend commit + force-push |
-| `scripts/pr-set-body <pr#> <body-file>` | set PR body via REST API |
-| `scripts/pr-comment <pr#> <body-file> [--bot-review]` | post PR comment |
+| `.starfleet-ai/bin/starfleetctl github backport commit <release> <commit-ish\|PR#>` | one-shot backport: clone → cherry-pick → PR |
+| `.starfleet-ai/bin/starfleetctl github pr checkout <pr#> [name]` | isolated clone for PR repair |
+| `.starfleet-ai/bin/starfleetctl github pr amend-push <clone-dir> [files...]` | amend commit + force-push |
+| `.starfleet-ai/bin/starfleetctl github pr set-body <pr#> <body-file>` | set PR body via REST API |
+| `.starfleet-ai/bin/starfleetctl github pr comment <pr#> <body-file> [--bot-review]` | post PR comment |
 
 ### Fleet coordination
 
@@ -56,7 +56,7 @@ Essential quick reference — full details in the `starfleetctl` skill's `refere
 | command | purpose |
 |---------|---------|
 | `starfleetctl pr-ci <pr#\|URL>` | quick CI status (classified by conclusion) |
-| `scripts/pr-job-logs <pr#>` | fetch raw CI job logs + failure summary |
+| `.starfleet-ai/bin/starfleetctl github pr job-logs <pr#>` | fetch raw CI job logs + failure summary |
 | `starfleetctl show-branch-file <ref> <path> [symbol]` | print file at any ref via GitHub API |
 | `starfleetctl backport-applies <path> <grep-ERE> [rel ...]` | check applicability across release lines |
 
@@ -73,6 +73,6 @@ Essential quick reference — full details in the `starfleetctl` skill's `refere
 | command | purpose |
 |---------|---------|
 | `.starfleet-ai/bin/starfleetctl json validate\|pretty\|get` | JSON helper (avoid ad-hoc python3 one-liners) |
-| `scripts/cancel-stale-ci [--cancel]` | cancel CI runs whose branch moved on |
-| `scripts/prune-stale-ci [--delete]` | delete completed stale workflow runs |
+| `.starfleet-ai/bin/starfleetctl github ci cancel-stale [--cancel]` | cancel CI runs whose branch moved on |
+| `.starfleet-ai/bin/starfleetctl github ci prune [--delete]` | delete completed stale workflow runs |
 | `starfleetctl dashboard show\|pull\|write\|commit` | DASHBOARD.md read/write cycle |

@@ -11,7 +11,7 @@ memory because it's project/operational knowledge the whole team benefits from.
 
 ## The display-number race (the hang)
 
-`test/scripts/run-xts-go-xephyr.sh` go-xts test hangs in CI (300s / 1200s timeouts)
+`.github/scripts/run-xts-go-xephyr.sh` go-xts test hangs in CI (300s / 1200s timeouts)
 when it launches Xephyr with a **guessed** display number
 `XEPHYR_DISPLAY=$((XVFB_DISP + 1))`. meson runs the test suite in parallel (`nproc`),
 so the guessed number collides with another test's server: Xephyr (started **without**
@@ -39,7 +39,7 @@ for `Cannot establish` (old: ~2/3 fail; new: 0/3).
   (dix option, `os/utils.c`.)
 
 - **go-x11proto pin sites + byte-order behavior.** go-x11proto is pinned to
-  `PKG_GOXPROTO_REF` in BOTH `.github/scripts/conf.sh` and
+  `PKG_GOXPROTO_REF` in BOTH `.github/workflows/conf.sh` and
   `.github/workflows/build-xserver.yml`. v0.0.3's harness spawns its own server via
   `XTS_XSERVER` and then exercises *both* byte orders; only if that spawn fails does it
   fall back to `$DISPLAY` and run **little-endian only**. `run-xts-go-xephyr.sh` sets
