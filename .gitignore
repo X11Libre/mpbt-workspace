@@ -6,12 +6,3 @@
 /.claude/skills/concurrency/
 /.claude/skills/starfleetctl/
 /.claude/skills/task-capture/
-/.starfleet-ai/bin/starfleetctl
-/.starfleet-ai/src/starfleetctl/starfleetctl
-/.starfleet-ai/agent-bus/
-/.starfleet-ai/logs/
-/.starfleet-ai/var/
-/.starfleet-ai/term-pipes/
-/.starfleet-ai/session-registry.txt
-/.starfleet-ai/DASHBOARD.md
-/.starfleet-ai/.gitignore
