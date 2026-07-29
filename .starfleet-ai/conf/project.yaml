@@ -1,0 +1,53 @@
+# starfleetctl project configuration for XLibre XServer
+# This file defines project-specific paths, release lines, and path remapping
+
+name: "xlibre-xserver"
+
+# Worktree directory layout under _WORK_/
+worktree_layout:
+  # Base directory pattern: {project}-{rel} (e.g., xserver-25.2)
+  base_dir: "xserver-{rel}"
+  # Path to source tree within the worktree
+  sources_subdir: "sources/xlibre/xserver"
+  # Path to agent clones within the worktree
+  agent_subdir: "agent/{name}/xserver"
+
+# Path remapping between branches (e.g., Xext/<ext>/ <-> <ext>/)
+path_remapping:
+  # Prefix to toggle when a file is not found at the given path
+  prefix: "Xext/"
+  # Whether path remapping is enabled
+  enabled: true
+
+# Maintained release lines for backporting
+release_lines:
+  - "25.2"
+  - "25.1"
+  - "25.0"
+
+# Solution-specific configurations
+solutions:
+  "xserver-25.2":
+    config_path: "cf/xserver-25.2/config.sh"
+    release_prefix: "xserver-"
+    env_var: "XLIBRE_RELEASE"
+  "xserver-25.1":
+    config_path: "cf/xserver-25.1/config.sh"
+    release_prefix: "xserver-"
+    env_var: "XLIBRE_RELEASE"
+  "xserver-25.0":
+    config_path: "cf/xserver-25.0/config.sh"
+    release_prefix: "xserver-"
+    env_var: "XLIBRE_RELEASE"
+  "master":
+    config_path: "cf/xserver-master/config.sh"
+    release_prefix: "xserver-"
+    env_var: "XLIBRE_RELEASE"
+  "flyingtux":
+    config_path: "cf/flyingtux/config.sh"
+    release_prefix: ""
+    env_var: ""
+  "go-x11proto":
+    config_path: "cf/go-x11proto/config.sh"
+    release_prefix: ""
+    env_var: ""

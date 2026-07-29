@@ -1,0 +1,19 @@
+# Fleet identity configuration
+#
+# Controls the flagship identity and the worker ship-name pool.
+# The flagship name is the canonical control-agent identity that all
+# worker ships report to. Ship names are drawn from the pool below
+# (or compiled-in defaults when this file is absent).
+
+fleet:
+  # Name of the flagship session (default: "Enterprise").
+  flagship: "Enterprise"
+
+  # Ship-name pool for worker sessions (one per line).
+  # Order matters: the first unused name is assigned.
+  # When absent, the compiled-in Star Trek ship roster is used.
+  # The flagship name is always excluded from this pool.
+  # ship_names:
+  #   - Defiant
+  #   - Voyager
+  #   - Discovery
