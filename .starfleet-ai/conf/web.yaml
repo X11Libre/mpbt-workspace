@@ -1,0 +1,34 @@
+# starfleetctl web server configuration
+# This file is managed by starfleetctl bootstrap --fix
+# YAML format, human-readable and editable
+
+web:
+  # Web server listen address (host:port)
+  # Default: 0.0.0.0:8080
+  # Alternative: 0.0.0.0:8080, 127.0.0.1:8080
+  listen_addr: "0.0.0.0:8080"
+
+  # Web server autostart (cron/systemd integration)
+  # When enabled, starfleetctl web autostart will ensure the server is running
+  # Default: false
+  autostart_enabled: false
+
+  # PID file location for daemon management
+  # Default: .starfleet-ai/var/web.pid
+  pid_file: ".starfleet-ai/var/web.pid"
+
+  # Log file for web server daemon
+  # Default: .starfleet-ai/var/log/web.log
+  log_file: ".starfleet-ai/var/log/web.log"
+
+# Fleet identity (ship name) under which the web frontend appears on the
+# comms bus. Set this so the web console shows a stable, intended ship name
+# regardless of where / from which shell the server is started. When empty,
+# the bus identity falls back to STARFLEET_SHIP_ID / AGENT_ID from the
+# launching environment (or user@host) — which is what caused the web
+# frontend to display the wrong ship name.
+# Env override: STARFLEET_WEB_SHIP_ID (takes precedence over this value).
+  ship_id: "McKinley"
+
+  # Optional human-readable handle shown alongside the ship id.
+  ship_handle: "McKinley"
