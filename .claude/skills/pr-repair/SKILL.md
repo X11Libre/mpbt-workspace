@@ -9,14 +9,14 @@ Amend an existing, **unmerged** master PR (distinct from backporting a merged on
 dedicated agent clone — never the user's hand-edited `sources/xlibre/xserver` tree. Run commands
 from the workspace root (`/home/nekrad/src/xorg/mpbt-workspace`).
 
-Full reference: **AGENTS.md → "PR repair workflow"**. This skill is the actionable checklist.
+Full reference: **`reference.md`** in this skill's directory (full detail, moved out of AGENTS.md). This skill is the actionable checklist.
 
 ## 1. Get the REAL failure first — don't reason blind
 
 ```bash
-scripts/pr-job-logs <pr#>            # all failing jobs + failure summary
-scripts/pr-job-logs --job <id>       # one specific job
-scripts/pr-job-logs <pr#> --all      # every job
+.starfleet-ai/bin/starfleetctl github pr job-logs <pr#>            # all failing jobs + failure summary
+.starfleet-ai/bin/starfleetctl github pr job-logs --job <id>       # one specific job
+.starfleet-ai/bin/starfleetctl github pr job-logs <pr#> --all      # every job
 ```
 
 (`gh run view --log` returns nothing on this repo; the script wraps the REST
@@ -35,7 +35,7 @@ Read the summary, then identify the failure class:
 ## 2. Check out the PR branch in an isolated clone
 
 ```bash
-scripts/pr-checkout <pr#>            # -> _WORK_/xserver-master/agent/repair/xserver
+.starfleet-ai/bin/starfleetctl github pr checkout <pr#>            # -> _WORK_/xserver-master/agent/repair/xserver
 ```
 
 Prints the clone dir; the PR's head branch is checked out and ready to edit.
@@ -60,7 +60,7 @@ in/out (rebuild each way) to prove cause *and* sufficiency.
 ## 4. Amend + push
 
 ```bash
-scripts/pr-amend-push <clone-dir> [files...]
+.starfleet-ai/bin/starfleetctl github pr amend-push <clone-dir> [files...]
 ```
 
 Folds edits into the PR's single commit (`--amend --no-edit`, preserves message +
