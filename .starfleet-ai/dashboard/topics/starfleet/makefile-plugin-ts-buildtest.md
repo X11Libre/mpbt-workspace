@@ -1,12 +1,11 @@
 ---
-slug: starfleet/makefile-plugin-ts-buildtest
 title: "starfleetctl Makefile: Build-Test fuer das opencode-plugin TypeScript (esbuild + mehr) ins 'make'-Ziel aufnehmen"
 category: active
-kind: task
-status: open
-created-by: Defiant
-created: 2026-07-31T08:47:12Z
-assigned-to: —
+kind: "task"
+status: "assigned"
+assigned-to: "Enterprise"
+created-by: "Defiant"
+created: "2026-07-31T08:47:12Z"
 doc_ref: "—"
 ---
 
