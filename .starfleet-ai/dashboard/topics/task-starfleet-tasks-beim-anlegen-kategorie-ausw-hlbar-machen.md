@@ -1,12 +1,11 @@
 ---
-slug: task-starfleet-tasks-beim-anlegen-kategorie-ausw-hlbar-machen
 title: "starfleet: tasks: beim anlegen kategorie auswählbar machen"
 category: active
-kind: task
-status: open
-created-by: McKinley
-created: 2026-07-31T12:40:33Z
-assigned-to: —
+kind: "task"
+status: "assigned"
+assigned-to: "McKinley"
+created-by: "McKinley"
+created: "2026-07-31T12:40:33Z"
 doc_ref: "—"
 ---
 
