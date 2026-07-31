@@ -1,0 +1,155 @@
+#!/usr/bin/env bash
+#
+# SPDX-License-Identifier: AGPL-3.0-or-later
+# Copyright © 2026 Enrico Weigelt, metux IT consult
+#
+# Automatically delete old opencode sessions.
+#
+# opencode has NO built-in retention for finished sessions (the only built-in
+# "prune", OPENCODE_DISABLE_PRUNE, compacts messages *inside* a session — it
+# never deletes sessions). The global SQLite DB (~/.local/share/opencode/
+# opencode.db) therefore grows unboundedly. This script removes sessions whose
+# last activity is older than a threshold, using the OFFICIAL `opencode session
+# delete` path (goes through opencode's own storage layer and is WAL-safe) —
+# never by writing DELETE statements directly against the live DB (opencode is
+# the live writer; row-level deletes risk corruption/lost writes).
+#
+# Safety:
+#   * dry-run by default; pass --execute to actually delete
+#   * sessions attached to a currently running opencode process are always kept
+#     (detected via `-s/--session ID` in the process args; fleet ships started
+#     via `opencode --prompt` don't expose their session id in argv/env, but
+#     those are covered by the idle filter: an actively-used session always has
+#     a recent time_updated, so it can never idle past the cutoff)
+#   * `opencode session delete` removes child/forked sessions recursively
+#
+# Usage:
+#   scripts/oc-prune-sessions [--days N] [--title PATTERN] [--execute]
+#
+# Options:
+#   --days N          delete sessions idle for more than N days (default: 30)
+#   --title PATTERN   only consider sessions whose title matches this glob
+#   --execute         actually delete (default is a dry-run listing)
+#   -h, --help        show this help
+#
+# Exit status:
+#   0  ok (in dry-run: nothing to delete, or listed)
+#   1  a delete failed
+#   2  usage error / opencode not found
+#
+set -euo pipefail
+
+WS="$(cd "$(dirname "$0")/.." && pwd)"
+OPENCODE_BIN="${OPENCODE_BIN:-$(command -v opencode || true)}"
+
+DAYS=30
+TITLE_PATTERN=""
+EXECUTE=0
+
+usage() {
+    sed -n '2,40p' "$0" | sed 's/^# \{0,1\}//'
+}
+
+while [ $# -gt 0 ]; do
+    case "$1" in
+        --days) DAYS="$2"; shift 2 ;;
+        --title) TITLE_PATTERN="$2"; shift 2 ;;
+        --execute) EXECUTE=1; shift ;;
+        -h|--help) usage; exit 0 ;;
+        *) echo "oc-prune-sessions: unknown option: $1" >&2; usage; exit 2 ;;
+    esac
+done
+
+if [ -z "$OPENCODE_BIN" ]; then
+    echo "oc-prune-sessions: 'opencode' not found in PATH (override with OPENCODE_BIN=...)" >&2
+    exit 2
+fi
+
+if ! echo "$DAYS" | grep -qE '^[0-9]+$' || [ "$DAYS" -lt 1 ]; then
+    echo "oc-prune-sessions: --days must be a positive integer, got '$DAYS'" >&2
+    exit 2
+fi
+
+NOW_MS="$(date +%s)000"
+CUTOFF_MS=$((NOW_MS - DAYS * 24 * 60 * 60 * 1000))
+CUTOFF_ISO="$(date -d "@$((CUTOFF_MS / 1000))" +%Y-%m-%d)"
+
+# Sessions currently held by a running opencode process must never be deleted.
+# Detect the session ID from opencode CLI arguments (-s/--session).
+LIVE_SESSIONS="$(pgrep -af opencode 2>/dev/null | grep -oE -- '-(s|session) [A-Za-z0-9_-]+' | awk '{print $2}' | sort -u || true)"
+
+echo "oc-prune-sessions: cutoff = $CUTOFF_ISO (idle > ${DAYS}d), mode = $([ "$EXECUTE" -eq 1 ] && echo EXECUTE || echo DRY-RUN)"
+if [ -n "$LIVE_SESSIONS" ]; then
+    echo "oc-prune-sessions: protecting live sessions: $(echo "$LIVE_SESSIONS" | tr '\n' ' ')"
+fi
+
+# Enumerate ALL sessions (any project, roots + children) via opencode's own
+# `db` command — a WAL-safe read through opencode. `opencode session list` is
+# project-scoped (listByProject), so it would miss other workspaces' sessions.
+# Archived sessions (time_archived set) are never touched.
+SESSIONS_TSV="$(
+    "$OPENCODE_BIN" db "SELECT id, title, time_updated, COALESCE(parent_id,''), directory FROM session WHERE time_archived IS NULL ORDER BY time_updated DESC" --format tsv 2>/dev/null || true
+)"
+if [ -z "$SESSIONS_TSV" ]; then
+    echo "oc-prune-sessions: no sessions found (opencode db query failed or empty)"
+    exit 0
+fi
+
+# Set of all existing session IDs — used to detect orphaned children
+# (children whose parent was already removed) which are then deleted directly.
+EXISTING_IDS="$(printf '%s\n' "$SESSIONS_TSV" | cut -f1 | sort -u)"
+
+FAILED=0
+DELETED=0
+KEPT=0
+
+process_session() {
+    local id="$1" updated="$2" title="$3" parent="$4" dir="$5"
+    local skip=""
+
+    # a live opencode process holds this session — never touch it
+    if [ -n "$LIVE_SESSIONS" ] && grep -qw "$id" <<<"$LIVE_SESSIONS"; then
+        skip="live process"
+    elif [ "$updated" -ge "$CUTOFF_MS" ]; then
+        skip="too recent"
+    elif [ -n "$TITLE_PATTERN" ] && [[ "$title" != $TITLE_PATTERN ]]; then
+        skip="title filter"
+    elif [ -n "$parent" ] && grep -qw "$parent" <<<"$EXISTING_IDS"; then
+        # child of an existing session — the root's delete recurses into it
+        skip="child of existing root (recursion)"
+    fi
+
+    if [ -n "$skip" ]; then
+        KEPT=$((KEPT + 1))
+        [ "$EXECUTE" -eq 1 ] || echo "  keep   $id  ($title, idle since $(date -d "@$((updated / 1000))" +%Y-%m-%d))  [$skip]"
+        return 0
+    fi
+
+    if [ "$EXECUTE" -eq 1 ]; then
+        if "$OPENCODE_BIN" session delete "$id" >/dev/null 2>&1; then
+            echo "  delete $id  ($title, idle since $(date -d "@$((updated / 1000))" +%Y-%m-%d))"
+            DELETED=$((DELETED + 1))
+        else
+            echo "  FAIL   $id  ($title)" >&2
+            FAILED=$((FAILED + 1))
+        fi
+    else
+        echo "  WOULD  $id  ($title, idle since $(date -d "@$((updated / 1000))" +%Y-%m-%d))"
+        DELETED=$((DELETED + 1))
+    fi
+}
+
+while IFS=$'\t' read -r id title updated parent dir; do
+    case "$updated" in
+        *[!0-9]*) continue ;;  # skip header / non-numeric rows
+    esac
+    process_session "$id" "$updated" "$title" "$parent" "$dir"
+done <<< "$SESSIONS_TSV"
+
+echo "oc-prune-sessions: done — $([ "$EXECUTE" -eq 1 ] && echo deleted || echo would-delete): $DELETED, kept: $KEPT, failed: $FAILED"
+if [ "$EXECUTE" -eq 0 ]; then
+    echo "oc-prune-sessions: dry-run — re-run with --execute to actually delete."
+fi
+
+[ "$FAILED" -eq 0 ] || exit 1
+exit 0
