@@ -1,12 +1,11 @@
 ---
-slug: task-bug-starfleet-bug-web-neues-schiff-ohne-namen-errors-wegen-belegtem-namen
 title: "bug: starfleet: bug: web->neues schiff -> ohne namen -> errors wegen belegtem namen"
 category: active
-kind: task
-status: open
-created-by: Discovery
-created: 2026-07-31T14:24:22Z
-assigned-to: —
+kind: "task"
+status: "assigned"
+assigned-to: "Enterprise"
+created-by: "Discovery"
+created: "2026-07-31T14:24:22Z"
 doc_ref: "—"
 ---
 
