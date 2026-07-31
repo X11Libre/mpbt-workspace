@@ -2,7 +2,7 @@
 title: "dashboard file format auf rfc288-stil umstellen"
 category: active
 kind: "task"
-status: "assigned"
+status: "open"
 assigned-to: "Agamemnon"
 created-by: ""
 created: ""
