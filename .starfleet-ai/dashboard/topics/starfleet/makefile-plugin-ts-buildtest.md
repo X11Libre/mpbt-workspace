@@ -2,7 +2,7 @@
 title: "starfleetctl Makefile: Build-Test fuer das opencode-plugin TypeScript (esbuild + mehr) ins 'make'-Ziel aufnehmen"
 category: active
 kind: "task"
-status: "assigned"
+status: "done"
 assigned-to: "Enterprise"
 created-by: "Defiant"
 created: "2026-07-31T08:47:12Z"
