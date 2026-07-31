@@ -4,5 +4,15 @@
     "some-other-npm-plugin",
     "./plugins/starfleet-dispatch.ts"
   ],
-  "instructions": [".starfleet-ai/agents.d/index.md"]
+  "instructions": [".starfleet-ai/agents.d/index.md"],
+  "agent": {
+    "plan": {
+      "permission": {
+        "bash": {
+          "starfleetctl dashboard*": "allow",
+          ".starfleet-ai/bin/starfleetctl dashboard*": "allow"
+        }
+      }
+    }
+  }
 }
