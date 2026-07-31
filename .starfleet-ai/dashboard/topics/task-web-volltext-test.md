@@ -1,13 +1,14 @@
 ---
-slug: task-web-volltext-test
-title: "WEB-VOLLTEXT-TEST"
+title: "WEB-VOLLTEXT-TEST (edited)"
 category: active
-kind: task
-status: open
-created-by: McKinley
-created: 2026-07-31T13:53:03Z
-assigned-to: —
+kind: "task"
+status: "open"
+assigned-to: "—"
+created-by: "McKinley"
+created: "2026-07-31T13:53:03Z"
 doc_ref: "—"
 ---
 
-Temporary test topic for the full-text view/edit feature.
+Edited via the new web API.
+- point one
+- point two
