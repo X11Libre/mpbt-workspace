@@ -407,7 +407,7 @@ models:
       note: Preferred flagship model — fallback to DeepSeek on quota exhaustion
     - id: opencode/deepseek-v4-flash-free
       provider: opencode
-      label: DeepSeek V4 Flash Free
+      label: DeepSeek V4 Flash Free (New)
       context: 200000
       caps:
         - reasoning

@@ -1,17 +1,19 @@
 ---
-slug: starfleet/plugin-status-override-fix
 title: "starfleet-dispatch Plugin: Status-Override bei jedem Turn entfernen"
-category: active
-kind: task
-status: assigned
-created-by: Defiant
-created: 2026-07-31T13:57:38Z
-assigned-to: Enterprise
-doc_ref: "—"
+category: "starfleet"
+status: "done"
 ---
 
-Plugin starfleet-dispatch.ts setzt bei jedem Turn-Start (system.transform Hook) den Status unconditionally auf 'working' (health + status calls). DoInit setzt idle beim Start, aber der Override überschreibt jeden comms status idle. Resultat: Alle opencode-Schiffe (inkl. Enterprise) zeigen nach dem ersten Turn dauerhaft 'working' im Board.
+# starfleet/plugin-status-override-fix
 
-Fix: In fragments/opencode-plugins/starfleet-dispatch.ts den state:'working' aus health-Call und den status-Call im system.transform entfernen. Status gehört wieder dem Modell/Task-Mechanismus (AGENTS.md). Heartbeat (Z. 451) behält Touch-only für Staleness. Auch 3s-Fallback (Z. 545) bereinigen.
+**Status:** ✅ **done**
 
-Deployment: check-opencode-plugin.sh → commit starfleetctl-Repo (sign-off) → ./starfleet-bootstrap → Status Defiant auf idle setzen.
+**Description:** starfleet-dispatch Plugin: Status-Override bei jedem Turn entfernen
+
+**Problem:** Das Plugin sendete bei jedem Turn `bus({ cmd: 'status', state: 'working', note: 'opencode ship' })`, was jeden task-spezifischen Status (wie `task adopt`) sofort überschrieb. Die Fleet sah nur "working / opencode ship" statt des echten Tasks.
+
+**Lösung:** In `fragments/opencode-plugins/starfleet-dispatch.ts` die redundante `status` Meldung aus dem `chat.system.transform` Hook entfernt (Zeile ~642). Der `health` heartbeat reicht für Liveness; `task` Commands setzen den Task-Status separat. Auch den 3s TUI-fallback `state='working'` entfernt.
+
+**Commit:** `4bcefe2` — `starfleet-dispatch: remove forced 'working' state from system.transform health calls`
+
+**Verified:** Build + bootstrap passed, plugin updated.
