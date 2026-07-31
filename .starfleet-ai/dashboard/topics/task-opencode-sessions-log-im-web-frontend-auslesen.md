@@ -1,12 +1,11 @@
 ---
-slug: task-opencode-sessions-log-im-web-frontend-auslesen
 title: "opencode Sessions & Log im Web-Frontend auslesen"
 category: active
-kind: task
-status: assigned
-created-by: Defiant
-created: 2026-07-31T10:36:52Z
-assigned-to: Defiant
+kind: "task"
+status: "done"
+assigned-to: "Defiant"
+created-by: "Defiant"
+created: "2026-07-31T10:36:52Z"
 doc_ref: "—"
 ---
 
