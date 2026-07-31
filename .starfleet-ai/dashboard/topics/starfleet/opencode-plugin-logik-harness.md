@@ -1,12 +1,11 @@
 ---
-slug: task-starfleetctl-opencode-plugin-logik-harness-unit-test-fuer-comms-dispatch-execsync-mock-dry-run-crash-test
 title: "starfleetctl: opencode-plugin: Logik-Harness/Unit-Test fuer comms-dispatch (execSync-Mock, --dry-run, Crash-Test)"
 category: active
-kind: task
-status: open
-created-by: Enterprise
-created: 2026-07-31T13:43:37Z
-assigned-to: —
+kind: "task"
+status: "open"
+assigned-to: "—"
+created-by: "Enterprise"
+created: "2026-07-31T13:43:37Z"
 doc_ref: "—"
 ---
 
