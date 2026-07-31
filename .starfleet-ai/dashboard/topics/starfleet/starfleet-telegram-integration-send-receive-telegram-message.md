@@ -1,6 +1,6 @@
 ---
 title: "Starfleet ↔ Telegram integration — design plan"
-category: active
+category: parked
 status: "planning"
 assigned-to: "Saratoga"
 tags: "starfleet"
