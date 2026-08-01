@@ -32,3 +32,9 @@ web:
 
   # Optional human-readable handle shown alongside the ship id.
   ship_handle: "McKinley"
+
+  # Terminal configuration for termctl terminals spawned by this server.
+  # Default: 60 rows x 120 cols, 10000 line scrollback
+  terminal_rows: 60
+  terminal_cols: 120
+  terminal_scrollback: 10000
