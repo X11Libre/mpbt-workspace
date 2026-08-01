@@ -1,3 +1,14 @@
+---
+title: "starfleet: bug: web neues schiff ohne namen errors wegen belegtem namen"
+category: active
+kind: "task"
+status: "done"
+assigned-to: "Enterprise"
+created-by: "McKinley"
+created: "2026-07-31T12:39:45Z"
+doc_ref: "—"
+---
+
 # starfleet/task-bug-starfleet-bug-web-neues-schiff-ohne-namen-errors-wegen-belegtem-namen
 
 **Status:** ✅ **done**

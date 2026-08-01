@@ -1,6 +1,23 @@
 {
   "$schema": "https://opencode.ai/config.json",
   "agent": {
+    "permission": {
+      "bash": {
+        ".starfleet-ai/bin/starfleetctl comms*": "allow",
+        ".starfleet-ai/bin/starfleetctl dashboard*": "allow",
+        ".starfleet-ai/bin/starfleetctl logs*": "allow",
+        ".starfleet-ai/bin/starfleetctl reports*": "allow",
+        ".starfleet-ai/bin/starfleetctl session*": "allow",
+        ".starfleet-ai/bin/starfleetctl task*": "allow",
+        "ls /home/nekrad/src/xorg/mpbt-workspace/.starfleet-ai/var/": "deny",
+        "starfleetctl comms*": "allow",
+        "starfleetctl dashboard*": "allow",
+        "starfleetctl logs*": "allow",
+        "starfleetctl reports*": "allow",
+        "starfleetctl session*": "allow",
+        "starfleetctl task*": "allow"
+      }
+    },
     "plan": {
       "permission": {
         "bash": {
