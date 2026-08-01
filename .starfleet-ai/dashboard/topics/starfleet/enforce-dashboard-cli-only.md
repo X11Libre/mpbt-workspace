@@ -3,10 +3,10 @@ slug: starfleet/enforce-dashboard-cli-only
 title: "Enforcement: Dashboard-Zugriff ausschließlich über starfleetctl CLI (permission-deny)"
 category: active
 kind: task
-status: open
+status: in_progress
 created-by: Enterprise
 created: 2026-07-31T10:42:06Z
-assigned-to: —
+assigned-to: Saturn
 doc_ref: "—"
 ---
 
@@ -17,7 +17,12 @@ Fix-Kandidaten:
 - Claude agent-permission-hook nachschärfen (fragments/claude-hooks/agent-permission-hook)
 - Pre-commit-Hook (STARFLEET_DASHBOARD_COMMIT-Marker) prüfen, ob er greift
 
+Implementierung:
+- Hinzugefügt .opencode/opencode.json mit deny-Regeln für direkte Dateizugriffe auf Dashboard-Dateien
+- Verhindert Read/Edit/Write/Glob/Grep Operationen auf .starfleet-ai/var/DASHBOARD.md und .starfleet-ai/dashboard/topics/**
+
 Acceptance:
 - Kein Agent (auch keine flagship-Startup-Routine) kann Dashboard-Rohdateien direkt lesen/schreiben/löschen
 - Alle legitimen Zugriffe laufen über 'starfleetctl dashboard *'
 - Lock-Dateien (.#*) werden von keinem Agent angefasst
+
