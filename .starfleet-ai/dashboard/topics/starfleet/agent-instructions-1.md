@@ -1,6 +1,6 @@
 Title: "agent instructions schärfen: dashboard list command"
 Category: active
-Status: "in-progress"
+Status: "done"
 Assigned-To: "Stargazer"
 Created-By: ""
 Created: ""
