@@ -1,5 +1,10 @@
 Title: "starfleetctl: kommando um alte messages zu entfernen"
-Slug: comms-purge-old-messages
+Category: active
+Status: "assigned"
+Assigned-To: "Stargazer"
+Created-By: ""
+Created: ""
+Doc-Ref: ""
 
 ich sehe (vorallem im web) noch sehr viele messages von schiffen, die längst nicht
 mehr existieren. brauche eine funktion (sowohl starfleetctl command line als auch web),
