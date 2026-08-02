@@ -1,5 +1,10 @@
 Title: "terminology SOP (standard operating procedure)"
-Slug: sop
+Category: active
+Status: "assigned"
+Assigned-To: "Enterprise"
+Created-By: ""
+Created: ""
+Doc-Ref: ""
 
 Für die agent-instructions (zb. die aus fragmenten compilierten AGENTS.md oder CLAUDE.md,
 oder auch die skills) soll zukünftig die Terminologie SOP (standard operating procedure)
