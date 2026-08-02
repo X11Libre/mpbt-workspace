@@ -1,8 +1,8 @@
 Title: "Test RFC2822 format"
 Category: active
 Kind: "task"
-Status: "open"
-Assigned-To: "—"
+Status: "assigned"
+Assigned-To: "Stargazer"
 Created-By: "Stargazer"
 Created: "2026-08-02T09:05:51Z"
 Doc-Ref: "—"
