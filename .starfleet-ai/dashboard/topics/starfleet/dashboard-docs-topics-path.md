@@ -1,7 +1,7 @@
 Title: "starfleetctl docs: dashboard topics Pfad korrigieren (.starfleet-ai/dashboard/topics statt .starfleet-ai/var/dashboard/topics)"
 Category: active
 Kind: "task"
-Status: "assigned"
+Status: "done"
 Assigned-To: "Stargazer"
 Created-By: "Defiant"
 Created: "2026-07-31T08:43:27Z"
