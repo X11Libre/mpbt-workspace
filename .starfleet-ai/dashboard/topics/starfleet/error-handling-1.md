@@ -1,5 +1,10 @@
 Title: "transient model errors: no mail to flagship"
-Slug: error-handling-1
+Category: active
+Status: "assigned"
+Assigned-To: "Stargazer"
+Created-By: ""
+Created: ""
+Doc-Ref: ""
 
 Bei transienten model-errors, die sofortigen restart des prompt nach
 sich ziehen (zb. "streaming response failed"), sollen keine messages
