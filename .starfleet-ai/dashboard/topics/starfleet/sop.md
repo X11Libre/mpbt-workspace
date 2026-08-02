@@ -1,6 +1,6 @@
 Title: "terminology SOP (standard operating procedure)"
 Category: active
-Status: "assigned"
+Status: "done"
 Assigned-To: "Enterprise"
 Created-By: ""
 Created: ""
