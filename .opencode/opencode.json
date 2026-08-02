@@ -38,7 +38,7 @@
     }
   },
   "instructions": [
-    ".starfleet-ai/var/agents.d/index.md"
+    ".starfleet-ai/var/sop.d/index.md"
   ],
   "plugin": [
     "some-other-npm-plugin",
