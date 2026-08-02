@@ -3,6 +3,10 @@
 
 name: "xlibre-xserver"
 
+# SOP fragments directory (default: sop.d). The legacy agents.d/ directory
+# remains supported and is still read, but sop.d takes precedence on collisions.
+fragments_dir: "sop.d"
+
 # Worktree directory layout under _WORK_/
 worktree_layout:
   # Base directory pattern: {project}-{rel} (e.g., xserver-25.2)
