@@ -1,8 +1,7 @@
 Title: "Dedicated ship for local UI automation (special privileges?)"
 Category: parked
-Noted-By: "praetor, 2026-07-07"
+Noted-By: ""
 Since: "2026-07-07"
-Slug: dedicated-ship-for-local-ui-automation-special-privileges
 
 Idea, prompted by the 2026-07-06 lxterminal-kill incident (see
 `dashboard/themes/xdotool-windowkill-in-terminal-demo-testing-killed-the-shared-lxterminal.md`):
