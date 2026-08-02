@@ -1,5 +1,10 @@
 Title: "agent instructions schärfen: dashboard list command"
-Slug: agent-instructions-1
+Category: active
+Status: "assigned"
+Assigned-To: "Stargazer"
+Created-By: ""
+Created: ""
+Doc-Ref: ""
 
 Agents versuchen immernoch beim Startup das dashboard falsch aufzurufen.
 
