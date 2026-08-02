@@ -1,12 +1,11 @@
----
-title: "Reports"
-category: active
-kind: "task"
-status: "done"
-assigned-to: "Phoenix"
-created-by: "Phoenix"
-created: "2026-07-30T08:49:58Z"
-doc_ref: "—"
----
+Title: "Reports"
+Category: active
+Kind: "task"
+Status: "done"
+Created-By: "Phoenix"
+Created: "2026-07-30T08:49:58Z"
+Assigned-To: "Phoenix"
+Doc-Ref: "—"
+Slug: task-reports
 
 starfleet reports system

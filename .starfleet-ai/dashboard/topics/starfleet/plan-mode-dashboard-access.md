@@ -1,9 +1,8 @@
----
-title: "dashboard access in planning mode"
-status: done
-created-by: Enterprise
-created: 2026-07-31T12:12:00Z
----
+Title: "dashboard access in planning mode"
+Status: done
+Created-By: Enterprise
+Created: 2026-07-31T12:12:00Z
+Slug: plan-mode-dashboard-access
 
 Möchte daß agents im plan mode auch schon zugriff auf das
 dashboard bekommen - lesend und schreibend.

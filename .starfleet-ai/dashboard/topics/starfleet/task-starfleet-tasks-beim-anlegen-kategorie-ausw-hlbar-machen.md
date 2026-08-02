@@ -1,7 +1,6 @@
----
-title: starfleet: tasks: beim anlegen kategorie auswählbar machen
-status: done
----
+Title: starfleet: tasks: beim anlegen kategorie auswählbar machen
+Status: done
+Slug: task-starfleet-tasks-beim-anlegen-kategorie-ausw-hlbar-machen
 
 # starfleet/task-starfleet-tasks-beim-anlegen-kategorie-ausw-hlbar-machen
 

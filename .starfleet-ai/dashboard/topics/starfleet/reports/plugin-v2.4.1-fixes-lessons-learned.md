@@ -1,14 +1,12 @@
----
-slug: starfleet/reports/plugin-v2.4.1-fixes-lessons-learned
-title: "starfleet-dispatch Plugin v2.4.1: Critical Fixes & Lessons Learned"
-category: active
-kind: task
-status: open
-created-by: Phoenix
-created: 2026-07-30T14:14:41Z
-assigned-to: —
-doc_ref: "—"
----
+Title: "starfleet-dispatch Plugin v2.4.1: Critical Fixes & Lessons Learned"
+Category: active
+Kind: task
+Status: open
+Created-By: Phoenix
+Created: 2026-07-30T14:14:41Z
+Assigned-To: —
+Doc-Ref: "—"
+Slug: plugin-v2.4.1-fixes-lessons-learned
 
 # starfleet-dispatch Plugin v2.4.1: Critical Fixes & Lessons Learned
 

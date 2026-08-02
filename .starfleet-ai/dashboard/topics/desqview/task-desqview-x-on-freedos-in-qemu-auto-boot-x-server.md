@@ -1,14 +1,13 @@
----
-title: "DESQview/X on FreeDOS in QEMU - Auto-boot X server"
-category: active
-kind: "task"
-status: "offen"
-assigned-to: "—"
-created-by: "Yamato"
-created: "2025-07-16T19:42:00Z"
-doc_ref: ""
-tags: "desqview"
----
+Title: "DESQview/X on FreeDOS in QEMU - Auto-boot X server"
+Category: active
+Kind: "task"
+Status: "offen"
+Created-By: "Yamato"
+Created: "2025-07-16T19:42:00Z"
+Assigned-To: "—"
+Doc-Ref: ""
+Tags: "desqview"
+Slug: task-desqview-x-on-freedos-in-qemu-auto-boot-x-server
 
 Install DESQview/X on FreeDOS QEMU VM, create automated image that boots directly into X server.
 

@@ -1,14 +1,13 @@
----
-title: "Xinerama/PanoramiX refactor — replace proc-vector hooking with a frontend/backend split"
-category: active
-status: "**Idea stage — plan specified by praetor, no branch yet**"
-assigned-to: ""
-created-by: ""
-created: ""
-doc_ref: "no doc yet; planned as a **fully separate branch** (not created)"
-migrated_from: 8cf8692b9f0057ffe44e793b35bcf7329da83d3f
-tags: "xlibre"
----
+Title: "Xinerama/PanoramiX refactor — replace proc-vector hooking with a frontend/backend split"
+Category: active
+Status: "**Idea stage — plan specified by praetor, no branch yet**"
+Created-By: ""
+Created: ""
+Assigned-To: ""
+Doc-Ref: "no doc yet; planned as a **fully separate branch** (not created)"
+Migrated-From: 8cf8692b9f0057ffe44e793b35bcf7329da83d3f
+Tags: "xlibre"
+Slug: xinerama-panoramix-refactor-replace-proc-vector-hooking-with
 
 Praetor request, 2026-07-02: successively get rid of the current detour via request-handler proc-vector hooking.
 **Plan:** split each affected proc into a **frontend** (owns all protocol handling — request parsing, checks, etc. — and

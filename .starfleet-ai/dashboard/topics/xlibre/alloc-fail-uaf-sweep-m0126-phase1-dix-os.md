@@ -1,11 +1,8 @@
----
-title: "Alloc-fail/UAF security sweep (praetor directive m0126) — Phase 1 findings"
-category: parked
-noted_by: "Farragut (m0126 directive) / Intrepid (dix/+os/) / Constellation (Xext+mi+miext, hw/xfree86, intel+amdgpu, nouveau+vmware+qxl, input drivers) / Pegasus (cross-check dix/os/Xext/mi + hw/xfree86 rest/glamor/composite + xf86-video-ati/freedreno/mga/savage/siliconmotion/nv/vmware/qxl-extra/~32 sampled legacy drivers + xf86-input-evdev/elographics/joystick/keyboard/mouse/vmmouse/void)"
-since: "2026-07-07"
-updated: "2026-07-16"
-updated_by: "Enterprise — re-verified findings against origin/master (X11Libre/xserver); marked items fixed/merged in master and retracted the disproven micmap.c claim"
----
+Title: "Alloc-fail/UAF security sweep (praetor directive m0126) — Phase 1 findings"
+Category: parked
+Noted-By: "Farragut (m0126 directive) / Intrepid (dix/+os/) / Constellation (Xext+mi+miext, hw/xfree86, intel+amdgpu, nouveau+vmware+qxl, input drivers) / Pegasus (cross-check dix/os/Xext/mi + hw/xfree86 rest/glamor/composite + xf86-video-ati/freedreno/mga/savage/siliconmotion/nv/vmware/qxl-extra/~32 sampled legacy drivers + xf86-input-evdev/elographics/joystick/keyboard/mouse/vmmouse/void)"
+Since: "2026-07-07"
+Slug: alloc-fail-uaf-sweep-m0126-phase1-dix-os
 
 Praetor directive relayed by Farragut (m0126): sweep the xlibre source tree + drivers for
 allocation-failure-handling gaps and use-after-free. **Phase 1 only** — findings collected here,

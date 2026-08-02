@@ -1,10 +1,9 @@
----
-title: "Starfleet ↔ Telegram integration — design plan"
-category: parked
-status: "planning"
-assigned-to: "Saratoga"
-tags: "starfleet"
----
+Title: "Starfleet ↔ Telegram integration — design plan"
+Category: parked
+Status: "planning"
+Assigned-To: "Saratoga"
+Tags: "starfleet"
+Slug: starfleet-telegram-integration-send-receive-telegram-message
 
 ## Design Plan (Praetor decisions 2026-07-29)
 

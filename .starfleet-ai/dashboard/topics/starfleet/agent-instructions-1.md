@@ -1,6 +1,5 @@
----
-title: "agent instructions schärfen: dashboard list command"
----
+Title: "agent instructions schärfen: dashboard list command"
+Slug: agent-instructions-1
 
 Agents versuchen immernoch beim Startup das dashboard falsch aufzurufen.
 

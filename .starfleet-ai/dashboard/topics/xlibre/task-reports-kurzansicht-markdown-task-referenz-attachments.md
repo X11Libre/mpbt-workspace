@@ -1,15 +1,12 @@
----
-slug: task-reports-kurzansicht-markdown-task-referenz-attachments
-title: "Reports: Kurzansicht, Markdown, Task-Referenz, Attachments"
-category: active
-kind: task
-status: done
-created-by: Enterprise
-created: 2026-07-30T09:07:44Z
-assigned-to: Phoenix
-completed: 2026-07-30T09:35:00Z
-doc_ref: "internal/web/index.html:1240-1294"
----
+Title: "Reports: Kurzansicht, Markdown, Task-Referenz, Attachments"
+Category: active
+Kind: task
+Status: done
+Created-By: Enterprise
+Created: 2026-07-30T09:07:44Z
+Assigned-To: Phoenix
+Doc-Ref: "internal/web/index.html:1240-1294"
+Slug: task-reports-kurzansicht-markdown-task-referenz-attachments
 
 Berichte-System ausbauen: 1) Liste zeigt nur Kurzansicht (subtitle-Feld optional) 2) Klick → Vollansicht mit Markdown-Rendering 3) Timestamp-Feld 4) Optionaler Verweis auf Dashboard-Task (verlinkt im Web) 5) File-Attachments via filestore (verlinkt, im Browser anschaubar)
 

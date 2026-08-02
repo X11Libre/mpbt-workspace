@@ -1,12 +1,11 @@
----
-title: "report falsch im dashboard gelandet"
-category: active
-status: "open"
-assigned-to: ""
-created-by: ""
-created: ""
-doc_ref: ""
----
+Title: "report falsch im dashboard gelandet"
+Category: active
+Status: "open"
+Created-By: ""
+Created: ""
+Assigned-To: ""
+Doc-Ref: ""
+Slug: bug.reports-wrong
 
 schiff sollte report erstellen - der ist aber fälschlicherweise als dashboard-topic
 statt als report gelandet.
