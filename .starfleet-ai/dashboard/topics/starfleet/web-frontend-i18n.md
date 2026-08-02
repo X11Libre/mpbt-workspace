@@ -1,5 +1,10 @@
 Title: "starfleet: web frontend multilungual"
-Slug: web-frontend-i18n
+Category: active
+Status: "assigned"
+Assigned-To: "Stargazer"
+Created-By: ""
+Created: ""
+Doc-Ref: ""
 
 Sprachunterstützung fürs Web-Frontend. Aktuell ist alles in Ddeutsch, das
 soll auch so erhalten bleiben, aber wir brauchen auch englisch.
