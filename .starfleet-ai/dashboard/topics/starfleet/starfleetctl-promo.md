@@ -1,8 +1,7 @@
 Title: "starfleetctl Werbepräsentation"
 Category: parked
-Noted-By: "kleine Präsentation erstellen"
+Noted-By: ""
 Since: ""
-Slug: starfleetctl-promo
 
 Werbe/Promo-Präsentation für starfleetctl erstellen.
 vielleicht ähnliches Stil, wie wir das schon mal für
