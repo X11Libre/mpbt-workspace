@@ -1,6 +1,6 @@
 Title: "altes tsv message format entfernen"
 Category: active
-Status: "assigned"
+Status: "done"
 Assigned-To: "Stargazer"
 Created-By: ""
 Created: ""

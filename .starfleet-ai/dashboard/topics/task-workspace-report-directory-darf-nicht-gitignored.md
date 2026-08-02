@@ -1,7 +1,7 @@
 Title: "workspace: report directory darf nicht gitignored"
 Category: active
 Kind: "task"
-Status: "assigned"
+Status: "done"
 Assigned-To: "Stargazer"
 Created-By: "McKinley"
 Created: "2026-08-02T11:29:49Z"
