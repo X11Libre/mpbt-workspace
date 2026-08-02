@@ -1,0 +1,22 @@
+{
+  "id": "sweep-stale",
+  "description": "Sweep stale tasks from dead ships",
+  "owner": "Stargazer",
+  "target": {
+    "type": "system",
+    "value": ""
+  },
+  "type": "system",
+  "cmd": [
+    "comms",
+    "purge"
+  ],
+  "schedule": {
+    "type": "cron",
+    "cron_expr": "*/10 * * * *"
+  },
+  "persistent": true,
+  "enabled": true,
+  "created_at": 1785706864,
+  "next_fire": 1785707400
+}
