@@ -1,5 +1,10 @@
 Title: "web-frontend: bug in terminal-ansicht"
-Slug: web-frontend-bug-terminal
+Category: active
+Status: "assigned"
+Assigned-To: "Stargazer"
+Created-By: ""
+Created: ""
+Doc-Ref: ""
 
 wenn man schiffe durch blättert und bei einem bereits das terminal offen hatte,
 dann auf ein anderes schiff clickt und dort auch das terminal öffnet, kommt
