@@ -1,14 +1,12 @@
----
-slug: starfleet/enforce-dashboard-cli-only
-title: "Enforcement: Dashboard-Zugriff ausschließlich über starfleetctl CLI (permission-deny)"
-category: active
-kind: task
-status: in_progress
-created-by: Enterprise
-created: 2026-07-31T10:42:06Z
-assigned-to: Saturn
-doc_ref: "—"
----
+Title: "Enforcement: Dashboard-Zugriff ausschließlich über starfleetctl CLI (permission-deny)"
+Category: active
+Kind: task
+Status: in_progress
+Created-By: Enterprise
+Created: 2026-07-31T10:42:06Z
+Assigned-To: Saturn
+Doc-Ref: "—"
+Slug: enforce-dashboard-cli-only
 
 Follow-up zum Bug 'enterprise-deletes-topics' (Root Cause: Enterprise hat beim Startup direkt ls/rm auf .starfleet-ai/dashboard/topics/ ausgeführt — CLI-only-Policy verletzt). Die Policy existiert bereits (Agent-Instructions: 'never Read/Edit/Write/Glob/Grep on DASHBOARD.md or dashboard/topics/*.md'), wird aber nicht technisch erzwungen.
 
@@ -25,4 +23,3 @@ Acceptance:
 - Kein Agent (auch keine flagship-Startup-Routine) kann Dashboard-Rohdateien direkt lesen/schreiben/löschen
 - Alle legitimen Zugriffe laufen über 'starfleetctl dashboard *'
 - Lock-Dateien (.#*) werden von keinem Agent angefasst
-

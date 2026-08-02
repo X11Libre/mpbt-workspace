@@ -1,10 +1,9 @@
----
-title: "starfleet-dispatch: informativen Text für transiente API-Fehler Restart-Prompts"
-category: active
-kind: task
-status: "in_progress"
-tags: "starfleet,plugin,error-handling"
----
+Title: "starfleet-dispatch: informativen Text für transiente API-Fehler Restart-Prompts"
+Category: active
+Kind: task
+Status: "in_progress"
+Tags: "starfleet,plugin,error-handling"
+Slug: plugin-restart-prompt-text
 
 ## Problem
 

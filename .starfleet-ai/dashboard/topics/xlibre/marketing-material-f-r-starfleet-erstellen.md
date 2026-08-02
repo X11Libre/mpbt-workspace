@@ -1,13 +1,12 @@
----
-title: "Marketing-Material für Starfleet erstellen"
-category: active
-kind: "task"
-status: "open"
-assigned-to: "Enterprise"
-created-by: "Enterprise"
-created: "2026-07-21T12:08:29Z"
-doc_ref: "—"
----
+Title: "Marketing-Material für Starfleet erstellen"
+Category: active
+Kind: "task"
+Status: "open"
+Created-By: "Enterprise"
+Created: "2026-07-21T12:08:29Z"
+Assigned-To: "Enterprise"
+Doc-Ref: "—"
+Slug: marketing-material-f-r-starfleet-erstellen
 
 Marketing-Material für Starfleet erstellen.
 

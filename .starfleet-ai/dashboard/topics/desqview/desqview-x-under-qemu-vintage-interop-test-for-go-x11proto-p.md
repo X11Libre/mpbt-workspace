@@ -1,14 +1,13 @@
----
-title: "DESQview/X (X11R5 DOS server, Quarterdeck, early 90s) under QEMU — vintage interop test for go-x11proto/pyxtest"
-category: active
-status: "assigned"
-assigned-to: "Yamato"
-created-by: ""
-created: ""
-doc_ref: "`_WORK_/desqview-x/` (gitignored, not an mpbt solution — just VM/notes storage)"
-migrated_from: 8cf8692b9f0057ffe44e793b35bcf7329da83d3f
-tags: "desqview"
----
+Title: "DESQview/X (X11R5 DOS server, Quarterdeck, early 90s) under QEMU — vintage interop test for go-x11proto/pyxtest"
+Category: active
+Status: "assigned"
+Created-By: ""
+Created: ""
+Assigned-To: "Yamato"
+Doc-Ref: "`_WORK_/desqview-x/` (gitignored, not an mpbt solution — just VM/notes storage)"
+Migrated-From: 8cf8692b9f0057ffe44e793b35bcf7329da83d3f
+Tags: "desqview"
+Slug: desqview-x-under-qemu-vintage-interop-test-for-go-x11proto-p
 
 Praetor interest: curiosity + genuine wish to test our client tools/suite against real X11R5. Phase plan from m0075: (1)
 proof-of-life — FreeDOS + DESQview + DESQview/X booting under QEMU, DOS-side TCP/IP (mTCP recommended, works well with

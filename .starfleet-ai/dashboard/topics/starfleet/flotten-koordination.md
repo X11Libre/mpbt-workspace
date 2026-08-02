@@ -1,6 +1,5 @@
----
-title: "automatische flottenkoordination bei abarbeitung von aufgaben"
----
+Title: "automatische flottenkoordination bei abarbeitung von aufgaben"
+Slug: flotten-koordination
 
 Zielstellung: schiffe sollen sich automatisch gegenseitig benachrichtigen,
 wenn sie eine aufgabe arbarbeiten, damit jeder bescheid weiß, was der andere

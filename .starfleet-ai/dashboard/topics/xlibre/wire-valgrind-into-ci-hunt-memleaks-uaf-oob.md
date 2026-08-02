@@ -1,10 +1,9 @@
----
-title: "Wire valgrind (memcheck) into CI, hunt memleaks/UAF/OOB"
-category: done
-status: "**Done — PR open + fully green, awaiting praetor merge decision**"
-doc_ref: "PR #3225 (`ci: run pyxtest under valgrind memcheck on Ubuntu`, master, single clean commit `77b2d64733`, open, not draft, mergeable)"
-migrated_from: 8cf8692b9f0057ffe44e793b35bcf7329da83d3f
----
+Title: "Wire valgrind (memcheck) into CI, hunt memleaks/UAF/OOB"
+Category: done
+Status: "**Done — PR open + fully green, awaiting praetor merge decision**"
+Doc-Ref: "PR #3225 (`ci: run pyxtest under valgrind memcheck on Ubuntu`, master, single clean commit `77b2d64733`, open, not draft, mergeable)"
+Migrated-From: 8cf8692b9f0057ffe44e793b35bcf7329da83d3f
+Slug: wire-valgrind-into-ci-hunt-memleaks-uaf-oob
 
 Praetor request, 2026-07-02 (see git history of this row for the full initial research/dispatch). **Gap confirmed:**
 `pytest` wasn't installed in the Ubuntu CI image at all, so `pyxtest`'s existing-but-unused valgrind harness was

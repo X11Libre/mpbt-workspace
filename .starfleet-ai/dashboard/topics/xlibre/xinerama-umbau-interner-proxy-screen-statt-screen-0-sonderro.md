@@ -1,10 +1,9 @@
----
-title: "Xinerama-Umbau: interner (unsichtbarer) Proxy-Screen statt Screen-0-Sonderrolle"
-category: parked
-noted_by: "praetor, 2026-07-02"
-since: "2026-07-02"
-migrated_from: 8cf8692b9f0057ffe44e793b35bcf7329da83d3f
----
+Title: "Xinerama-Umbau: interner (unsichtbarer) Proxy-Screen statt Screen-0-Sonderrolle"
+Category: parked
+Noted-By: "praetor, 2026-07-02"
+Since: "2026-07-02"
+Migrated-From: 8cf8692b9f0057ffe44e793b35bcf7329da83d3f
+Slug: xinerama-umbau-interner-proxy-screen-statt-screen-0-sonderro
 
 **Zukunftsaufgabe, noch nichts begonnen — nur Architektur-Idee + erste Ist-Stand-Recherche.** Idee (Praetor): Clients,
 die den Default-Screen ansprechen, landen nicht mehr auf dem ersten echten Screen, sondern auf einem internen, nach

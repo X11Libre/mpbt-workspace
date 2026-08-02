@@ -1,6 +1,5 @@
----
-title: "transient model errors: no mail to flagship"
----
+Title: "transient model errors: no mail to flagship"
+Slug: error-handling-1
 
 Bei transienten model-errors, die sofortigen restart des prompt nach
 sich ziehen (zb. "streaming response failed"), sollen keine messages

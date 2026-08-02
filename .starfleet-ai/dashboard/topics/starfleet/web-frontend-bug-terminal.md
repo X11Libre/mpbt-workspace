@@ -1,6 +1,5 @@
----
-title: "web-frontend: bug in terminal-ansicht"
----
+Title: "web-frontend: bug in terminal-ansicht"
+Slug: web-frontend-bug-terminal
 
 wenn man schiffe durch blättert und bei einem bereits das terminal offen hatte,
 dann auf ein anderes schiff clickt und dort auch das terminal öffnet, kommt

@@ -1,12 +1,11 @@
----
-title: "add forced model switch & restart option to web frontend"
-category: active
-status: "done"
-assigned-to: ""
-created-by: ""
-created: ""
-doc_ref: ""
----
+Title: "add forced model switch & restart option to web frontend"
+Category: active
+Status: "done"
+Created-By: ""
+Created: ""
+Assigned-To: ""
+Doc-Ref: ""
+Slug: web-frontend-modelswitch
 
 New feature:
 * allow forced model switch (and restart) to the web frontend

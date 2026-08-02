@@ -1,10 +1,9 @@
----
-title: "Federation: Multi-Fleet-Netzwerk (TCP-Transport, Peering, Dashboard-Föderation)"
-category: parked
-noted_by: "Phoenix (praetor request)"
-since: "2026-07-21"
-tags: "starfleet, infra, federation"
----
+Title: "Federation: Multi-Fleet-Netzwerk (TCP-Transport, Peering, Dashboard-Föderation)"
+Category: parked
+Noted-By: "Phoenix (praetor request)"
+Since: "2026-07-21"
+Tags: "starfleet, infra, federation"
+Slug: federation-multi-fleet-networking
 
 Netzwerkfunktionalität für starfleetctl: mehrere Fleets (separate Workspaces oder Maschinen) können zusammenarbeiten.
 Betrifft Messaging und Dashboard.

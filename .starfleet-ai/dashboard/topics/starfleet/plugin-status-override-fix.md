@@ -1,8 +1,7 @@
----
-title: "starfleet-dispatch Plugin: Status-Override bei jedem Turn entfernen"
-category: "starfleet"
-status: "done"
----
+Title: "starfleet-dispatch Plugin: Status-Override bei jedem Turn entfernen"
+Category: "starfleet"
+Status: "done"
+Slug: plugin-status-override-fix
 
 # starfleet/plugin-status-override-fix
 

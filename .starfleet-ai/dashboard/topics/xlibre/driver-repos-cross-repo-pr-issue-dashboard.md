@@ -1,13 +1,12 @@
----
-title: "Driver repos — cross-repo PR/issue dashboard (xserver issue #3280)"
-category: active
-status: "Built + live, 2026-07-07 (Agamemnon) — needs periodic refresh"
-assigned-to: ""
-created-by: ""
-created: ""
-doc_ref: "https://github.com/X11Libre/xserver/issues/3280"
-tags: "xlibre"
----
+Title: "Driver repos — cross-repo PR/issue dashboard (xserver issue #3280)"
+Category: active
+Status: "Built + live, 2026-07-07 (Agamemnon) — needs periodic refresh"
+Created-By: ""
+Created: ""
+Assigned-To: ""
+Doc-Ref: "https://github.com/X11Libre/xserver/issues/3280"
+Tags: "xlibre"
+Slug: driver-repos-cross-repo-pr-issue-dashboard
 
 **Why:** the ~63 `xf86-input-*`/`xf86-video-*` driver forks under the `X11Libre` org each have their
 own PRs/issues, but GitHub gives no view that spans all of them at once — a driver-repo PR (like

@@ -1,6 +1,5 @@
----
-title: "terminology SOP (standard operating procedure)"
----
+Title: "terminology SOP (standard operating procedure)"
+Slug: sop
 
 Für die agent-instructions (zb. die aus fragmenten compilierten AGENTS.md oder CLAUDE.md,
 oder auch die skills) soll zukünftig die Terminologie SOP (standard operating procedure)

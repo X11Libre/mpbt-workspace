@@ -1,6 +1,5 @@
----
-title: "User-Dokumentation konsolidieren"
----
+Title: "User-Dokumentation konsolidieren"
+Slug: doku-update
 
 Konsolidierung der Doku:
 

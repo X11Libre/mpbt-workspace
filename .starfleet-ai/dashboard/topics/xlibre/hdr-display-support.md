@@ -1,10 +1,9 @@
----
-title: "HDR (High Dynamic Range) display support"
-category: done
-status: "**Analysis done, first prep extraction built and pushed** — `wip/hdr-prep` has 2 build-verified commits pulled out of cepelinas9000's WIP, pushed to `X11Libre/xserver` (plain branch, no PR yet) for cross-clone review; the actual rendering pipeline is **not** extracted (see why below)"
-doc_ref: "Discussion `X11Libre/misc#251`; external WIP fork `cepelinas9000/xserver@wip/x11hdrV2`; branch `wip/hdr-prep` **pushed to `X11Libre/xserver`** (https://github.com/X11Libre/xserver/tree/wip/hdr-prep), tracked locally in agent clone `_WORK_/xserver-master/agent/hdr-prep/xserver` (remote `cepelinas` added there for fetching his branches; extraction base was master commit `cb5f2cd67e`, Feb 17 2026, 871 commits behind current master when analyzed)"
-migrated_from: 8cf8692b9f0057ffe44e793b35bcf7329da83d3f
----
+Title: "HDR (High Dynamic Range) display support"
+Category: done
+Status: "**Analysis done, first prep extraction built and pushed** — `wip/hdr-prep` has 2 build-verified commits pulled out of cepelinas9000's WIP, pushed to `X11Libre/xserver` (plain branch, no PR yet) for cross-clone review; the actual rendering pipeline is **not** extracted (see why below)"
+Doc-Ref: "Discussion `X11Libre/misc#251`; external WIP fork `cepelinas9000/xserver@wip/x11hdrV2`; branch `wip/hdr-prep` **pushed to `X11Libre/xserver`** (https://github.com/X11Libre/xserver/tree/wip/hdr-prep), tracked locally in agent clone `_WORK_/xserver-master/agent/hdr-prep/xserver` (remote `cepelinas` added there for fetching his branches; extraction base was master commit `cb5f2cd67e`, Feb 17 2026, 871 commits behind current master when analyzed)"
+Migrated-From: 8cf8692b9f0057ffe44e793b35bcf7329da83d3f
+Slug: hdr-display-support
 
 Praetor 2do, 2026-07-01, continued 2026-07-01/07-02: "look at his branches, what exactly he did, pull out prep pieces as
 separate PRs." **What's actually in `wip/x11hdrV2`:** one giant unsplit commit ("Reworked X11 HDR", 271 files / +46.5k

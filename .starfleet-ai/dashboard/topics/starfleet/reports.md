@@ -1,12 +1,11 @@
----
-title: "starfleetctl report system"
-category: active
-status: "done"
-assigned-to: ""
-created-by: ""
-created: ""
-doc_ref: ""
----
+Title: "starfleetctl report system"
+Category: active
+Status: "done"
+Created-By: ""
+Created: ""
+Assigned-To: ""
+Doc-Ref: ""
+Slug: reports
 
 * schiffe sollen Berichte erstellen und über starfleetctl einreichen können
 * ähnlich wie dashboard -- evtl. lassen sich hier teile davon wieder verwenden ?

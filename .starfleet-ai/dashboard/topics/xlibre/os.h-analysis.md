@@ -1,11 +1,10 @@
----
-title: "os.h: Analyse abgeschlossen — Subtasks bereit"
-category: active
-status: "analysis-done"
-assigned-to: "Saratoga"
-kind: "task"
-tags: "xlibre,sdk-cleanup,os.h"
----
+Title: "os.h: Analyse abgeschlossen — Subtasks bereit"
+Category: active
+Kind: "task"
+Status: "analysis-done"
+Assigned-To: "Saratoga"
+Tags: "xlibre,sdk-cleanup,os.h"
+Slug: os.h-analysis
 
 ## os.h Analyse (v0.1 — 313 Zeilen)
 

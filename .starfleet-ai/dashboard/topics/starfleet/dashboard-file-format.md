@@ -1,14 +1,13 @@
----
-title: "dashboard file format auf rfc288-stil umstellen"
-category: active
-kind: "task"
-status: "open"
-assigned-to: "Agamemnon"
-created-by: ""
-created: ""
-doc_ref: ""
-tags: "starfleet"
----
+Title: "dashboard file format auf rfc288-stil umstellen"
+Category: active
+Kind: "task"
+Status: "open"
+Created-By: ""
+Created: ""
+Assigned-To: "Agamemnon"
+Doc-Ref: ""
+Tags: "starfleet"
+Slug: dashboard-file-format
 
 Umstellung des File-Format für das Dashboard im RFC288-Stil.
 Fehlende header werden automatisch mit einem sinnvollen Default-Wert angenommen.

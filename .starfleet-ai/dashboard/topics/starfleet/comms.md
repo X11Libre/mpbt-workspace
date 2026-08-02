@@ -1,13 +1,11 @@
----
-slug: 
-title: "comms: menschenlesbare message-formatierung"
-category: 
-status: "done"
-assigned-to: "Wurst"
-created-by: ""
-created: ""
-doc_ref: ""
----
+Title: "comms: menschenlesbare message-formatierung"
+Category: 
+Status: "done"
+Created-By: ""
+Created: ""
+Assigned-To: "Wurst"
+Doc-Ref: ""
+Slug: comms
 
 Das json in den messages soll etwas besser lesbar formatiert werden,
 sodaß es vom Menschen besser gelesen werden kann.

@@ -1,10 +1,9 @@
----
-title: "Pure-Go diagnosis tool (xdpyinfo-like) on go-x11proto"
-category: parked
-noted_by: "praetor idea, 2026-07-01"
-since: "2026-07-01"
-migrated_from: 8cf8692b9f0057ffe44e793b35bcf7329da83d3f
----
+Title: "Pure-Go diagnosis tool (xdpyinfo-like) on go-x11proto"
+Category: parked
+Noted-By: "praetor idea, 2026-07-01"
+Since: "2026-07-01"
+Migrated-From: 8cf8692b9f0057ffe44e793b35bcf7329da83d3f
+Slug: pure-go-diagnosis-tool-on-go-x11proto
 
 Idea only, deprioritized. A pure-Go server-inventory dumper 
 (setup: vendor/release/proto/byteorder; screens+depths+visuals; extensions+versions; pixmap-formats) 
