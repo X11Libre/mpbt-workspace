@@ -1,10 +1,11 @@
 Title: "enterprise deleted newly (manually) created topic without any instruction"
-Category: "active"
+Category: active
 Kind: "bug"
-Status: "open"
+Status: "parked"
+Assigned-To: ""
 Created-By: "nekrad"
 Created: "2026-07-30"
-Slug: bug.enterprise-deletes-topics
+Doc-Ref: ""
 
 enterprise just arbitrarily deleted newly added dashboard topic,
 which I just had added manually (directly in the filesystem).
