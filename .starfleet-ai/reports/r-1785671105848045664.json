@@ -1,0 +1,13 @@
+{
+  "id": "r-1785671105848045664",
+  "title": "Task completed: workspace report directory not gitignored",
+  "ship": "Stargazer",
+  "body": "Reports are now stored under .starfleet-ai/reports/ (git-tracked) instead of .starfleet-ai/var/comms/reports/.\n\n**Changes in starfleetctl (pushed to master):**\n- internal/reports/store.go: NewStore() now uses .starfleet-ai/reports/ (not var/)\n- internal/reports/types.go: Updated doc comment\n- .starfleet-ai/.gitignore: Added !/reports/ exception (negates /reports/ ignore)\n- doc/reports.md: Updated storage paths documentation\n- Reports persist to git like dashboard topics\n\n**mpbt-workspace (mtx/agent-config):**\n- .gitignore updated with !/reports/\n- Dashboard topic 'task-workspace-report-directory-darf-nicht-gitignored' updated to done\n\n**Verification:**\n- Build passes (make)\n- Bootstrap passes\n- Web server restarts successfully\n- Reports are now git-tracked and archived with the workspace",
+  "tags": [
+    "reports",
+    "gitignore",
+    "workspace"
+  ],
+  "task_ref": "task-workspace-report-directory-darf-nicht-gitignored",
+  "created": 1785671105
+}
