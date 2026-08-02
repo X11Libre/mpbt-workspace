@@ -1,5 +1,10 @@
 Title: "automatische flottenkoordination bei abarbeitung von aufgaben"
-Slug: flotten-koordination
+Category: active
+Status: "assigned"
+Assigned-To: "Stargazer"
+Created-By: ""
+Created: ""
+Doc-Ref: ""
 
 Zielstellung: schiffe sollen sich automatisch gegenseitig benachrichtigen,
 wenn sie eine aufgabe arbarbeiten, damit jeder bescheid weiß, was der andere
