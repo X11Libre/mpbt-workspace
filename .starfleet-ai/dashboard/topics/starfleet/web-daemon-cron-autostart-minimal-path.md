@@ -1,7 +1,10 @@
 Title: "Web-Daemon-Cron-Autostart: Minimal-PATH-Quirk"
 Category: parked
-Noted-By: "Enterprise"
+Noted-By: ""
 Since: "2026-08-03"
+
+Folgendes in die lessons learned - local SOPs unter $WORKSPACE_ROOT/agents.d/local/... --------------------------------------------------------------------------------------
+
 
 Der Web-Daemon wird vom Cron-Autostart (`starfleetctl web autostart`, jede
 Minute) mit minimaler Umgebung gespawnt: `PATH=/usr/bin:/bin`, HOME=/home/nekrad.
