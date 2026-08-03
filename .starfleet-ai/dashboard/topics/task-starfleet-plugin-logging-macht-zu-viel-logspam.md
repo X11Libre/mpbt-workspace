@@ -1,7 +1,7 @@
 Title: "starfleet: plugin logging macht zu viel logspam"
 Category: active
 Kind: "task"
-Status: "assigned"
+Status: "done"
 Assigned-To: "Stargazer"
 Created-By: "McKinley"
 Created: "2026-08-03T08:52:15Z"
