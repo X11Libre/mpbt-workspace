@@ -1,9 +1,10 @@
 Title: "Terminologie: 'agents' → 'ships' wo passend"
 Category: done
-Noted-By: "Enterprise"
-Since: "2026-08-02"
-Done-By: "Enterprise"
-Done-Date: "2026-08-03"
+Status: "assigned"
+Assigned-To: "Stargazer"
+Created-By: ""
+Created: ""
+Doc-Ref: ""
 
 Review of every "agents" occurrence in the starfleetctl repo (SOP-rename
 follow-up). Implemented and deployed 2026-08-03 (commits e5f1af1, f56ca56,
