@@ -1,12 +1,11 @@
 Title: "starfleet: plugin logging macht zu viel logspam"
 Category: active
-Kind: task
-Status: "open"
+Kind: "task"
+Status: "assigned"
+Assigned-To: "Stargazer"
 Created-By: "McKinley"
 Created: "2026-08-03T08:52:15Z"
-Assigned-To: "—"
 Doc-Ref: "—"
-Slug: task-starfleet-plugin-logging-macht-zu-viel-logspam
 
 das opencode.log bläht extrem auf - das plugin-logging ist für den normalbetrieb zu viel.
 evtl. kleinen schalter (notfalls globale variable/const mit entsprechender dokumentation) einbauen, und per default abschalten.
