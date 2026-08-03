@@ -1,9 +1,10 @@
----
-slug: starfleet/opencode-permission-configs-split
-title: "opencode: separate permission configs for foreground vs. background ships"
-status: "in_progress"
-created-by: "Enterprise"
----
+Title: "opencode: separate permission configs for foreground vs. background ships"
+Category: active
+Status: "assigned"
+Assigned-To: "Stargazer"
+Created-By: "Enterprise"
+Created: ""
+Doc-Ref: ""
 
 ## Problem
 
@@ -17,62 +18,25 @@ opencode liest `OPENCODE_CONFIG=/pfad/zu/config.json` (getestet: funktioniert). 
 
 ### Zwei Config-Dateien:
 
-1. **`.opencode/opencode.auto.json`** (Background/Auto-Ships):
-   ```json
-   {
-     "permission": {
-       "read": { "/home/nekrad/src/xorg/mpbt-workspace/**": "allow", "**": "deny" },
-       "write": { "/home/nekrad/src/xorg/mpbt-workspace/**": "allow", "**": "deny" },
-       "edit": { "/home/nekrad/src/xorg/mpbt-workspace/**": "allow", "**": "deny" },
-       "glob": { "/home/nekrad/src/xorg/mpbt-workspace/**": "allow", "**": "deny" },
-       "grep": { "/home/nekrad/src/xorg/mpbt-workspace/**": "allow", "**": "deny" },
-       "task": { "/home/nekrad/src/xorg/mpbt-workspace/**": "allow", "**": "deny" },
-       "bash": { ".starfleet-ai/bin/starfleetctl *": "allow", "starfleetctl *": "allow", "**": "deny" }
-     }
-   }
-   ```
-   - Workspace **allow** für alle Tools → Background nie gefragt
-   - Extern **deny** → stillschweigend blockiert (kein Ask)
+Zwei opencode-configs werden vom deployment (oder evtl. besser sogar beim launch) automatisch generiert.
 
-2. **`.opencode/opencode.terminal.json`** (Foreground/Terminal-Ships):
-   ```json
-   {
-     "permission": {
-       "read": { "/home/nekrad/src/xorg/mpbt-workspace/**": "allow", "**": "ask" },
-       "write": { "/home/nekrad/src/xorg/mpbt-workspace/**": "allow", "**": "ask" },
-       "edit": { "/home/nekrad/src/xorg/mpbt-workspace/**": "allow", "**": "ask" },
-       "glob": { "/home/nekrad/src/xorg/mpbt-workspace/**": "allow", "**": "ask" },
-       "grep": { "/home/nekrad/src/xorg/mpbt-workspace/**": "allow", "**": "ask" },
-       "task": { "/home/nekrad/src/xorg/mpbt-workspace/**": "allow", "**": "ask" },
-       "bash": { ".starfleet-ai/bin/starfleetctl *": "allow", "starfleetctl *": "allow", "**": "ask" }
-     }
-   }
-   ```
-   - Workspace **allow** → Foreground nie gefragt (allow = nie fragen)
-   - Extern **ask** → Foreground wird gefragt (sicher)
+1. `.starfleet-ai/var/opencode/opencode.autonomous.json` (autonome schiffe im background - gitignore'd)
+
+   --> erlaubt nur Zugriffe auf starfleetctl und alles innerhalb der aktuelle workspace (den pfad nicht hardcoden!)
+   --> aber alles wo gefragt würde stattdessen hartes deny (nicht mehr fragen)
+
+2. `.starfleet-ai/var/opencode/opencode.terminal.json` (Foreground/Terminal-Ships - gitignored'd):
+
+   --> die config wie sie jetzt ist
 
 ### Integration in starfleetctl
 
 In `internal/session/launch.go` und `run_cmd.go`:
 ```go
 // Background (auto/background launch type)
-os.Setenv("OPENCODE_CONFIG", filepath.Join(root, ".opencode", "opencode.auto.json"))
-
-// Foreground (terminal launch type)  
-os.Setenv("OPENCODE_CONFIG", filepath.Join(root, ".opencode", "opencode.terminal.json"))
-```
+os.Setenv("OPENCODE_CONFIG", filepath.Join(root, <pathname>))```
 
 Dann normales `exec opencode` — opencode liest die Config via ENV.
-
-### Template-Regeneration
-
-`starfleet-bootstrap` erzeugt die beiden Configs aus Templates (`.opencode/templates/`) bei jedem Deploy.
-
-## Offene Fragen
-
-- Sollen Foreground-Ships für Workspace-Writes wirklich `ask` sein? (Empfehlung: `allow` — Workspace ist trusted, nur externe Pfade `ask`/`deny`. Wenn `allow`: beide Configs fast identisch, nur extern `deny` vs `ask`.)
-- Plugin-Configs: Plugin nutzt eigene Permissions — meist ok.
-- opencode reloadet Config zur Laufzeit? Nein — muss VOR Start gesetzt sein (ENV ist ideal).
 
 ## Referenz
 
