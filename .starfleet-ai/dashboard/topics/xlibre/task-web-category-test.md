@@ -1,8 +1,8 @@
 Title: "Web Category Test"
 Category: xlibre
 Kind: "task"
-Status: "open"
-Assigned-To: "—"
+Status: "assigned"
+Assigned-To: "Enterprise"
 Created-By: "Stargazer"
 Created: "2026-08-03T08:57:47Z"
 Doc-Ref: "—"
