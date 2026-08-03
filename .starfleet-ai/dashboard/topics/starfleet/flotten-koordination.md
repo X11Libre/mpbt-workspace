@@ -15,3 +15,7 @@ an der gleichen codebase arbeiten. manchmal kann es vorkommen, daß mehrere
 am gleichen Problem arbeiten (zb. wenn ich parallel nochmal eine Analyse
 beauftrage) - hier sollen sich die betreffenden schiffe abstimmen und ihre
 erkenntnisse automatisch austauschen.
+
+==> SOPs entsprechend nachschärfen.
+--> die SOPs im starfleetctl selbst - anschließend starfleet neu bauen und ausrollen.
+--> sauberes commit & push
