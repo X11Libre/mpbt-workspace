@@ -1,5 +1,5 @@
 Title: "starfleet: bug: per web neu erstellte tasks landen im toplevel statt gewählter Kategorie"
-Category: active
+Category: starfleet
 Kind: "task"
 Status: "done"
 Assigned-To: "Stargazer"
