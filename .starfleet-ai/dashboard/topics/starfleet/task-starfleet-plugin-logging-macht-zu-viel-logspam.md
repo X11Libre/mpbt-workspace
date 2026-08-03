@@ -1,5 +1,5 @@
 Title: "starfleet: plugin logging macht zu viel logspam"
-Category: active
+Category: starfleet
 Kind: "task"
 Status: "done"
 Assigned-To: "Stargazer"
