@@ -1,8 +1,8 @@
 Title: "Test Category Fix 3"
 Category: starfleet
 Kind: "task"
-Status: "open"
-Assigned-To: "—"
+Status: "assigned"
+Assigned-To: "Defiant"
 Created-By: "Stargazer"
 Created: "2026-08-03T08:57:25Z"
 Doc-Ref: "—"
