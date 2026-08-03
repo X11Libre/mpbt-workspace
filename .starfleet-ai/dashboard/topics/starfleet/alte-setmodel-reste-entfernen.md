@@ -1,7 +1,7 @@
 Title: "starfleet: plugin: alte setmodel-reste entfernen"
 Category: active
 Status: "assigned"
-Assigned-To: "Stargazer"
+Assigned-To: "Enterprise"
 Created-By: ""
 Created: ""
 Doc-Ref: ""
