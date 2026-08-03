@@ -38,7 +38,7 @@ branches rebuilt (reset onto `origin/release/<rel>`, both commits, force-push).
 
 - 25.1: all xserver-build lanes green (ubuntu 6m15s/6m50s).
 - 25.0: xserver-build-ubuntu green (7m21s).
-- 25.2: arch/cygwin/macos green; ubuntu/others queued on GH runners (2026-08-03).
+- 25.2: all xserver-build lanes green (arch/cygwin/macos/freebsd/alpine/mingw32/dragonflybsd/ubuntu/netbsd — retry of driver build infra flakiness succeeded).
 
 ## Next steps
 
