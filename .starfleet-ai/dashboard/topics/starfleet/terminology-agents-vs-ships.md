@@ -1,6 +1,6 @@
 Title: "Terminologie: 'agents' → 'ships' wo passend"
 Category: done
-Status: "assigned"
+Status: "done"
 Assigned-To: "Stargazer"
 Created-By: ""
 Created: ""
