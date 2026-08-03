@@ -64,3 +64,15 @@ dashboard tasks in the starfleet section.
   `DoReindex()` guard (`os.Stat` of the now-deleted file) was always false, so
   reindex never ran. Track `removed` explicitly instead. Covered by
   `TestInstallSelfCleansLegacyFragments`.
+
+## Session lessons (2026-08-03, plugin log-spam fix deploy)
+
+- **Plugin-only starfleetctl changes:** bump `PLUGIN_VERSION` so the fleet can verify rollout via dashboard/heartbeat. `make all` validates the TS via esbuild (type-check skipped without global typescript).
+- **Running ships keep the OLD plugin in memory** after bootstrap redeploys `starfleet-dispatch.ts`. Only new/restarted sessions load the new version — log spam in a running ship's opencode.log stops only after that ship's session restarts. Bootstrap + web/timer restart is NOT enough.
+- **Coordination pattern that worked:** before touching starfleetctl source, message Enterprise; the parked terminology topic (`starfleet/terminology-agents-vs-ships`) already carried the note "erst Stargazer fertig werden lassen". Only one ship edits starfleet source at a time.
+
+## Session lessons (2026-08-03, web-launched ships dying)
+
+- **The web daemon is maintained by a cron autostart with a minimal PATH (`/usr/bin:/bin`).** Whenever the web server restarts (cron respawn after a crash/stop, or `web restart` when the PID file is stale/missing), the new daemon inherits that stripped PATH — ships launched from the web console then died instantly: the inner shell's `exec opencode` hit "command not found", termctl's OnExit cleared the heartbeat, ship vanished from the board. Symptom: ship appears on board ~1s, then disappears, no process running. `starfleetctl session ship-run` from a shell kept working (full PATH), which made it look like a web-specific regression.
+- **Fix (starfleetctl 89733fa):** `resolveClientPath()` in `internal/session/resolve.go` resolves opencode/claude at launch time — `exec.LookPath` first, fallback scan of `$HOME/.local/bin`, `$HOME/.bin`, `/usr/local/bin` — and the launch shell command uses the **absolute** path. Ship launch no longer depends on the daemon's PATH.
+- **Gotchas:** `starfleetctl web start` runs the server **blocking** in the foreground (daemonization happens via `web autostart`/`web restart` → `Daemonize`, which re-execs `web start` and inherits the caller's env). `web restart` silently fails to replace the daemon when `.starfleet-ai/var/web.pid` is missing/stale (Stop can't kill it; Autostart sees the port busy and returns). Always `kill <oldpid>` first when web.pid is missing. Verify web-launch end-to-end by POSTing `/api/ship` and watching the board for ~30s.
