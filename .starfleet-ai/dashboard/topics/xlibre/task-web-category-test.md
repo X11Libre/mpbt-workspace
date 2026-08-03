@@ -1,11 +1,13 @@
 Title: "Web Category Test"
 Category: xlibre
-Kind: task
+Kind: "task"
 Status: "open"
+Assigned-To: "—"
 Created-By: "Stargazer"
 Created: "2026-08-03T08:57:47Z"
-Assigned-To: "—"
 Doc-Ref: "—"
-Slug: xlibre/task-web-category-test
 
 Testing from web UI
+
+--> Dieser Eintrag war offenbar ein Test aus einem anderen Task
+--> diesen eintrag löschen
