@@ -1,6 +1,6 @@
 Title: "starfleetctl: kommando um alte messages zu entfernen"
 Category: active
-Status: "in-progress"
+Status: "assigned"
 Assigned-To: "Stargazer"
 Created-By: ""
 Created: ""
