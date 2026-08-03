@@ -1,6 +1,6 @@
 Title: "automatische flottenkoordination bei abarbeitung von aufgaben"
 Category: active
-Status: "assigned"
+Status: "done"
 Assigned-To: "Stargazer"
 Created-By: ""
 Created: ""
@@ -19,3 +19,14 @@ erkenntnisse automatisch austauschen.
 ==> SOPs entsprechend nachschärfen.
 --> die SOPs im starfleetctl selbst - anschließend starfleet neu bauen und ausrollen.
 --> sauberes commit & push
+Implemented 2026-08-03 (starfleetctl b1816ab, deployed via bootstrap + web/timer
+restart, HTTP 200): SOPs sharpened —
+- inter-ship-communication.md: new "Work coordination" section: announce
+  codebase work (repo/branch/goal) before starting, check board/comms for who is
+  already active, only one ship edits the same source at a time; parallel work
+  on the same problem keeps separate branches/worktrees and exchanges findings
+  via comms immediately (not only in the final report); publish discoveries on
+  the bus while fresh.
+- working-practices-for-ships.md: matching standing-instruction bullet.
+Verified deployed: the new section is present in the installed
+sop.d/starfleet-instructions/inter-ship-communication.md.
