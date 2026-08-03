@@ -1,11 +1,11 @@
----
-title: "CI Hurd lane fails on debian-ports apt dependency conflict (infra flake)"
-category: parked
-kind: "note"
-status: "parked"
-noted-by: "Defiant"
-since: "2026-08-03"
----
+Title: "CI Hurd lane fails on debian-ports apt dependency conflict (infra flake)"
+Category: xlibre
+Kind: "note"
+Status: "parked"
+Assigned-To: "—"
+Created-By: ""
+Created: ""
+Doc-Ref: ""
 
 The `xserver-build-hurd` CI lane (hand-rolled QEMU boot against debian-ports
 `sid`/`unreleased`) fails before any build step: `apt-get install` of the
