@@ -1,5 +1,5 @@
 Title: "starfleet: feature: tasks zwischen kategorien verschiebbar machen"
-Category: active
+Category: starfleet
 Kind: "task"
 Status: "done"
 Assigned-To: "Stargazer"
