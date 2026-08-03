@@ -1,12 +1,11 @@
 Title: "med: recherche cortisol acth crh tagesverlauf"
 Category: active
-Kind: task
-Status: "open"
+Kind: "task"
+Status: "assigned"
+Assigned-To: "Pasteur"
 Created-By: "McKinley"
 Created: "2026-08-03T23:16:16Z"
-Assigned-To: "—"
 Doc-Ref: "—"
-Slug: task-med-recherche-cortisol-acth-crh-tagesverlauf
 
 Rechecheauftrag:
 
