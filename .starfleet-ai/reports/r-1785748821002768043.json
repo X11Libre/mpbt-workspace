@@ -1,0 +1,15 @@
+{
+  "id": "r-1785748821002768043",
+  "title": "starfleet: plugin logging logspam-Fix (APP_LOG_ENABLED)",
+  "subtitle": "opencode.log-Bloat durch Plugin-Diagnose-Logging beseitigt — Commit c437408",
+  "ship": "Stargazer",
+  "body": "## Zusammenfassung\n\nDie Aufgabe 'starfleet: plugin logging macht zu viel logspam' (Dashboard-Topic `task-starfleet-plugin-logging-macht-zu-viel-logspam`) ist abgeschlossen und deployed.\n\n## Änderung\n\n- `fragments/opencode-plugins/starfleet-dispatch.ts` (starfleetctl, Commit c437408 auf master)\n- Alle 10 `client.app.log()`-Aufrufe (Retry-Poll-Dumps, Inbox-Listings, Log-Monitor-Ergebnisse) laufen jetzt durch einen zentralen `appLog()`-Helper im Plugin-Closure\n- Neuer, dokumentierter Schalter `APP_LOG_ENABLED = false` (default aus) — Debug-Logging bei Bedarf per Flip wieder aktivierbar\n- `PLUGIN_VERSION` 2.5.0 → 2.5.1 gebumpt, damit die Flotte die Ausrollung am Dashboard/heartbeat verifizieren kann\n\n## Verifikation\n\n- `make all` grün: build, vet, fmt, alle Go-Tests, esbuild-Plugin-Check (TS-Typecheck ohne global installiertes typescript übersprungen)\n- `./starfleet-bootstrap`: Plugin deployed + registriert (.opencode/plugins/)\n- Timer-Worker + Web-Server auf neuem Binary neu gestartet, HTTP 200\n- Deploytes Plugin verifiziert: Version 2.5.1, APP_LOG_ENABLED = false\n\n## Hinweis\n\nBereits laufende Schiffe behalten das alte Plugin im Speicher — Log-Spam endet dort erst nach Session-Neustart (neue Sitzungen laden automatisch 2.5.1).\n\n## Koordination\n\n- Enterprise vor Source-Änderung informiert (nur ein Schiff gleichzeitig am starfleetctl-Source); Terminologie-Review (agents→ships) steht geparkt und Source ist wieder frei",
+  "tags": [
+    "starfleet",
+    "plugin",
+    "logging",
+    "deploy"
+  ],
+  "task_ref": "task-starfleet-plugin-logging-macht-zu-viel-logspam",
+  "created": 1785748821
+}
