@@ -1,5 +1,5 @@
 Title: "xlibre: SOPs: nennen immernoch claude"
-Category: starfleet
+Category: xlibre
 Kind: "task"
 Status: "open"
 Assigned-To: "—"
