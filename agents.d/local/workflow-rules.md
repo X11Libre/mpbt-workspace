@@ -12,3 +12,4 @@ IMPORTANT RULES !
 * when you're commanded to wait for somebody else (ship or praetor), DO NOT mix up the auto-restart messages with the signal to stop waiting
 * NOTE: opencode plugin automatically injects a message and starts new turn when there was a transient API error
 * that only means you should retry what you've been doing when the turn was interrupted, but NOT stop an explicit wait (eg. somebody told you to wait until he's finished)
+* if a ships is getting several tasks assigned, those should be done one by one - completely finish one before starting the next
