@@ -1,7 +1,7 @@
 Title: "starfleet: bug: per web neu erstellte tasks landen im toplevel statt gewählter Kategorie"
 Category: active
 Kind: "task"
-Status: "assigned"
+Status: "done"
 Assigned-To: "Stargazer"
 Created-By: "McKinley"
 Created: "2026-08-03T08:44:57Z"
