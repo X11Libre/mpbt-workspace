@@ -1,11 +1,10 @@
-Title: "Test Category Fix 2"
+Title: "delete me"
 Category: starfleet
-Kind: task
+Kind: "task"
 Status: "open"
+Assigned-To: "—"
 Created-By: "Stargazer"
 Created: "2026-08-03T08:56:29Z"
-Assigned-To: "—"
 Doc-Ref: "—"
-Slug: starfleet/task-test-category-fix-2
 
-Testing category fix
+delete me
