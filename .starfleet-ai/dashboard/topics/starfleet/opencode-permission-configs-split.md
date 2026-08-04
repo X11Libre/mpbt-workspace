@@ -1,44 +1,28 @@
-Title: "opencode: separate permission configs for foreground vs. background ships"
-Category: active
-Status: "assigned"
-Assigned-To: "Stargazer"
-Created-By: "Enterprise"
-Created: ""
-Doc-Ref: ""
+---
+title: "opencode: separate permission configs for foreground vs. background ships"
+category: "active"
+status: "done"
+tags: "starfleet"
+---
 
-## Problem
+DONE (starfleetctl fb6982e, deployed via bootstrap).
 
-Background-Ships (STARFLEET_LAUNCH_TYPE=auto/background) hängen in opencode Permission-Dialogen fest, weil sie nicht interaktiv antworten können. Aktuelle `.opencode/opencode.json` hat nur Bash-Permissions, keine File-Tool-Permissions → jeder File-Zugriff im Workspace fragt nach.
+Alle opencode-Ships bekommen jetzt über denselben Mechanismus eine
+per-Ship-Config-Datei (`.starfleet-ai/var/ships/<id>.opencode.json`),
+erzeugt von `generateOpencodeConfig()`:
 
-Foreground-Ships (Terminal) sollen aber weiterhin für sensible Aktionen gefragt werden.
+- background/auto ships (`session ship-run`, web): deny ausserhalb workspace
+- terminal ships (lokale Konsole, `starfleetctl run` / `run-opencode.*`):
+  ask ausserhalb workspace, allow innerhalb
+- `--unrestricted`: allow alles
 
-## Lösung: OPENCODE_CONFIG Environment Variable
+Zuvor nutzte der Console-Pfad nur ein inline `OPENCODE_CONFIG_CONTENT`
+(keine Datei, keine Permission-/Provider-Regeln). Der `run`-Pfad
+(`--exec` und termctl) setzt jetzt `OPENCODE_CONFIG` auf die generierte
+Datei; `OPENCODE_CONFIG_CONTENT` ist komplett entfernt. Zusätzlich setzt
+die generierte Config jetzt `username` auf die Ship-ID (opencode fällt
+sonst auf den OS-User zurück).
 
-opencode liest `OPENCODE_CONFIG=/pfad/zu/config.json` (getestet: funktioniert). Kein Kopieren nötig.
-
-### Zwei Config-Dateien:
-
-Zwei opencode-configs werden vom deployment (oder evtl. besser sogar beim launch) automatisch generiert.
-
-1. `.starfleet-ai/var/opencode/opencode.autonomous.json` (autonome schiffe im background - gitignore'd)
-
-   --> erlaubt nur Zugriffe auf starfleetctl und alles innerhalb der aktuelle workspace (den pfad nicht hardcoden!)
-   --> aber alles wo gefragt würde stattdessen hartes deny (nicht mehr fragen)
-
-2. `.starfleet-ai/var/opencode/opencode.terminal.json` (Foreground/Terminal-Ships - gitignored'd):
-
-   --> die config wie sie jetzt ist
-
-### Integration in starfleetctl
-
-In `internal/session/launch.go` und `run_cmd.go`:
-```go
-// Background (auto/background launch type)
-os.Setenv("OPENCODE_CONFIG", filepath.Join(root, <pathname>))```
-
-Dann normales `exec opencode` — opencode liest die Config via ENV.
-
-## Referenz
-
-- Stargazer-Hänger (Typo-Pfad `/home/nekred/...`) zeigt das Problem: Background-Ship kann Ask nicht beantworten → tot.
-- `OPENCODE_CONFIG` funktioniert (getestet); `--config` Flag nicht.
+`generateOpencodeConfig()` ist damit der einzige
+Config-Generierungspfad — Ansatzpunkt für die geplante
+nim-proxy/zen-proxy-Provider-Injection (Enterprise, model-proxy-Feature).
