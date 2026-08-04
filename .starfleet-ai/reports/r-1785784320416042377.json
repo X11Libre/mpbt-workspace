@@ -1,0 +1,15 @@
+{
+  "id": "r-1785784320416042377",
+  "title": "CI Failure Fix: xserver build with GBM disabled",
+  "subtitle": "Resolved byte-swapping issues in randr/render tests",
+  "ship": "Stargazer",
+  "body": "## Summary\n\nFixed CI failure in xserver-build-ubuntu-no-gbm job caused by commit a1acf90c52.\n\n## Root Cause\n\nCommit a1acf90c52 changed GBM dependency handling:\n- Replaced  with  when not building GBM\n- Changed  check from  to \n\nThis caused GBM feature flags to be undefined when GBM was disabled (-Dgbm=false), breaking glamor's fallback path and resulting in byte-swapping errors in randr, render, and present tests.\n\n## Solution\n\nReverted commit a1acf90c52 to restore:\n- GBM dependency uses  when not building GBM\n- GBM feature flags set based on  (header/symbol presence) when glamor is enabled\n\nThis restores proper defines in dix-config.h (e.g., ) allowing glamor's GBM code path to work correctly.\n\n## Verification\n\n- Built xserver with \n- Full test suite passes: 46 OK, 2 skipped (XTs/go-xts), 0 failed\n- Previously failing tests now pass:\n  - test_randr.py::TestRandRSetScreenConfig::test_set_screen_config_config_timestamp_swapped\n  - test_randr.py::TestRandRCreateLease::test_create_lease_lid_swapped\n  - test_render.py tests\n\n## Communication\n\nReported resolution to Enterprise via agent-bus directive m0002.\n\n## Next Steps\n\nA follow-up task is needed to fix the underlying byte-swapping issue in glamor's non-GBM path to allow the original improvements from commit a1acf90c52 to be reapplied safely.",
+  "tags": [
+    "ci",
+    "build",
+    "xserver",
+    "gbm"
+  ],
+  "task_ref": "task-fix-ci-failure-in-xserver-build-with-gbm-disabled",
+  "created": 1785784320
+}

@@ -16,6 +16,25 @@
         "starfleetctl reports*": "allow",
         "starfleetctl session*": "allow",
         "starfleetctl task*": "allow"
+      },
+      "read": {
+        "/home/nekrad/src/xorg/mpbt-workspace/**": "allow",
+        "/home/nekrad/.local/bin/**": "allow"
+      },
+      "write": {
+        "/home/nekrad/src/xorg/mpbt-workspace/**": "allow"
+      },
+      "edit": {
+        "/home/nekrad/src/xorg/mpbt-workspace/**": "allow"
+      },
+      "glob": {
+        "/home/nekrad/src/xorg/mpbt-workspace/**": "allow"
+      },
+      "grep": {
+        "/home/nekrad/src/xorg/mpbt-workspace/**": "allow"
+      },
+      "task": {
+        "/home/nekrad/src/xorg/mpbt-workspace/**": "allow"
       }
     },
     "plan": {
@@ -33,6 +52,25 @@
           "starfleetctl reports*": "allow",
           "starfleetctl session*": "allow",
           "starfleetctl task*": "allow"
+        },
+        "read": {
+          "/home/nekrad/src/xorg/mpbt-workspace/**": "allow",
+          "/home/nekrad/.local/bin/**": "allow"
+        },
+        "write": {
+          "/home/nekrad/src/xorg/mpbt-workspace/**": "allow"
+        },
+        "edit": {
+          "/home/nekrad/src/xorg/mpbt-workspace/**": "allow"
+        },
+        "glob": {
+          "/home/nekrad/src/xorg/mpbt-workspace/**": "allow"
+        },
+        "grep": {
+          "/home/nekrad/src/xorg/mpbt-workspace/**": "allow"
+        },
+        "task": {
+          "/home/nekrad/src/xorg/mpbt-workspace/**": "allow"
         }
       }
     }

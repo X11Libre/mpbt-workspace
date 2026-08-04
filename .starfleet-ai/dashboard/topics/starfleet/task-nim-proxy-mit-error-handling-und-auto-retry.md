@@ -1,7 +1,7 @@
 Title: "NIM-Proxy mit Error-Handling und Auto-Retry"
 Category: starfleet
 Kind: "task"
-Status: "assigned"
+Status: "done"
 Assigned-To: "Interpid"
 Created-By: "Enterprise"
 Created: "2026-08-03T17:53:02Z"
