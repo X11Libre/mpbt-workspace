@@ -1,0 +1,28 @@
+# Model proxy — local OpenAI-compatible endpoint in front of the real model
+# API backends (NVIDIA NIM, OpenCode Zen, ...). Ships talk to this single
+# local endpoint; the proxy retries transient upstream errors and catches
+# streaming failures so a model-API hiccup never leaks raw into the session.
+#
+# The proxy's provider entries are injected into every generated per-ship
+# opencode config as opencode providers named by their `id` (here
+# nim-proxy/zen-proxy). Model catalogs are queried automatically from the
+# upstream /models endpoint — no manual model list needed.
+#
+# listen_addr is bound to localhost only: the proxy holds the real API keys
+# and is only ever used by local opencode processes.
+model_proxy:
+  listen_addr: "127.0.0.1:8443"
+
+  # Each provider: id (opencode provider name), name (label), base_url
+  # (OpenAI-compatible upstream), api_key (env-referenced — the proxy keeps
+  # the real key, ships never see it), optional retry tuning.
+  providers:
+    - id: nim-proxy
+      name: "NVIDIA NIM (local proxy)"
+      base_url: "https://integrate.api.nvidia.com/v1"
+      api_key: "{env:NIM_API_KEY}"
+
+    - id: zen-proxy
+      name: "OpenCode Zen (local proxy)"
+      base_url: "https://opencode.ai/zen/v1"
+      api_key: "{env:OPENCODE_API_KEY}"
