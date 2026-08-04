@@ -1,0 +1,38 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "permission": {
+    "read": { "/home/nekrad/src/xorg/mpbt-workspace/**": "allow", "/home/nekrad/.local/bin/**": "allow", "**": "deny" },
+    "write": { "/home/nekrad/src/xorg/mpbt-workspace/**": "allow", "**": "deny" },
+    "edit": { "/home/nekrad/src/xorg/mpbt-workspace/**": "allow", "**": "deny" },
+    "glob": { "/home/nekrad/src/xorg/mpbt-workspace/**": "allow", "**": "deny" },
+    "grep": { "/home/nekrad/src/xorg/mpbt-workspace/**": "allow", "**": "deny" },
+    "task": { "/home/nekrad/src/xorg/mpbt-workspace/**": "allow", "**": "deny" },
+    "bash": { ".starfleet-ai/bin/starfleetctl *": "allow", "starfleetctl *": "allow", "**": "deny" }
+  },
+  "provider": {
+    "nvidia": {
+      "npm": "@ai-sdk/openai-compatible",
+      "name": "NVIDIA NIM",
+      "options": {
+        "baseURL": "https://integrate.api.nvidia.com/v1",
+        "apiKey": "{env:NIM_API_KEY}"
+      },
+      "models": {
+        "moonshotai/kimi-k2.6": { "name": "Kimi K2.6" },
+        "mistralai/mistral-large-3-675b": { "name": "mistral large" },
+        "nvidia/nemotron-3-ultra-550b-a55b": { "name": "Nemotron Ultra" },
+        "nvidia/nemotron-3-nano-30b-a3b": { "name": "Nemotron Nano (schnell)" },
+        "nvidia/llama-3.3-nemotron-super-49b": { "name": "llama nemotron" },
+        "z-ai/glm-5.2": { "name": "glm-5.2" }
+      }
+    },
+    "groq": {
+      "npm": "@ai-sdk/openai-compatible",
+      "name": "GROQ",
+      "options": {
+        "baseURL": "https://api.groq.com/openai/v1",
+        "apiKey": "{env:GROQ_API_KEY}"
+      }
+    }
+  }
+}
