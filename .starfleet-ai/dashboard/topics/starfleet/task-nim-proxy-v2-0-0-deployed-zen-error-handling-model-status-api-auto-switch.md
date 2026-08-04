@@ -1,11 +1,42 @@
-Title: "NIM-Proxy v2.0.0 deployed - ZEN error handling, Model-Status API, auto-switch"
+Title: "model-proxy: lokaler OpenAI-kompatibler Proxy in starfleetctl"
 Category: starfleet
 Kind: task
-Status: "open"
+Status: "done"
 Created-By: "Enterprise"
 Created: "2026-08-03T18:19:43Z"
-Assigned-To: "—"
+Assigned-To: "Enterprise"
 Doc-Ref: "—"
 Slug: starfleet/task-nim-proxy-v2-0-0-deployed-zen-error-handling-model-status-api-auto-switch
 
-Implementation complete: nim-proxy/main.go enhanced with ZEN error detection (zen-ratelimit, nim-overload), Model-Status API (/health, /models, /models/<name>), automatic model switch via HTTP 429 + SwitchModel in response body. Plugin simplified to v2.6.0: removed log-monitor, retry-poll, executeAction(switch-model). Bootstrap + timer restart + web restart done. Next: integrate proxy into opencode.json generator, support global user config, auto-use for new ships.
+## Stand (2026-08-04)
+
+Der Prototyp nim-shield (nim-proxy/main.go, ein einfaches Beispiel, wird
+nicht mehr betrieben) ist durch den produktiven `model-proxy` in
+starfleetctl ersetzt.
+
+### Umgesetzt (starfleetctl edc4926, deployed via bootstrap)
+
+- `internal/modelproxy` neu: OpenAI-kompatibler lokaler HTTP-Proxy
+  (`/v1/chat/completions`, `/v1/models`, `/healthz`) vor NIM + Zen.
+  - Routing per Modell-Katalog (Upstream-/models-Query, gecacht), Fallback
+    `<provider>/<model>`-Prefix.
+  - Retry transienter Upstream-Fehler (408/429/5xx/conn-errors), Backoff
+    konfigurierbar (Default 1s, 3 Versuche).
+  - Streaming-Schutz: Stream ohne [DONE]-Sentinel bekommt strukturiertes
+    error-event + [DONE] angehängt (kein halber Text ohne Fehlermeldung).
+  - API-Keys nur im Daemon (YAML + env), Ships sehen nur Dummy-Key.
+- Konfig: `.starfleet-ai/conf/model-proxy.yaml` (listen 127.0.0.1:8443,
+  Providers nim-proxy=integrate.api.nvidia.com, zen-proxy=opencode.ai/zen).
+- CLI: `starfleetctl model-proxy start|stop|restart|autostart|status|models`.
+- Daemon: Daemonize mit PATH-Erweiterung + Env-Ref-Backfill (User-opencode
+  config, wie web-Daemon), cron-fähig (`web`-cron.sh ruft jetzt auch
+  `model-proxy autostart`), PID-File + /proc-Fallback-Stop.
+- opencode-Injection: generateOpencodeConfig injiziert nim-proxy/zen-proxy
+  als opencode-Provider (baseURL -> 127.0.0.1:8443/v1) in JEDE neue Ship-
+  Config inkl. Modell-Katalog (102 NIM / 60 Zen Modelle). E2E verifiziert.
+
+### Verifikation
+
+- `model-proxy status/models` OK; healthz OK.
+- Chat + Streaming durch den Proxy gegen NIM OK (llama-3.3-nemotron-super-49b-v1).
+- DummyTest-Ship-Config enthielt nim-proxy + zen-proxy mit Katalogen.
