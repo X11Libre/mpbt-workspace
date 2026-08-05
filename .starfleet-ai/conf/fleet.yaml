@@ -17,3 +17,5 @@ fleet:
   #   - Defiant
   #   - Voyager
   #   - Discovery
+
+  provider_mode: "model-proxy-only"
