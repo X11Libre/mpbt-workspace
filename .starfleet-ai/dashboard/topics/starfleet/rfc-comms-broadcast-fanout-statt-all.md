@@ -1,13 +1,27 @@
 Title: "RFC: comms-Broadcasts per Fan-out an jedes Schiff statt Pseudo-Target 'all'"
 Category: parked
+Status: done
 Noted-By: "Enterprise"
 Since: "2026-08-06"
 
 Vorschlag des Praetors (2026-08-06): Broadcast-Nachrichten nicht mehr unter dem
 Pseudo-Target `all` (`msgs/all/unseen/`) ablegen, sondern zur Post-Zeit an jedes
-Schiff separat ausliefern (`msgs/<ShipID>/unseen/`). Soll umgesetzt werden, sobald
-der starfleetctl-Source wieder frei ist (derzeit: Voyager bot-review-Banner; danach
-Defiant falls im Source; Freigabe-Signal kommt via comms).
+Schiff separat ausliefern (`msgs/<ShipID>/unseen/`).
+
+## UMGESETZT (2026-08-06, starfleetctl 7129868)
+
+- `post()` fan-out zur Post-Zeit an `broadcastRecipients()` = bekannte Ships
+  (msgs-Dirs + Status-Records, ohne `all`) + Absender.
+- `ackMessage()` = reiner Move (allUnseen-Copy-Zweig entfernt).
+- `"all"`-Guards aus allen Filtern entfernt (DoInit/DoInbox/DoPrune/DoPurgeOld/
+  inboxCount/dispatchInbox/json/monitor); `allTargetsAcked()` (tot) entfernt.
+- `DoReply` nutzt `findMsgFile()` statt `mfile(qid, "all")`.
+- `comms migrate-broadcasts`: einmalige Migration von `msgs/all/` nach
+  per-Ship-Kopien (idempotent). Live ausgeführt: 11 Kopien verteilt,
+  `msgs/all` entfernt (m12507 war schon als gesehen markiert → kein Enterprise-Kopie).
+- Tests: TestPostBroadcastFansOut, TestDoAckBroadcast (Move), TestDoInitAcksFannedOutBroadcast,
+  TestMigrateBroadcasts; json_test-Saat als per-Ship-Kopie.
+- Deployed (bootstrap + web/timer restart, HTTP 200), komms-msgs/inbox verifiziert.
 
 ## Warum
 
@@ -44,6 +58,3 @@ Das `all`-Modell erzwingt Spezialfälle, die bereits zweimal Bugs produziert hab
 
 - starfleet/bug-comms-broadcast-ack-fails-all-unseen (FIXED via 933e6bd) — der
   akute Bug; dieses RFC ist die strukturelle Lösung.
-- Queue-Koordination: Voyager (bot-review-Banner) → Enterprise (dieses RFC) →
-  danach Defiant (nur falls er doch noch starfleetctl braucht; Paste-Bug liegt in
-  go-x11proto).
