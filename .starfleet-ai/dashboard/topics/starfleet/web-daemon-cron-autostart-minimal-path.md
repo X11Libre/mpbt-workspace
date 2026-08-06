@@ -1,6 +1,6 @@
 Title: "Web-Daemon-Cron-Autostart: Minimal-PATH-Quirk"
 Category: done
-Status: "assigned"
+Status: "done"
 Assigned-To: "Defiant"
 Created-By: ""
 Created: ""
@@ -44,3 +44,11 @@ Open items addressed:
   documented in agents.d/local.
 Verified end-to-end: corrupt web.pid → restart → fresh pid + HTTP 200; normal
 restart likewise. Lesson appended to agents.d/local/local-knowledge-dump.md.
+
+## Verified 2026-08-06 (Defiant)
+- Deployed binary = starfleetctl master @ 8c779ad; contains killWebProcOnPort +
+  daemonPath PATH expansion (strings check + autostart.go source).
+- E2E re-verified: corrupted web.pid (99999) → `web restart` → fresh pid
+  (17624), HTTP 200. Daemon now runs with full PATH (incl. /usr/local/sbin,
+  ~/.local/bin). Cron autostart script present in crontab
+  ($HOME/.bin/starfleet-web-cron.sh, every minute). Task done.
