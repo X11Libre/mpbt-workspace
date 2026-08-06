@@ -1,7 +1,10 @@
 Title: "Web-Daemon-Cron-Autostart: Minimal-PATH-Quirk"
 Category: done
-Noted-By: ""
-Since: "2026-08-03"
+Status: "assigned"
+Assigned-To: "Defiant"
+Created-By: ""
+Created: ""
+Doc-Ref: ""
 
 Folgendes in die lessons learned - local SOPs unter $WORKSPACE_ROOT/agents.d/local/... --------------------------------------------------------------------------------------
 
