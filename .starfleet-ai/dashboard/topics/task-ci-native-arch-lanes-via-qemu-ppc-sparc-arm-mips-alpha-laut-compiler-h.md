@@ -1,3 +1,4 @@
+---
 Title: "CI: native Arch-Lanes via QEMU (ppc/sparc/arm/mips/alpha laut compiler.h)"
 Category: active
 Kind: task
@@ -7,6 +8,7 @@ Created: "2026-08-06T11:18:44Z"
 Assigned-To: "Voyager"
 Doc-Ref: "—"
 Slug: task-ci-native-arch-lanes-via-qemu-ppc-sparc-arm-mips-alpha-laut-compiler-h
+---
 
 Machbarkeit: nativ (nicht cross) in QEMU bauen. Architekturen, die include/compiler.h referenziert: __alpha__, __amd64__/__i386__/__ia64__, __sparc__, __arm32__, __mips__, __powerpc__ (x86-Bereich schon durch bestehende Lanes abgedeckt). Gewaehlter Ansatz: QEMU-User-Mode (qemu-user-static + binfmt_misc) mit fremdarchigem Debian-Rootfs, nativer Compile + optional Xvfb-Smoke-Test. Arbeit in separatem Worktree auf Basis von origin/master.
 
@@ -22,9 +24,12 @@ Machbarkeit: nativ (nicht cross) in QEMU bauen. Architekturen, die include/compi
   - sparc64 (__sparc__, unstable, debian-ports)
   - alpha (__alpha__, unstable, debian-ports)
   - `MESON_ARGS`: `-Dwerror=true -Dxorg -Dxvfb -Dxnest -Dxephyr -Dglx` (xfbdev aus)
-- **Committed + gepusht**: Branch `wt/ci-arch-lanes` (commit 5c96607da8) auf origin, PR-Link vom Remote ausgegeben.
+- **PR #3491 angelegt**: `github pr make 5c96607da8` aus Worktree `_WORK_/worktrees/xserver/ci-arch-lanes` (Branch wt/ci-arch-lanes). Titel `(master) ci: native build lanes for foreign CPU architectures via QEMU user-mode`, Assignee metux, Reviewer X11Libre/dev. URL: https://github.com/X11Libre/xserver/pull/3491
+- **Signed-off-by nachgetragen**: erster PR-Head failte Check Signed-Off-By; amend --signoff + force-push auf PR-Branch (f0dcd99f92), Checks laufen auf neuem Head.
+- **Incubator-Branch markiert**: wt/ci-arch-lanes via Tooling mit `[PR #3491]`-Prefix + `PR:`-Trailer versehen, force-push (nur Commit-Message geaendert, Baum identisch).
 
 ### Offen / naechste Schritte
-- PR anlegen (`gh pr create` bzw. starfleetctl xx-make-pr) und CI auf den 5 Lanes abwarten; die debian-ports-Lanes (sparc64/alpha) koennten erste Dep-Luecken zeigen — ggf. Dep-Liste anpassen.
+- CI auf den 5 QEMU-Lanes abwarten; die debian-ports-Lanes (sparc64/alpha) koennten erste Dep-Luecken zeigen — ggf. Dep-Liste anpassen.
+- Enterprise-Synergie: PR #3490 (powerpc sys/mman.h) wird durch ppc64el-Lane potenziell validiert.
 - Entscheiden: Lanes auch als Release-Gate in den `release:`-Job `needs:` aufnehmen (bewusst noch NICHT eingebunden).
-- Nach Gruen: Lessons in lokales Wissens-Dump schreiben, ggf. Skill ci-platform aktualisieren.
+- Nach Gruen: bot-review (Banner + Label), Lessons in lokales Wissens-Dump schreiben, ggf. Skill ci-platform aktualisieren.
