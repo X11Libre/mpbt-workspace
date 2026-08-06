@@ -3,6 +3,18 @@ Category: parked
 Noted-By: "Enterprise"
 Since: "2026-08-06"
 
+## FIXED (starfleetctl 933e6bd, deployed 2026-08-06)
+
+`comms ack` akzeptiert Broadcasts jetzt. Der gemeinsame Helper `ackMessage()`
+(löst Quelle in Reihenfolge: eigenes unseen/ → move, all/unseen/ → COPY für
+Broadcasts, legacy flat → move) wird von `DoAck` und dem Startup-Ack-Pass in
+`DoInit` genutzt. Tests in internal/comms/ack_test.go. Live verifiziert mit
+m12507 (Shared-Copy bleibt in all/unseen/, Seen-Copy entsteht pro Ship).
+
+---
+
+Original-Befund:
+
 `starfleetctl comms ack mXXXX` schlägt bei Broadcast-Nachrichten (target "all")
 fehl mit "comms: no such directive 'mXXXX'", obwohl die Message in `comms inbox`
 als unacked auftaucht. Betroffen: erste Broadcast-Direktive der Flotte (m12507 von
@@ -19,20 +31,6 @@ Stellen, bevor es "no such directive" wirft:
 Broadcasts liegen aber unter `msgs/all/unseen/<id>.json` (post() → mfile(id,
 "all")). Die `found`-Prüfung in DoAck findet die Message über allMsgRecords()
 korrekt, der Move-Schritt kennt den `all/unseen`-Pfad nicht → irreführender Fehler.
-
-## Fix-Vorschlag (wenn der starfleetctl-Source wieder frei ist)
-
-1. `msgs/all/unseen/<id>.json` als weitere Quell-Kandidatin ergänzen.
-2. Bei Broadcast-Quelle **kopieren** (nicht rennen) in `msgs/<ShipID>/seen/<id>.json`
-   — die geteilte Kopie in `all/unseen` muss für die anderen Schiffe erhalten bleiben;
-   acked() prüft nur das Vorhandensein im eigenen seen/-Dir.
-3. Gleicher Pfad-Fallback fehlt vermutlich auch in DoInit (commands.go:371-378) —
-   dort prüfen.
-4. Test: Broadcast posten → ack → Message in seen/ + all/unseen bleibt bestehen;
-   ackedCount/idle cleanup prüfen.
-
-Aktuell bleibt m12507 unacked in `all/unseen` liegen (harmlos, wird nicht
-automatisch gelöscht — bleibt bis Fix sichtbar).
 
 ## Verwandt
 
