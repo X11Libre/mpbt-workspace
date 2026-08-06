@@ -1,7 +1,7 @@
 Title: "starfleetctl: kommando um alte messages zu entfernen"
 Category: active
 Status: "assigned"
-Assigned-To: "Stargazer"
+Assigned-To: "Defiant"
 Created-By: ""
 Created: ""
 Doc-Ref: ""
