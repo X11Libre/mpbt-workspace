@@ -1,8 +1,8 @@
-Title: "starfleet-dispatch: informativen Text für transiente API-Fehler Restart-Prompts"
-Category: active
+Subject: "starfleet-dispatch: informativen Text für transiente API-Fehler Restart-Prompts"
+Category: starfleet
 Kind: task
-Status: "in_progress"
-Tags: "starfleet,plugin,error-handling"
+Status: done
+Tags: starfleet,plugin,error-handling
 Slug: plugin-restart-prompt-text
 
 ## Problem
@@ -32,11 +32,12 @@ Erweitert `handleMessage()` um `model ` Präfix-Erkennung (neben `setmodel`):
 - Zeile 460-475: `dispatchSeenMark()` Funktion implementiert
   (ruft `DoAck` auf, um Nachricht von unseen/ nach seen/ zu verschieben)
 
-## Implementierungs-Status
+## Verifikation
 
-- [x] Plugin-Quelle editiert (model + setmodel Prefix-Erkennung)
-- [x] Go Dispatch-Code editiert (seen_mark Handler)
+- [x] Model-Switch funktioniert mit `comms tell Voyager "model <model>"` (type="ship")
+- [x] Model-Switch funktioniert mit `comms cmd Enterprise "model <model>"` (type="command")
+- [x] seen_mark wird vom Plugin ohne Fehler verarbeitet
 - [x] starfleetctl Binary neu gebaut
 - [x] Fragments via `bootstrap --fix` deployed
-- [ ] Verifikation: Model-Switch funktioniert mit `comms tell Voyager "model <model>"`
-- [ ] Verifikation: seen_mark wird vom Plugin ohne Fehler verarbeitet
+
+Beide Fixes sind implementiert und verifiziert.
