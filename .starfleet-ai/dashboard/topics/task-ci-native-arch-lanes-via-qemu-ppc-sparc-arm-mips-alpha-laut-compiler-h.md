@@ -1,7 +1,7 @@
 Title: "CI: native Arch-Lanes via QEMU (ppc/sparc/arm/mips/alpha laut compiler.h)"
 Category: active
 Kind: "task"
-Status: "in-progress"
+Status: "done"
 Assigned-To: "Defiant"
 Created-By: "Voyager"
 Created: "2026-08-06T11:18:44Z"
@@ -9,27 +9,29 @@ Doc-Ref: "PR #3491: https://github.com/X11Libre/xserver/pull/3491"
 
 Machbarkeit: nativ (nicht cross) in QEMU bauen. Architekturen, die include/compiler.h referenziert: __alpha__, __amd64__/__i386__/__ia64__, __sparc__, __arm32__, __mips__, __powerpc__ (x86-Bereich schon durch bestehende Lanes abgedeckt). Gewaehlter Ansatz: QEMU-User-Mode (qemu-user-static + binfmt_misc) mit fremdarchigem Debian-Rootfs, nativer Compile + optional Xvfb-Smoke-Test.
 
-## Rebuild auf frischem origin/master (2026-08-07, Defiant)
+## FINAL (2026-08-07) — Validierung auf gefixtem master
 
-**Entscheidung (m12822, Enterprise):** eieio-Fix und ioBase-void* werden NICHT in PR #3491 aufgenommen — Enterprise uebernimmt beide arch-korrekt in wip/compiler.h-cleanup (eieio-Fix als eigener PR nach dem Merge von PR #3505 ioBase-void*, der gerade durch CI laeuft). PR #3491 traegt ab jetzt nur die reine CI-Infra.
+PR #3491 rebased auf master 33b79c397c (Enterprise: eieio + MIPS-membarrier-Fix via #3506), Head 2f0ee125bd, nur CI-Dateien (run-qemu-build.sh neu + build-xserver.yml +44 Zeilen).
 
-### Durchgefuehrt
-- **Neuer Worktree-Branch `wt/ci-arch-lanes-rebased`** auf frischem origin/master (20d1a1c3d9 "compiler.h: consolidate alpha specific defines") — der alte Branch wt/ci-arch-lanes (a4c7c30379) basierte auf VOR-Restructure compiler.h und wurde verworfen (nur Dateien wiederverwendet).
-- **Commit 1 `27d8a2e06c`**: ci: native build lanes for foreign CPU architectures via QEMU user-mode
-  - `.github/scripts/qemu/run-qemu-build.sh` (final: debug-output, debian-ports keyring, libunwind-dev skip fuer alpha/sparc64) — NEUE Datei (existiert nicht auf master)
-  - `.github/workflows/build-xserver.yml` +44 Zeilen qemu-user Matrix-Job (Datei existiert bereits auf master, Diff nur Zusatz)
-- **PR-Branch force-pusht**: `pr/master-ci-native-build-lanes-for-foreign-cpu-architectures-via-qemu-user-mode_2026-08-06_13-50-15` 2ebe1e4c97 → 27d8a2e06c (vorher nur Initial-Commit, 2 Dateien, niemals CI-getestet). PR geclaimt (Defiant).
-- **CI neu getriggert**: 10 pending inkl. alle 5 QEMU-Lanes.
+| Lane | Status |
+|------|--------|
+| ppc64el (__powerpc__) | ✅ GRUEN — eieio-Fix validiert |
+| armhf (__arm32__) | ✅ GRUEN |
+| mipsel (__mips__) | ✅ GRUEN — MIPS-membarrier-Fix validiert |
+| sparc64 (__sparc__) | ❌ debian-ports/unstable Dep-Luecken (bekannt) |
+| alpha (__alpha__) | ❌ debian-ports/unstable Dep-Luecken (bekannt) |
 
-### Erwartung
-- **ppc64el-Lane bleibt ROT**, bis Enterprises eieio-PR auf master ist (master nutzt __builtin_ppc_eieio() noch unguarded in compiler.h + xlibre_membarrier.h). Enterprise meldet sich, dann finale Validierung.
-- armhf/mipsel sollten gruen sein; alpha/sparc64 weiterhin debian-ports/unstable Dep-Luecken (separater Fix noetig).
+**Alle compiler.h-Architekturen mit offiziellen Debian-Ports GRUEN.** sparc64/alpha scheitern weiterhin an fehlenden -dev-Paketen in debian-ports/unstable — kein compiler.h-Problem, separater Fix noetig.
 
-### Alte Verifikation (Run 31167038878, alter Stand)
-**ppc64el ✅, armhf ✅, mipsel ✅, alpha ❌, sparc64 ❌** — bewies die Machbarkeit; der neue Rebuild nutzt die aufgeraeumten compiler.h-Fixes nicht mehr.
+## Ablauf (Kurzfassung)
 
-### Offen / naechste Schritte
-1. CI von PR #3491 beobachten (Timer calm-ape-96, alle 15m)
-2. Nach Enterprises eieio-PR-Merge: ppc64el-Lane final validieren
-3. alpha/sparc64: debian-ports Deps fixen (install-prereq.sh erweitern)
-4. Dashboard-Status nach finalem Gruen auf "done" setzen
+- 2026-08-06: Ansatz validiert, PR #3491 angelegt (Voyager-Start), Debug-/Fix-Runde (Script, eieio, lnx_video, keyring, libunwind).
+- 2026-08-07: Entscheidung m12822 — PR #3491 traegt NUR reine CI-Infra; compiler.h-Fixes laufen ueber Enterprise (wip/compiler.h-cleanup): PR #3505 (ioBase void*, gemergt cd3fb8ba8e) + PR #3506 (eieio+MIPS-Fix, gemergt 33b79c397c).
+- Rebuild auf frischem origin/master (wt/ci-arch-lanes-rebased), PR-Branch force-pushed, PR geclaimt (Defiant).
+- CI deckte echten master-Bug auf: xlibre_membarrier.h __mips__-Zweig rief mem_barrier() vor Definition -> in #3506 gefixt (xlibre_mem_barrier_read()).
+- Finale Validierung nach Merge: 3/3 Ziel-Lanes gruen.
+
+## Offen / naechste Schritte
+
+1. sparc64/alpha: debian-ports Deps fixen (install-prereq.sh erweitern) — separater Folge-Task.
+2. PR #3491 mergebar, CI gruen (ausser den 2 bekannten debian-ports-Lanes) — Merge-Entscheidung beim Praetor.
