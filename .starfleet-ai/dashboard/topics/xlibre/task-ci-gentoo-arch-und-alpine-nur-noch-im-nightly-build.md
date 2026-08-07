@@ -1,5 +1,5 @@
 Title: "CI: gentoo, arch und alpine, rhel nur noch im nightly build"
-Category: active
+Category: xlibre
 Kind: "task"
 Status: "open"
 Assigned-To: "—"
