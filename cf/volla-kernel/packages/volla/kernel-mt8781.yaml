@@ -1,0 +1,70 @@
+# SPDX-License-Identifier: AGPL-3.0-or-later
+# Copyright © 2026 Enrico Weigelt, metux IT consult
+# Volla Tablet Kernel (MediaTek mt8781) - Android 14/15
+
+package: volla/kernel-mt8781
+type: git
+description: Linux Kernel for Volla Tablet (MediaTek mt8781)
+
+# Multiple remotes with tag namespaces (like xserver solutions)
+sources:
+    git:
+        ref: origin/${kernel_branch}
+        remotes:
+            origin:
+                url: https://github.com/HelloVolla/android_kernel_volla_mt8781.git
+                fetch:
+                    - refs/tags/*:refs/tags/volla/*
+                    - refs/heads/*:refs/remotes/origin/*
+                tagopt: --no-tags
+            linux:
+                url: https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git
+                fetch:
+                    - refs/tags/*:refs/tags/linux/*
+                    - refs/heads/*:refs/remotes/linux/*
+                tagopt: --no-tags
+            lts:
+                url: https://git.kernel.org/pub/scm/linux/kernel/git/stable/linux.git
+                fetch:
+                    - refs/tags/*:refs/tags/lts/*
+                    - refs/heads/*:refs/remotes/lts/*
+                tagopt: --no-tags
+            mediatek:
+                url: https://git.kernel.org/pub/scm/linux/kernel/git/mediatek/linux.git
+                fetch:
+                    - refs/tags/*:refs/tags/mediatek/*
+                    - refs/heads/*:refs/remotes/mediatek/*
+                tagopt: --no-tags
+        local-branch: ${kernel_branch}
+
+# Build with custom script
+buildsystem: none
+build:
+    type: script
+    script: |
+        set -e
+        cd "${source-dir}"
+        
+        # Use Volla's defconfig
+        echo "Configuring kernel with volla_mt8781_defconfig..."
+        make ARCH=arm64 CROSS_COMPILE="/home/nekrad/src/xorg/mpbt-workspace/_WORK_/toolchains/aarch64-linux-gnu/bin/aarch64-buildroot-linux-gnu-" volla_mt8781_defconfig
+        
+        echo "Building kernel..."
+        make -j$(nproc) ARCH=arm64 CROSS_COMPILE="/home/nekrad/src/xorg/mpbt-workspace/_WORK_/toolchains/aarch64-linux-gnu/bin/aarch64-buildroot-linux-gnu-"
+        
+        echo "Build complete"
+
+install:
+    - arch/arm64/boot/Image.gz: ${install-prefix}/boot/Image.gz
+    - arch/arm64/boot/dts/mediatek/*.dtb: ${install-prefix}/boot/dtbs/
+
+# Version from kernel Makefile
+version:
+    file: Makefile
+    pattern: '^VERSION = (.+)\nPATCHLEVEL = (.+)\nSUBLEVEL = (.+)'
+    format: '{1}.{2}.{3}'
+
+# Optional: kernel config
+config:
+    defconfig: volla_mt8781_defconfig
+

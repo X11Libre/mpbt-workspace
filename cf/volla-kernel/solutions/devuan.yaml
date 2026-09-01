@@ -1,0 +1,45 @@
+# SPDX-License-Identifier: AGPL-3.0-or-later
+# Copyright © 2026 Enrico Weigelt, metux IT consult
+
+# Volla Tablet Kernel (mt8781) - Android 14/15
+# Two remotes with tag namespaces like xserver solutions:
+# 1. Volla official (HelloVolla) - tag namespace: volla-
+# 2. Upstream/mainline Linux - tag namespace: linux-
+
+volla_git:     https://github.com/HelloVolla
+linux_git:     https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git
+
+install-prefix: ${@PROJECT::@workdir}/target
+
+package-mapping:
+    # Common dependencies for kernel build
+    sys/libdrm:           3rdparty/libdrm
+
+package-config:
+    # Kernel package configuration
+    volla/kernel-mt8781:
+        make-args:
+            - ARCH=arm64
+            - CROSS_COMPILE=/home/nekrad/src/xorg/mpbt-workspace/_WORK_/toolchains/aarch64-linux-gnu/bin/aarch64-buildroot-linux-gnu-
+
+    3rdparty/libdrm:
+        meson-extra-args:
+            - -Dfreedreno=enabled
+
+build:
+    - volla/kernel-mt8781
+
+env:
+    PKG_CONFIG_PATH: ${install-prefix}/share/pkgconfig:${install-prefix}/lib/pkgconfig:${install-prefix}/lib/${@PROJECT::@machine}/pkgconfig/
+    ACLOCAL_PATH: ${install-prefix}/share/aclocal
+    ACLOCAL_FLAGS: -I ${install-prefix}/share/aclocal
+
+packages:
+    - ${@PROJECT::@rootdir}/cf/volla-kernel/packages
+    - ${@PROJECT::@rootdir}/cf/_common/packages
+
+package-defaults:
+    volla_git:     ${volla_git}
+    linux_git:     ${linux_git}
+    kernel_branch: volla-15.0
+    kernel_ref:    volla-15.0

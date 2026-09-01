@@ -1,0 +1,29 @@
+# SPDX-License-Identifier: AGPL-3.0-or-later
+# Copyright © 2026 Enrico Weigelt, metux IT consult
+# Pre-built aarch64-linux-gnu cross-compiler toolchain (Bootlin)
+
+package: 3rdparty/gcc-aarch64
+type: bundle
+description: Pre-built aarch64-linux-gnu cross-compiler toolchain
+
+sources:
+    # No git source - toolchain pre-installed
+
+buildsystem: none
+build:
+    type: script
+    script: |
+        set -e
+        TOOLCHAIN_DIR="/home/nekrad/src/xorg/mpbt-workspace/_WORK_/toolchains/aarch64-linux-gnu"
+        
+        if [ -f "${TOOLCHAIN_DIR}/bin/aarch64-buildroot-linux-gnu-gcc" ]; then
+            echo "Toolchain already installed at ${TOOLCHAIN_DIR}"
+            "${TOOLCHAIN_DIR}/bin/aarch64-buildroot-linux-gnu-gcc" --version
+        else
+            echo "ERROR: Toolchain not found at ${TOOLCHAIN_DIR}"
+            exit 1
+        fi
+
+install:
+    - aarch64-linux-gnu: /home/nekrad/src/xorg/mpbt-workspace/_WORK_/toolchains/aarch64-linux-gnu
+

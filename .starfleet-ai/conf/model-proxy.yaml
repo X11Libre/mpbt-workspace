@@ -16,6 +16,8 @@ model_proxy:
   # Each provider: id (opencode provider name), name (label), base_url
   # (OpenAI-compatible upstream), api_key (env-referenced — the proxy keeps
   # the real key, ships never see it), optional retry tuning.
+  # When `direct: true`, the provider is exposed directly to ships (bypassing
+  # the local proxy) using the upstream's actual BaseURL and APIKey.
   providers:
     - id: nim-proxy
       name: "NVIDIA NIM (local proxy)"
@@ -26,3 +28,9 @@ model_proxy:
       name: "OpenCode Zen (local proxy)"
       base_url: "https://opencode.ai/zen/v1"
       api_key: "{env:OPENCODE_API_KEY}"
+
+    - id: nvidia-direct
+      name: "NVIDIA NIM (direct)"
+      base_url: "https://integrate.api.nvidia.com/v1"
+      api_key: "{env:NIM_API_KEY}"
+      direct: true
