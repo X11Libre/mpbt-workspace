@@ -1,0 +1,25 @@
+# SPDX-License-Identifier: AGPL-3.0-or-later
+# Copyright © 2026 Enrico Weigelt, metux IT consult
+# Makefile to download and install Linaro aarch64-linux-gnu toolchain
+
+TOOLCHAIN_URL := https://releases.linaro.org/components/toolchain/binaries/latest-7/aarch64-linux-gnu/gcc-linaro-7.5.0-2019.12-x86_64_aarch64-linux-gnu.tar.xz
+TOOLCHAIN_DIR := $(DESTDIR)$(prefix)/aarch64-linux-gnu
+
+all: $(TOOLCHAIN_DIR)/bin/aarch64-linux-gnu-gcc
+
+$(TOOLCHAIN_DIR)/bin/aarch64-linux-gnu-gcc:
+	@echo "Downloading Linaro aarch64-linux-gnu toolchain..."
+	wget -q --timeout=120 "$(TOOLCHAIN_URL)" -O /tmp/toolchain.tar.xz
+	@echo "Extracting..."
+	mkdir -p "$(TOOLCHAIN_DIR)"
+	tar -xf /tmp/toolchain.tar.xz -C "$(TOOLCHAIN_DIR)" --strip-components=1
+	@echo "Toolchain installed to $(TOOLCHAIN_DIR)"
+	ls -la "$(TOOLCHAIN_DIR)/bin/"
+
+install: all
+
+clean:
+	rm -rf "$(TOOLCHAIN_DIR)"
+	rm -f /tmp/toolchain.tar.xz
+
+.PHONY: all install clean

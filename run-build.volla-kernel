@@ -1,0 +1,14 @@
+#!/bin/bash
+#
+# SPDX-License-Identifier: AGPL-3.0-or-later
+# Copyright © 2026 Enrico Weigelt, metux IT consult
+#
+# Full build for Volla kernel release line, then deletes install prefix.
+#
+
+set -e
+
+. cf/volla-kernel/config.sh
+
+$MPBT -solution "$SOLUTION" -workdir "$WORKDIR" build
+rm -rf "_WORK_/$XLIBRE_RELEASE/install"

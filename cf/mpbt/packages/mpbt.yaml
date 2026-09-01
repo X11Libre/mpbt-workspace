@@ -1,0 +1,22 @@
+# SPDX-License-Identifier: AGPL-3.0-or-later
+# Copyright © 2026 Enrico Weigelt, metux IT consult
+#
+# mpbt build tool (mpbt-builder)
+# Builds the mpbt-builder binary from the mpbt source
+
+sources:
+    git:
+        ref:    origin/master
+        remotes:
+            origin:
+                url:    ${mpbt_git}
+                fetch:
+                  - refs/tags/*:refs/tags/origin/*
+                  - refs/heads/*:refs/remotes/origin/*
+                tagopt: --no-tags
+        local-branch: master
+        config:
+            make-pr.upstream-remote: origin
+            make-pr.upstream-branch: master
+
+buildsystem: make
