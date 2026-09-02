@@ -5,20 +5,30 @@ branch `wip/executor`) into a new `util.Executor`, as preparatory work for futur
 container- / sysroot- / remote-build support. Commit `30b6358` (local only, no
 origin push — external repo, hand-off to praetor).
 
-**Post-hoc bugfix (commit `549a150`):** the solution `env:` did not reach package
-executors, breaking the autotools drivers (`./configure: syntax error near
-unexpected token \`elographics'` / `XLIBRE_INIT_MODULE_AM` left unexpanded in
-configure) because ACLOCAL_PATH/ACLOCAL_FLAGS were missing at aclocal time. Two
-cumulative causes: (1) `Package.SetProject` was a *value* receiver so
-`pkg.executor` was never persisted; (2) `PushEnv` replaced `prj.Executor` instead
-of mutating it, so packages bound during `LoadSolution` kept an env-less
-executor. Fixed by pointer receiver + in-place mutation of a shared
-`*util.LocalExecutor`. Regression test `core/model/executor_test.go`. Verified
-end-to-end: the real autotools Prepare for `xf86-input-elographics` now completes.
-**Lesson:** if a once-global env moves onto a per-project "executor" object, the
-object must be a shared pointer mutated in place, and setter receivers on the
-objects holding it must be pointers — otherwise late-bound values silently
-disappear.
+**Env-propagation bug + fix:** the solution `env:` originally did not reach
+package executors, breaking the autotools drivers (`./configure: syntax error
+near unexpected token \`elographics'` / `XLIBRE_INIT_MODULE_AM` left unexpanded
+in configure) because ACLOCAL_PATH/ACLOCAL_FLAGS were missing at aclocal time.
+Root cause: the packages were bound to their project during `LoadSolution()`,
+*before* the solution `env:` was applied by the later `PushEnv()` — the env never
+reached them.
+
+**Two attempts:** `549a150` tried a shared `*util.LocalExecutor` pointer held in a
+Package field (pointer receiver `SetProject`). **Superseded** by `a9135bb`
+(architectural directive): Package/Project are dumb accessors on a magicdict;
+magicdict stores only scalars/lists/nested dicts (NOT arbitrary Go objects);
+SpecObjs like Project/Solution are api.Entry and DO round-trip in the magicdict.
+So the final design removes ALL executor state from Go struct fields: it lives as
+a magicdict subtree ("executor": use-host-env flag + env dict) in the Project, and
+`GetExecutor()` builds a fresh `*LocalExecutor` from it on demand — so a package
+that resolves its Project via `GetProject()` (magicdict round-trip) always sees the
+lateste env. Verified end-to-end: real autotools Prepare for
+`xf86-input-elographics` completes.
+**Lessons:** (a) to make a once-global env visible to packages loaded before it is
+set, don't rely on shared pointers/field-binding — keep the state in the shared
+magicdict and derive on demand; (b) reconcile envholders with "Package/Project are
+dumb magicdict accessors": no executor/Go-state fields on Package; mutable data in a
+project magicdict subtree fetched via the project.
 
 ## Design
 
@@ -30,20 +40,23 @@ disappear.
   - `env()` builds `[base][Env][per-call extraEnv]` — later wins (precedence).
 - **Env plumbing (per exec, no global os.Setenv)**:
   - `Solution.GetEnv()` → the solution `env:` block as `KEY=VALUE`.
-  - `Project.Executor *util.LocalExecutor` (pointer, init → `NewLocalExecutor()`):
-    **must be a shared pointer**, not an interface value copied into packages —
-    bindings made during `LoadSolution` must see late env mutations.
-  - `Project.PushEnv()` now feeds solution `env:` into the executor **by mutating
-    the existing shared `*LocalExecutor` in place** (`UseHostEnv`/`Env`), replacing
-    the old `os.Setenv` loop; resolves the `loadprj.go` `// FIXME: should be done
-    per exec`. Do NOT replace `prj.Executor` with a fresh object here — packages
-    bound earlier would keep the old, env-less one.
-  - `Package.executor *util.LocalExecutor` set in `SetProject` (**pointer
-    receiver!** — a value receiver silently discarded the assignment and
-    `GetExecutor()` fell back to a bare empty executor); `Package.GetExecutor()`.
+  - **Project holds executor state as a magicdict subtree** (`executor` key):
+    `executor::use-host-env` (bool) + `executor::env::<var>` (dict of scalars).
+    `Project.Init()` creates the subtree; `Project.PushEnv()` writes the solution
+    `env:` block + `use-host-env=true` into it; `Project.GetExecutor()` builds a
+    fresh `*LocalExecutor` from the subtree on every call. Resolves the
+    `loadprj.go` `// FIXME: should be done per exec`. Because the executor is
+    derived on demand from the shared magicdict, packages loaded *before*
+    `PushEnv()` still see the env — no pointer/field binding needed.
+  - **Package holds no executor field.** `SetProject()` is a **value receiver**
+    (dumb accessor): it only does magicdict `Put`s (Project/Solution references +
+    package defaults). `Package.GetProject()` reads the `*Project` object back from
+    the magicdict (Project/Solution are SpecObj = api.Entry, so they round-trip);
+    `Package.GetExecutor()` delegates to `pkg.GetProject().GetExecutor()` with a
+    bare host fallback.
   - The `util.Executor` interface stays in `core/util` for future non-local
-    backends; the model works with the concrete `*LocalExecutor` so in-place env
-    mutation is shared.
+    backends; the model materializes a concrete `*LocalExecutor` from the subtree
+    on demand.
 - **Builders**: `BuilderBase`'s four `ExecIn*Dir` helpers funnel into one
   `execIn` → `Package.GetExecutor().Exec`. exec/cmake builders now pass only
   `DESTDIR` as extra env (the executor supplies the base env) — matches the
@@ -68,9 +81,10 @@ disappear.
 - `go test -vet=off ./core/util/` — new `executor_test.go` covers ExecOut trim,
   retcode (0/1/127), env precedence (host vs extra vs per-call), UseHostEnv=false.
 - Smoke: solution `env:` reaches the exec-builder command (EXIT 0, stat written).
-- Post-fix (549a150): `go vet` clean, `go test` (no -vet=off) green, and the real
-  autotools Prepare for `xf86-input-elographics` runs `./autogen.sh` end-to-end
-  (ACLOCAL_PATH present → XLIBRE M4 macro expands, configure completes).
+- Post-fix (549a150 → a9135bb, after the subtree refactor): `go vet` clean, `go test`
+  (no -vet=off) green, and the real autotools Prepare for `xf86-input-elographics`
+  runs `./autogen.sh` end-to-end (ACLOCAL_PATH present → XLIBRE M4 macro expands,
+  configure completes).
 
 ## Caveats / pre-existing issues (NOT from this change)
 
