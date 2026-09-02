@@ -57,6 +57,24 @@ project magicdict subtree fetched via the project.
   - The `util.Executor` interface stays in `core/util` for future non-local
     backends; the model materializes a concrete `*LocalExecutor` from the subtree
     on demand.
+- **`@machine` is resolved lazily via the Executor** (`project.go`
+  `newMachineScalar`): Init() no longer pre-computes it with the host-side
+  `util.ExecOut(gcc -dumpmachine)`. Instead it installs a `core.ScalarFunc`
+  (functional Scalar whose `String()` calls the resolver). magicdict calls
+  `String()` at first expansion (e.g. when PushEnv reads
+  `env::PKG_CONFIG_PATH` containing `${@PROJECT::@machine}`), and the resolver
+  runs `prj.GetExecutor().ExecOut("gcc -dumpmachine")` → build-environment
+  toolchain, not the host one.
+  - **Cache + re-entry guard live inside the closure** (not on the Project
+    struct): `MakeProject()` returns the Project by value, so struct-level cache
+    fields would be set on the discarded internal instance and never visible.
+  - **Re-entrancy:** PushEnv *eagerly* expands env values (magicdict `Get` runs
+    `macro.ProcessVars` via `box()`), so an env var that itself references
+    `${@machine}` is expanded while the executor env is being built. The guard
+    returns an empty placeholder on a re-entrant read, and the outer call stores
+    the final value — no recursion/hang.
+  - `SetMachine()` remains for explicit overrides (overwrites the Scalar with a
+    constant).
 - **Builders**: `BuilderBase`'s four `ExecIn*Dir` helpers funnel into one
   `execIn` → `Package.GetExecutor().Exec`. exec/cmake builders now pass only
   `DESTDIR` as extra env (the executor supplies the base env) — matches the
