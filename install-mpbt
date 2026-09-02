@@ -7,4 +7,5 @@
 # Requires Go to be installed.
 #
 
-go install github.com/metux/mpbt/cmd/mpbt-builder@latest
+#go install github.com/mpbt-hq/mpbt/cmd/mpbt-builder@v0.1.21
+go install github.com/mpbt-hq/mpbt/cmd/mpbt-builder@v0.1.22
