@@ -5,6 +5,21 @@ branch `wip/executor`) into a new `util.Executor`, as preparatory work for futur
 container- / sysroot- / remote-build support. Commit `30b6358` (local only, no
 origin push — external repo, hand-off to praetor).
 
+**Post-hoc bugfix (commit `549a150`):** the solution `env:` did not reach package
+executors, breaking the autotools drivers (`./configure: syntax error near
+unexpected token \`elographics'` / `XLIBRE_INIT_MODULE_AM` left unexpanded in
+configure) because ACLOCAL_PATH/ACLOCAL_FLAGS were missing at aclocal time. Two
+cumulative causes: (1) `Package.SetProject` was a *value* receiver so
+`pkg.executor` was never persisted; (2) `PushEnv` replaced `prj.Executor` instead
+of mutating it, so packages bound during `LoadSolution` kept an env-less
+executor. Fixed by pointer receiver + in-place mutation of a shared
+`*util.LocalExecutor`. Regression test `core/model/executor_test.go`. Verified
+end-to-end: the real autotools Prepare for `xf86-input-elographics` now completes.
+**Lesson:** if a once-global env moves onto a per-project "executor" object, the
+object must be a shared pointer mutated in place, and setter receivers on the
+objects holding it must be pointers — otherwise late-bound values silently
+disappear.
+
 ## Design
 
 - **`core/util/executor.go`**: `Executor` interface (`Exec` / `ExecOut` /
@@ -15,11 +30,20 @@ origin push — external repo, hand-off to praetor).
   - `env()` builds `[base][Env][per-call extraEnv]` — later wins (precedence).
 - **Env plumbing (per exec, no global os.Setenv)**:
   - `Solution.GetEnv()` → the solution `env:` block as `KEY=VALUE`.
-  - `Project.Executor util.Executor` (init → `NewLocalExecutor()`).
-  - `Project.PushEnv()` now feeds solution `env:` into the executor (replaces
-    the old `os.Setenv` loop); resolves the `loadprj.go` `// FIXME: should be
-    done per exec`.
-  - `Package.executor` set in `SetProject`; `Package.GetExecutor()`.
+  - `Project.Executor *util.LocalExecutor` (pointer, init → `NewLocalExecutor()`):
+    **must be a shared pointer**, not an interface value copied into packages —
+    bindings made during `LoadSolution` must see late env mutations.
+  - `Project.PushEnv()` now feeds solution `env:` into the executor **by mutating
+    the existing shared `*LocalExecutor` in place** (`UseHostEnv`/`Env`), replacing
+    the old `os.Setenv` loop; resolves the `loadprj.go` `// FIXME: should be done
+    per exec`. Do NOT replace `prj.Executor` with a fresh object here — packages
+    bound earlier would keep the old, env-less one.
+  - `Package.executor *util.LocalExecutor` set in `SetProject` (**pointer
+    receiver!** — a value receiver silently discarded the assignment and
+    `GetExecutor()` fell back to a bare empty executor); `Package.GetExecutor()`.
+  - The `util.Executor` interface stays in `core/util` for future non-local
+    backends; the model works with the concrete `*LocalExecutor` so in-place env
+    mutation is shared.
 - **Builders**: `BuilderBase`'s four `ExecIn*Dir` helpers funnel into one
   `execIn` → `Package.GetExecutor().Exec`. exec/cmake builders now pass only
   `DESTDIR` as extra env (the executor supplies the base env) — matches the
@@ -44,6 +68,9 @@ origin push — external repo, hand-off to praetor).
 - `go test -vet=off ./core/util/` — new `executor_test.go` covers ExecOut trim,
   retcode (0/1/127), env precedence (host vs extra vs per-call), UseHostEnv=false.
 - Smoke: solution `env:` reaches the exec-builder command (EXIT 0, stat written).
+- Post-fix (549a150): `go vet` clean, `go test` (no -vet=off) green, and the real
+  autotools Prepare for `xf86-input-elographics` runs `./autogen.sh` end-to-end
+  (ACLOCAL_PATH present → XLIBRE M4 macro expands, configure completes).
 
 ## Caveats / pre-existing issues (NOT from this change)
 
