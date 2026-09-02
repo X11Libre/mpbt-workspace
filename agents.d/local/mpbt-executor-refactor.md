@@ -47,9 +47,12 @@ origin push — external repo, hand-off to praetor).
 
 ## Caveats / pre-existing issues (NOT from this change)
 
-- `go test` without `-vet=off` FAILS on a **pre-existing** `go vet` warning in
-  `core/util/multiflag.go:12` (`fmt.Sprint("%+v", *m)` — a real Printf bug, output
-  would be `%!v(PANIC=...)`). Suggested as a follow-up fix (separate commit).
+- A pre-existing `go vet` warning in `core/util/multiflag.go:12`
+  (`fmt.Sprint("%+v", *m)` — real Printf bug) blocked `go test` without
+  `-vet=off`. **FIXED** in commit `552537e` (`fmt.Sprintf("%+v", *m)`), together
+  with a second vet diagnostic in `core/model/project.go:145` (fmt.Errorf with
+  3 args but only 2 verbs — err was dropped; now given an explicit `%v`).
+  `go vet ./...` and `go test ./...` are now clean without any workaround.
 - Behavior change to flag: `PushEnv` previously `os.Setenv`'d solution `env:`
   globally (visible to git/fetch too). Now it's scoped to build commands via the
   executor. Workspace solutions only set build-tool vars (PKG_CONFIG_PATH,
