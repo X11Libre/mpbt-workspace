@@ -1,11 +1,15 @@
+---
 Title: "bug: session ship-run mit -- <extra> laesst Schiff sofort crashen + Spawn-Crash ohne klare Fehlerursache (SOP-Doku fehlt)"
 Category: starfleet
 Kind: "task"
-Status: "assigned"
+Status: "done"
 Assigned-To: "Discovery"
 Created-By: "Enterprise"
 Created: "2026-09-04T14:49:37Z"
 Doc-Ref: "—"
+Updated: 2026-09-04
+Noted-By: "Enterprise"
+---
 
 Diagnose 2026-09-04 (Enterprise):
 
@@ -19,3 +23,19 @@ Gewuenscht (SOP/Doku + ggf. Code):
 - Klaeren, warum neue termctl-Spawns crashen, waehrend die Web-GUI funktioniert; ggf. festhalten, dass neue Schiffe ueber die Web-GUI bzw. via 'run' statt barem --prompt-Start gestartet werden sollen.
 
 - 2026-09-04T15:00:11Z Enterprise: Ergaenzung 2026-09-04: Auch manuell ueber die Web-GUI gestartete Schiffe (Achilles, Artemis, Atlantis, Galaxy, Thor) crashen sofort mit identischem 'ship exited unexpectedly (crash/OOM/model error)'. Befund in deren termctl-Logs: der Web-Spawn-Befehl enthaelt KEIN --model Flag (nur --prompt), nutzt also den Standard-Modell-Fallback der per-ship OPENCODE_CONFIG -> crasht. Die lancierten/funktionierenden Schiffe tragen dagegen explizit --model nvidia/nvidia/nemotron-3-ultra-550b-a55b. Verstaaerkter Verdacht: der Spawn ohne explizites --model (Standard-Modell aus generateOpencodeConfig) schlaeft sofort fehl. Zusaetzlich: die Board/Status-Fehlermeldung 'model error' ist irrefuehrend und verdeckt die echte opencode-Fehlerursache. Siehe auch lokale Erkenntnisse unter agents.d/local/.
+
+## Fix-Ergebnis (Discovery, 2026-09-04)
+
+Fixes implementiert und getestet (starfleetctl):
+1. Web UI: Model-Pflichtfeld - leeres Model verweigert Start (Toast 'Kein Modell ausgewaehlt'); Backend gibt 400 'model is required'.
+2. CLI: Extra-Args blockiert - 'extra arguments after -- are not supported. Tasks are assigned via task assign and delivered over comms.'
+3. Crash-Fehlermeldung verbessert - Board zeigt 'ship exited unexpectedly - check log: /path/to/ship.log' statt pauschal 'model error'.
+4. Question-Permission Fix - background/auto ships: 'question' = 'deny' (einzelner String, kein Pattern-Map).
+
+Verifikation: Web-Spawn ohne Model -> 400; Web-Spawn mit Model (TestShip2) laeuft/working; CLI mit extra-arg -> blockiert; CLI ohne Model (TestShip5) laeuft (Default aus Config); Task-Capture + Auto-Assign -> Flagschiff; Board-Fehlermeldung verweist auf Log-Datei.
+
+SOP-Doku: agents.d/local/ship-spawn-procedure.md erstellt (Ship-Spawn-Procedure, Checkliste, --model-Pflichtfeld, keine Args nach --).
+
+## Noch offen (Root Cause der 'model error'/'Kein Model' Crashes)
+
+Warum ein Spawn OHNE explizites --model crasht: Der Default-Model-Fallback in generateOpencodeConfig setzt keine gueltige Model-ID. Workaround aktiv (Web erzwingt Model; CLI ohne --model nicht empfohlen). Echte Loesung -> Folge-Task 'starfleet/task-generateopencodeconfig-gueltigen-default-model-fallback-setzen-root-cause-ship-crash-ohne-model' (Discovery), dort default-Fallback (z.B. nvidia/nemotron-3-ultra-550b-a55b) implementieren und headless --prompt-Spawn ohne --model verifizieren.
