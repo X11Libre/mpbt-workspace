@@ -1,5 +1,5 @@
 Title: "diesen task löschen"
-Category: active
+Category: xlibre
 Kind: "task"
 Status: "assigned"
 Assigned-To: "Enterprise"
