@@ -22,3 +22,5 @@ Aufgabe eigenständig abarbeiten. Board-Status stets aktuell halten (aktueller S
 - 2026-09-04T16:20:57Z Voyager: progress 85% (6/6 Bumps gemerged, 1/4 asprintf gemerged, 3/4 mergebar (FreeBSD gruen). VM-Flakes NetBSD/DragonFly.)
 
 - 2026-09-04T16:21:40Z Voyager: Alle 4 asprintf-PRs gemerged: mouse#15, mach64#10 (Rebase), ati#33 (Rebase), qxl#19. FreeBSD-Lane bei allen gruen. Alle 6 v0.4.0-Bumps + alle 4 asprintf-PRs fertig.
+
+- 2026-09-04T16:21:48Z Voyager: progress 100% (Alle PRs gemerged (10/10). Task abgeschlossen.)
