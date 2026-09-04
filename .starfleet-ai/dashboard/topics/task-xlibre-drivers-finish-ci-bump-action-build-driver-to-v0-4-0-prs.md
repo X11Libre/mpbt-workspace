@@ -18,3 +18,5 @@ Aufgabe eigenständig abarbeiten. Board-Status stets aktuell halten (aktueller S
 - 2026-09-04T16:20:38Z Voyager: began work
 
 - 2026-09-04T16:20:49Z Voyager: Status: 6/6 v0.4.0-Bump-PRs gemerget (mouse#17, mach64#12, ati#35, nouveau#22, qxl#21, amdgpu#68). asprintf-PRs auf neuen Master rebased: mouse#15 MERGED, mach64#10/ati#33/qxl#19 gruen auf FreeBSD (VM-Flakes auf NetBSD/DragonFly), MERGEABLE, warten auf Merge.
+
+- 2026-09-04T16:20:57Z Voyager: progress 85% (6/6 Bumps gemerged, 1/4 asprintf gemerged, 3/4 mergebar (FreeBSD gruen). VM-Flakes NetBSD/DragonFly.)
