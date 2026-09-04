@@ -1,5 +1,5 @@
 Title: "xlibre: drivers: finish \"ci: bump action-build-driver to v0.4.0\" PRs"
-Category: active
+Category: starfleet
 Kind: "task"
 Status: "done"
 Assigned-To: "Voyager"
