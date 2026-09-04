@@ -1,10 +1,10 @@
 ---
 slug: local/test-create3
-title: "Test Create 3"
-order: 60
+title: "Test Create 3 Updated"
+order: 65
 owner: "api-test"
 ---
 
-Created via web API POST /api/sop
+Final body content
 
-With markdown content
+With markdown
