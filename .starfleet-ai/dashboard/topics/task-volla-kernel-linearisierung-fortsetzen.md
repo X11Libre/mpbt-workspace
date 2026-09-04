@@ -1,15 +1,10 @@
----
-Title: volla kernel linearisierung fortsetzen
+Title: ""
 Category: active
-Kind: task
-Status: assigned
-Assigned-To: Wurst
-Created-By: McKinley
-Created: 2026-08-10T18:08:22Z
-Doc-Ref: "—"
-Updated: 2026-09-04
-Noted-By: Enterprise
----
+Status: "assigned"
+Assigned-To: "Wurst"
+Created-By: ""
+Created: ""
+Doc-Ref: ""
 
 ## Aufgabe
 
