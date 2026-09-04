@@ -1,12 +1,11 @@
 Title: "starfleet: web: projekt-SOPs per web anschauen und bearbeiten"
-Category: active
-Kind: task
+Category: starfleet
+Kind: "task"
 Status: "open"
+Assigned-To: "—"
 Created-By: "Worf"
 Created: "2026-09-04T11:03:57Z"
-Assigned-To: "—"
 Doc-Ref: "—"
-Slug: task-starfleet-web-projekt-sops-per-web-anschauen-und-bearbeiten
 
 * Projekt-SOPs sollen auch per web verwaltet werden können. Anzeigen, Erstellen, Bearbeiten, Löschen.
 * nur die Projekt-SOPs, nicht die vom starfleetctl-tool kommenden
