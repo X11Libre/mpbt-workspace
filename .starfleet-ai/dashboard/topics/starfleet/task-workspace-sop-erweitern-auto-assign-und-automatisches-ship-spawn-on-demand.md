@@ -1,5 +1,5 @@
 Title: "workspace SOP erweitern: auto-assign und automatisches ship-spawn on demand"
-Category: active
+Category: starfleet
 Kind: "task"
 Status: "assigned"
 Assigned-To: "Discovery"
