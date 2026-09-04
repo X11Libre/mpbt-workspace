@@ -1,7 +1,7 @@
 Title: "starfleet: web: new ship -> provider-feld nicht nötig"
 Category: active
 Kind: task
-Status: "assigned"
+Status: "done"
 Created-By: "Achilles"
 Created: "2026-09-04T17:27:19Z"
 Assigned-To: "Achilles"
