@@ -2,7 +2,7 @@ Title: "CI: gentoo, arch und alpine, rhel nur noch im nightly build"
 Category: xlibre
 Kind: "task"
 Status: "assigned"
-Assigned-To: "Enterprise"
+Assigned-To: "Soyuz"
 Created-By: "McKinley"
 Created: "2026-08-07T14:18:44Z"
 Doc-Ref: "—"
