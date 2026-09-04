@@ -1,5 +1,5 @@
 Title: "starfleet: purge old messages"
-Category: active
+Category: starfleet
 Kind: "task"
 Status: "assigned"
 Assigned-To: "Voyager"
