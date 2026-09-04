@@ -1,12 +1,11 @@
 Title: "xlibre: drivers: finish \"ci: bump action-build-driver to v0.4.0\" PRs"
 Category: active
-Kind: task
+Kind: "task"
 Status: "assigned"
+Assigned-To: "Voyager"
 Created-By: "TestShip"
 Created: "2026-09-04T16:18:45Z"
-Assigned-To: "Enterprise"
 Doc-Ref: "—"
-Slug: task-xlibre-drivers-finish-ci-bump-action-build-driver-to-v0-4-0-prs
 
 1. Bei den Treibern sind noch etliche PRs zum action-build-driver v0.4.0 offen, die in machen lanes brechen. Analysieren, reparieren und wenn alles grün mergen.
  
