@@ -1,5 +1,5 @@
 Title: "CI: native Arch-Lanes via QEMU (ppc/sparc/arm/mips/alpha laut compiler.h)"
-Category: active
+Category: xlibre
 Kind: "task"
 Status: "done"
 Assigned-To: "Defiant"
