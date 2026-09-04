@@ -2,7 +2,7 @@ Title: "starfleet: task löschen"
 Category: starfleet
 Kind: "task"
 Status: "assigned"
-Assigned-To: "Reliant"
+Assigned-To: "Defiant"
 Created-By: "Endeavour"
 Created: "2026-09-04T14:27:34Z"
 Doc-Ref: "—"
