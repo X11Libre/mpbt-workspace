@@ -2,7 +2,7 @@ Title: "starfleet: feature: reports löschen"
 Category: starfleet
 Kind: "task"
 Status: "assigned"
-Assigned-To: "Defiant"
+Assigned-To: "Enterprise"
 Created-By: "McKinley"
 Created: "2026-08-03T09:07:13Z"
 Doc-Ref: "—"
