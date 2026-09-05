@@ -2,7 +2,7 @@ Title: "xlibre: SOPs: nennen immernoch claude"
 Category: xlibre
 Kind: "task"
 Status: "assigned"
-Assigned-To: "Enterprise"
+Assigned-To: "Discovery"
 Created-By: "Stargazer"
 Created: "2026-08-03T10:43:45Z"
 Doc-Ref: "—"
