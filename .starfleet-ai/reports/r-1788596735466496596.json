@@ -1,0 +1,7 @@
+{
+  "id": "r-1788596735466496596",
+  "title": "--title",
+  "ship": "Voyager",
+  "body": "Task xlibre/task-skills-nachsch-rfen abgeschlossen.\n\nAenderungen (strafleetctl-Source, Commit 394342a, gepusht auf master, via bootstrap deployed):\n\n1. starfleet-Skill (fragments/starfleet-skills/starfleet/SKILL.md):\n   - Dashboard-Abschnitt: prominente RULE-Callout — Dashboard/topics NUR via starfleetctl CLI (dashboard/task subcommands), NIE Read/Edit/Write/Glob/Grep auf DASHBOARD.md oder dashboard/topics/*.md. Anlass: Maximus hat direkt dashboard gelesen statt starfleetctl zu nutzen.\n   - Neuer Abschnitt 'Working a task (mandatory cycle)': board-status reflektiert Realitaet, task-status folgt dem Task (in-progress/done), Finish = reports submit + comms notify, Rueckfragen werden im Task vermerkt + Report dessen Subject explizit sagt dass Antworten noetig sind (Fragen im Body aufgelistet).\n\n2. working-practices-for-ships.md (Fragment, landet im sop index/system-prompt): Dashboard-CLI-only-Regel + Dashboard/Reports-aktuell-halten-Regel gespiegelt.\n\n3. Workspace-Skills (nicht starfleet-installed, direkt im Workspace):\n   - bot-review/reference.md: DASHBOARD.md-Verweis auf dashboard-topic-CLI umgestellt.\n   - go-x11proto/reference.md: gleiches Muster.\n\nBuild/Tests: make (go test ./... + check-opencode-plugin) gruen. Deploy: starfleet-bootstrap -\u003e timer-worker restart + web restart, HTTP 200 auf 0.0.0.0:8080. Ausgerollte Kopien byte-identisch mit Quelle. Keine Rueckfragen offen.",
+  "created": 1788596735
+}

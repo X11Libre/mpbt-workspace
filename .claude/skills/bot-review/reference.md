@@ -46,7 +46,8 @@ back to `user@host` if unset, same as `.starfleet-ai/bin/starfleetctl comms`):
 
 **Why:** multiple agent sessions review PRs concurrently on this board; a review comment with no
 ship name is unattributable after the fact — you can't tell which session to ask if a finding
-turns out wrong, or correlate it with that session's `comms events`/DASHBOARD.md notes.
+turns out wrong, or correlate it with that session's `comms events`/dashboard topic notes
+(`dashboard topic list --json` / `dashboard topic show <slug>` — never raw files).
 
 `.starfleet-ai/bin/starfleetctl github pr comment <pr#> <body-file> --bot-review` fills in `<ship>` from `$AGENT_ID` and
 prepends this exact banner for you — prefer it over hand-copying the banner text into every

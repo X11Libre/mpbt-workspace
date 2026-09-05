@@ -41,7 +41,8 @@ apply to it):
   branch (the current production/deployed code).
 - **`master` vs the Go rewrite — deliberately tracks `master`.** There is a separate, already
   *complete but unmerged* full Go rewrite on branch `wip/golang-rewrite` (7 commits, in its own git
-  **worktree** at `/home/nekrad/src/flyingtux-go` — see the DASHBOARD.md "FlyingTux" row for its
+  **worktree** at `/home/nekrad/src/flyingtux-go` — see the dashboard "FlyingTux" entry
+  (`dashboard topic list --json`, never raw files) for its
   status: `go build`/`go vet`/`go test` all clean, but not yet merged to `master` and not yet
   tested against real docker/X11). This migration intentionally mirrors go-x11proto's choice to
   track the repo's actual current default/production branch, **not** an unmerged rewrite — merging
