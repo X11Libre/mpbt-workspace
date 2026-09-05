@@ -2,7 +2,7 @@ Title: "stale model-switch toasts and false limit notifications"
 Category: starfleet
 Kind: "task"
 Status: "assigned"
-Assigned-To: "Enterprise"
+Assigned-To: "Achilles"
 Created-By: "Voyager"
 Created: "2026-09-04T17:46:15Z"
 Doc-Ref: "—"
