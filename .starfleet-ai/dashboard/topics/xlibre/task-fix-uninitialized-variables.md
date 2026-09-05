@@ -1,86 +1,54 @@
----
 Title: Fix uninitialized variables found by clang -Wconditional-uninitialized
-Status: in-progress
+Status: done
 Created: 2026-09-02
 Category: active
 Tags: xserver, clang, static-analysis, code-quality
 Ref: xlibre/uninitialized-variables-scan
 Assigned-To: "Galactica"
+Done-By: "Galactica"
 ---
 
 ## Fix uninitialized variables found by clang -Wconditional-uninitialized
 
 Clang 19.1 `-Wconditional-uninitialized` found **44 warnings in 21 files** during a full clean build. GCC's `-Wuninitialized`/`-Wmaybe-uninitialized` shows nothing (less precise for conditional paths).
 
-### Plan
+### Result (2026-09-05, Galactica)
 
-#### Phase 1: Add the warning flag to meson.build
+All warnings fixed. Branch `wip/fix-uninitialized-vars`, commits:
+- `d3d44ba6c6` — dix: prevent uninitialized reads reported by clang (31 files)
+- `4d46cd0994` — meson: enable -Wconditional-uninitialized as error for clang
 
-Add `-Wconditional-uninitialized` to the `test_wflags` list in `meson.build` (non-error first, so the build doesn't break while fixing).
+Phase 1: `-Wconditional-uninitialized` added to `meson.build` `test_wflags`.
+Phase 2: All 44 plan warnings fixed, plus additional conditional-uninitialized
+warnings that only surfaced in the real clang meson build (grabs, touch,
+colormap, kdrive, Xtranssock, damage PanoramiX, glx DoGetDrawableAttributes,
+exa src_off elsewhere, vblank msc sequence handler, xkb len, window log_grab_info).
+Every site was reviewed: in genuine paths the variable is always set, but
+clang cannot prune the control flow (switch/loop/helper); the conservative
+default matches existing usage (NULL/0/-1/UINT64_MAX).
+Phase 3: `-Werror=conditional-uninitialized` enabled so regressions break the build
+(clang only; GCC filters it out via cc.has_argument).
 
-#### Phase 2: Fix per-subsystem (highest priority first)
+### Verification
 
-**1. hw/xfree86/drivers/video/modesetting/drmmode_display.c** — HIGH
-- Line 2689: `blob_id` — initialize to `0` before the plane type switch
-- Line 2696: `async_blob_id` — same
-- These are used in `populate_format_modifiers()` for atomic modesetting plane format negotiation
-
-**2. dix/dixfonts.c** — MEDIUM
-- Line 680: `name`, `namelen` — `name` is set to `0` before FPE call; ensure `namelen` is also initialized
-- Line 948: `numFonts` — initialize before use in alias save path
-- Line 988: `pFontInfo` — initialize to `NULL`
-
-**3. dix/events.c** — MEDIUM
-- Line 4332: `mask`, `filter` — ensure `ConvertToXI3` always populates these, or initialize before the call
-
-**4. dix/getevents.c** — MEDIUM
-- Line 2027: `raw` — check allocation path; initialize to `NULL`
-
-**5. dix/window.c** — MEDIUM
-- Line 355: `mask` — initialize before `ForceEventDelivery`
-
-**6. glamor/glamor.c + glamor_render.c** — MEDIUM
-- glamor.c:515: `read_format`, `read_type`
-- glamor_render.c:1356-1359: `source_x_off`, `source_y_off`, `mask_x_off`, `mask_y_off`
-
-**7. Xext/** — LOW-MEDIUM
-- composite/compalloc.c: `pLayerWin` (2 instances)
-- damage/damageext.c: `pDrawable`
-- shm/shm.c: `uid`, `gid`
-- xkeyboard/xkb.c: `len`
-- xres/xres.c: `ht`
-- xselinux/xselinux_hooks.c: `offset`
-- glx/glxcmds.c: `pDraw`
-
-**8. mi/** — LOW
-- miwindow.c: `pLayerWin` (4 instances)
-- miarc.c: `iny`
-- miwideline.c: `saveBottom`, `saveRight`
-
-**9. exa/exa_render.c** — LOW
-- `src_off_x`, `src_off_y`
-
-**10. hw/xfree86/** remaining — LOW
-- xf86Config.c: `Pointer`, `Keyboard`
-- xf86Cursor.c: `px`, `py`
-- xf86fbman.c: `offset`
-- dri/dri.c: `err`
-- modesetting/vblank.c: `msc`
-
-#### Phase 3: Enable as -Werror
-
-After all warnings are fixed, change `-Wconditional-uninitialized` to `-Werror=conditional-uninitialized` in meson.build so new regressions break the build.
-
-### How to verify
-
-```bash
-cd _WORK_/xserver-master/sources/xlibre/xserver
+Full clean build:
+```
 CC=clang CFLAGS="-Wconditional-uninitialized -Werror=conditional-uninitialized" \
   meson setup _build-check && ninja -C _build-check
 ```
+All 747 targets build, 0 warnings / 0 errors. (Two pre-existing
+`-Wtypedef-redefinition` notes in glamor_egl_priv.h under clang remain; they are
+C11-typedef notes unrelated to this task and not errors.)
 
-Must complete with 0 warnings/errors.
+### Files fixed (31)
 
-### Progress (Galactica, 2026-09-05)
-
-Taken over. Starting Phase 1 + Phase 2 fixes.
+Xext/composite/compalloc.c, Xext/damage/damageext.c, Xext/glx/glxcmds.c,
+Xext/shm/shm.c, Xext/xkeyboard/xkb.c, Xext/xres/xres.c,
+Xext/xselinux/xselinux_hooks.c, dix/colormap.c, dix/dixfonts.c, dix/events.c,
+dix/getevents.c, dix/grabs.c, dix/touch.c, dix/window.c, exa/exa_render.c,
+glamor/glamor.c, glamor/glamor_render.c, hw/kdrive/linux/mouse.c,
+hw/kdrive/linux/ps2.c, hw/kdrive/src/kdrive.c, hw/xfree86/common/xf86Config.c,
+hw/xfree86/common/xf86Cursor.c, hw/xfree86/common/xf86fbman.c,
+hw/xfree86/dri/dri.c, hw/xfree86/drivers/video/modesetting/drmmode_display.c,
+hw/xfree86/drivers/video/modesetting/vblank.c, meson.build, mi/miarc.c,
+mi/miwideline.c, mi/miwindow.c, os/Xtranssock.c
