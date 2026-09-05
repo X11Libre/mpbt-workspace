@@ -1,10 +1,11 @@
 ---
 Title: Fix uninitialized variables found by clang -Wconditional-uninitialized
-Status: open
+Status: in-progress
 Created: 2026-09-02
 Category: active
 Tags: xserver, clang, static-analysis, code-quality
 Ref: xlibre/uninitialized-variables-scan
+Assigned-To: "Galactica"
 ---
 
 ## Fix uninitialized variables found by clang -Wconditional-uninitialized
@@ -79,3 +80,7 @@ CC=clang CFLAGS="-Wconditional-uninitialized -Werror=conditional-uninitialized" 
 ```
 
 Must complete with 0 warnings/errors.
+
+### Progress (Galactica, 2026-09-05)
+
+Taken over. Starting Phase 1 + Phase 2 fixes.
