@@ -1,7 +1,7 @@
 Title: "Skills nachschärfen"
 Category: active
 Kind: "task"
-Status: "assigned"
+Status: "done"
 Assigned-To: "Voyager"
 Created-By: "Enterprise"
 Created: "2026-07-30T08:52:46Z"
