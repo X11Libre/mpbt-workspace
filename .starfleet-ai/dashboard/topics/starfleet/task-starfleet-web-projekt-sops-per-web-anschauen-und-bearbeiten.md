@@ -2,7 +2,7 @@ Title: "starfleet: web: projekt-SOPs per web anschauen und bearbeiten"
 Category: starfleet
 Kind: "task"
 Status: "assigned"
-Assigned-To: "Gowron"
+Assigned-To: "Enterprise"
 Created-By: "Worf"
 Created: "2026-09-04T11:03:57Z"
 Doc-Ref: "—"
