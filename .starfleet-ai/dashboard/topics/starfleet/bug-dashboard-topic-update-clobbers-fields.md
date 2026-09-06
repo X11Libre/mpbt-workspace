@@ -1,7 +1,6 @@
 Title: "Bug: dashboard topic update --status verliert Felder + setzt Status nicht"
 Category: parked
-Status: open
-Noted-By: "Enterprise"
+Noted-By: ""
 Since: "2026-08-06"
 
 `starfleetctl dashboard topic update <slug> --status done` ist kaputt (festgestellt
