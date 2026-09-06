@@ -2,7 +2,7 @@ Title: "starfleet: web: button um terminal auf-/weg-schalten"
 Category: starfleet
 Kind: "task"
 Status: "assigned"
-Assigned-To: "Enterprise"
+Assigned-To: "Discovery"
 Created-By: "Worf"
 Created: "2026-09-04T11:06:17Z"
 Doc-Ref: "—"
