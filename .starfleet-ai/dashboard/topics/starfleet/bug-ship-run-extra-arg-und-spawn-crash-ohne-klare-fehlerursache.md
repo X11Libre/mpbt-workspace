@@ -1,15 +1,10 @@
----
-Title: "bug: session ship-run mit -- <extra> laesst Schiff sofort crashen + Spawn-Crash ohne klare Fehlerursache (SOP-Doku fehlt)"
-Category: starfleet
-Kind: "task"
-Status: "done"
-Assigned-To: "Discovery"
-Created-By: "Enterprise"
-Created: "2026-09-04T14:49:37Z"
-Doc-Ref: "—"
-Updated: 2026-09-04
-Noted-By: "Enterprise"
----
+Title: ""
+Category: active
+Status: "assigned"
+Assigned-To: "Casopeia"
+Created-By: ""
+Created: ""
+Doc-Ref: ""
 
 Diagnose 2026-09-04 (Enterprise):
 
