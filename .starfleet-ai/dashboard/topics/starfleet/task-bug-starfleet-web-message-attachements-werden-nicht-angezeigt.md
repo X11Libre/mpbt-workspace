@@ -1,7 +1,7 @@
 Title: "bug: starfleet web: message attachements werden nicht angezeigt"
 Category: starfleet
 Kind: "task"
-Status: "assigned"
+Status: "done"
 Assigned-To: "Discovery"
 Created-By: "McKinley"
 Created: "2026-09-06T15:32:14Z"

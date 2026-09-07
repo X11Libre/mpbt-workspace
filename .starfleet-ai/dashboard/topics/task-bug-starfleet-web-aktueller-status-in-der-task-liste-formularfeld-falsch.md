@@ -1,7 +1,7 @@
 Title: "bug: starfleet: web: aktueller status in der task-liste (formularfeld) falsch"
 Category: active
 Kind: "task"
-Status: "assigned"
+Status: "done"
 Assigned-To: "Discovery"
 Created-By: "McKinley"
 Created: "2026-09-06T15:27:19Z"
