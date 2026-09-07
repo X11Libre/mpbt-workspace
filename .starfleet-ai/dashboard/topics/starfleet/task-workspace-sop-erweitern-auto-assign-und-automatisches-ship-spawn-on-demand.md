@@ -1,7 +1,7 @@
 Title: "workspace SOP erweitern: auto-assign und automatisches ship-spawn on demand"
 Category: starfleet
 Kind: "task"
-Status: "assigned"
+Status: "open"
 Assigned-To: "Discovery"
 Created-By: "McKinley"
 Created: "2026-09-04T14:39:45Z"
