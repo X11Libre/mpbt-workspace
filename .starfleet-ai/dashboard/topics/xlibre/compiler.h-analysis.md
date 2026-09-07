@@ -1,10 +1,12 @@
 Title: "compiler.h: Analyse abgeschlossen — Subtasks bereit"
 Category: active
 Kind: "task"
-Status: "analysis-done"
-Assigned-To: "Saratoga"
+Status: "assigned"
+Assigned-To: "Janitor"
+Created-By: ""
+Created: ""
+Doc-Ref: ""
 Tags: "xlibre,sdk-cleanup,compiler.h"
-Slug: compiler.h-analysis
 
 ## compiler.h Analyse (v0.1 — 1021 Zeilen)
 
