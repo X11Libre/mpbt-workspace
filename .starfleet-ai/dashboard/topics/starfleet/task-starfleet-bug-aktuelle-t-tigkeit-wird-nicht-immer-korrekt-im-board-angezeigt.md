@@ -1,7 +1,7 @@
 Title: "starfleet: bug: aktuelle tätigkeit wird nicht immer korrekt im board angezeigt"
 Category: starfleet
 Kind: "task"
-Status: "open"
+Status: "assigned"
 Assigned-To: "Voyager"
 Created-By: "Intrepid"
 Created: "2026-09-07T14:54:55Z"
