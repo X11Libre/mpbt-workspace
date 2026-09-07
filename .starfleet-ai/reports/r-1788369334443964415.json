@@ -1,0 +1,13 @@
+{
+  "id": "r-1788369334443964415",
+  "title": "MPBT Executor-Refactor: Scope-Sauberkeit + lazy @machine",
+  "subtitle": "wip/executor fa09caf - Builder-isolierte Shellouts, @machine via Executor",
+  "ship": "Voyager",
+  "body": "Scope des Executor-Refactors gemäß Vorgabe eingehalten: Der util.Executor isoliert nur Kommandos, die Builder starten (können künftig in Container/Jail laufen).\n\nÄnderungen (Branch wip/executor, lokal — HandOff an Praetor):\n- 4f3d7e7 REVERT(tar): Binpkg-Tarball ist Host-Post-Processing, nutzt wieder direktes exec.Command (nicht den isolierbaren Executor).\n- 0e3a012 FIX(syspackage): pkg-config-Probe (Abhängigkeits-Check) läuft jetzt über pkg.GetExecutor() — Deps können nur im Build-Umfeld installiert sein, also isoliert ausführen.\n- fa09caf REFACTOR(executor): @machine (Triplet) wird lazy via prj.GetExecutor() (build-Toolchain) aufgelöst statt via Host-Wrapper util.ExecOut in Init(). core.ScalarFunc + Closure-interner Cache/Re-Entry-Guard. PushEnv eager-expandiert env (inkl ${@PROJECT::@machine}); Re-Entry-Guard verhindert Rekursion. Keine Host-abhängige gcc-Auflösung mehr beim Init.\n\nVerifikation: go build/vet/test (ohne -vet=off)/gofmt/repo-make grün; unit-Tests core/model/machine_test.go (lazy install, stable cache, env-expansion ${@machine} ohne Hang, triplet format). Real-e2e: xf86-input-elographics ./autogen.sh läuft vollständig durch (ACLOCAL_PATH mit ${@machine}-abhängigem Pfad erreicht aclocal).\n\nScope-Landkarte der Shellouts:\n- Builder-Schritte execIn -\u003e Package.GetExecutor().Exec (isoliert)\n- pkg-config-Probe (SysPackage) -\u003e Package.GetExecutor().ExecOut (isoliert)\n- @machine via Project.GetExecutor().ExecOut (isoliert/lazy)\n- Binpkg-Tarball tar -\u003e exec.Command (Host)\n",
+  "tags": [
+    "executor",
+    "mpbt",
+    "build"
+  ],
+  "created": 1788369334
+}
