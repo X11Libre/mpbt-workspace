@@ -1,0 +1,146 @@
+# needed by several sources
+xlibre_git:     git@github.com:X11Libre
+
+install-prefix: ${@PROJECT::@workdir}/target
+
+# containerized build: all buildable (non-system) packages are built inside
+# this image; the whole workdir is bind-mounted at the same path, so outputs
+# land on the host as usual.
+container:
+    image: devuan/devuan:daedalus
+    env:
+        DEBIAN_FRONTEND: noninteractive
+    prepare:
+        - export DEBIAN_FRONTEND=noninteractive && apt-get update
+        - export DEBIAN_FRONTEND=noninteractive && apt-get install -y --no-install-recommends build-essential meson ninja-build pkg-config git ca-certificates curl xutils-dev xtrans-dev libtool automake autoconf flex bison python3 gperf gettext xsltproc docbook-xsl libx11-dev libxext-dev libxi-dev libxt-dev libxtst-dev libxau-dev libxmu-dev libxaw7-dev libxrandr-dev libxinerama-dev xfonts-utils x11-xserver-utils x11-utils libpixman-1-dev libxshmfence-dev libbsd-dev libxkbfile-dev libxfont-dev libfontenc-dev libxcvt-dev libpciaccess-dev libevdev-dev libmtdev-dev libinput-dev libgl1-mesa-dev libegl1-mesa-dev libgbm-dev libdrm-dev libepoxy-dev libspice-protocol-dev libxcb-util-dev libxcb-glx0-dev libxcb-shape0-dev libxcb-render-util0-dev libxcb-image0-dev libxcb-icccm4-dev libxcb-keysyms1-dev libxcb-shm0-dev libxcb-randr0-dev libxcb-xv0-dev libxcb-xkb-dev
+
+# tell which actual packages for resolving `provides`
+package-mapping:
+    x11/font-util:        os-installed/font-util
+    sys/libdrm:           3rdparty/libdrm
+    x11/libxcb:           os-installed/libxcb
+    x11/libxcb-util:      os-installed/libxcb-util
+    x11/libxcb-wm:        os-installed/libxcb-wm
+    x11/libxcvt:          os-installed/libxcvt
+    x11/libx11:           os-installed/libx11
+    x11/libxrandr:        os-installed/xrandr
+    x11/libxinerama:      os-installed/xinerama
+    x11/libxfont2:        os-installed/xfont2
+    x11/libfontenc:       os-installed/fontenc
+    x11/libxcb-shape:     os-installed/xcb-shape
+    x11/libxcb-image:     os-installed/xcb-image
+    x11/libxcb-icccm:     os-installed/xcb-icccm
+    x11/libxcb-keysyms:   os-installed/xcb-keysyms
+    x11/libxcb-renderutil: os-installed/xcb-renderutil
+    x11/libxcb-glx:       os-installed/xcb-glx
+    x11/libxcb-shm:       os-installed/xcb-shm
+    x11/libxcb-randr:     os-installed/xcb-randr
+    x11/libxcb-xv:        os-installed/xcb-xv
+    x11/libxcb-xkb:       os-installed/xcb-xkb
+    sys/gl:               os-installed/gl
+    sys/egl:              os-installed/egl
+    sys/gbm:              os-installed/gbm
+    sys/epoxy:            os-installed/epoxy
+    sys/xkbfile:          os-installed/xkbfile
+    sys/libbsd:           os-installed/libbsd
+    sys/pixman:           os-installed/pixman
+    sys/xshmfence:        os-installed/xshmfence
+    sys/libevdev:         os-installed/libevdev
+    sys/mtdev:            os-installed/mtdev
+    sys/libinput:         os-installed/libinput
+    sys/spice-protocol:    os-installed/spice-protocol
+    x11/util-macros:      3rdparty/util-macros
+    x11/xcb-proto:        3rdparty/xcb-proto
+    x11/xorgproto:        3rdparty/xorgproto
+
+package-config:
+    xlibre/xserver:
+        meson-extra-args:
+            - -Dxephyr=true
+            - -Dxnest=true
+            - -Dxvfb=true
+            - -Dxfbdev=true
+            - -Dxorg=true
+            - -Dxorg-sdk=true
+            - -Dsuid_wrapper=true
+            - -Dxf86-input-inputtest=true
+            - -Dtest_xephyr_gles=false
+
+    3rdparty/libdrm:
+        meson-extra-args:
+            - -Dfreedreno=enabled
+            - -Domap=enabled
+
+    3rdparty/xcb-proto:
+        ref: xcb-proto-1.17.0
+
+build:
+    - 3rdparty/piglit
+    - xlibre/xts
+    - xlibre/xserver
+    - xlibre/xf86-input-elographics
+    - xlibre/xf86-input-evdev
+    - xlibre/xf86-input-joystick
+    - xlibre/xf86-input-keyboard
+    - xlibre/xf86-input-libinput
+    - xlibre/xf86-input-mouse
+    - xlibre/xf86-input-synaptics
+    - xlibre/xf86-input-vmmouse
+    - xlibre/xf86-input-void
+    - xlibre/xf86-input-wacom
+    - xlibre/xf86-video-amdgpu
+    - xlibre/xf86-video-apm
+    - xlibre/xf86-video-ark
+    - xlibre/xf86-video-ast
+    - xlibre/xf86-video-ati
+    - xlibre/xf86-video-chips
+    - xlibre/xf86-video-cirrus
+    - xlibre/xf86-video-dummy
+    - xlibre/xf86-video-fbdev
+    - xlibre/xf86-video-freedreno
+    - xlibre/xf86-video-geode
+    - xlibre/xf86-video-i128
+    - xlibre/xf86-video-i740
+    - xlibre/xf86-video-intel
+    - xlibre/xf86-video-mach64
+    - xlibre/xf86-video-mga
+    - xlibre/xf86-video-neomagic
+    - xlibre/xf86-video-nested
+    - xlibre/xf86-video-nouveau
+    - xlibre/xf86-video-nv
+    - xlibre/xf86-video-omap
+    - xlibre/xf86-video-qxl
+    - xlibre/xf86-video-r128
+    - xlibre/xf86-video-rendition
+    - xlibre/xf86-video-s3virge
+    - xlibre/xf86-video-savage
+    - xlibre/xf86-video-siliconmotion
+    - xlibre/xf86-video-sisusb
+    - xlibre/xf86-video-sis
+    - xlibre/xf86-video-suncg14
+    - xlibre/xf86-video-suncg3
+    - xlibre/xf86-video-suncg6
+    - xlibre/xf86-video-sunffb
+    - xlibre/xf86-video-sunleo
+    - xlibre/xf86-video-suntcx
+    - xlibre/xf86-video-tdfx
+    - xlibre/xf86-video-trident
+    - xlibre/xf86-video-v4l
+    - xlibre/xf86-video-vbox
+    - xlibre/xf86-video-vesa
+    - xlibre/xf86-video-vmware
+    - xlibre/xf86-video-voodoo
+    - xlibre/xf86-video-xgi
+
+env:
+    PKG_CONFIG_PATH: ${install-prefix}/share/pkgconfig:${install-prefix}/lib/pkgconfig:${install-prefix}/lib/${@PROJECT::@machine}/pkgconfig/
+    ACLOCAL_PATH: ${install-prefix}/share/aclocal
+    ACLOCAL_FLAGS: -I ${install-prefix}/share/aclocal
+
+packages:
+    - ${@PROJECT::@rootdir}/cf/xserver-master/packages
+
+package-defaults:
+    xlibre_git:     ${xlibre_git}
+    xorg_git:       https://gitlab.freedesktop.org/xorg
+    xserver_branch: master
