@@ -1,0 +1,4 @@
+provides: x11/libxcb-keysyms
+type: system
+pkg-config:
+    - xcb-keysyms

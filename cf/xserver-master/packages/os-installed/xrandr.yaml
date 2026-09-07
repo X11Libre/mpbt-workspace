@@ -1,0 +1,4 @@
+provides: x11/libxrandr
+type: system
+pkg-config:
+    - xrandr

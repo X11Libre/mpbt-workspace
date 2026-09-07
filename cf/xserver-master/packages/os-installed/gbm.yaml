@@ -1,0 +1,4 @@
+provides: sys/gbm
+type: system
+pkg-config:
+    - gbm

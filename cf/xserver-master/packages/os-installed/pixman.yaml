@@ -1,0 +1,4 @@
+provides: sys/pixman
+type: system
+pkg-config:
+    - pixman-1

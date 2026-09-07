@@ -1,0 +1,4 @@
+provides: sys/mtdev
+type: system
+pkg-config:
+    - mtdev

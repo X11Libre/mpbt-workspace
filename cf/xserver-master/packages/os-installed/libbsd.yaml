@@ -1,0 +1,4 @@
+provides: sys/libbsd
+type: system
+pkg-config:
+    - libbsd-overlay

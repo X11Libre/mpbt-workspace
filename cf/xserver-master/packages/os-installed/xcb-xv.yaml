@@ -1,0 +1,4 @@
+provides: x11/libxcb-xv
+type: system
+pkg-config:
+    - xcb-xv

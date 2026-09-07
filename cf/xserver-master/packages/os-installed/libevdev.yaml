@@ -1,0 +1,4 @@
+provides: sys/libevdev
+type: system
+pkg-config:
+    - libevdev

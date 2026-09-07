@@ -1,0 +1,4 @@
+provides: sys/epoxy
+type: system
+pkg-config:
+    - epoxy
