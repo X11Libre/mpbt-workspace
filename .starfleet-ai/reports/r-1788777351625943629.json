@@ -1,0 +1,7 @@
+{
+  "id": "r-1788777351625943629",
+  "title": "--title",
+  "ship": "Galactica",
+  "body": "Alle 6 Punkte aus dem Topic sind in starfleetctl implementiert auf Branch wip/capture-first (Commits 9213f71, 532a78e, gepusht, Basis master 394342a): 1. task begin/log/progress/done bereits in master (75144c5); 2. unattached-Flag + lauter stderr-Hinweis in DoStatus; 3. Web-Detail-Overlay bereits in master HEAD; 4. task sweep-stale + System-Verb + Cron-Config (cmd sweep-stale) neu; 5. TASK-LIFECYCLE in skills/fragments neu; 6. Tests gruen (go build/vet/test ./...), neues task_test.go (5 Sweep-Tests + Unattached-Hint mit stderr-Capture). Debug-Highlight: Testflop war noPush/push-Inversion gegen DoTopicCommitAll-Parameter. Blockiert: Deployment in default-Worktree (master) bis Enterprise die herrenlosen uncommitteten Aenderungen freigibt (Gowron/Discovery). Timer-Config committed (sweep-stale verb). Nach Freigabe: bootstrap + web/timer restart.",
+  "created": 1788777351
+}
