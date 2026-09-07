@@ -10,3 +10,5 @@ Doc-Ref: "—"
 When spawning a ship via web console, the model selected in the form is not being used. Ships start with the last model used in opencode instead of the selected model.
 
 - 2026-09-07T18:37:07Z Enterprise: began work
+
+- 2026-09-07T18:43:39Z Enterprise: progress 10% (Investigating: web form model selection not passed to LaunchShip. Checking apiShipLaunch and generateOpencodeConfig.)
