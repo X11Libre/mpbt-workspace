@@ -1,11 +1,10 @@
 Title: "os.h: timer.h aus os.h extrahieren"
 Category: active
 Kind: "task"
-Status: "pr-submitted"
+Status: "assigned"
+Assigned-To: "Casopeia"
 Created-By: "Saratoga"
 Created: "2026-07-29T15:54:49Z"
-Assigned-To: "Miranda"
 Doc-Ref: "—"
-Slug: os.h-extract-timer
 
 Subtask aus compiler.h/os.h Analyse (siehe dashboard/topics/xlibre/*-analysis.md)
