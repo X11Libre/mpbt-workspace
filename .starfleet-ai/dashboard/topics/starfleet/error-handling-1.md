@@ -1,7 +1,7 @@
 Title: "transient model errors: no mail to flagship"
 Category: active
 Status: "assigned"
-Assigned-To: "Stargazer"
+Assigned-To: "Aeon"
 Created-By: ""
 Created: ""
 Doc-Ref: ""
