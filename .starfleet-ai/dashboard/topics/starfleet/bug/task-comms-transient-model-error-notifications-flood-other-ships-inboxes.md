@@ -14,3 +14,5 @@ Erwartet: Transiente Model-Fehler eines Schiffs duerfen NICHT als actionable Com
 Betroffen: beobachtet bei Enterprise, Discovery (m97936-m97993), eigene transients (m97957-m97972).
 
 - 2026-09-07T15:49:55Z Enterprise: began work
+
+- 2026-09-07T15:50:12Z Enterprise: progress 100% (Fix already implemented and verified. Transient errors are now handled locally without flooding flagship.)
