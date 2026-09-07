@@ -1,7 +1,7 @@
 Title: "starfleet: tasks: löschbutton nicht in der tasklist"
 Category: starfleet
 Kind: "task"
-Status: "assigned"
+Status: "open"
 Assigned-To: "Discovery"
 Created-By: "McKinley"
 Created: "2026-09-05T14:32:40Z"
