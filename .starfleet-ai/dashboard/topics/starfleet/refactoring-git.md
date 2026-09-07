@@ -1,7 +1,7 @@
 Title: "starfleet: internes refactoring: git utilty class"
 Category: active
-Status: "open"
-Assigned-To: "Stargazer"
+Status: "assigned"
+Assigned-To: "Aeon"
 Created-By: ""
 Created: ""
 Doc-Ref: ""
