@@ -1,7 +1,7 @@
 Title: "os.h: alloc.h aus os.h extrahieren"
 Category: active
 Kind: "task"
-Status: "in-progress"
+Status: "open"
 Assigned-To: "Casopeia"
 Created-By: "Saratoga"
 Created: "2026-07-29T15:54:48Z"
