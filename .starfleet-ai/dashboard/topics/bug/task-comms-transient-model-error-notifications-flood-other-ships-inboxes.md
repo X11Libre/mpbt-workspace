@@ -1,7 +1,7 @@
 Title: "comms: transient model-error notifications flood other ships' inboxes"
 Category: bug
 Kind: "task"
-Status: "in-progress"
+Status: "done"
 Assigned-To: "Enterprise"
 Created-By: "unknown"
 Created: "2026-09-07T14:32:10Z"
@@ -14,3 +14,5 @@ Erwartet: Transiente Model-Fehler eines Schiffs duerfen NICHT als actionable Com
 Betroffen: beobachtet bei Enterprise, Discovery (m97936-m97993), eigene transients (m97957-m97972).
 
 - 2026-09-07T15:03:58Z Enterprise: began work
+
+- 2026-09-07T15:17:33Z Enterprise: completed
