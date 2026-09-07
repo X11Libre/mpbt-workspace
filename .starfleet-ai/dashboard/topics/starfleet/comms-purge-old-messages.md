@@ -1,6 +1,6 @@
 Title: "starfleetctl: rework: kommando um alte messages zu entfernen"
 Category: active
-Status: "assigned"
+Status: "in-progress"
 Assigned-To: "McKinley"
 Created-By: "McKinley"
 Created: ""
