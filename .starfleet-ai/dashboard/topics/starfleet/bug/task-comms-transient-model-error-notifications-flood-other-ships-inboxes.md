@@ -1,8 +1,8 @@
 Title: "comms: transient model-error notifications flood other ships' inboxes"
 Category: starfleet
 Kind: "task"
-Status: "open"
-Assigned-To: "—"
+Status: "assigned"
+Assigned-To: "Enterprise"
 Created-By: "TestFilter"
 Created: "2026-09-07T14:59:24Z"
 Doc-Ref: "—"
