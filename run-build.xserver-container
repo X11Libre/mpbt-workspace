@@ -1,0 +1,17 @@
+#!/bin/bash
+#
+# SPDX-License-Identifier: AGPL-3.0-or-later
+# Copyright © 2026 Enrico Weigelt, metux IT consult
+#
+# Full build of all packages (in solution order) for the containerized devuan
+# release line, running inside the container toolchain (see solution
+# container.image). The install prefix is ephemeral — deleted after the build.
+#
+
+set -e
+
+. cf/xserver-container/config.sh
+
+$MPBT -solution $SOLUTION -workdir "$WORKDIR" build
+
+rm -Rf "$WORKDIR"/install
