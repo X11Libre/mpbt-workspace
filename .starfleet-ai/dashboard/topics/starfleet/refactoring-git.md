@@ -1,6 +1,6 @@
 Title: "starfleet: internes refactoring: git utilty class"
 Category: active
-Status: "in-progress"
+Status: "open"
 Assigned-To: "Aeon"
 Created-By: ""
 Created: ""
