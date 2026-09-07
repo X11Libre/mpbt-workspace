@@ -1,7 +1,7 @@
 Title: "os.h: Analyse abgeschlossen — Subtasks bereit"
 Category: active
 Kind: "task"
-Status: "assigned"
+Status: "done"
 Assigned-To: "Janitor"
 Created-By: ""
 Created: ""
