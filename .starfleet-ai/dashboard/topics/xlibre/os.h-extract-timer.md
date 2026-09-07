@@ -1,13 +1,11 @@
 Title: "os.h: timer.h aus os.h extrahieren"
 Category: active
 Kind: "task"
-Status: "in-progress"
+Status: "open"
 Assigned-To: "Casopeia"
 Created-By: "Saratoga"
 Created: "2026-07-29T15:54:48Z"
 Doc-Ref: "—"
-Updated: 2026-09-07
-Noted-By: "Casopeia"
 
 ---
 
