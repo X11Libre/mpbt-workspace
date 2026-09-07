@@ -1,10 +1,10 @@
----
-Title: Container-Build E2E komplett + CI-Pipeline v0.4.0 fuer alle Treiber
-Status: active
-Assignee: Voyager
-Created: 2026-09-04
-Tags: mpbt, container, build, os-installed, ci, asprintf
----
+Title: ""
+Category: xlibre
+Status: "open"
+Assigned-To: "—"
+Created-By: ""
+Created: ""
+Doc-Ref: ""
 
 ## Zusammenfassung
 
