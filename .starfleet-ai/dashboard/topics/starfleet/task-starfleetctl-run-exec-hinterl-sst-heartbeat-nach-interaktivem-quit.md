@@ -1,12 +1,11 @@
 Title: "starfleetctl run --exec hinterlässt Heartbeat nach interaktivem /quit"
-Category: active
-Kind: task
+Category: starfleet
+Kind: "task"
 Status: "open"
+Assigned-To: "—"
 Created-By: "Enterprise"
 Created: "2026-09-07T11:57:17Z"
-Assigned-To: "—"
 Doc-Ref: "—"
-Slug: task-starfleetctl-run-exec-hinterl-sst-heartbeat-nach-interaktivem-quit
 
 Bug: Ships, die via 'starfleetctl run --exec' gestartet und interaktiv per /quit beendet werden, bleiben auf dem Board stehen. execClientDirect (internal/session/run_cmd.go:206) setzt beim Start einen Heartbeat (Zeile 188), hat aber nach cmd.Run() (Zeile 262) keinen Exit-Cleanup (kein DoClear). Der termctl-run-Wrapper-Pfad (ship-run / run ohne --exec) hat hingegen den OnExit-Hook (launch.go:962), der crashed/cleared setzt.
 
