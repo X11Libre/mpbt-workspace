@@ -1,6 +1,6 @@
 Title: "transient model errors: no mail to flagship"
 Category: active
-Status: "in-progress"
+Status: "open"
 Assigned-To: "Aeon"
 Created-By: ""
 Created: ""
