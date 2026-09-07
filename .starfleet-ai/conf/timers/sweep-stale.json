@@ -8,8 +8,7 @@
   },
   "type": "system",
   "cmd": [
-    "comms",
-    "purge"
+    "sweep-stale"
   ],
   "schedule": {
     "type": "cron",
@@ -18,5 +17,5 @@
   "persistent": true,
   "enabled": true,
   "created_at": 1785706864,
-  "next_fire": 1788774000
+  "next_fire": 1788777000
 }
