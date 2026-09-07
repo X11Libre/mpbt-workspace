@@ -1,7 +1,7 @@
 Title: "compiler.h: In funktionale Sektionen aufteilen"
 Category: active
 Kind: "task"
-Status: "assigned"
+Status: "open"
 Assigned-To: "Lycos"
 Created-By: "Saratoga"
 Created: "2026-07-29T15:54:48Z"
