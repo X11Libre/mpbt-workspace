@@ -1,6 +1,6 @@
 Title: "transient model errors: no mail to flagship"
 Category: active
-Status: "assigned"
+Status: "in-progress"
 Assigned-To: "Aeon"
 Created-By: ""
 Created: ""
@@ -12,3 +12,5 @@ and flagschiff geschikt werden. Stattdessen nur ein entsprechendes
 Status-Update im Board (damit wir zb. per web sehen was grad los ist),
 toast im opencode-client (haben wir schon) und dann soll gleich ein
 retry-gemacht werden (haben wir grad schon).
+
+- 2026-09-07T10:55:45Z Aeon: began work
