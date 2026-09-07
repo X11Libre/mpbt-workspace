@@ -1,7 +1,7 @@
 Title: "starfleetctl: built-in orphan-task detection (CLI + Web)"
 Category: starfleet
 Kind: "task"
-Status: "assigned"
+Status: "in-progress"
 Assigned-To: "Voyager"
 Created-By: "Enterprise"
 Created: "2026-09-07T09:21:34Z"
