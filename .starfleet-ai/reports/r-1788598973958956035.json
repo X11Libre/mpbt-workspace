@@ -1,0 +1,7 @@
+{
+  "id": "r-1788598973958956035",
+  "title": "--title",
+  "ship": "Galactica",
+  "body": "Alle clang-19 -Wconditional-uninitialized Warnungen im xserver wurden gefixt (44 geplante + weitere im echten Build gefundene). Branch wip/fix-uninitialized-vars, Commits d3d44ba6c6 (31 Dateien) + 4d46cd0994 (meson -Werror). Volle saubere Verifikation: CC=clang meson+ninja, 747 Targets, 0 Warnungen/Fehler. Dashboard-Topic auf done gesetzt.",
+  "created": 1788598973
+}

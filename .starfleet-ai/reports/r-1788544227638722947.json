@@ -1,0 +1,7 @@
+{
+  "id": "r-1788544227638722947",
+  "title": "--title",
+  "ship": "Discovery",
+  "body": "Workspace-SOP erstellt: agents.d/local/auto-assign-ship-spawn-sop.md\n\nInhalt:\n- Auto-Assign Logik: Task -\u003e Flagschiff -\u003e Board prüfen -\u003e delegieren oder auto-spawn\n- Auto-Spawn Regeln: Default Nemotron Ultra, Tasks via Comms (nicht Args nach --)\n- Delegation per comms tell \u003cworker\u003e, Worker ack't + arbeitet + meldet Ergebnis + Report einstellen\n- Checkliste für Flagschiff + Web-GUI Workflow",
+  "created": 1788544227
+}

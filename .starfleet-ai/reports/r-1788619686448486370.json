@@ -1,0 +1,8 @@
+{
+  "id": "r-1788619686448486370",
+  "title": "Task starfleet/comms-purge-old-messages abgeschlossen",
+  "ship": "Janitor",
+  "body": "Purge-Funktionalität existierte bereits in starfleetctl: CLI 'comms purge [--older-than \u003cdur\u003e] [--all]' und Web-Endpoint '/api/purge' mit Button 'Alte löschen' im Bus-Tab. Ausgeführt: comms purge --all -\u003e 66 alte Direktiven von toten Ships gelöscht.",
+  "task_ref": "starfleet/comms-purge-old-messages",
+  "created": 1788619686
+}

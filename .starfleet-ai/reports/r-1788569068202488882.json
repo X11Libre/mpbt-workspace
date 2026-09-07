@@ -1,0 +1,7 @@
+{
+  "id": "r-1788569068202488882",
+  "title": "--title",
+  "ship": "Voyager",
+  "body": "Alle 19 offenen v0.4.0-Bump-PRs gemergt (rebase, branches geloescht): apm#10, nested#10, rendition#10, sunffb#9, sunleo#9, trident#9, siliconmotion#12, suncg6#9, voodoo#14, neomagic#11, r128#18, s3virge#9, tdfx#11, vesa#12, mga#13, nv#17, sis#15, intel#72. 18 gingen beim 1. Rerun gruen; intel#72 brauchte 3 Runs (2x Infra-Flake: ssh-hostname-Resolution + NetBSD-VM boot timeout). Einziger echter Fehler: xf86-input-keyboard#17 auf freebsd/dragonfly (master) — xserver-SDK-Regression: consType/PCVT/SYSCONS/PCCONS hinter CONFIG_BSD_CONSOLE (xserver 7103c74d), Driver bekommt das Makro nicht mehr. Kein Bump-Verursachung; Task bei Defiant im Topic fix-ci-fails-for-action-build-driver-version-bumps.",
+  "created": 1788569068
+}
