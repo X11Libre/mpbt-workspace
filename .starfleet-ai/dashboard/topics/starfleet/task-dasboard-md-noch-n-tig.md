@@ -1,7 +1,7 @@
 Title: "DASBOARD.md noch nötig"
 Category: starfleet
 Kind: "task"
-Status: "assigned"
+Status: "open"
 Assigned-To: "Discovery"
 Created-By: "McKinley"
 Created: "2026-08-03T11:03:41Z"
