@@ -1,8 +1,8 @@
 Title: "starfleetctl run --exec hinterlässt Heartbeat nach interaktivem /quit"
 Category: starfleet
 Kind: "task"
-Status: "open"
-Assigned-To: "—"
+Status: "assigned"
+Assigned-To: "Voyager"
 Created-By: "Enterprise"
 Created: "2026-09-07T11:57:17Z"
 Doc-Ref: "—"
