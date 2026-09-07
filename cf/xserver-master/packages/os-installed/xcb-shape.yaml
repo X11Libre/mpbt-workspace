@@ -1,0 +1,4 @@
+provides: x11/libxcb-shape
+type: system
+pkg-config:
+    - xcb-shape

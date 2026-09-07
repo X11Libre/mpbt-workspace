@@ -1,0 +1,4 @@
+provides: x11/libfontenc
+type: system
+pkg-config:
+    - fontenc

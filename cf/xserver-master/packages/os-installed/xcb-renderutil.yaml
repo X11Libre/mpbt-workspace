@@ -1,0 +1,4 @@
+provides: x11/libxcb-renderutil
+type: system
+pkg-config:
+    - xcb-renderutil

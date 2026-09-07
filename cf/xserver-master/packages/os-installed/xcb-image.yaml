@@ -1,0 +1,4 @@
+provides: x11/libxcb-image
+type: system
+pkg-config:
+    - xcb-image

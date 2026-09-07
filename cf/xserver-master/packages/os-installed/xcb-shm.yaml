@@ -1,0 +1,4 @@
+provides: x11/libxcb-shm
+type: system
+pkg-config:
+    - xcb-shm

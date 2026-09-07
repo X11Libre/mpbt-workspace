@@ -1,0 +1,4 @@
+provides: x11/libxcb-randr
+type: system
+pkg-config:
+    - xcb-randr

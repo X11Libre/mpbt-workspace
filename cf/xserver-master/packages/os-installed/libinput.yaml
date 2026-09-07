@@ -1,0 +1,4 @@
+provides: sys/libinput
+type: system
+pkg-config:
+    - libinput

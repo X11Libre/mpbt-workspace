@@ -1,0 +1,4 @@
+provides: sys/xkbfile
+type: system
+pkg-config:
+    - xkbfile

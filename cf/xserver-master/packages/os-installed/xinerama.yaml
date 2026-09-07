@@ -1,0 +1,4 @@
+provides: x11/libxinerama
+type: system
+pkg-config:
+    - xinerama

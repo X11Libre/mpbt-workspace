@@ -1,0 +1,4 @@
+provides: x11/libxfont2
+type: system
+pkg-config:
+    - xfont2

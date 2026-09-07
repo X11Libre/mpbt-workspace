@@ -1,0 +1,4 @@
+provides: sys/xshmfence
+type: system
+pkg-config:
+    - xshmfence
