@@ -1,5 +1,5 @@
 Title: "comms: transient model-error notifications flood other ships' inboxes"
-Category: bug
+Category: starfleet
 Kind: "task"
 Status: "done"
 Assigned-To: "Enterprise"
