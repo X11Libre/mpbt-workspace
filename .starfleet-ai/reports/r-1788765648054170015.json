@@ -1,0 +1,7 @@
+{
+  "id": "r-1788765648054170015",
+  "title": "--title",
+  "ship": "Voyager",
+  "body": "Task starfleet/task-go-x11proto-wip-merge-to-master: verifiziert, dass der Merge schon laengst erledigt ist, und aufgeraeumt.\n\nBefund:\n1. go-x11proto master (tip e946149, 2026-08-06, 'tk/term: configurable grid Rows/Cols and ScrollbackCap for headless terminals') enthaelt die vollstaendige Scrollback/dimensions-API: WithRows/WithCols/WithScrollbackCap in tk/term/termctl/opts.go sind auf origin/master vorhanden. git diff origin/master origin/wip/termctl-scrollback-dimensions ist LEER -\u003e Branch inhaltlich obsolet.\n2. starfleetctl go.mod-Revert wurde bereits von Enterprise/Enrico erledigt: Commit 0b6365b (2026-09-04) zeigt wieder auf den Haupt-Source-Clone statt auf den temp. Worktree.\n\nCleanup:\n- Offener PR #6 (termctl scrollback/dimensions) war inhaltlich identisch mit master -\u003e closed mit Kommentar.\n- Remote-Branch origin/wip/termctl-scrollback-dimensions geloescht (verifiziert obsolet).\n- Lokal fetch --prune; Aeon's Worktree (wip/xembed-tab-manager, uncommitted) unberuehrt; lokal verbliebener Branch stargazer/wip-scrollback-dimensions (aeltere WIP-Snapshot) NICHT geloescht (nicht verifiziert obsolet).\n\nKeine Rueckfragen.",
+  "created": 1788765648
+}
