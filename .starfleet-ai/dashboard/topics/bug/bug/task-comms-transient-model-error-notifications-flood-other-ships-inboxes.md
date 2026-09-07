@@ -1,0 +1,15 @@
+Title: "comms: transient model-error notifications flood other ships' inboxes"
+Category: bug
+Kind: task
+Status: "open"
+Created-By: "TestFilter"
+Created: "2026-09-07T14:59:24Z"
+Assigned-To: "—"
+Doc-Ref: "—"
+Slug: bug/bug/task-comms-transient-model-error-notifications-flood-other-ships-inboxes
+
+Enterprise (flagship) und andere Schiffe erhalten staendig 'session.error'-Notifications (ProviderHeaderTimeout, TooManyRequests, overload) anderer Schiffe als Comms-Direktiven. Das sind keine echten Aufgaben, sondern transiente API-Fehler-Logs. Sie fluten den Posteingang und loesen unnoetige 'synthetic restart'-Zyklen aus.
+
+Erwartet: Transiente Model-Fehler eines Schiffs duerfen NICHT als actionable Comms-Direktiven an andere Schiffe gepostet werden. Hoechstens internes Logging/Status-Update. Nur echte Aufgaben (tell/ask/broadcast mit Handlungsspielraum) gehoeren in den Posteingang.
+
+Betroffen: beobachtet bei Enterprise, Discovery (m97936-m97993), eigene transients (m97957-m97972).
