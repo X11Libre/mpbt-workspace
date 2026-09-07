@@ -16,3 +16,5 @@ Fix: in execClientDirect nach cmd.Run() Cleanup analog zum OnExit-Hook ergaenzen
 - 2026-09-07T15:46:26Z Voyager: began work
 
 - 2026-09-07T16:38:40Z Voyager: progress 50% (Implemented fix in execClientDirect to cleanup heartbeat and ship name on exit)
+
+- 2026-09-07T16:41:39Z Voyager: progress 100% (Completed fix: added cleanup logic to execClientDirect to clear heartbeat and release ship name on both success and error)
