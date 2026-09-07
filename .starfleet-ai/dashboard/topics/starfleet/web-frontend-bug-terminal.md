@@ -1,6 +1,6 @@
 Title: "web-frontend: bug in terminal-ansicht"
 Category: active
-Status: "assigned"
+Status: "done"
 Assigned-To: "Gowron"
 Created-By: ""
 Created: ""
