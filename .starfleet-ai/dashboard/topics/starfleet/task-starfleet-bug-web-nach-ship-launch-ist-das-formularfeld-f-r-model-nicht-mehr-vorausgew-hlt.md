@@ -1,7 +1,7 @@
 Title: "starfleet: bug: web: nach ship-launch ist das formularfeld für model nicht mehr vorausgewählt"
 Category: starfleet
 Kind: "task"
-Status: "assigned"
+Status: "open"
 Assigned-To: "Enterprise"
 Created-By: "Aeon"
 Created: "2026-09-04T17:27:30Z"
