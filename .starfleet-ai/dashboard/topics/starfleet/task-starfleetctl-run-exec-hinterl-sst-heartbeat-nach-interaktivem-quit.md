@@ -14,3 +14,5 @@ Kontext: Discovery & Voyager waren per /quit beendet, blieben aber als blocked a
 Fix: in execClientDirect nach cmd.Run() Cleanup analog zum OnExit-Hook ergaenzen: Exit-Code 0 -> DoClear() + DoRelease(name); sonst -> DoStatus(crashed, ...). Danach make + bootstrap deploy.
 
 - 2026-09-07T15:46:26Z Voyager: began work
+
+- 2026-09-07T16:38:40Z Voyager: progress 50% (Implemented fix in execClientDirect to cleanup heartbeat and ship name on exit)
