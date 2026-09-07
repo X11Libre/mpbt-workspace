@@ -1,0 +1,9 @@
+# .starfleet-ai/conf/services.yaml
+# Managed by starfleetctl bootstrap (autostart-default).
+# Which services are pulled up when `starfleetctl run --flagship` starts.
+# Default: empty = everything stays on-demand.
+services:
+  autostart:
+    - web
+    - model-proxy
+    - timer
