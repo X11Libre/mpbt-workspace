@@ -1,7 +1,7 @@
 Title: "web-frontend: bug in terminal-ansicht"
 Category: active
-Status: "open"
-Assigned-To: "Stargazer"
+Status: "assigned"
+Assigned-To: "Gowron"
 Created-By: ""
 Created: ""
 Doc-Ref: ""
