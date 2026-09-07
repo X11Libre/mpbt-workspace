@@ -2,7 +2,7 @@ Title: "merge go-x11proto wip/termctl-scrollback-dimensions into master"
 Category: active
 Kind: "task"
 Status: "assigned"
-Assigned-To: "Enterprise"
+Assigned-To: "Voyager"
 Created-By: "Enterprise"
 Created: "2026-08-07T08:28:47Z"
 Doc-Ref: "—"
