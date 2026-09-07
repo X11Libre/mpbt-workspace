@@ -1,8 +1,8 @@
 Title: "starfleet: Capture-first + ehrliches Status-Board (task begin/log/progress/done, unattached-Flag, Web-Task-Detailansicht, sweep-stale-Timer, Skills)"
 Category: active
 Kind: "task"
-Status: "in-progress"
-Assigned-To: "Stargazer"
+Status: "assigned"
+Assigned-To: "Galactica"
 Created-By: "Defiant"
 Created: "2026-07-31T09:11:13Z"
 Doc-Ref: "—"
