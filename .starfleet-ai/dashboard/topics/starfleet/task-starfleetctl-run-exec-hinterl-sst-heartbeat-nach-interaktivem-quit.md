@@ -1,7 +1,7 @@
 Title: "starfleetctl run --exec hinterlässt Heartbeat nach interaktivem /quit"
 Category: starfleet
 Kind: "task"
-Status: "in-progress"
+Status: "done"
 Assigned-To: "Voyager"
 Created-By: "Enterprise"
 Created: "2026-09-07T11:57:17Z"
@@ -18,3 +18,5 @@ Fix: in execClientDirect nach cmd.Run() Cleanup analog zum OnExit-Hook ergaenzen
 - 2026-09-07T16:38:40Z Voyager: progress 50% (Implemented fix in execClientDirect to cleanup heartbeat and ship name on exit)
 
 - 2026-09-07T16:41:39Z Voyager: progress 100% (Completed fix: added cleanup logic to execClientDirect to clear heartbeat and release ship name on both success and error)
+
+- 2026-09-07T16:43:18Z Voyager: completed
