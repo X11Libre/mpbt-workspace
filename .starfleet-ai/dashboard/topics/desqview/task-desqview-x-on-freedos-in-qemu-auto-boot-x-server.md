@@ -1,7 +1,7 @@
 Title: "DESQview/X on FreeDOS in QEMU - Auto-boot X server"
 Category: active
 Kind: "task"
-Status: "assigned"
+Status: "in-progress"
 Assigned-To: "DeepSpace2"
 Created-By: "Yamato"
 Created: "2025-07-16T19:42:00Z"
@@ -93,3 +93,5 @@ TCG. But needs sudo to install (not available).
 2. Boot: nohup qemu-system-i386 -hda /tmp/freedos_clean.qcow2 -m 16 -serial file:/tmp/serial.log -monitor
 tcp:127.0.0.1:4445,server,nowait -vnc :1 &
 3. Try: DOSBox-X (sudo), HDPMI32 external, CWSDPMI -x, patch divide-by-zero, different server type
+
+- 2026-09-08T11:04:09Z DeepSpace2: began work
