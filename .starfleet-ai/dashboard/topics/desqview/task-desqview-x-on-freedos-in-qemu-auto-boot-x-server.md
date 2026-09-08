@@ -95,3 +95,5 @@ tcp:127.0.0.1:4445,server,nowait -vnc :1 &
 3. Try: DOSBox-X (sudo), HDPMI32 external, CWSDPMI -x, patch divide-by-zero, different server type
 
 - 2026-09-08T11:04:09Z DeepSpace2: began work
+
+- 2026-09-08T12:23:47Z DeepSpace2: progress 25% (FreeDOS VM boots successfully in QEMU (verified via VNC screenshots). Serial output not captured - VM may not be configured for serial console. Next: interact with VM to reach DESQview/X server startup, try HDPMI32 or DOSBox-X as alternative DPMI hosts per task research.)
