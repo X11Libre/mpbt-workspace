@@ -1,7 +1,7 @@
 Title: "Web ship spawn model selection broken"
 Category: starfleet
 Kind: "task"
-Status: "in-progress"
+Status: "done"
 Assigned-To: "Enterprise"
 Created-By: "Enterprise"
 Created: "2026-09-07T18:10:21Z"
@@ -20,3 +20,5 @@ When spawning a ship via web console, the model selected in the form is not bein
 - 2026-09-08T11:08:19Z Enterprise: progress 80% (Web-Dropdown-Filter fertig: branch starfleet-web-model-filter @90cb4c8 (gepusht). filterAvailableModels() filtert proxied Provider auf tatsaechlich served Modelle (free-only-aware), Nicht-Proxied bleiben, Fallback: bei Query-Fehler Modelle behalten. Unit-Tests (bareModelID, modelSet, filterAvailableModels inkl. Stub-/v1/models) gruen; make all gruen. Integration auf master: Koordination mit Defiant/Praetor ausstehend.)
 
 - 2026-09-08T11:10:27Z Enterprise: Integration auf master (Defiant, FF von 90cb4c8), deployt, web+timer worker neu gestartet. Live-Verifikation /api/models: nim-proxy 102->5 (Free-Tier-Allowlist, deepseek gefiltert), zen-proxy 60->3 (nur *-free), nicht-proxied nvidia/groq/opencode bleiben unangetastet.
+
+- 2026-09-08T11:10:31Z Enterprise: completed
