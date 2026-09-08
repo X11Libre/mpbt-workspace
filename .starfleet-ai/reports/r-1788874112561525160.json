@@ -1,0 +1,7 @@
+{
+  "id": "r-1788874112561525160",
+  "title": "--title",
+  "ship": "DeepSpace2",
+  "body": "FreeDOS VM boots successfully in QEMU with DESQview/X installed. Server.com runs under CWSDPMI but crashes with divide-by-zero errors due to CWSDPMI lacking full VCPI services. \n\nAchievements:\n- FreeDOS boots successfully (FDCONFIG.SYS -\u003e FDAUTO.BAT)\n- DESQview/X installed from 9 floppy images\n- Original SERVER.COM (256-byte stub) + SERVER.EXE (42KB PKLITE) intact\n- SERVER.EXE decompressed to 67,572 bytes\n- DESQCHK.COM TSR created - hooks INT 21h/2Bh, returns AL=0 (non-DESQview path)\n- CWSDPMI.EXE loads as DPMI host (persistent mode -p -s-)\n\nKey files:\n- _WORK_/desqview-x/disk/freedos.qcow2 - base FreeDOS image\n- /tmp/freedos_clean.qcow2 - working image with CWSDPMI -p -s-\n- /tmp/DESQCHK.COM - TSR hook (INT 21h/2Bh)\n- /tmp/SERVER_UNP.PATCHED.EXE - decompressed MZ EXE server\n\nBlocker: CWSDPMI is a 32-bit only DPMI server, doesn't support 16-bit DPMI apps or provide full VCPI services needed by DESQview/X server. Server crashes with divide-by-zero at 10C4 and spurious interrupts.\n\nNext steps (require infrastructure):\n1. Install HDPMI32 from FreeDOS packages (via FDNPKG) - provides full DPMI/VCPI\n2. Use DOSBox-X instead of QEMU - built-in DPMI/VCPI support works better than raw TCG\n3. Try CWSDPMI -x flag to disable DPMI 1.0 extensions\n4. Patch divide-by-zero at runtime address 10C4\n\nTask infrastructure ready for continuation when HDPMI32 or DOSBox-X available.",
+  "created": 1788874112
+}

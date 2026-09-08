@@ -1,0 +1,21 @@
+{
+  "id": "purge-weekly-full",
+  "description": "Weekly full purge of all dead-ship messages",
+  "owner": "Defiant",
+  "target": {
+    "type": "system",
+    "value": ""
+  },
+  "type": "system",
+  "cmd": [
+    "purge --all"
+  ],
+  "schedule": {
+    "type": "cron",
+    "cron_expr": "0 4 * * 0"
+  },
+  "persistent": true,
+  "enabled": true,
+  "created_at": 1788798571,
+  "next_fire": 1789272000
+}

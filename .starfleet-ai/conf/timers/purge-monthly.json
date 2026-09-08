@@ -1,0 +1,21 @@
+{
+  "id": "purge-monthly",
+  "description": "Monthly purge of old messages",
+  "owner": "Defiant",
+  "target": {
+    "type": "system",
+    "value": ""
+  },
+  "type": "system",
+  "cmd": [
+    "purge --older-than 30d"
+  ],
+  "schedule": {
+    "type": "cron",
+    "cron_expr": "0 3 * * *"
+  },
+  "persistent": true,
+  "enabled": true,
+  "created_at": 1788798446,
+  "next_fire": 1788922800
+}

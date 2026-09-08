@@ -1,0 +1,15 @@
+{
+  "id": "r-1788865844562724622",
+  "title": "Task web-ship-spawn-model-selection-broken abgeschlossen",
+  "subtitle": "Web-Model-Dropdown filtert auf tatsaechlich served Modelle; live verifiziert",
+  "ship": "Enterprise",
+  "body": "## Ergebnis\nWeb ship-spawn Formular waehlt jetzt ein Modell, das opencode auch wirklich nutzt (kein stiller Fallback mehr).\n\n## Root Cause (bestaetigt)\nopencode resolved die prefixed id (nim-proxy/\u003cmodell\u003e) korrekt; der Fallback passiert NUR wenn das gewaehlte Modell vom Provider nicht served wird - nim-proxy (free-only) filtert die meisten Modelle (u.a. deepseek) aus /v1/models. /api/models lieferte aber das unfiltrierte models.yaml-Catalog.\n\n## Aenderung\n- internal/web/web.go: filterAvailableModels() - proxied Provider (model-proxy.yaml) gegen ModelListFor pruefen (bare id, prefix gestrippt); nicht-proxied bleiben; bei Query-Fehler Modell behalten.\n- internal/web/models_test.go: Unit-Tests (bareModelID, modelSet, filterAvailableModels inkl. Stub-/v1/models) - alle gruen.\n- Launch-seitige Warnung validateModelAvailable (launch.go:501) kam von Defiant und ist im selben Release.\n\n## Deploy \u0026 Verifikation\n- Branch starfleet-web-model-filter @90cb4c8, von Defiant fast-forward auf master gemerged, gepusht, deployed; web + timer worker neu gestartet (HTTP 200).\n- LIVE /api/models: nim-proxy 102 -\u003e 5 (Free-Tier-Allowlist, deepseek entfernt), zen-proxy 60 -\u003e 3 (nur *-free); nicht-proxied nvidia(61)/groq/opencode bleiben komplett.\n- DeepSeek weiterhin waehlbar nur dort, wo served: nvidia-direct (nicht proxied) bzw. zen-proxy *-free.\n\n## Kannitverstan\nKeine offenen Punkte.",
+  "tags": [
+    "starfleetctl",
+    "web",
+    "model",
+    "ship-spawn"
+  ],
+  "task_ref": "starfleet/task-web-ship-spawn-model-selection-broken",
+  "created": 1788865844
+}
