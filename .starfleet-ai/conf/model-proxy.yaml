@@ -34,3 +34,11 @@ model_proxy:
       base_url: "https://integrate.api.nvidia.com/v1"
       api_key: "{env:NIM_API_KEY}"
       direct: true
+
+    - id: ollama
+      name: "Ollama (local)"
+      base_url: "http://localhost:11434/v1"
+      # Ollama doesn't require API keys, but we need to provide something
+      # to satisfy the OpenAI-compatible interface. The value doesn't matter
+      # as Ollama ignores it.
+      api_key: "ollama"
