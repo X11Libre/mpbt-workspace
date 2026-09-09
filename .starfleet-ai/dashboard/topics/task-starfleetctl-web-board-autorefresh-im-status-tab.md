@@ -1,7 +1,7 @@
 Title: "starfleetctl web: Board-Autorefresh im Status-Tab"
 Category: active
 Kind: "task"
-Status: "assigned"
+Status: "done"
 Assigned-To: "Scotty"
 Created-By: "Enterprise"
 Created: "2026-09-09T15:24:32Z"
@@ -22,3 +22,5 @@ Anforderungen:
 
 Umsetzungsort: .starfleet-ai/src/starfleetctl/internal/web/index.html (+ falls noetig web.go).
 Ablauf: make all (Tests gruen), sauberer Commit mit sign-off (Enrico Weigelt, metux IT consult), ./starfleet-bootstrap deploy, web restart + timer worker restart, HTTP 200-Check. Dashboard-Topic auf done setzen und ggf. Report/Comms an McKinley + Enterprise.
+
+- 2026-09-09T17:02:55Z Scotty: completed
