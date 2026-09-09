@@ -1,17 +1,33 @@
-Title: "Volla kernel linearisierung fortsetzen"
-Category: active
-Kind: "task"
-Status: "assigned"
-Assigned-To: "Barcley"
-Created-By: "McKinley"
-Created: "2026-08-10T18:08:22Z"
-Doc-Ref: ""
+---
+title: "Volla kernel linearisierung fortsetzen"
+category: active
+kind: task
+status: assigned
+assigned-to: "Barcley"
+created-by: "McKinley"
+created: 2026-08-10T18:08:22Z
+doc-ref: "—"
+updated: 2026-09-09
+noted-by: "Enterprise"
+---
 
 ## Verweis
 
 Ablauf, Regeln, Verbotenes und Resilienz: **Skill `android-kernel-rebase`**
 laden (`.claude/skills/android-kernel-rebase/SKILL.md`). Dieses Topic ist der
 Auftrag; der Skill ist die Arbeitsanweisung.
+
+## Zielversion (KRITISCH)
+
+- **Finale Zielversion = laut `Makefile` des Volla-Trees** (`volla-15.0-baseline`):
+  `VERSION=5`, `PATCHLEVEL=10`, `SUBLEVEL=198` → **v5.10.198**
+  (`lts/v5.10.198`, existiert im Clone: 2a1872e3). Diese Version ist der
+  Endpunkt — NICHT aus Commits ableiten.
+- Hinweis: Eine frühere Auftragsvorgabe nannte `v5.10.264` (LTS-Tree). Das war
+  **NICHT die im Makefile deklarierte Version** und ist verworfen/zu ignorieren.
+- Zwischenziel (je Schritt): nächster höherer stable-Mainline-Tag über der
+  aktuellen Basis (via `git describe`), z. B. Basis v5.4 → v5.5 → v5.6 → …
+  → v5.10.0, danach Schritt-für-Schritt in 5.10.y bis v5.10.198.
 
 ## Kontext: Volla-Kernel (mt8781)
 
@@ -29,11 +45,12 @@ Auftrag; der Skill ist die Arbeitsanweisung.
   durchgeführt. Diese Vorarbeit ist die Grundlage — **darauf aufbauen, nicht
   neu beginnen**.
 - **Aktueller Stand / wo anknüpfen:** Rebase-Run steht auf
-  `wip/linearize-volla-15.0-step33` (Basis 5.5.0). Ein früherer Agent hat bei
+  `wip/linearize-volla-15.0-step33` (Basis 5.4). Ein früherer Agent hat bei
   NIM-Rate-Limit irrtümlich `git rebase --abort` ausgeführt (⟶ FEHLVERHALTEN,
   im Skill verankert); kein `.git/rebase-merge` mehr aktiv. Backup-Branch
-  `backup-rebase-progress` vorhanden. Die Arbeit ist an genau der Stelle
-  fortzusetzen, an der sie unterbrochen wurde.
+  `backup-rebase-progress` vorhanden. Barcley hat inzwischen `step34` abgezweigt
+  und rebased auf `linux/v5.5` (aktiver Rebase). Die Arbeit ist an genau der
+  Stelle fortzusetzen, an der sie unterbrochen wurde.
 
 ## Analyse-Hintergrund (aus Topic starfleet/volla-kernel-linearization)
 
@@ -54,11 +71,11 @@ Auftrag; der Skill ist die Arbeitsanweisung.
   connectivity, met), Documentation/devicetree/bindings/{mediatek,
   soc/mediatek}/, drivers/staging/android/ion/.
 - **Erkenntnis:** Android-Common (android12-5.10) Commits sind meist
-  UPSTREAM/BACKPORT/FROMLIST → großteils schon in v5.10.264 enthalten;
+  UPSTREAM/BACKPORT/FROMLIST → großteils schon in v5.10.198 enthalten;
   MediaTek-ALPS merget android12-5.10 regelmäßig → redundant. Echter
   Volla-Delta = MediaTek-Treiber + DTS + Config.
 - **Referenz-Tags:** volla-15.0-baseline (Original-Volla HEAD), linearize-start,
-  linearize-done-v1, lts/v5.10.264 (Ziel-Basis acccef89f184), 951358a824f9
+  linearize-done-v1, lts/v5.10.198 (Ziel-Basis 2a1872e3), 951358a824f9
   (v5.10.43 merge-base).
 
 ## Aufgabe
@@ -74,20 +91,21 @@ Schrittweise Rebase des Volla-Tablet-Kernels (mt8781, Clone
    Schleife, bis alles oberhalb des zuletzt (im Original enthaltenen)
    upstream/LTS-Tags linear ist.
 
-2. Schrittweises Rebase auf die Mainline-ZWISCHENSTANDS-Basen
-   (PRÄZISIERT 2026-09-04 durch Praetor). Ziel: final auf v5.10.264 (LTS-Tree).
-   Das läuft SCHRITT FÜR SCHRITT, ein Mainline-Release nach dem anderen.
+2. Schrittweises Rebase auf die Mainline-ZWISCHENSTANDS-Basen.
+   Das läuft SCHRITT FÜR SCHRITT, ein Mainline-Release nach dem anderen,
+   bis zur **finalen Zielversion v5.10.198** (aus dem Volla-Makefile).
    Ablauf je Release:
    1. Rebase auf dem aktuellen Mainline-Tag abschließen.
    2. Tree-Abgleich mit dem Original-Volla-Tree (volla-15.0-baseline); ggf.
       Angleichs-Commit, damit beide Trees identisch sind.
    3. NEUEN Branch abzweigen (step-Nummer erhöhen).
-   4. Auf den nächsten Mainline-Tag rebasen: 5.6.0 → 5.7.0 → … → 5.10.0,
-      dann innerhalb 5.10.y weiter bis v5.10.264.
+   4. Auf den nächsten Mainline-Tag rebasen: 5.5 → 5.6 → 5.7 → … → 5.10.0,
+      dann innerhalb 5.10.y weiter bis v5.10.198.
    WICHTIG: NICHT auf neuere Versionen als die aktuelle Basis hochgehen
-   (kein Mainline 6.x) — nur linearisieren und auf dem jeweiligen Mainline-Tag
-   basieren. Endzustand: Branch basierend auf dem v5.10.264-Tag (LTS),
-   oberhalb dessen alles linear ist.
+   (kein Mainline 6.x), NICHT über die Makefile-Zielversion hinausgehen
+   (5.10.198, kein 5.10.264) — nur linearisieren und auf dem jeweiligen
+   Mainline-Tag basieren. Endzustand: Branch basierend auf dem
+   v5.10.198-Tag (LTS), oberhalb dessen alles linear ist.
 
 Nach jedem Schritt: **Report** (`reports submit`, belegt den Tree-Abgleich) +
 **Comms-Bericht an McKinley UND Enterprise** (=Flagschiff).
