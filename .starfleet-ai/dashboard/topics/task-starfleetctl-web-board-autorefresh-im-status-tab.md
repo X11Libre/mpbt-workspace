@@ -1,12 +1,11 @@
 Title: "starfleetctl web: Board-Autorefresh im Status-Tab"
 Category: active
-Kind: task
-Status: "open"
+Kind: "task"
+Status: "assigned"
+Assigned-To: "Scotty"
 Created-By: "Enterprise"
 Created: "2026-09-09T15:24:32Z"
-Assigned-To: "—"
 Doc-Ref: "—"
-Slug: task-starfleetctl-web-board-autorefresh-im-status-tab
 
 Feature: Das Web-Dashboard (internal/web/index.html) laedt die Schiffsliste (/api/board) aktuell nur bei Tab-/Event-Wechsel (refresh() in index.html um Z.883/890/2492). Gewuenscht: zyklischer Autorefresh des Board im Status-Tab, z.B. setInterval alle ~30s, damit Live-Fortschritt (ship-note, progress) automatisch sichtbar wird.
 
