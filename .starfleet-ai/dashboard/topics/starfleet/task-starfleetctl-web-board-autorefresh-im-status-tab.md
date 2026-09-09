@@ -1,5 +1,5 @@
 Title: "starfleetctl web: Board-Autorefresh im Status-Tab"
-Category: active
+Category: starfleet
 Kind: "task"
 Status: "done"
 Assigned-To: "Scotty"
