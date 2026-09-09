@@ -181,7 +181,7 @@ Für unsere Fleet-Nutzung überwiegen die Vorteile:
 2. Weighted-Round-Robin als Sticky Selection:
    - Bei Session-Start: gewichtete Zufallsauswahl
    - Bei Fehler/Timeout: zum nächsten gewichteten Modell wechseln
-   - Cooldown-basiert: nach 5 Minuten automatisch zurück ins Pool
+   - Cooldown-basiert: nach `cooldown_period` Sekunden automatisch zurück ins Pool
 3. Circuit Breaker (Netflix-Style) implementieren
 4. Session-Affinität: gleiche Session → gleiches Modell (Cache-Shard)
 
@@ -212,11 +212,12 @@ Für unsere Fleet-Nutzung überwiegen die Vorteile:
 ### Phase 5: Testing & Dokumentation
 1. Unit Tests für alle Komponenten
 2. Integration Tests mit echtem opencode
-3. User-Dokumentation aktualisieren:
+3. **Komplette Dokumentation aktualisieren:**
    - Model-Proxy-Konfiguration erklären
    - starfleetctl Befehle dokumentieren
    - Context-Limit-Header Verhalten erklären
-   - Beispiele für Strategien zeigen
+   - Beispiele für Strategien zeigen (heavy-model, cruiser-model, scout-model)
+   - Konfigurierbare Optionen erklären (cooldown periods, heuristic thresholds)
 
 ---
 
@@ -312,9 +313,16 @@ routing:
 
 ## Offene Punkte
 
-1. **Weighted-Round-Robin Sticky Selection - Cooldown:** Nach wie vielen Sekunden soll ein fehlgeschlagenes Modell wieder in den Pool zurückgenommen werden? (Empfehlung: 300s = 5 Minuten)
-2. **User-Dokumentation:** Welche Beispiele sollen in der Doku gezeigt werden? (Empfehlung: heavy-model, cruiser-model, scout-model)
+1. **Weighted-Round-Robin Sticky Selection Cooldown**: 
+   - **Preset**: 300 Sekunden (5 Minuten) 
+   - **Konfigurierbar**: pro Strategie über `cooldown_period` Parameter
 
-Die beiden Topics sind jetzt komplett spezifiziert:
+2. **User-Dokumentation**: 
+   - Vollständige Dokumentation wird erstellt
+   - Beispiele: heavy-model, cruiser-model, scout-model
+   - Alle Konfigurationsoptionen erklärt
+   - starfleetctl Befehle dokumentiert
+
+Die beiden Topics sind jetzt vollständig spezifiziert und bereit für die Implementierung:
 - `starfleet/task-agent-templates-schiffsklassen` – Schiffs-Klassen-Templates + Enterprise-Koordination
-- `starfleet/task-model-proxy-meta-models` – Model-Routing mit Context-Sicherheit, starfleetctl-Integration, forced switching, session-affinity, circuit breaker, heuristiken, Implementierungsplan
+- `starfleet/task-model-proxy-meta-models` – Model-Routing mit Context-Sicherheit, starfleetctl-Integration, forced switching, session-affinity, circuit breaker, heuristiken, kompletter Dokumentationsplan
