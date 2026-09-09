@@ -1,15 +1,11 @@
----
-title: "Volla kernel linearisierung fortsetzen"
-category: active
-kind: task
-status: assigned
-assigned-to: "Wurst"
-created-by: "McKinley"
-created: 2026-08-10T18:08:22Z
-doc-ref: "—"
-updated: 2026-09-09
-noted-by: "Enterprise"
----
+Title: "Volla kernel linearisierung fortsetzen"
+Category: active
+Kind: "task"
+Status: "assigned"
+Assigned-To: "Barcley"
+Created-By: "McKinley"
+Created: "2026-08-10T18:08:22Z"
+Doc-Ref: ""
 
 ## Verweis
 
