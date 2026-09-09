@@ -1,60 +1,100 @@
 ---
-Title: volla kernel linearisierung fortsetzen
-Category: active
-Kind: task
-Status: assigned
-Assigned-To: Wurst
-Created-By: McKinley
-Created: 2026-08-10T18:08:22Z
-Doc-Ref: "—"
-Updated: 2026-09-04
-Noted-By: Enterprise
+title: "Volla kernel linearisierung fortsetzen"
+category: active
+kind: task
+status: assigned
+assigned-to: "Wurst"
+created-by: "McKinley"
+created: 2026-08-10T18:08:22Z
+doc-ref: "—"
+updated: 2026-09-09
+noted-by: "Enterprise"
 ---
+
+## Verweis
+
+Ablauf, Regeln, Verbotenes und Resilienz: **Skill `android-kernel-rebase`**
+laden (`.claude/skills/android-kernel-rebase/SKILL.md`). Dieses Topic ist der
+Auftrag; der Skill ist die Arbeitsanweisung.
+
+## Analyse-Hintergrund (aus Topic starfleet/volla-kernel-linearization)
+
+- **Repo:** HelloVolla/android_kernel_volla_mt8781 (Branches volla-14.0,
+  volla-15.0); Kernel-Basis Linux 5.10.198 (android12-5.10); Merge-Base
+  951358a824f9 (v5.10.43).
+- **Remotes:** origin/volla (Volla), linux (torvalds), lts (gregkh stable,
+  alle v5.10.y tags), mediatek (BSP); Tag-Namespaces volla/, linux/, lts/,
+  mediatek/.
+- **Merge-History:** ~24.676 Commits seit v5.10.43, davon ~14.016
+  MediaTek/Volla-spezifisch (grep mimir|volla|mtk|mt8781|mt6789). Muster:
+  Frühphase Android12-5.10-Initial-Merges + 5.10.x point releases,
+  Mittelphase monatliche android12-5.10-YYYY-MM-R merges, Spätphase letzter
+  android12-5.10-2023-11-R2 merge (2023-11), Volla-Overlay volla-15.0 mit
+  VollaOS 15.0.0 sync (2024).
+- **Volla-Delta-Kernbereiche:** arch/arm64/boot/dts/mediatek/ (alle dtb/dts
+  mt6789/tb8781/M100*/M101*, ~200+ files), arch/arm64/configs/mimir.config,
+  drivers/gpu/mediatek/ (GPU GED, ~80+ files), drivers/misc/mediatek/ (DWS,
+  connectivity, met), Documentation/devicetree/bindings/{mediatek,
+  soc/mediatek}/, drivers/staging/android/ion/.
+- **Erkenntnis:** Android-Common (android12-5.10) Commits sind meist
+  UPSTREAM/BACKPORT/FROMLIST → großteils schon in v5.10.264 enthalten;
+  MediaTek-ALPS merget android12-5.10 regelmäßig → redundant. Echter
+  Volla-Delta = MediaTek-Treiber + DTS + Config.
+- **Referenz-Tags:** volla-15.0-baseline (Original-Volla HEAD), linearize-start,
+  linearize-done-v1, lts/v5.10.264 (Ziel-Basis acccef89f184), 951358a824f9
+  (v5.10.43 merge-base).
 
 ## Aufgabe
 
-1. Jetzt nochmal schrittweise Linearisierung: mein Stand ist
-   `linearize-volla-15.0`. Zweig von dort ab (`.stepN…` usw.), jeweils die
-   oberste Merge-Node auflösen. Nach jeder aufgelösten Merge-Node mit dem
-   volla-tree vergleichen (keine Differenz mehr; im Worst Case einen
-   Extra-Commit anhängen, der den Tree wieder ans Original angleicht). Dann
-   nächste Branch und nächste Merge-Node — Schleife bis alles oberhalb des
-   zuletzt (im Original enthaltenen) upstream/LTS-Tags linear ist.
+Schrittweise Rebase des Volla-Tablet-Kernels (mt8781, Clone
+`_WORK_/volla-kernel/sources/volla/kernel-mt8781`) gemäß Skill
+`android-kernel-rebase`:
 
-2. Schrittweises Rebase auf die mainline ZWISCHENSTANDS-basen (PRÄZISIERT
-   2026-09-04 durch Praetor): Ziel ist final auf v5.10.264 (LTS-Tree) zu
-   rebasen. Das läuft SCHRITT FÜR SCHRITT, ein mainline-Release nach dem
-   anderen. Aktueller Stand IST 5.5.0 (d5226fa6dbae0) — das ist der korrekte
-   aktuelle Zwischenschritt. Ablauf je Release:
-   1. Rebase auf dem aktuellen mainline-Tag abschließen.
+1. Linearisierung Schritt für Schritt: vom aktuellen Stand abzweigen
+   (`<stem>-step<N>`, Counter hoch), oberste Merge-Node auflösen, je Node mit
+   dem Original-Volla-Tree vergleichen (keine Differenz; im Worst Case
+   Angleichs-Commit anhängen), dann nächster Branch/nächste Merge-Node —
+   Schleife, bis alles oberhalb des zuletzt (im Original enthaltenen)
+   upstream/LTS-Tags linear ist.
+
+2. Schrittweises Rebase auf die Mainline-ZWISCHENSTANDS-Basen
+   (PRÄZISIERT 2026-09-04 durch Praetor). Ziel: final auf v5.10.264 (LTS-Tree).
+   Das läuft SCHRITT FÜR SCHRITT, ein Mainline-Release nach dem anderen.
+   Ablauf je Release:
+   1. Rebase auf dem aktuellen Mainline-Tag abschließen.
    2. Tree-Abgleich mit dem Original-Volla-Tree (volla-15.0-baseline); ggf.
       Angleichs-Commit, damit beide Trees identisch sind.
    3. NEUEN Branch abzweigen (step-Nummer erhöhen).
-   4. Auf den nächsten mainline-Tag rebasen: 5.6.0 → 5.7.0 → … → 5.10.0,
+   4. Auf den nächsten Mainline-Tag rebasen: 5.6.0 → 5.7.0 → … → 5.10.0,
       dann innerhalb 5.10.y weiter bis v5.10.264.
    WICHTIG: NICHT auf neuere Versionen als die aktuelle Basis hochgehen
-   (kein mainline 6.x) — nur linearisieren und auf dem jeweiligen mainline-Tag
+   (kein Mainline 6.x) — nur linearisieren und auf dem jeweiligen Mainline-Tag
    basieren. Endzustand: Branch basierend auf dem v5.10.264-Tag (LTS),
-   oberhalb dessen linear.
+   oberhalb dessen alles linear ist.
 
-Nach jedem Schritt Report + Bericht an McKinley.
+Nach jedem Schritt: **Report** (`reports submit`, belegt den Tree-Abgleich) +
+**Comms-Bericht an McKinley UND Enterprise** (=Flagschiff).
 
-## Aktueller Live-Stand (2026-09-04, von Enterprise festgehalten)
+## Verboten / Resilienz (Kurzfassung — Details im Skill)
 
-Es steht eine **aktive Rebase-Sitzung im mpbt-Worktree**
-(`_WORK_/volla-kernel/sources/volla/kernel-mt8781`) an:
-- Mitten in einem Rebase von `wip/linearize-volla-15.0-step32` (HEAD detached,
-  Rebase läuft auf 5.5.0-Basis d5226fa6dbae0).
-- Letzte Commits von heute 2026-09-04 (~16:12): z.B.
-  `abe4df1a230c2` "drm/edid: Pass connector to AVI infoframe functions",
-  davor phy/Marvell A3700 PHY/COMPHY "support".
-- Konflikt `UU drivers/gpu/drm/i915/display/intel_dp.c` (Artefakt der
-  5.5.0-Basis — wird als Teil des 5.5.0-Schritts gelöst, der Base ist
-  korrekt).
-- Schritt-Branches `linearize-volla-15.0-step1..step32` vorhanden.
+- **Kein `git rebase --abort`**, kein hartes Rollback (`git reset --hard`,
+  Branch löschen) aus Zeitdruck.
+- **Bei transienten Fehlern** (Rate-Limit, Modellfehler, Proxy tot): weiter
+  machen, nicht abbrechen, nicht warten.
+- **Bei unerwartet beendeten git-Calls**: erst Zustand prüfen
+  (`git status`, `.git/rebase-merge`/`.git/rebase-apply`, `git log -1`), dann
+  entscheiden — nie „nichts tun" oder zurückrollen.
+- Konflikt-Stopp von git ist KEIN Fehler: semantisch auflösen, `--continue`.
+- Backup-Branches immer behalten, branch-Nummer hochzählen.
+- Kein pauschales fat-diff gegen den Upstream — die komplette History zählt.
 
-Aufgabe des beauftragten Schiffs (Wurst): Die laufende Rebase-Sitzung gemäß
-der präzisierten Schrittfolge (Punkt 2) **eigenständig zu Ende führen** —
-5.5.0 abschließen, dann Release für Release (5.6.0 … 5.10.0 … 5.10.264)
-hocharbeiten, je Release Tree-Abgleich + Angleichs-Commit + neuen Branch.
-Reports an McKinley und Enterprise.
+## Aktueller Live-Stand (2026-09-09)
+
+- Rebase-Run stand auf `wip/linearize-volla-15.0-step33` (5.5.0-Basis).
+- Vorheriger Agent hat bei NIM-Rate-Limit `git rebase --abort` ausgeführt,
+  auf step33 zurückgesetzt und aufgegeben — das ist das FEHLVERHALTEN, das der
+  Skill verhindert. Kein `.git/rebase-merge` mehr vorhanden; Backup-Branch
+  `backup-rebase-progress` existiert.
+- Schritt-Branches `linearize-volla-15.0-step1..step33` vorhanden.
+- Makelfile-Ziel des Original-Trees (volla-15.0): 5.10.198; Endziel-LTS laut
+  Praetor-Präzisierung: v5.10.264.
