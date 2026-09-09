@@ -1,0 +1,7 @@
+{
+  "id": "r-1788945233078870496",
+  "title": "--title",
+  "ship": "Enterprise",
+  "body": "Ollama /v1/models liefert keine Capability-Metadaten → Ollama-Modelle in der generierten opencode.json waren tool-less. Neu: Provider-Typ \"ollama\" (Type-Dispatch wie opencode-zen) + Provider.forcedModelCaps() — Default [toolcall, temperature], überschreibbar per capabilities:-Liste (z.B. attachment für Vision-Modelle); modelEntryFor(inf, forcedCaps) merged ohne Dubletten. Commit 3fa6df0 auf origin/master (starfleetctl), make all, model-proxy pid 11347 neu gestartet. E2E: run --name DummyOlla generierte Config — alle 5 Ollama-Modelle tool_call+temperature. workspace conf/model-proxy.yaml: type: ollama gesetzt. Mehr Details in agents.d/local/local-knowledge-dump.md (2026-09-09 ollama section).",
+  "created": 1788945233
+}
