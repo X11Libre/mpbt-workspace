@@ -17,11 +17,32 @@ Ablauf, Regeln, Verbotenes und Resilienz: **Skill `android-kernel-rebase`**
 laden (`.claude/skills/android-kernel-rebase/SKILL.md`). Dieses Topic ist der
 Auftrag; der Skill ist die Arbeitsanweisung.
 
+## Kontext: Volla-Kernel (mt8781)
+
+- **Worum es geht:** Der **Volla Tablet Kernel (MediaTek mt8781)** — das
+  Android-Kernel-Repo `HelloVolla/android_kernel_volla_mt8781` (Branches
+  volla-14.0, volla-15.0). Ziel ist dessen Linearisierung/Rebase auf die
+  Mainline-Basis (Details im Skill).
+- **Bereits geclont:** Der Kernel liegt schon im mpbt-Workspace unter
+  `_WORK_/volla-kernel/sources/volla/kernel-mt8781` (Solution `volla-kernel`,
+  vgl. `cf/volla-kernel/`). **Nicht neu klonen** — nur in diesem Clone arbeiten.
+- **Vorarbeit vorhanden:** Ein anderer Agent hat dort bereits erheblich
+  gearbeitet: Volla-15.0-Baseline erfasst, Linearisierung begonnen, ~33
+  Schritt-Branches angelegt (`wip/linearize-volla-15.0-step1..step33` plus
+  ältere `linearize-volla-15.0-stepN`), Analyse der Merge-History
+  durchgeführt. Diese Vorarbeit ist die Grundlage — **darauf aufbauen, nicht
+  neu beginnen**.
+- **Aktueller Stand / wo anknüpfen:** Rebase-Run steht auf
+  `wip/linearize-volla-15.0-step33` (Basis 5.5.0). Ein früherer Agent hat bei
+  NIM-Rate-Limit irrtümlich `git rebase --abort` ausgeführt (⟶ FEHLVERHALTEN,
+  im Skill verankert); kein `.git/rebase-merge` mehr aktiv. Backup-Branch
+  `backup-rebase-progress` vorhanden. Die Arbeit ist an genau der Stelle
+  fortzusetzen, an der sie unterbrochen wurde.
+
 ## Analyse-Hintergrund (aus Topic starfleet/volla-kernel-linearization)
 
-- **Repo:** HelloVolla/android_kernel_volla_mt8781 (Branches volla-14.0,
-  volla-15.0); Kernel-Basis Linux 5.10.198 (android12-5.10); Merge-Base
-  951358a824f9 (v5.10.43).
+- **Kernel-Basis:** Linux 5.10.198 (android12-5.10); Merge-Base 951358a824f9
+  (v5.10.43).
 - **Remotes:** origin/volla (Volla), linux (torvalds), lts (gregkh stable,
   alle v5.10.y tags), mediatek (BSP); Tag-Namespaces volla/, linux/, lts/,
   mediatek/.
@@ -87,14 +108,6 @@ Nach jedem Schritt: **Report** (`reports submit`, belegt den Tree-Abgleich) +
 - Konflikt-Stopp von git ist KEIN Fehler: semantisch auflösen, `--continue`.
 - Backup-Branches immer behalten, branch-Nummer hochzählen.
 - Kein pauschales fat-diff gegen den Upstream — die komplette History zählt.
-
-## Aktueller Live-Stand (2026-09-09)
-
-- Rebase-Run stand auf `wip/linearize-volla-15.0-step33` (5.5.0-Basis).
-- Vorheriger Agent hat bei NIM-Rate-Limit `git rebase --abort` ausgeführt,
-  auf step33 zurückgesetzt und aufgegeben — das ist das FEHLVERHALTEN, das der
-  Skill verhindert. Kein `.git/rebase-merge` mehr vorhanden; Backup-Branch
-  `backup-rebase-progress` existiert.
-- Schritt-Branches `linearize-volla-15.0-step1..step33` vorhanden.
-- Makelfile-Ziel des Original-Trees (volla-15.0): 5.10.198; Endziel-LTS laut
-  Praetor-Präzisierung: v5.10.264.
+- **Workspace nicht verpfuschen:** nur im Kernel-Clone arbeiten, Remotes und
+  Workspace-Root-Branch (`mtx/agent-config`) nicht anfassen, keine fremden
+  Branches auschecken (siehe Skill, Abschnitt Workspace isolation).
