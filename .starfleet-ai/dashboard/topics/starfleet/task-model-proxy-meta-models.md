@@ -25,12 +25,18 @@ Strategie ab (Fallback, Round-Robin, Weighted).
 
 ### Modell-Kompatibilität
 - Modelle sind üblicherweise kompatibel (manuell getestet)
-- Bei Context-Window-Unterschieden: ggf. Compact-Trigger auslösen
-- Noch zu klären: differentielle Behandlung von system-prompt/parameters
+- System-prompt/parameters werden durchgereicht
 
 ### Monitoring/Heuristiken
 - Konfigurierbar: globale Defaults + per-Strategy Override
 - Metriken: Latenz, Fehlerrate, Token-Durchsatz, Consecutive Failures
+
+### Context-Window-Management (Kern-Design)
+- **Proxy berechnet `min(context_window)` über alle Modelle in der Strategie**
+- Dieses Limit wird opencode via `X-Context-Limit` Header mitgeteilt
+- opencode treated dies als effektives Context-Limit
+- Compaction wird IMMER vor Erreichen des kleinsten Modells getriggert
+- Kein Abhängig davon welches Modell gerade aktiv ist
 
 ---
 
@@ -44,40 +50,37 @@ strategies:
     models:
       - id: big-pickle
         provider: nim-proxy
+        context-window: 131072
         priority: 1
       - id: nvidia/nemotron-3-ultra-550b-a55b
         provider: nim-proxy
+        context-window: 32768
         priority: 2
     strategy: fallback
+    # Effektives Limit: min(131072, 32768) = 32768
 
   cruiser-model:
     description: "Allgemeine Arbeit — Round-Robin für Verfügbarkeit"
     models:
       - id: nvidia/nemotron-3-ultra-550b-a55b
         provider: nim-proxy
+        context-window: 32768
         weight: 1
       - id: nvidia/nemotron-3-nano-30b-a3b
         provider: nim-proxy
+        context-window: 16384
         weight: 1
     strategy: round-robin
+    # Effektives Limit: min(32768, 16384) = 16384
 
   scout-model:
     description: "Leichte Aufgaben — schnell, billig"
     models:
       - id: nvidia/nemotron-3-nano-30b-a3b
         provider: nim-proxy
+        context-window: 16384
     strategy: single
-
-  balanced-model:
-    description: "60% BigPickle, 40% Nemotron Ultra"
-    models:
-      - id: big-pickle
-        provider: nim-proxy
-        weight: 3
-      - id: nvidia/nemotron-3-ultra-550b-a55b
-        provider: nim-proxy
-        weight: 2
-    strategy: weighted
+    # Effektives Limit: 16384
 ```
 
 ### Strategien-Typen
@@ -91,7 +94,103 @@ strategies:
 
 ---
 
-## Teil 2: Session-Affinität + Circuit Breaker
+## Teil 2: Context-Window-Management (Detail)
+
+### Problem-Szenario
+
+```
+1. Session startet mit BigPickle (128k Context)
+2. Session wächst auf 80k Tokens
+3. BigPickle wird unverfügbar (Quota aufgebraucht)
+4. Proxy wechselt auf Nemotron Ultra (32k Context)
+5. 80k Tokens > 32k Limit → Upstream lehnt ab
+6. Compaction auf Nemotron Ultra: 80k zu verarbeiten → möglicherweise zu groß
+7. Session steckt fest
+```
+
+### Lösung: Min-Limit von Anfang an
+
+```
+1. Strategie "heavy-model" definiert:
+   - BigPickle: 128k
+   - Nemotron Ultra: 32k
+2. Proxy berechnet: effective_limit = min(128k, 32k) = 32k
+3. Proxy sendet an opencode: X-Context-Limit: 32768
+4. opencode behandelt 32k als hartes Limit
+5. Compaction wird bei ~27k getriggert (32k - buffer)
+6. Bei Fallback auf Nemotron Ultra: Context passt immer
+```
+
+### Vorteile
+
+- **Sicher:** Context ist IMMER kompatibel mit allen Modellen in der Strategie
+- **Transparent:** opencode merkt den Wechsel nicht
+- **Einfach:** Keine dynamische Limit-Anpassung nötig
+- **Compaction funktioniert:** Immer genug Luft für Summary
+
+### Nachteile
+
+- **Verschwendung:** BigPickle's 128k werden nicht ausgenutzt
+- **Konservativ:** Nutzer könnte mehr Context haben
+
+### Abwägung
+
+Für unsere Fleet-Nutzung überwiegen die Vorteile:
+- Ships arbeiten meistens autonom (Hintergrund)
+- Sicherheit > maximale Context-Ausnutzung
+- Nutzer kann bei Bedarf manuell mit `--model big-pickle` starten (ohne Strategie)
+
+---
+
+## Teil 3: Implementierung im Proxy
+
+### Context-Window-Berechnung
+
+```go
+func (r *Router) EffectiveContextLimit(strategy string) int {
+    s := r.strategies[strategy]
+    minCtx := math.MaxInt32
+    for _, m := range s.Models {
+        if m.ContextWindow < minCtx {
+            minCtx = m.ContextWindow
+        }
+    }
+    return minCtx
+}
+```
+
+### Header-Injection
+
+```go
+func (r *Router) RoundTrip(req *http.Request) (*http.Response, error) {
+    strategy := r.resolveStrategy(req)
+    if strategy != "" {
+        limit := r.EffectiveContextLimit(strategy)
+        req.Header.Set("X-Context-Limit", strconv.Itoa(limit))
+    }
+    return r.upstream.RoundTrip(req)
+}
+```
+
+### opencode-Integration
+
+```json
+// opencode.json — Context-Limit aus Header lesen
+{
+  "agent": {
+    "context": {
+      "source": "header",
+      "header": "X-Context-Limit"
+    }
+  }
+}
+```
+
+Oder: Proxy sendet das Limit als ersten Response-Header, opencode liest es bei Session-Start.
+
+---
+
+## Teil 4: Circuit Breaker + Session-Affinität
 
 ### Affinität
 - Default: gleiche Session → gleiches Modell (Cache-Shard)
@@ -124,7 +223,7 @@ Transition:
 
 ---
 
-## Teil 3: Trigger-Regeln
+## Teil 5: Trigger-Regeln
 
 ```yaml
 triggers:
@@ -150,7 +249,7 @@ triggers:
 
 ---
 
-## Teil 4: Provider-Health
+## Teil 6: Provider-Health
 
 ```yaml
 providers:
@@ -169,7 +268,7 @@ providers:
 
 ---
 
-## Teil 5: Routing-Tabelle
+## Teil 7: Routing-Tabelle
 
 ```yaml
 routing:
@@ -183,7 +282,11 @@ routing:
 
 ## Offene Punkte
 
-- [ ] Context-Window-Unterschiede: Compact-Trigger wie implementieren?
-- [ ] System-Prompt / Parameters bei Modell-Wechsel: durchreichen oder anpassen?
-- [ ] Weighted-Round-Robin: nach Request-Zahl oder Zeitfenster?
-- [ ] Monitoring-Endpoint: /v1/meta-models/status für aktuelle Strategie
+1. **Weighted-Round-Robin:** Nach Request-Zahl oder Zeitfenster?
+
+2. **Monitoring-Endpoint:** `/v1/meta-models/status` für aktuelle Strategie + Fallback-Historie
+
+3. **Context-Limit-Header:** Wie genau soll opencode das Limit lesen?
+   - Option A: Erster Response-Header bei Session-Start
+   - Option B: `/v1/models` Endpoint erweitert um `context_window`
+   - Option C: separater Endpoint `/v1/strategy/<name>/limits`
