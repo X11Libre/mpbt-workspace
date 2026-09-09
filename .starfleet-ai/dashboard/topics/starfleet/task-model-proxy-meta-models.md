@@ -110,7 +110,7 @@ strategies:
 | `single`      | Nur ein Modell, kein Fallback                       |
 | `fallback`    | Sequenz nach `priority` (niedriger = zuerst)        |
 | `round-robin` | Gleichmäßig wechseln                                |
-| `weighted`    | Nach `weight`-Faktor                                |
+| `weighted`    | **Sticky selection**: Bei Start ein Modell nach Gewicht wählen, danach bei Fehler/Timeout wechseln |
 
 ---
 
@@ -139,7 +139,7 @@ strategies:
 4. opencode behandelt 200k als hartes Limit
 5. Compaction wird bei ~170k getriggert (200k - buffer)
 6. Bei Fallback auf Big Pickle: Context passt immer
-7. Bei Fallback auf Nemotron Ultra: noch mehr Headroom
+7. Bei Fallback auf Nemotron Ultra: noch mehr Headroom verfügbar
 ```
 
 ### Vorteile
@@ -303,7 +303,8 @@ routing:
 
 ## Offene Punkte
 
-1. **Weighted-Round-Robin:** Nach Request-Zahl oder Zeitfenster?
+1. **Weighted-Round-Robin:** Beim Ship-Start ein Modell nach Gewicht wählen und dabei bleiben, außer es fällt aus oder wird zu langsam (sticky selection mit Failover).  
+   Implementierung: Bei neuer Session: gewichtete Zufallsauswahl. Bei Fehler/Timeout: zum nächstengewichteten Modell wechseln.
 
 2. **Monitoring-Endpoint:** `/v1/meta-models/status` für aktuelle Strategie + Fallback-Historie
 
