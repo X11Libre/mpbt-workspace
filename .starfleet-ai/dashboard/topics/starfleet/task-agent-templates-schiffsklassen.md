@@ -13,62 +13,58 @@
 
 Vordefinierte Agent-Templates (Schiffsklassen) ermöglichen es, neue Schiffe
 mit passender Konfiguration für bestimmte Aufgabentypen zu starten. Das
-Flagschiff (Enterprise) koordiniert den gesamten Lifecycle: Template-Auswahl,
-Spawn, Überwachung, Aufräumen.
+Flagschiff (Enterprise) koordiniert den gesamten Lifecycle.
 
 ## Bisherige Arbeit
 
-Bereits existierende Topics:
-- **`task-starfleetctl-schiffsklassen-rollen`** (McKinley) — Metadaten-Modell:
-  Klasse als Text/Name, Board-Anzeige, Web-Dropdown, Kommunikation
-- **`starfleet/task-workspace-sop-erweitern-auto-assign-und-automatisches-ship-spawn-on-demand`**
-  (Discovery) — Auto-Assign + Auto-Spawn SOP
+- **`task-starfleetctl-schiffsklassen-rollen`** (McKinley) — Metadaten-Modell
+- **`starfleet/task-workspace-sop-erweitern-auto-assign-und-automatisches-ship-spawn-on-demand`** (Discovery) — Auto-Spawn SOP
 
-Dieser Topic konsolidiert und erweitert beides um den operationalen Workflow.
-
-## Anforderungen
-
-### 1. Agent-Templates (Schiffsklassen-Profil)
+## Agent-Templates (Schiffsklassen-Profil)
 
 Jedes Template definiert:
 - **Klassenname** (z.B. `Scout`, `Cruiser`, `Heavy`)
-- **Modell** — welches LLM für diese Klasse verwendet wird
-  - `Scout`: nemotron-nano (schnell, billig) — leichte Scans, CI-Checks
-  - `Cruiser`: nemotron-ultra (standard) — allgemeine Arbeit
-  - `Heavy`: big-pickle / andere schwere Modelle — komplexe Analyse, Code-Review
-- **SOP-Fragmente** — welche Skills werden geladen (immer-geladen vs. on-demand)
+- **Modell** — welches LLM (oder Meta-Model) für diese Klasse
+- **SOP-Fragmente** — welche Skills werden geladen
 - **Session-Type** — terminal oder background
-- **Name-Prefix** — für automatische Namensvergabe (z.B. `Scout-7`, `Cruiser-3`)
+- **Name-Prefix** — für automatische Namensvergabe
 - **Timeout** — maximale Laufzeit
 - **Auto-Cleanup** — ob Schiff nach Task-Completion gestoppt werden soll
 
-### 2. Flagship-Koordination (Enterprise)
+### Template-Vorschläge
 
-Enterprise als koordinierendes Flagschiff:
+| Klasse   | Modell / Meta-Model    | Einsatz                        |
+|----------|------------------------|--------------------------------|
+| Scout    | nemotron-nano (schnell)| CI-Checks, leichte Scans       |
+| Cruiser  | nemotron-ultra         | allgemeine Arbeit, PR-Reviews  |
+| Heavy    | heavy-model (Meta)     | komplexe Analyse, großer Code  |
+
+## Flagship-Koordination (Enterprise)
+
 1. Empfängt Task via `task capture --assign auto`
-2. Analysiert Task-Beschreibung → wählt passendes Template
+2. Analysiert Task-Beschreibung → wählt passende Klasse
 3. Spawnt Schiff via `session ship-run` mit Template-Config
 4. Weist Task zu via `task assign <slug> <ship>`
 5. Überwacht Fortschritt via Comms
 6. Räumt auf nach Completion (optional: `session stop`)
 
-### 3. Web-Integration
+## Web-Integration
 
 - Template-Auswahl im Web-Formular beim Ship-Spawn
 - Dropdown: "Scout (schnell)", "Cruiser (standard)", "Heavy (komplex)"
 - Explizite Modell-Auswahl weiterhin möglich (Override)
 
-### 4. Implementierungsschritte
+## Implementierungsschritte
 
-1. Template-Definition in YAML/JSON (unter `.starfleet-ai/conf/` oder `var/`)
+1. Template-Definition in YAML (`.starfleet-ai/conf/templates/`)
 2. `starfleetctl` erweitern: `ship template list`, `ship template show <name>`
 3. `session ship-run` erweitern: `--template <name>` Flag
 4. Enterprise-SOP: Auto-Assign → Template-Auswahl → Spawn → Cleanup
 5. Web-API: `/api/templates` Endpoint für Dropdown
-6. Board: Klassenname als zusätzliches Feld (komplementär zu McKinley's Metadaten-Topic)
+6. Board: Klassenname als zusätzliches Feld
 
 ## Offene Fragen
 
-- Sollen Templates pro Workspace konfigurierbar sein oder global?
-- Soll Auto-Cleanup default sein oder opt-in?
-- Braucht es eine "kein Template" Option für manuelle Modell-Auswahl?
+- Templates pro Workspace oder global?
+- Auto-Cleanup default oder opt-in?
+- "Kein Template" Option für manuelle Modell-Auswahl?
