@@ -31,19 +31,22 @@ models:
       provider: groq
       label: Llama 3.3 70B
       context: 131072
-    - id: groq/meta-llama/llama-4-scout-17b-16e-instruct
+    - id: groq/qwen/qwen3.6-27b
       provider: groq
-      label: Llama 4 Scout 17B 16E
-      context: 131072
-      caps:
-        - attachment
-        - image-in
-    - id: groq/qwen/qwen3-32b
-      provider: groq
-      label: Qwen3-32B
+      label: Qwen3.6 27B
       context: 131072
       caps:
         - reasoning
+        - attachment
+        - image-in
+    - id: groq/qwen/qwen3.8-27b
+      provider: groq
+      label: Qwen3.8 27B
+      context: 131042
+      caps:
+        - reasoning
+        - attachment
+        - image-in
     - id: groq/openai/gpt-oss-safeguard-20b
       provider: groq
       label: Safety GPT OSS 20B
@@ -58,10 +61,6 @@ models:
       provider: nim-proxy
       label: Arctic Embed L
       context: 0
-    - id: nim-proxy/baai/bge-m3
-      provider: nim-proxy
-      label: BGE M3
-      context: 8192
     - id: nim-proxy/meta/codellama-70b
       provider: nim-proxy
       label: Code Llama 70B
@@ -87,6 +86,15 @@ models:
         - attachment
         - image-in
         - video-in
+    - id: nim-proxy/nvidia/cosmos-reason2-8b
+      provider: nim-proxy
+      label: Cosmos Reason2 8B
+      context: 131072
+      caps:
+        - reasoning
+        - attachment
+        - image-in
+        - video-in
     - id: nim-proxy/databricks/dbrx-instruct
       provider: nim-proxy
       label: DBRX Instruct
@@ -95,16 +103,28 @@ models:
       provider: nim-proxy
       label: DeepSeek Coder 6.7B Instruct
       context: 0
-    - id: nim-proxy/deepseek-ai/deepseek-v4-flash
+    - id: nim-proxy/deepseek-ai/deepseek-v4-flash-0731
       provider: nim-proxy
-      label: DeepSeek V4 Flash
-      context: 1048576
+      label: DeepSeek V4 Flash 0731
+      context: 1000000
       caps:
         - reasoning
-    - id: nim-proxy/deepseek-ai/deepseek-v4-pro
+    - id: nim-proxy/deepseek-ai/deepseek-v4-flash-0731
       provider: nim-proxy
-      label: DeepSeek V4 Pro
-      context: 1048576
+      label: DeepSeek V4 Flash 0731
+      context: 1000000
+      caps:
+        - reasoning
+    - id: nim-proxy/deepseek-ai/deepseek-v4-pro-0813
+      provider: nim-proxy
+      label: DeepSeek V4 Pro 0813
+      context: 1000000
+      caps:
+        - reasoning
+    - id: nim-proxy/deepseek-ai/deepseek-v4-pro-0813
+      provider: nim-proxy
+      label: DeepSeek V4 Pro 0813
+      context: 1000000
       caps:
         - reasoning
     - id: nim-proxy/google/deplot
@@ -129,16 +149,23 @@ models:
       context: 131072
       caps:
         - reasoning
-    - id: nim-proxy/openai/gpt-oss-120b
+    - id: nim-proxy/openai/gpt-oss-20b
       provider: nim-proxy
-      label: GPT-OSS-120B
-      context: 128000
+      label: GPT OSS 20B
+      context: 131072
       caps:
         - reasoning
     - id: nim-proxy/google/gemma-2b
       provider: nim-proxy
       label: Gemma 2B
       context: 0
+    - id: nim-proxy/google/gemma-3-12b-it
+      provider: nim-proxy
+      label: Gemma 3 12B IT
+      context: 131072
+      caps:
+        - attachment
+        - image-in
     - id: nim-proxy/google/gemma-3-12b-it
       provider: nim-proxy
       label: Gemma 3 12B IT
@@ -153,6 +180,22 @@ models:
       caps:
         - attachment
         - image-in
+    - id: nim-proxy/google/gemma-3-4b-it
+      provider: nim-proxy
+      label: Gemma 3 4B IT
+      context: 131072
+      caps:
+        - attachment
+        - image-in
+    - id: nim-proxy/google/gemma-4-31b-it
+      provider: nim-proxy
+      label: Gemma-4-31B-IT
+      context: 256000
+      caps:
+        - reasoning
+        - attachment
+        - image-in
+        - video-in
     - id: nim-proxy/google/gemma-4-31b-it
       provider: nim-proxy
       label: Gemma-4-31B-IT
@@ -178,15 +221,6 @@ models:
       provider: nim-proxy
       label: Granite 8B Code Instruct
       context: 0
-    - id: nim-proxy/thinkingmachines/inkling
-      provider: nim-proxy
-      label: Inkling
-      context: 1048576
-      caps:
-        - reasoning
-        - attachment
-        - image-in
-        - audio-in
     - id: nim-proxy/nvidia/ising-calibration-1.5-31b
       provider: nim-proxy
       label: Ising Calibration 1.5 31B
@@ -198,7 +232,39 @@ models:
     - id: nim-proxy/moonshotai/kimi-k2.6
       provider: nim-proxy
       label: Kimi K2.6
-      context: 0
+      context: 262144
+      caps:
+        - reasoning
+        - attachment
+        - image-in
+        - video-in
+    - id: nim-proxy/moonshotai/kimi-k2.6
+      provider: nim-proxy
+      label: Kimi K2.6
+      context: 262144
+      caps:
+        - reasoning
+        - attachment
+        - image-in
+        - video-in
+    - id: nim-proxy/moonshotai/kimi-k3
+      provider: nim-proxy
+      label: Kimi K3
+      context: 1048576
+      caps:
+        - reasoning
+        - attachment
+        - image-in
+        - video-in
+    - id: nim-proxy/moonshotai/kimi-k3
+      provider: nim-proxy
+      label: Kimi K3
+      context: 1048576
+      caps:
+        - reasoning
+        - attachment
+        - image-in
+        - video-in
     - id: nim-proxy/microsoft/kosmos-2
       provider: nim-proxy
       label: Kosmos 2
@@ -209,14 +275,12 @@ models:
       context: 262144
       caps:
         - reasoning
-    - id: nim-proxy/meta/llama-3.1-70b-instruct
+    - id: nim-proxy/poolside/laguna-xs-2.1
       provider: nim-proxy
-      label: Llama 3.1 70b Instruct
-      context: 128000
-    - id: nim-proxy/meta/llama-3.1-8b-instruct
-      provider: nim-proxy
-      label: Llama 3.1 8B Instruct
-      context: 16000
+      label: Laguna XS 2.1
+      context: 262144
+      caps:
+        - reasoning
     - id: nim-proxy/nvidia/llama-3.1-nemoguard-8b-content-safety
       provider: nim-proxy
       label: Llama 3.1 NeMo Guard 8B Content Safety
@@ -233,20 +297,16 @@ models:
       provider: nim-proxy
       label: Llama 3.1 Nemotron 70B Instruct
       context: 128000
-    - id: nim-proxy/nvidia/llama-3.1-nemotron-nano-8b-v1
+    - id: nim-proxy/nvidia/llama-3.1-nemotron-70b-instruct
       provider: nim-proxy
-      label: Llama 3.1 Nemotron Nano 8B v1
-      context: 131072
+      label: Llama 3.1 Nemotron 70B Instruct
+      context: 128000
+    - id: nim-proxy/nvidia/llama-3.1-nemotron-ultra-253b-v1
+      provider: nim-proxy
+      label: Llama 3.1 Nemotron Ultra 253B
+      context: 128000
       caps:
         - reasoning
-    - id: nim-proxy/nvidia/llama-3.1-nemotron-nano-vl-8b-v1
-      provider: nim-proxy
-      label: Llama 3.1 Nemotron Nano VL 8B v1
-      context: 32768
-      caps:
-        - reasoning
-        - attachment
-        - image-in
     - id: nim-proxy/nvidia/llama-3.1-nemotron-ultra-253b-v1
       provider: nim-proxy
       label: Llama 3.1 Nemotron Ultra 253B
@@ -260,14 +320,13 @@ models:
       caps:
         - attachment
         - image-in
-    - id: nim-proxy/meta/llama-3.2-1b-instruct
+    - id: nim-proxy/meta/llama-3.2-11b-vision-instruct
       provider: nim-proxy
-      label: Llama 3.2 1b Instruct
+      label: Llama 3.2 11b Vision Instruct
       context: 128000
-    - id: nim-proxy/meta/llama-3.2-3b-instruct
-      provider: nim-proxy
-      label: Llama 3.2 3B Instruct
-      context: 32768
+      caps:
+        - attachment
+        - image-in
     - id: nim-proxy/nvidia/llama-3.2-nv-embedqa-1b-v1
       provider: nim-proxy
       label: Llama 3.2 NV EmbedQA 1B V1
@@ -276,22 +335,6 @@ models:
       provider: nim-proxy
       label: Llama 3.2 NeMo Retriever 1B VLM Embed V1
       context: 0
-    - id: nim-proxy/meta/llama-3.3-70b-instruct
-      provider: nim-proxy
-      label: Llama 3.3 70b Instruct
-      context: 128000
-    - id: nim-proxy/nvidia/llama-3.3-nemotron-super-49b-v1
-      provider: nim-proxy
-      label: Llama 3.3 Nemotron Super 49B v1
-      context: 131072
-      caps:
-        - reasoning
-    - id: nim-proxy/nvidia/llama-3.3-nemotron-super-49b-v1.5
-      provider: nim-proxy
-      label: Llama 3.3 Nemotron Super 49B v1.5
-      context: 131072
-      caps:
-        - reasoning
     - id: nim-proxy/meta/llama-guard-4-12b
       provider: nim-proxy
       label: Llama Guard 4 12B
@@ -299,10 +342,20 @@ models:
       caps:
         - attachment
         - image-in
-    - id: nim-proxy/nvidia/llama-nemotron-embed-1b-v2
+    - id: nim-proxy/meta/llama-guard-4-12b
       provider: nim-proxy
-      label: Llama Nemotron Embed 1B V2
-      context: 0
+      label: Llama Guard 4 12B
+      context: 128000
+      caps:
+        - attachment
+        - image-in
+    - id: nim-proxy/meta/llama-3.2-90b-vision-instruct
+      provider: nim-proxy
+      label: Llama-3.2-90B-Vision-Instruct
+      context: 128000
+      caps:
+        - attachment
+        - image-in
     - id: nim-proxy/meta/llama-3.2-90b-vision-instruct
       provider: nim-proxy
       label: Llama-3.2-90B-Vision-Instruct
@@ -335,14 +388,6 @@ models:
       provider: nim-proxy
       label: Mistral Large 2 Instruct
       context: 0
-    - id: nim-proxy/mistralai/mistral-medium-3.5-128b
-      provider: nim-proxy
-      label: Mistral Medium 3.5
-      context: 262144
-      caps:
-        - reasoning
-        - attachment
-        - image-in
     - id: nim-proxy/nv-mistralai/mistral-nemo-12b-instruct
       provider: nim-proxy
       label: Mistral Nemo 12B Instruct
@@ -355,14 +400,30 @@ models:
       provider: nim-proxy
       label: Mistral-7B-Instruct-v0.3
       context: 65536
+    - id: nim-proxy/mistralai/mistral-7b-instruct-v0.3
+      provider: nim-proxy
+      label: Mistral-7B-Instruct-v0.3
+      context: 65536
     - id: nim-proxy/mistralai/mixtral-8x22b-v0.1
       provider: nim-proxy
       label: Mixtral 8x22B v0.1
       context: 0
-    - id: nim-proxy/nvidia/nv-embedqa-e5-v5
+    - id: nim-proxy/meta/muse-glimmer-30b
       provider: nim-proxy
-      label: NV EmbedQA E5 V5
-      context: 0
+      label: Muse Glimmer 30B
+      context: 131072
+      caps:
+        - reasoning
+        - attachment
+        - image-in
+    - id: nim-proxy/meta/muse-glimmer-30b
+      provider: nim-proxy
+      label: Muse Glimmer 30B
+      context: 131072
+      caps:
+        - reasoning
+        - attachment
+        - image-in
     - id: nim-proxy/nvidia/nv-embedqa-mistral-7b-v2
       provider: nim-proxy
       label: NV EmbedQA Mistral 7B V2
@@ -371,14 +432,20 @@ models:
       provider: nim-proxy
       label: NVClip
       context: 0
-    - id: nim-proxy/nvidia/nemoretriever-parse
-      provider: nim-proxy
-      label: NeMo Retriever Parse
-      context: 0
     - id: nim-proxy/nvidia/nemotron-3-embed-1b
       provider: nim-proxy
       label: Nemotron 3 Embed 1B
       context: 0
+    - id: nim-proxy/nvidia/nemotron-3-nano-omni-30b-a3b-reasoning
+      provider: nim-proxy
+      label: Nemotron 3 Nano Omni
+      context: 256000
+      caps:
+        - reasoning
+        - attachment
+        - image-in
+        - audio-in
+        - video-in
     - id: nim-proxy/nvidia/nemotron-3-nano-omni-30b-a3b-reasoning
       provider: nim-proxy
       label: Nemotron 3 Nano Omni
@@ -395,10 +462,28 @@ models:
       context: 262144
       caps:
         - reasoning
+    - id: nim-proxy/nvidia/nemotron-3-super-120b-a12b
+      provider: nim-proxy
+      label: Nemotron 3 Super
+      context: 262144
+      caps:
+        - reasoning
     - id: nim-proxy/nvidia/nemotron-3.5-content-safety
       provider: nim-proxy
       label: Nemotron 3.5 Content Safety
       context: 0
+    - id: nim-proxy/nvidia/nemotron-3.5-lightning-30b-a3b
+      provider: nim-proxy
+      label: Nemotron 3.5 Lightning 30B A3B
+      context: 262144
+      caps:
+        - reasoning
+    - id: nim-proxy/nvidia/nemotron-3.5-lightning-30b-a3b
+      provider: nim-proxy
+      label: Nemotron 3.5 Lightning 30B A3B
+      context: 262144
+      caps:
+        - reasoning
     - id: nim-proxy/nvidia/nemotron-4-340b-instruct
       provider: nim-proxy
       label: Nemotron 4 340B Instruct
@@ -407,21 +492,6 @@ models:
       provider: nim-proxy
       label: Nemotron 4 340B Reward
       context: 0
-    - id: nim-proxy/nvidia/nemotron-3-nano-30b-a3b
-      provider: nim-proxy
-      label: Nemotron Nano (schnell)
-      context: 131072
-      caps:
-        - reasoning
-    - id: nim-proxy/nvidia/nemotron-nano-12b-v2-vl
-      provider: nim-proxy
-      label: Nemotron Nano 12B v2 VL
-      context: 128000
-      caps:
-        - reasoning
-        - attachment
-        - image-in
-        - video-in
     - id: nim-proxy/nvidia/nemotron-nano-3-30b-a3b
       provider: nim-proxy
       label: Nemotron Nano 3 30B A3B
@@ -430,6 +500,12 @@ models:
       provider: nim-proxy
       label: Nemotron Parse
       context: 0
+    - id: nim-proxy/nvidia/nemotron-3-ultra-550b-a55b
+      provider: nim-proxy
+      label: Nemotron Ultra
+      context: 1000000
+      caps:
+        - reasoning
     - id: nim-proxy/nvidia/nemotron-3-ultra-550b-a55b
       provider: nim-proxy
       label: Nemotron Ultra
@@ -484,14 +560,6 @@ models:
       provider: nim-proxy
       label: StarCoder2 15B
       context: 0
-    - id: nim-proxy/stepfun-ai/step-3.7-flash
-      provider: nim-proxy
-      label: Step 3.7 Flash
-      context: 256000
-      caps:
-        - reasoning
-        - attachment
-        - image-in
     - id: nim-proxy/nvidia/vila
       provider: nim-proxy
       label: Vila
@@ -504,12 +572,10 @@ models:
       provider: nim-proxy
       label: Zamba2 7B Instruct
       context: 0
-    - id: nim-proxy/z-ai/glm-5.2
+    - id: nim-proxy/nvidia/llama-3.1-nemotron-safety-guard-8b-v3
       provider: nim-proxy
-      label: glm-5.2
-      context: 1000000
-      caps:
-        - reasoning
+      label: llama-3.1-nemotron-safety-guard-8b-v3
+      context: 128000
     - id: nim-proxy/nvidia/llama-3.1-nemotron-safety-guard-8b-v3
       provider: nim-proxy
       label: llama-3.1-nemotron-safety-guard-8b-v3
@@ -521,28 +587,25 @@ models:
       caps:
         - attachment
         - image-in
+    - id: nim-proxy/nvidia/llama-nemotron-embed-vl-1b-v2
+      provider: nim-proxy
+      label: llama-nemotron-embed-vl-1b-v2
+      context: 32768
+      caps:
+        - attachment
+        - image-in
     - id: nim-proxy/mistralai/mistral-nemotron
       provider: nim-proxy
       label: mistral-nemotron
       context: 128000
-    - id: nim-proxy/nvidia/nemotron-mini-4b-instruct
+    - id: nim-proxy/mistralai/mistral-nemotron
       provider: nim-proxy
-      label: nemotron-mini-4b-instruct
+      label: mistral-nemotron
       context: 128000
-    - id: nim-proxy/nvidia/nv-embed-v1
+    - id: nim-proxy/nvidia/riva-translate-4b-instruct-v1.1
       provider: nim-proxy
-      label: nv-embed-v1
-      context: 32768
-    - id: nim-proxy/nvidia/nv-embedcode-7b-v1
-      provider: nim-proxy
-      label: nv-embedcode-7b-v1
-      context: 32768
-    - id: nim-proxy/nvidia/nvidia-nemotron-nano-9b-v2
-      provider: nim-proxy
-      label: nvidia-nemotron-nano-9b-v2
-      context: 131072
-      caps:
-        - reasoning
+      label: riva-translate-4b-instruct-v1_1
+      context: 128000
     - id: nim-proxy/nvidia/riva-translate-4b-instruct-v1.1
       provider: nim-proxy
       label: riva-translate-4b-instruct-v1_1
@@ -566,10 +629,22 @@ models:
       context: 1048576
       caps:
         - reasoning
+    - id: nvidia/deepseek-ai/deepseek-v4-flash-0731
+      provider: nvidia
+      label: DeepSeek V4 Flash 0731
+      context: 1000000
+      caps:
+        - reasoning
     - id: nvidia/deepseek-ai/deepseek-v4-pro
       provider: nvidia
       label: DeepSeek V4 Pro
       context: 1048576
+      caps:
+        - reasoning
+    - id: nvidia/deepseek-ai/deepseek-v4-pro-0813
+      provider: nvidia
+      label: DeepSeek V4 Pro 0813
+      context: 1000000
       caps:
         - reasoning
     - id: nvidia/openai/gpt-oss-20b
@@ -620,6 +695,24 @@ models:
       provider: nvidia
       label: Gemma-4-31B-IT
       context: 256000
+      caps:
+        - reasoning
+        - attachment
+        - image-in
+        - video-in
+    - id: nvidia/thinkingmachines/inkling
+      provider: nvidia
+      label: Inkling
+      context: 1048576
+      caps:
+        - reasoning
+        - attachment
+        - image-in
+        - audio-in
+    - id: nvidia/moonshotai/kimi-k3
+      provider: nvidia
+      label: Kimi K3
+      context: 1048576
       caps:
         - reasoning
         - attachment
@@ -753,6 +846,14 @@ models:
       provider: nvidia
       label: 'Mistral: Mixtral 8x7B Instruct'
       context: 32768
+    - id: nvidia/meta/muse-glimmer-30b
+      provider: nvidia
+      label: Muse Glimmer 30B
+      context: 131072
+      caps:
+        - reasoning
+        - attachment
+        - image-in
     - id: nvidia/nvidia/nemotron-3-nano-omni-30b-a3b-reasoning
       provider: nvidia
       label: Nemotron 3 Nano Omni
@@ -766,6 +867,12 @@ models:
     - id: nvidia/nvidia/nemotron-3-super-120b-a12b
       provider: nvidia
       label: Nemotron 3 Super
+      context: 262144
+      caps:
+        - reasoning
+    - id: nvidia/nvidia/nemotron-3.5-lightning-30b-a3b
+      provider: nvidia
+      label: Nemotron 3.5 Lightning 30B A3B
       context: 262144
       caps:
         - reasoning
@@ -830,10 +937,24 @@ models:
       context: 256000
       caps:
         - reasoning
+    - id: nvidia/stepfun-ai/step-3.7-flash
+      provider: nvidia
+      label: Step 3.7 Flash
+      context: 256000
+      caps:
+        - reasoning
+        - attachment
+        - image-in
     - id: nvidia/abacusai/dracarys-llama-3.1-70b-instruct
       provider: nvidia
       label: dracarys-llama-3.1-70b-instruct
       context: 128000
+    - id: nvidia/z-ai/glm-5.2
+      provider: nvidia
+      label: glm-5.2
+      context: 1000000
+      caps:
+        - reasoning
     - id: nvidia/mistralai/mistral-nemotron
       provider: nvidia
       label: mistral-nemotron
@@ -867,6 +988,611 @@ models:
       provider: nvidia
       label: sarvam-m
       context: 128000
+    - id: nvidia/upstage/solar-10.7b-instruct
+      provider: nvidia
+      label: solar-10.7b-instruct
+      context: 128000
+    - id: nvidia-direct/nvidia/ai-synthetic-video-detector
+      provider: nvidia-direct
+      label: AI Synthetic Video Detector
+      context: 0
+    - id: nvidia-direct/snowflake/arctic-embed-l
+      provider: nvidia-direct
+      label: Arctic Embed L
+      context: 0
+    - id: nvidia-direct/meta/codellama-70b
+      provider: nvidia-direct
+      label: Code Llama 70B
+      context: 0
+    - id: nvidia-direct/google/codegemma-1.1-7b
+      provider: nvidia-direct
+      label: CodeGemma 1.1 7B
+      context: 0
+    - id: nvidia-direct/google/codegemma-7b
+      provider: nvidia-direct
+      label: CodeGemma 7B
+      context: 0
+    - id: nvidia-direct/mistralai/codestral-22b-instruct-v0.1
+      provider: nvidia-direct
+      label: Codestral 22B Instruct v0.1
+      context: 0
+    - id: nvidia-direct/nvidia/cosmos-reason2-8b
+      provider: nvidia-direct
+      label: Cosmos Reason2 8B
+      context: 131072
+      caps:
+        - reasoning
+        - attachment
+        - image-in
+        - video-in
+    - id: nvidia-direct/nvidia/cosmos-reason2-8b
+      provider: nvidia-direct
+      label: Cosmos Reason2 8B
+      context: 131072
+      caps:
+        - reasoning
+        - attachment
+        - image-in
+        - video-in
+    - id: nvidia-direct/databricks/dbrx-instruct
+      provider: nvidia-direct
+      label: DBRX Instruct
+      context: 0
+    - id: nvidia-direct/deepseek-ai/deepseek-coder-6.7b-instruct
+      provider: nvidia-direct
+      label: DeepSeek Coder 6.7B Instruct
+      context: 0
+    - id: nvidia-direct/deepseek-ai/deepseek-v4-flash-0731
+      provider: nvidia-direct
+      label: DeepSeek V4 Flash 0731
+      context: 1000000
+      caps:
+        - reasoning
+    - id: nvidia-direct/deepseek-ai/deepseek-v4-flash-0731
+      provider: nvidia-direct
+      label: DeepSeek V4 Flash 0731
+      context: 1000000
+      caps:
+        - reasoning
+    - id: nvidia-direct/deepseek-ai/deepseek-v4-pro-0813
+      provider: nvidia-direct
+      label: DeepSeek V4 Pro 0813
+      context: 1000000
+      caps:
+        - reasoning
+    - id: nvidia-direct/deepseek-ai/deepseek-v4-pro-0813
+      provider: nvidia-direct
+      label: DeepSeek V4 Pro 0813
+      context: 1000000
+      caps:
+        - reasoning
+    - id: nvidia-direct/google/deplot
+      provider: nvidia-direct
+      label: Deplot
+      context: 0
+    - id: nvidia-direct/google/diffusiongemma-26b-a4b-it
+      provider: nvidia-direct
+      label: DiffusionGemma 26B A4B It
+      context: 0
+    - id: nvidia-direct/nvidia/embed-qa-4
+      provider: nvidia-direct
+      label: Embed QA 4
+      context: 0
+    - id: nvidia-direct/adept/fuyu-8b
+      provider: nvidia-direct
+      label: Fuyu 8B
+      context: 0
+    - id: nvidia-direct/openai/gpt-oss-20b
+      provider: nvidia-direct
+      label: GPT OSS 20B
+      context: 131072
+      caps:
+        - reasoning
+    - id: nvidia-direct/openai/gpt-oss-20b
+      provider: nvidia-direct
+      label: GPT OSS 20B
+      context: 131072
+      caps:
+        - reasoning
+    - id: nvidia-direct/google/gemma-2b
+      provider: nvidia-direct
+      label: Gemma 2B
+      context: 0
+    - id: nvidia-direct/google/gemma-3-12b-it
+      provider: nvidia-direct
+      label: Gemma 3 12B IT
+      context: 131072
+      caps:
+        - attachment
+        - image-in
+    - id: nvidia-direct/google/gemma-3-12b-it
+      provider: nvidia-direct
+      label: Gemma 3 12B IT
+      context: 131072
+      caps:
+        - attachment
+        - image-in
+    - id: nvidia-direct/google/gemma-3-4b-it
+      provider: nvidia-direct
+      label: Gemma 3 4B IT
+      context: 131072
+      caps:
+        - attachment
+        - image-in
+    - id: nvidia-direct/google/gemma-3-4b-it
+      provider: nvidia-direct
+      label: Gemma 3 4B IT
+      context: 131072
+      caps:
+        - attachment
+        - image-in
+    - id: nvidia-direct/google/gemma-4-31b-it
+      provider: nvidia-direct
+      label: Gemma-4-31B-IT
+      context: 256000
+      caps:
+        - reasoning
+        - attachment
+        - image-in
+        - video-in
+    - id: nvidia-direct/google/gemma-4-31b-it
+      provider: nvidia-direct
+      label: Gemma-4-31B-IT
+      context: 256000
+      caps:
+        - reasoning
+        - attachment
+        - image-in
+        - video-in
+    - id: nvidia-direct/ibm/granite-3.0-3b-a800m-instruct
+      provider: nvidia-direct
+      label: Granite 3.0 3B A800M Instruct
+      context: 0
+    - id: nvidia-direct/ibm/granite-3.0-8b-instruct
+      provider: nvidia-direct
+      label: Granite 3.0 8B Instruct
+      context: 0
+    - id: nvidia-direct/ibm/granite-34b-code-instruct
+      provider: nvidia-direct
+      label: Granite 34B Code Instruct
+      context: 0
+    - id: nvidia-direct/ibm/granite-8b-code-instruct
+      provider: nvidia-direct
+      label: Granite 8B Code Instruct
+      context: 0
+    - id: nvidia-direct/nvidia/ising-calibration-1.5-31b
+      provider: nvidia-direct
+      label: Ising Calibration 1.5 31B
+      context: 0
+    - id: nvidia-direct/ai21labs/jamba-1.5-large-instruct
+      provider: nvidia-direct
+      label: Jamba 1.5 Large Instruct
+      context: 0
+    - id: nvidia-direct/moonshotai/kimi-k2.6
+      provider: nvidia-direct
+      label: Kimi K2.6
+      context: 262144
+      caps:
+        - reasoning
+        - attachment
+        - image-in
+        - video-in
+    - id: nvidia-direct/moonshotai/kimi-k2.6
+      provider: nvidia-direct
+      label: Kimi K2.6
+      context: 262144
+      caps:
+        - reasoning
+        - attachment
+        - image-in
+        - video-in
+    - id: nvidia-direct/moonshotai/kimi-k3
+      provider: nvidia-direct
+      label: Kimi K3
+      context: 1048576
+      caps:
+        - reasoning
+        - attachment
+        - image-in
+        - video-in
+    - id: nvidia-direct/moonshotai/kimi-k3
+      provider: nvidia-direct
+      label: Kimi K3
+      context: 1048576
+      caps:
+        - reasoning
+        - attachment
+        - image-in
+        - video-in
+    - id: nvidia-direct/microsoft/kosmos-2
+      provider: nvidia-direct
+      label: Kosmos 2
+      context: 0
+    - id: nvidia-direct/poolside/laguna-xs-2.1
+      provider: nvidia-direct
+      label: Laguna XS 2.1
+      context: 262144
+      caps:
+        - reasoning
+    - id: nvidia-direct/poolside/laguna-xs-2.1
+      provider: nvidia-direct
+      label: Laguna XS 2.1
+      context: 262144
+      caps:
+        - reasoning
+    - id: nvidia-direct/nvidia/llama-3.1-nemoguard-8b-content-safety
+      provider: nvidia-direct
+      label: Llama 3.1 NeMo Guard 8B Content Safety
+      context: 0
+    - id: nvidia-direct/nvidia/llama-3.1-nemoguard-8b-topic-control
+      provider: nvidia-direct
+      label: Llama 3.1 NeMo Guard 8B Topic Control
+      context: 0
+    - id: nvidia-direct/nvidia/llama-3.1-nemotron-51b-instruct
+      provider: nvidia-direct
+      label: Llama 3.1 Nemotron 51B Instruct
+      context: 0
+    - id: nvidia-direct/nvidia/llama-3.1-nemotron-70b-instruct
+      provider: nvidia-direct
+      label: Llama 3.1 Nemotron 70B Instruct
+      context: 128000
+    - id: nvidia-direct/nvidia/llama-3.1-nemotron-70b-instruct
+      provider: nvidia-direct
+      label: Llama 3.1 Nemotron 70B Instruct
+      context: 128000
+    - id: nvidia-direct/nvidia/llama-3.1-nemotron-ultra-253b-v1
+      provider: nvidia-direct
+      label: Llama 3.1 Nemotron Ultra 253B
+      context: 128000
+      caps:
+        - reasoning
+    - id: nvidia-direct/nvidia/llama-3.1-nemotron-ultra-253b-v1
+      provider: nvidia-direct
+      label: Llama 3.1 Nemotron Ultra 253B
+      context: 128000
+      caps:
+        - reasoning
+    - id: nvidia-direct/meta/llama-3.2-11b-vision-instruct
+      provider: nvidia-direct
+      label: Llama 3.2 11b Vision Instruct
+      context: 128000
+      caps:
+        - attachment
+        - image-in
+    - id: nvidia-direct/meta/llama-3.2-11b-vision-instruct
+      provider: nvidia-direct
+      label: Llama 3.2 11b Vision Instruct
+      context: 128000
+      caps:
+        - attachment
+        - image-in
+    - id: nvidia-direct/nvidia/llama-3.2-nv-embedqa-1b-v1
+      provider: nvidia-direct
+      label: Llama 3.2 NV EmbedQA 1B V1
+      context: 0
+    - id: nvidia-direct/nvidia/llama-3.2-nemoretriever-1b-vlm-embed-v1
+      provider: nvidia-direct
+      label: Llama 3.2 NeMo Retriever 1B VLM Embed V1
+      context: 0
+    - id: nvidia-direct/meta/llama-guard-4-12b
+      provider: nvidia-direct
+      label: Llama Guard 4 12B
+      context: 128000
+      caps:
+        - attachment
+        - image-in
+    - id: nvidia-direct/meta/llama-guard-4-12b
+      provider: nvidia-direct
+      label: Llama Guard 4 12B
+      context: 128000
+      caps:
+        - attachment
+        - image-in
+    - id: nvidia-direct/meta/llama-3.2-90b-vision-instruct
+      provider: nvidia-direct
+      label: Llama-3.2-90B-Vision-Instruct
+      context: 128000
+      caps:
+        - attachment
+        - image-in
+    - id: nvidia-direct/meta/llama-3.2-90b-vision-instruct
+      provider: nvidia-direct
+      label: Llama-3.2-90B-Vision-Instruct
+      context: 128000
+      caps:
+        - attachment
+        - image-in
+    - id: nvidia-direct/meta/llama2-70b
+      provider: nvidia-direct
+      label: Llama2 70B
+      context: 0
+    - id: nvidia-direct/nvidia/llama3-chatqa-1.5-70b
+      provider: nvidia-direct
+      label: Llama3 Chatqa 1.5 70B
+      context: 0
+    - id: nvidia-direct/minimaxai/minimax-m3
+      provider: nvidia-direct
+      label: MiniMax-M3
+      context: 1000000
+      caps:
+        - reasoning
+        - attachment
+        - image-in
+        - video-in
+    - id: nvidia-direct/mistralai/mistral-large
+      provider: nvidia-direct
+      label: Mistral Large
+      context: 0
+    - id: nvidia-direct/mistralai/mistral-large-2-instruct
+      provider: nvidia-direct
+      label: Mistral Large 2 Instruct
+      context: 0
+    - id: nvidia-direct/nv-mistralai/mistral-nemo-12b-instruct
+      provider: nvidia-direct
+      label: Mistral Nemo 12B Instruct
+      context: 0
+    - id: nvidia-direct/nvidia/mistral-nemo-minitron-8b-8k-instruct
+      provider: nvidia-direct
+      label: Mistral Nemo Minitron 8B 8K Instruct
+      context: 0
+    - id: nvidia-direct/mistralai/mistral-7b-instruct-v0.3
+      provider: nvidia-direct
+      label: Mistral-7B-Instruct-v0.3
+      context: 65536
+    - id: nvidia-direct/mistralai/mistral-7b-instruct-v0.3
+      provider: nvidia-direct
+      label: Mistral-7B-Instruct-v0.3
+      context: 65536
+    - id: nvidia-direct/mistralai/mixtral-8x22b-v0.1
+      provider: nvidia-direct
+      label: Mixtral 8x22B v0.1
+      context: 0
+    - id: nvidia-direct/meta/muse-glimmer-30b
+      provider: nvidia-direct
+      label: Muse Glimmer 30B
+      context: 131072
+      caps:
+        - reasoning
+        - attachment
+        - image-in
+    - id: nvidia-direct/meta/muse-glimmer-30b
+      provider: nvidia-direct
+      label: Muse Glimmer 30B
+      context: 131072
+      caps:
+        - reasoning
+        - attachment
+        - image-in
+    - id: nvidia-direct/nvidia/nv-embedqa-mistral-7b-v2
+      provider: nvidia-direct
+      label: NV EmbedQA Mistral 7B V2
+      context: 0
+    - id: nvidia-direct/nvidia/nvclip
+      provider: nvidia-direct
+      label: NVClip
+      context: 0
+    - id: nvidia-direct/nvidia/nemotron-3-embed-1b
+      provider: nvidia-direct
+      label: Nemotron 3 Embed 1B
+      context: 0
+    - id: nvidia-direct/nvidia/nemotron-3-nano-omni-30b-a3b-reasoning
+      provider: nvidia-direct
+      label: Nemotron 3 Nano Omni
+      context: 256000
+      caps:
+        - reasoning
+        - attachment
+        - image-in
+        - audio-in
+        - video-in
+    - id: nvidia-direct/nvidia/nemotron-3-nano-omni-30b-a3b-reasoning
+      provider: nvidia-direct
+      label: Nemotron 3 Nano Omni
+      context: 256000
+      caps:
+        - reasoning
+        - attachment
+        - image-in
+        - audio-in
+        - video-in
+    - id: nvidia-direct/nvidia/nemotron-3-super-120b-a12b
+      provider: nvidia-direct
+      label: Nemotron 3 Super
+      context: 262144
+      caps:
+        - reasoning
+    - id: nvidia-direct/nvidia/nemotron-3-super-120b-a12b
+      provider: nvidia-direct
+      label: Nemotron 3 Super
+      context: 262144
+      caps:
+        - reasoning
+    - id: nvidia-direct/nvidia/nemotron-3.5-content-safety
+      provider: nvidia-direct
+      label: Nemotron 3.5 Content Safety
+      context: 0
+    - id: nvidia-direct/nvidia/nemotron-3.5-lightning-30b-a3b
+      provider: nvidia-direct
+      label: Nemotron 3.5 Lightning 30B A3B
+      context: 262144
+      caps:
+        - reasoning
+    - id: nvidia-direct/nvidia/nemotron-3.5-lightning-30b-a3b
+      provider: nvidia-direct
+      label: Nemotron 3.5 Lightning 30B A3B
+      context: 262144
+      caps:
+        - reasoning
+    - id: nvidia-direct/nvidia/nemotron-4-340b-instruct
+      provider: nvidia-direct
+      label: Nemotron 4 340B Instruct
+      context: 0
+    - id: nvidia-direct/nvidia/nemotron-4-340b-reward
+      provider: nvidia-direct
+      label: Nemotron 4 340B Reward
+      context: 0
+    - id: nvidia-direct/nvidia/nemotron-nano-3-30b-a3b
+      provider: nvidia-direct
+      label: Nemotron Nano 3 30B A3B
+      context: 0
+    - id: nvidia-direct/nvidia/nemotron-parse
+      provider: nvidia-direct
+      label: Nemotron Parse
+      context: 0
+    - id: nvidia-direct/nvidia/nemotron-3-ultra-550b-a55b
+      provider: nvidia-direct
+      label: Nemotron Ultra
+      context: 1000000
+      caps:
+        - reasoning
+    - id: nvidia-direct/nvidia/nemotron-3-ultra-550b-a55b
+      provider: nvidia-direct
+      label: Nemotron Ultra
+      context: 1000000
+      caps:
+        - reasoning
+    - id: nvidia-direct/nvidia/neva-22b
+      provider: nvidia-direct
+      label: Neva 22B
+      context: 0
+    - id: nvidia-direct/writer/palmyra-creative-122b
+      provider: nvidia-direct
+      label: Palmyra Creative 122B
+      context: 0
+    - id: nvidia-direct/writer/palmyra-fin-70b-32k
+      provider: nvidia-direct
+      label: Palmyra Fin 70B 32K
+      context: 0
+    - id: nvidia-direct/writer/palmyra-med-70b
+      provider: nvidia-direct
+      label: Palmyra Med 70B
+      context: 0
+    - id: nvidia-direct/writer/palmyra-med-70b-32k
+      provider: nvidia-direct
+      label: Palmyra Med 70B 32K
+      context: 0
+    - id: nvidia-direct/microsoft/phi-3-vision-128k-instruct
+      provider: nvidia-direct
+      label: Phi 3 Vision 128K Instruct
+      context: 0
+    - id: nvidia-direct/microsoft/phi-3.5-moe-instruct
+      provider: nvidia-direct
+      label: Phi 3.5 MoE Instruct
+      context: 0
+    - id: nvidia-direct/google/recurrentgemma-2b
+      provider: nvidia-direct
+      label: RecurrentGemma 2B
+      context: 0
+    - id: nvidia-direct/nvidia/riva-translate-4b-instruct
+      provider: nvidia-direct
+      label: Riva Translate 4B Instruct
+      context: 0
+    - id: nvidia-direct/nvidia/riva-translate-4b-instruct-v2
+      provider: nvidia-direct
+      label: Riva Translate 4B Instruct V2
+      context: 0
+    - id: nvidia-direct/aisingapore/sea-lion-7b-instruct
+      provider: nvidia-direct
+      label: Sea Lion 7B Instruct
+      context: 0
+    - id: nvidia-direct/bigcode/starcoder2-15b
+      provider: nvidia-direct
+      label: StarCoder2 15B
+      context: 0
+    - id: nvidia-direct/nvidia/vila
+      provider: nvidia-direct
+      label: Vila
+      context: 0
+    - id: nvidia-direct/01-ai/yi-large
+      provider: nvidia-direct
+      label: Yi Large
+      context: 0
+    - id: nvidia-direct/zyphra/zamba2-7b-instruct
+      provider: nvidia-direct
+      label: Zamba2 7B Instruct
+      context: 0
+    - id: nvidia-direct/nvidia/llama-3.1-nemotron-safety-guard-8b-v3
+      provider: nvidia-direct
+      label: llama-3.1-nemotron-safety-guard-8b-v3
+      context: 128000
+    - id: nvidia-direct/nvidia/llama-3.1-nemotron-safety-guard-8b-v3
+      provider: nvidia-direct
+      label: llama-3.1-nemotron-safety-guard-8b-v3
+      context: 128000
+    - id: nvidia-direct/nvidia/llama-nemotron-embed-vl-1b-v2
+      provider: nvidia-direct
+      label: llama-nemotron-embed-vl-1b-v2
+      context: 32768
+      caps:
+        - attachment
+        - image-in
+    - id: nvidia-direct/nvidia/llama-nemotron-embed-vl-1b-v2
+      provider: nvidia-direct
+      label: llama-nemotron-embed-vl-1b-v2
+      context: 32768
+      caps:
+        - attachment
+        - image-in
+    - id: nvidia-direct/mistralai/mistral-nemotron
+      provider: nvidia-direct
+      label: mistral-nemotron
+      context: 128000
+    - id: nvidia-direct/mistralai/mistral-nemotron
+      provider: nvidia-direct
+      label: mistral-nemotron
+      context: 128000
+    - id: nvidia-direct/nvidia/riva-translate-4b-instruct-v1.1
+      provider: nvidia-direct
+      label: riva-translate-4b-instruct-v1_1
+      context: 128000
+    - id: nvidia-direct/nvidia/riva-translate-4b-instruct-v1.1
+      provider: nvidia-direct
+      label: riva-translate-4b-instruct-v1_1
+      context: 128000
+    - id: ollama/llama-64k:latest
+      provider: ollama
+      label: Llama 64k:latest
+      context: 131072
+    - id: ollama/llama3.2:latest
+      provider: ollama
+      label: Llama3.2:latest
+      context: 131072
+    - id: ollama/llama3.2:latest
+      provider: ollama
+      label: Llama3.2:latest
+      context: 131072
+    - id: ollama/qwen-coder-agent:latest
+      provider: ollama
+      label: Qwen Coder Agent:latest
+      context: 131072
+    - id: ollama/qwen-coder-agent:latest
+      provider: ollama
+      label: Qwen Coder Agent:latest
+      context: 131072
+    - id: ollama/qwen2.5-coder:3b
+      provider: ollama
+      label: Qwen2.5 Coder:3b
+      context: 131072
+    - id: ollama/qwen2.5-coder:3b
+      provider: ollama
+      label: Qwen2.5 Coder:3b
+      context: 131072
+    - id: ollama/qwen2.5-coder:7b
+      provider: ollama
+      label: Qwen2.5 Coder:7b
+      context: 131072
+    - id: ollama/qwen2.5-coder:7b
+      provider: ollama
+      label: Qwen2.5 Coder:7b
+      context: 131072
+    - id: ollama/qwen3:0.6b
+      provider: ollama
+      label: Qwen3:0.6b
+      context: 131072
+    - id: ollama/qwen3:0.6b
+      provider: ollama
+      label: Qwen3:0.6b
+      context: 131072
     - id: opencode/big-pickle
       provider: opencode
       label: Big Pickle
@@ -875,21 +1601,264 @@ models:
         - reasoning
       fallback: nvidia/deepseek-ai/deepseek-v4-flash
       note: Preferred flagship model — fallback to DeepSeek on quota exhaustion
-    - id: opencode/deepseek-v4-flash-free
+    - id: opencode/claude-fable-5
       provider: opencode
-      label: DeepSeek V4 Flash Free (New)
+      label: Claude Fable 5
+      context: 1000000
+      caps:
+        - reasoning
+        - attachment
+        - image-in
+        - pdf-in
+    - id: opencode/claude-fable-5-1
+      provider: opencode
+      label: Claude Fable 5.1
+      context: 1000000
+      caps:
+        - reasoning
+        - attachment
+        - image-in
+        - pdf-in
+    - id: opencode/claude-haiku-4-5
+      provider: opencode
+      label: Claude Haiku 4.5
       context: 200000
       caps:
         - reasoning
-    - id: opencode/laguna-s-2.1-free
+        - attachment
+        - image-in
+        - pdf-in
+    - id: opencode/claude-opus-4-5
       provider: opencode
-      label: Laguna S 2.1 Free
+      label: Claude Opus 4.5
+      context: 200000
+      caps:
+        - reasoning
+        - attachment
+        - image-in
+        - pdf-in
+    - id: opencode/claude-opus-4-6
+      provider: opencode
+      label: Claude Opus 4.6
+      context: 1000000
+      caps:
+        - reasoning
+        - attachment
+        - image-in
+        - pdf-in
+    - id: opencode/claude-opus-4-7
+      provider: opencode
+      label: Claude Opus 4.7
+      context: 1000000
+      caps:
+        - reasoning
+        - attachment
+        - image-in
+        - pdf-in
+    - id: opencode/claude-opus-4-8
+      provider: opencode
+      label: Claude Opus 4.8
+      context: 1000000
+      caps:
+        - reasoning
+        - attachment
+        - image-in
+        - pdf-in
+    - id: opencode/claude-opus-5
+      provider: opencode
+      label: Claude Opus 5
+      context: 1000000
+      caps:
+        - reasoning
+        - attachment
+        - image-in
+        - pdf-in
+    - id: opencode/claude-sonnet-4-6
+      provider: opencode
+      label: Claude Sonnet 4.6
+      context: 1000000
+      caps:
+        - reasoning
+        - attachment
+        - image-in
+        - pdf-in
+    - id: opencode/claude-sonnet-5
+      provider: opencode
+      label: Claude Sonnet 5
+      context: 1000000
+      caps:
+        - reasoning
+        - attachment
+        - image-in
+        - pdf-in
+    - id: opencode/deepseek-v4-flash
+      provider: opencode
+      label: DeepSeek V4 Flash
+      context: 1000000
+      caps:
+        - reasoning
+    - id: opencode/deepseek-v4-flash-vision-exp
+      provider: opencode
+      label: DeepSeek V4 Flash Vision Exp
+      context: 1000000
+      caps:
+        - reasoning
+        - attachment
+        - image-in
+    - id: opencode/deepseek-v4-pro
+      provider: opencode
+      label: DeepSeek V4 Pro
+      context: 1000000
+      caps:
+        - reasoning
+    - id: opencode/glm-5
+      provider: opencode
+      label: GLM-5
+      context: 204800
+      caps:
+        - reasoning
+    - id: opencode/glm-5.1
+      provider: opencode
+      label: GLM-5.1
+      context: 204800
+      caps:
+        - reasoning
+    - id: opencode/glm-5.2
+      provider: opencode
+      label: GLM-5.2
+      context: 1000000
+      caps:
+        - reasoning
+    - id: opencode/glm-5.3
+      provider: opencode
+      label: GLM-5.3
+      context: 1000000
+      caps:
+        - reasoning
+    - id: opencode/glm-5.3-flash
+      provider: opencode
+      label: GLM-5.3-Flash
+      context: 1000000
+      caps:
+        - reasoning
+        - attachment
+        - image-in
+        - video-in
+        - pdf-in
+    - id: opencode/gemini-3-flash
+      provider: opencode
+      label: Gemini 3 Flash
+      context: 1048576
+      caps:
+        - reasoning
+        - attachment
+        - image-in
+        - audio-in
+        - video-in
+        - pdf-in
+    - id: opencode/gemini-3.5-flash
+      provider: opencode
+      label: Gemini 3.5 Flash
+      context: 1048576
+      caps:
+        - reasoning
+        - attachment
+        - image-in
+        - audio-in
+        - video-in
+        - pdf-in
+    - id: opencode/gemini-3.5-flash-lite
+      provider: opencode
+      label: Gemini 3.5 Flash Lite
+      context: 1048576
+      caps:
+        - reasoning
+        - attachment
+        - image-in
+        - audio-in
+        - video-in
+        - pdf-in
+    - id: opencode/gemini-3.6-flash
+      provider: opencode
+      label: Gemini 3.6 Flash
+      context: 1048576
+      caps:
+        - reasoning
+        - attachment
+        - image-in
+        - audio-in
+        - video-in
+        - pdf-in
+    - id: opencode/gemini-3.7-flash
+      provider: opencode
+      label: Gemini 3.7 Flash
+      context: 1048576
+      caps:
+        - reasoning
+        - attachment
+        - image-in
+        - audio-in
+        - video-in
+        - pdf-in
+    - id: opencode/gemini-3.8-flash
+      provider: opencode
+      label: Gemini 3.8 Flash
+      context: 1048576
+      caps:
+        - reasoning
+        - attachment
+        - image-in
+        - audio-in
+        - video-in
+        - pdf-in
+    - id: opencode/grok-build-0.1
+      provider: opencode
+      label: Grok Build 0.1
       context: 256000
       caps:
         - reasoning
-    - id: opencode/ling-3.0-flash-free
+        - attachment
+        - image-in
+        - pdf-in
+    - id: opencode/kimi-k2.5
       provider: opencode
-      label: Ling-3.0-flash Free
+      label: Kimi K2.5
+      context: 262144
+      caps:
+        - reasoning
+        - attachment
+        - image-in
+        - video-in
+    - id: opencode/kimi-k2.6
+      provider: opencode
+      label: Kimi K2.6
+      context: 262144
+      caps:
+        - reasoning
+        - attachment
+        - image-in
+        - video-in
+    - id: opencode/kimi-k2.7-code
+      provider: opencode
+      label: Kimi K2.7 Code
+      context: 262144
+      caps:
+        - reasoning
+        - attachment
+        - image-in
+        - video-in
+    - id: opencode/kimi-k3
+      provider: opencode
+      label: Kimi K3
+      context: 1048576
+      caps:
+        - reasoning
+        - attachment
+        - image-in
+        - video-in
+    - id: opencode/ling-3.0-flash-fin-free
+      provider: opencode
+      label: Ling 3.0 Flash Fin Free
       context: 262144
       caps:
         - reasoning
@@ -903,16 +1872,61 @@ models:
         - image-in
         - audio-in
         - video-in
+    - id: opencode/minimax-m2.5
+      provider: opencode
+      label: MiniMax-M2.5
+      context: 204800
+      caps:
+        - reasoning
+    - id: opencode/minimax-m2.7
+      provider: opencode
+      label: MiniMax-M2.7
+      context: 204800
+      caps:
+        - reasoning
+    - id: opencode/minimax-m3
+      provider: opencode
+      label: MiniMax-M3
+      context: 512000
+      caps:
+        - reasoning
+        - attachment
+        - image-in
+        - video-in
     - id: opencode/nemotron-3-ultra-free
       provider: opencode
       label: Nemotron 3 Ultra Free
       context: 1000000
       caps:
         - reasoning
-    - id: opencode/north-mini-code-free
+    - id: opencode/nemotron-3.5-lightning-free
       provider: opencode
-      label: North Mini Code Free
-      context: 256000
+      label: Nemotron 3.5 Lightning Free
+      context: 262144
+      caps:
+        - reasoning
+    - id: opencode/qwen3.5-plus
+      provider: opencode
+      label: Qwen3.5 Plus
+      context: 262144
+      caps:
+        - reasoning
+        - attachment
+        - image-in
+        - video-in
+    - id: opencode/qwen3.6-plus
+      provider: opencode
+      label: Qwen3.6 Plus
+      context: 262144
+      caps:
+        - reasoning
+        - attachment
+        - image-in
+        - video-in
+    - id: zen-proxy/big-pickle
+      provider: zen-proxy
+      label: Big Pickle
+      context: 200000
       caps:
         - reasoning
     - id: zen-proxy/big-pickle
@@ -924,35 +1938,147 @@ models:
     - id: zen-proxy/claude-fable-5
       provider: zen-proxy
       label: Claude Fable 5
-      context: 0
+      context: 1000000
+      caps:
+        - reasoning
+        - attachment
+        - image-in
+        - pdf-in
+    - id: zen-proxy/claude-fable-5
+      provider: zen-proxy
+      label: Claude Fable 5
+      context: 1000000
+      caps:
+        - reasoning
+        - attachment
+        - image-in
+        - pdf-in
+    - id: zen-proxy/claude-fable-5-1
+      provider: zen-proxy
+      label: Claude Fable 5.1
+      context: 1000000
+      caps:
+        - reasoning
+        - attachment
+        - image-in
+        - pdf-in
+    - id: zen-proxy/claude-fable-5-1
+      provider: zen-proxy
+      label: Claude Fable 5.1
+      context: 1000000
+      caps:
+        - reasoning
+        - attachment
+        - image-in
+        - pdf-in
     - id: zen-proxy/claude-haiku-4-5
       provider: zen-proxy
-      label: Claude Haiku 4 5
-      context: 0
-    - id: zen-proxy/claude-opus-4-1
+      label: Claude Haiku 4.5
+      context: 200000
+      caps:
+        - reasoning
+        - attachment
+        - image-in
+        - pdf-in
+    - id: zen-proxy/claude-haiku-4-5
       provider: zen-proxy
-      label: Claude Opus 4 1
-      context: 0
+      label: Claude Haiku 4.5
+      context: 200000
+      caps:
+        - reasoning
+        - attachment
+        - image-in
+        - pdf-in
     - id: zen-proxy/claude-opus-4-5
       provider: zen-proxy
-      label: Claude Opus 4 5
-      context: 0
+      label: Claude Opus 4.5
+      context: 200000
+      caps:
+        - reasoning
+        - attachment
+        - image-in
+        - pdf-in
+    - id: zen-proxy/claude-opus-4-5
+      provider: zen-proxy
+      label: Claude Opus 4.5
+      context: 200000
+      caps:
+        - reasoning
+        - attachment
+        - image-in
+        - pdf-in
     - id: zen-proxy/claude-opus-4-6
       provider: zen-proxy
-      label: Claude Opus 4 6
-      context: 0
+      label: Claude Opus 4.6
+      context: 1000000
+      caps:
+        - reasoning
+        - attachment
+        - image-in
+        - pdf-in
+    - id: zen-proxy/claude-opus-4-6
+      provider: zen-proxy
+      label: Claude Opus 4.6
+      context: 1000000
+      caps:
+        - reasoning
+        - attachment
+        - image-in
+        - pdf-in
     - id: zen-proxy/claude-opus-4-7
       provider: zen-proxy
-      label: Claude Opus 4 7
-      context: 0
+      label: Claude Opus 4.7
+      context: 1000000
+      caps:
+        - reasoning
+        - attachment
+        - image-in
+        - pdf-in
+    - id: zen-proxy/claude-opus-4-7
+      provider: zen-proxy
+      label: Claude Opus 4.7
+      context: 1000000
+      caps:
+        - reasoning
+        - attachment
+        - image-in
+        - pdf-in
     - id: zen-proxy/claude-opus-4-8
       provider: zen-proxy
-      label: Claude Opus 4 8
-      context: 0
+      label: Claude Opus 4.8
+      context: 1000000
+      caps:
+        - reasoning
+        - attachment
+        - image-in
+        - pdf-in
+    - id: zen-proxy/claude-opus-4-8
+      provider: zen-proxy
+      label: Claude Opus 4.8
+      context: 1000000
+      caps:
+        - reasoning
+        - attachment
+        - image-in
+        - pdf-in
     - id: zen-proxy/claude-opus-5
       provider: zen-proxy
       label: Claude Opus 5
-      context: 0
+      context: 1000000
+      caps:
+        - reasoning
+        - attachment
+        - image-in
+        - pdf-in
+    - id: zen-proxy/claude-opus-5
+      provider: zen-proxy
+      label: Claude Opus 5
+      context: 1000000
+      caps:
+        - reasoning
+        - attachment
+        - image-in
+        - pdf-in
     - id: zen-proxy/claude-sonnet-4
       provider: zen-proxy
       label: Claude Sonnet 4
@@ -963,38 +2089,152 @@ models:
       context: 0
     - id: zen-proxy/claude-sonnet-4-6
       provider: zen-proxy
-      label: Claude Sonnet 4 6
-      context: 0
+      label: Claude Sonnet 4.6
+      context: 1000000
+      caps:
+        - reasoning
+        - attachment
+        - image-in
+        - pdf-in
+    - id: zen-proxy/claude-sonnet-4-6
+      provider: zen-proxy
+      label: Claude Sonnet 4.6
+      context: 1000000
+      caps:
+        - reasoning
+        - attachment
+        - image-in
+        - pdf-in
     - id: zen-proxy/claude-sonnet-5
       provider: zen-proxy
       label: Claude Sonnet 5
-      context: 0
+      context: 1000000
+      caps:
+        - reasoning
+        - attachment
+        - image-in
+        - pdf-in
+    - id: zen-proxy/claude-sonnet-5
+      provider: zen-proxy
+      label: Claude Sonnet 5
+      context: 1000000
+      caps:
+        - reasoning
+        - attachment
+        - image-in
+        - pdf-in
     - id: zen-proxy/deepseek-v4-flash
       provider: zen-proxy
       label: DeepSeek V4 Flash
-      context: 1048576
+      context: 1000000
+      caps:
+        - reasoning
+    - id: zen-proxy/deepseek-v4-flash
+      provider: zen-proxy
+      label: DeepSeek V4 Flash
+      context: 1000000
       caps:
         - reasoning
     - id: zen-proxy/deepseek-v4-flash-free
       provider: zen-proxy
-      label: DeepSeek V4 Flash Free (New)
-      context: 200000
+      label: DeepSeek V4 Flash Free
+      context: 0
+    - id: zen-proxy/deepseek-v4-flash-vision-exp
+      provider: zen-proxy
+      label: DeepSeek V4 Flash Vision Exp
+      context: 1000000
+      caps:
+        - reasoning
+        - attachment
+        - image-in
+    - id: zen-proxy/deepseek-v4-flash-vision-exp
+      provider: zen-proxy
+      label: DeepSeek V4 Flash Vision Exp
+      context: 1000000
+      caps:
+        - reasoning
+        - attachment
+        - image-in
+    - id: zen-proxy/deepseek-v4-pro
+      provider: zen-proxy
+      label: DeepSeek V4 Pro
+      context: 1000000
       caps:
         - reasoning
     - id: zen-proxy/deepseek-v4-pro
       provider: zen-proxy
       label: DeepSeek V4 Pro
-      context: 1048576
+      context: 1000000
       caps:
         - reasoning
     - id: zen-proxy/glm-5
       provider: zen-proxy
-      label: GLM 5
-      context: 0
+      label: GLM-5
+      context: 204800
+      caps:
+        - reasoning
+    - id: zen-proxy/glm-5
+      provider: zen-proxy
+      label: GLM-5
+      context: 204800
+      caps:
+        - reasoning
     - id: zen-proxy/glm-5.1
       provider: zen-proxy
-      label: GLM 5.1
-      context: 0
+      label: GLM-5.1
+      context: 204800
+      caps:
+        - reasoning
+    - id: zen-proxy/glm-5.1
+      provider: zen-proxy
+      label: GLM-5.1
+      context: 204800
+      caps:
+        - reasoning
+    - id: zen-proxy/glm-5.2
+      provider: zen-proxy
+      label: GLM-5.2
+      context: 1000000
+      caps:
+        - reasoning
+    - id: zen-proxy/glm-5.2
+      provider: zen-proxy
+      label: GLM-5.2
+      context: 1000000
+      caps:
+        - reasoning
+    - id: zen-proxy/glm-5.3
+      provider: zen-proxy
+      label: GLM-5.3
+      context: 1000000
+      caps:
+        - reasoning
+    - id: zen-proxy/glm-5.3
+      provider: zen-proxy
+      label: GLM-5.3
+      context: 1000000
+      caps:
+        - reasoning
+    - id: zen-proxy/glm-5.3-flash
+      provider: zen-proxy
+      label: GLM-5.3-Flash
+      context: 1000000
+      caps:
+        - reasoning
+        - attachment
+        - image-in
+        - video-in
+        - pdf-in
+    - id: zen-proxy/glm-5.3-flash
+      provider: zen-proxy
+      label: GLM-5.3-Flash
+      context: 1000000
+      caps:
+        - reasoning
+        - attachment
+        - image-in
+        - video-in
+        - pdf-in
     - id: zen-proxy/gpt-5
       provider: zen-proxy
       label: GPT 5
@@ -1075,10 +2315,32 @@ models:
       provider: zen-proxy
       label: GPT 5.6 Terra
       context: 0
+    - id: zen-proxy/gpt-6-astra
+      provider: zen-proxy
+      label: GPT 6 Astra
+      context: 0
     - id: zen-proxy/gemini-3-flash
       provider: zen-proxy
       label: Gemini 3 Flash
-      context: 0
+      context: 1048576
+      caps:
+        - reasoning
+        - attachment
+        - image-in
+        - audio-in
+        - video-in
+        - pdf-in
+    - id: zen-proxy/gemini-3-flash
+      provider: zen-proxy
+      label: Gemini 3 Flash
+      context: 1048576
+      caps:
+        - reasoning
+        - attachment
+        - image-in
+        - audio-in
+        - video-in
+        - pdf-in
     - id: zen-proxy/gemini-3.1-pro
       provider: zen-proxy
       label: Gemini 3.1 Pro
@@ -1086,48 +2348,214 @@ models:
     - id: zen-proxy/gemini-3.5-flash
       provider: zen-proxy
       label: Gemini 3.5 Flash
-      context: 0
+      context: 1048576
+      caps:
+        - reasoning
+        - attachment
+        - image-in
+        - audio-in
+        - video-in
+        - pdf-in
+    - id: zen-proxy/gemini-3.5-flash
+      provider: zen-proxy
+      label: Gemini 3.5 Flash
+      context: 1048576
+      caps:
+        - reasoning
+        - attachment
+        - image-in
+        - audio-in
+        - video-in
+        - pdf-in
     - id: zen-proxy/gemini-3.5-flash-lite
       provider: zen-proxy
       label: Gemini 3.5 Flash Lite
-      context: 0
+      context: 1048576
+      caps:
+        - reasoning
+        - attachment
+        - image-in
+        - audio-in
+        - video-in
+        - pdf-in
+    - id: zen-proxy/gemini-3.5-flash-lite
+      provider: zen-proxy
+      label: Gemini 3.5 Flash Lite
+      context: 1048576
+      caps:
+        - reasoning
+        - attachment
+        - image-in
+        - audio-in
+        - video-in
+        - pdf-in
     - id: zen-proxy/gemini-3.6-flash
       provider: zen-proxy
       label: Gemini 3.6 Flash
-      context: 0
+      context: 1048576
+      caps:
+        - reasoning
+        - attachment
+        - image-in
+        - audio-in
+        - video-in
+        - pdf-in
+    - id: zen-proxy/gemini-3.6-flash
+      provider: zen-proxy
+      label: Gemini 3.6 Flash
+      context: 1048576
+      caps:
+        - reasoning
+        - attachment
+        - image-in
+        - audio-in
+        - video-in
+        - pdf-in
+    - id: zen-proxy/gemini-3.7-flash
+      provider: zen-proxy
+      label: Gemini 3.7 Flash
+      context: 1048576
+      caps:
+        - reasoning
+        - attachment
+        - image-in
+        - audio-in
+        - video-in
+        - pdf-in
+    - id: zen-proxy/gemini-3.7-flash
+      provider: zen-proxy
+      label: Gemini 3.7 Flash
+      context: 1048576
+      caps:
+        - reasoning
+        - attachment
+        - image-in
+        - audio-in
+        - video-in
+        - pdf-in
+    - id: zen-proxy/gemini-3.8-flash
+      provider: zen-proxy
+      label: Gemini 3.8 Flash
+      context: 1048576
+      caps:
+        - reasoning
+        - attachment
+        - image-in
+        - audio-in
+        - video-in
+        - pdf-in
+    - id: zen-proxy/gemini-3.8-flash
+      provider: zen-proxy
+      label: Gemini 3.8 Flash
+      context: 1048576
+      caps:
+        - reasoning
+        - attachment
+        - image-in
+        - audio-in
+        - video-in
+        - pdf-in
     - id: zen-proxy/grok-4.5
       provider: zen-proxy
       label: Grok 4.5
       context: 0
+    - id: zen-proxy/grok-4.6
+      provider: zen-proxy
+      label: Grok 4.6
+      context: 0
     - id: zen-proxy/grok-build-0.1
       provider: zen-proxy
       label: Grok Build 0.1
-      context: 0
-    - id: zen-proxy/kimi-k2.5
-      provider: zen-proxy
-      label: Kimi K2.5
-      context: 0
-    - id: zen-proxy/kimi-k2.6
-      provider: zen-proxy
-      label: Kimi K2.6
-      context: 0
-    - id: zen-proxy/kimi-k2.7-code
-      provider: zen-proxy
-      label: Kimi K2.7 Code
-      context: 0
-    - id: zen-proxy/kimi-k3
-      provider: zen-proxy
-      label: Kimi K3
-      context: 0
-    - id: zen-proxy/laguna-s-2.1-free
-      provider: zen-proxy
-      label: Laguna S 2.1 Free
       context: 256000
       caps:
         - reasoning
-    - id: zen-proxy/ling-3.0-flash-free
+        - attachment
+        - image-in
+        - pdf-in
+    - id: zen-proxy/grok-build-0.1
       provider: zen-proxy
-      label: Ling-3.0-flash Free
+      label: Grok Build 0.1
+      context: 256000
+      caps:
+        - reasoning
+        - attachment
+        - image-in
+        - pdf-in
+    - id: zen-proxy/kimi-k2.5
+      provider: zen-proxy
+      label: Kimi K2.5
+      context: 262144
+      caps:
+        - reasoning
+        - attachment
+        - image-in
+        - video-in
+    - id: zen-proxy/kimi-k2.5
+      provider: zen-proxy
+      label: Kimi K2.5
+      context: 262144
+      caps:
+        - reasoning
+        - attachment
+        - image-in
+        - video-in
+    - id: zen-proxy/kimi-k2.6
+      provider: zen-proxy
+      label: Kimi K2.6
+      context: 262144
+      caps:
+        - reasoning
+        - attachment
+        - image-in
+        - video-in
+    - id: zen-proxy/kimi-k2.6
+      provider: zen-proxy
+      label: Kimi K2.6
+      context: 262144
+      caps:
+        - reasoning
+        - attachment
+        - image-in
+        - video-in
+    - id: zen-proxy/kimi-k2.7-code
+      provider: zen-proxy
+      label: Kimi K2.7 Code
+      context: 262144
+      caps:
+        - reasoning
+        - attachment
+        - image-in
+        - video-in
+    - id: zen-proxy/kimi-k2.7-code
+      provider: zen-proxy
+      label: Kimi K2.7 Code
+      context: 262144
+      caps:
+        - reasoning
+        - attachment
+        - image-in
+        - video-in
+    - id: zen-proxy/kimi-k3
+      provider: zen-proxy
+      label: Kimi K3
+      context: 1048576
+      caps:
+        - reasoning
+        - attachment
+        - image-in
+        - video-in
+    - id: zen-proxy/kimi-k3
+      provider: zen-proxy
+      label: Kimi K3
+      context: 1048576
+      caps:
+        - reasoning
+        - attachment
+        - image-in
+        - video-in
+    - id: zen-proxy/ling-3.0-flash-fin-free
+      provider: zen-proxy
+      label: Ling 3.0 Flash Fin Free
       context: 262144
       caps:
         - reasoning
@@ -1143,8 +2571,10 @@ models:
         - video-in
     - id: zen-proxy/minimax-m2.5
       provider: zen-proxy
-      label: MiniMax M2.5
-      context: 0
+      label: MiniMax-M2.5
+      context: 204800
+      caps:
+        - reasoning
     - id: zen-proxy/minimax-m2.7
       provider: zen-proxy
       label: MiniMax-M2.7
@@ -1154,47 +2584,252 @@ models:
     - id: zen-proxy/minimax-m3
       provider: zen-proxy
       label: MiniMax-M3
-      context: 1000000
+      context: 512000
       caps:
         - reasoning
         - attachment
         - image-in
         - video-in
+    - id: zen-proxy/muse-spark-1.2
+      provider: zen-proxy
+      label: Muse Spark 1.2
+      context: 0
+    - id: zen-proxy/muse-spark-1.2-contributor-free
+      provider: zen-proxy
+      label: Muse Spark 1.2 Contributor Free
+      context: 0
+    - id: zen-proxy/muse-spark-1.3
+      provider: zen-proxy
+      label: Muse Spark 1.3
+      context: 0
+    - id: zen-proxy/muse-spark-1.3-contributor-free
+      provider: zen-proxy
+      label: Muse Spark 1.3 Contributor Free
+      context: 0
     - id: zen-proxy/nemotron-3-ultra-free
       provider: zen-proxy
       label: Nemotron 3 Ultra Free
       context: 1000000
       caps:
         - reasoning
-    - id: zen-proxy/north-mini-code-free
+    - id: zen-proxy/nemotron-3.5-lightning-free
       provider: zen-proxy
-      label: North Mini Code Free
-      context: 256000
+      label: Nemotron 3.5 Lightning Free
+      context: 262144
       caps:
         - reasoning
     - id: zen-proxy/qwen3.5-plus
       provider: zen-proxy
       label: Qwen3.5 Plus
-      context: 0
+      context: 262144
+      caps:
+        - reasoning
+        - attachment
+        - image-in
+        - video-in
     - id: zen-proxy/qwen3.6-plus
       provider: zen-proxy
       label: Qwen3.6 Plus
-      context: 0
-    - id: zen-proxy/glm-5.2
-      provider: zen-proxy
-      label: glm-5.2
-      context: 1000000
+      context: 262144
       caps:
         - reasoning
+        - attachment
+        - image-in
+        - video-in
     - id: custom-openai/qwen-122b
       provider: custom-openai
       label: Qwen 3.5 122B
       context: 128000
       disabled: true
+    - id: groq/meta-llama/llama-4-scout-17b-16e-instruct
+      provider: groq
+      label: Llama 4 Scout 17B 16E
+      context: 131072
+      caps:
+        - attachment
+        - image-in
+      disabled: true
+    - id: groq/qwen/qwen3-32b
+      provider: groq
+      label: Qwen3-32B
+      context: 131072
+      caps:
+        - reasoning
+      disabled: true
     - id: llama-gateway/main
       provider: llama-gateway
       label: Llama 3.3 70B
       context: 8192
+      disabled: true
+    - id: nim-proxy/baai/bge-m3
+      provider: nim-proxy
+      label: BGE M3
+      context: 8192
+      disabled: true
+    - id: nim-proxy/deepseek-ai/deepseek-v4-flash
+      provider: nim-proxy
+      label: DeepSeek V4 Flash
+      context: 1048576
+      caps:
+        - reasoning
+      disabled: true
+    - id: nim-proxy/deepseek-ai/deepseek-v4-pro
+      provider: nim-proxy
+      label: DeepSeek V4 Pro
+      context: 1048576
+      caps:
+        - reasoning
+      disabled: true
+    - id: nim-proxy/openai/gpt-oss-120b
+      provider: nim-proxy
+      label: GPT-OSS-120B
+      context: 128000
+      caps:
+        - reasoning
+      disabled: true
+    - id: nim-proxy/thinkingmachines/inkling
+      provider: nim-proxy
+      label: Inkling
+      context: 1048576
+      caps:
+        - reasoning
+        - attachment
+        - image-in
+        - audio-in
+      disabled: true
+    - id: nim-proxy/meta/llama-3.1-70b-instruct
+      provider: nim-proxy
+      label: Llama 3.1 70b Instruct
+      context: 128000
+      disabled: true
+    - id: nim-proxy/meta/llama-3.1-8b-instruct
+      provider: nim-proxy
+      label: Llama 3.1 8B Instruct
+      context: 16000
+      disabled: true
+    - id: nim-proxy/nvidia/llama-3.1-nemotron-nano-8b-v1
+      provider: nim-proxy
+      label: Llama 3.1 Nemotron Nano 8B v1
+      context: 131072
+      caps:
+        - reasoning
+      disabled: true
+    - id: nim-proxy/nvidia/llama-3.1-nemotron-nano-vl-8b-v1
+      provider: nim-proxy
+      label: Llama 3.1 Nemotron Nano VL 8B v1
+      context: 32768
+      caps:
+        - reasoning
+        - attachment
+        - image-in
+      disabled: true
+    - id: nim-proxy/meta/llama-3.2-1b-instruct
+      provider: nim-proxy
+      label: Llama 3.2 1b Instruct
+      context: 128000
+      disabled: true
+    - id: nim-proxy/meta/llama-3.2-3b-instruct
+      provider: nim-proxy
+      label: Llama 3.2 3B Instruct
+      context: 32768
+      disabled: true
+    - id: nim-proxy/meta/llama-3.3-70b-instruct
+      provider: nim-proxy
+      label: Llama 3.3 70b Instruct
+      context: 128000
+      disabled: true
+    - id: nim-proxy/nvidia/llama-3.3-nemotron-super-49b-v1
+      provider: nim-proxy
+      label: Llama 3.3 Nemotron Super 49B v1
+      context: 131072
+      caps:
+        - reasoning
+      disabled: true
+    - id: nim-proxy/nvidia/llama-3.3-nemotron-super-49b-v1.5
+      provider: nim-proxy
+      label: Llama 3.3 Nemotron Super 49B v1.5
+      context: 131072
+      caps:
+        - reasoning
+      disabled: true
+    - id: nim-proxy/nvidia/llama-nemotron-embed-1b-v2
+      provider: nim-proxy
+      label: Llama Nemotron Embed 1B V2
+      context: 0
+      disabled: true
+    - id: nim-proxy/mistralai/mistral-medium-3.5-128b
+      provider: nim-proxy
+      label: Mistral Medium 3.5
+      context: 262144
+      caps:
+        - reasoning
+        - attachment
+        - image-in
+      disabled: true
+    - id: nim-proxy/nvidia/nv-embedqa-e5-v5
+      provider: nim-proxy
+      label: NV EmbedQA E5 V5
+      context: 0
+      disabled: true
+    - id: nim-proxy/nvidia/nemoretriever-parse
+      provider: nim-proxy
+      label: NeMo Retriever Parse
+      context: 0
+      disabled: true
+    - id: nim-proxy/nvidia/nemotron-3-nano-30b-a3b
+      provider: nim-proxy
+      label: Nemotron Nano (schnell)
+      context: 131072
+      caps:
+        - reasoning
+      disabled: true
+    - id: nim-proxy/nvidia/nemotron-nano-12b-v2-vl
+      provider: nim-proxy
+      label: Nemotron Nano 12B v2 VL
+      context: 128000
+      caps:
+        - reasoning
+        - attachment
+        - image-in
+        - video-in
+      disabled: true
+    - id: nim-proxy/stepfun-ai/step-3.7-flash
+      provider: nim-proxy
+      label: Step 3.7 Flash
+      context: 256000
+      caps:
+        - reasoning
+        - attachment
+        - image-in
+      disabled: true
+    - id: nim-proxy/z-ai/glm-5.2
+      provider: nim-proxy
+      label: glm-5.2
+      context: 1000000
+      caps:
+        - reasoning
+      disabled: true
+    - id: nim-proxy/nvidia/nemotron-mini-4b-instruct
+      provider: nim-proxy
+      label: nemotron-mini-4b-instruct
+      context: 128000
+      disabled: true
+    - id: nim-proxy/nvidia/nv-embed-v1
+      provider: nim-proxy
+      label: nv-embed-v1
+      context: 32768
+      disabled: true
+    - id: nim-proxy/nvidia/nv-embedcode-7b-v1
+      provider: nim-proxy
+      label: nv-embedcode-7b-v1
+      context: 32768
+      disabled: true
+    - id: nim-proxy/nvidia/nvidia-nemotron-nano-9b-v2
+      provider: nim-proxy
+      label: nvidia-nemotron-nano-9b-v2
+      context: 131072
+      caps:
+        - reasoning
       disabled: true
     - id: nv-flash/main
       provider: nv-flash
@@ -1212,45 +2847,14 @@ models:
       context: 64000
       note: Was removed from catalog 2026-07-20, kept for reference
       disabled: true
-    - id: nvidia/thinkingmachines/inkling
-      provider: nvidia
-      label: Inkling
-      context: 1048576
-      caps:
-        - reasoning
-        - attachment
-        - image-in
-        - audio-in
-      disabled: true
     - id: nvidia/mistralai/mistral-7b-instruct-v03
       provider: nvidia
       label: Mistral-7B-Instruct-v0.3
       context: 65536
       disabled: true
-    - id: nvidia/stepfun-ai/step-3.7-flash
-      provider: nvidia
-      label: Step 3.7 Flash
-      context: 256000
-      caps:
-        - reasoning
-        - attachment
-        - image-in
-      disabled: true
     - id: nvidia/abacusai/dracarys-llama-3_1-70b-instruct
       provider: nvidia
       label: dracarys-llama-3.1-70b-instruct
-      context: 128000
-      disabled: true
-    - id: nvidia/z-ai/glm-5.2
-      provider: nvidia
-      label: glm-5.2
-      context: 1000000
-      caps:
-        - reasoning
-      disabled: true
-    - id: nvidia/upstage/solar-10.7b-instruct
-      provider: nvidia
-      label: solar-10.7b-instruct
       context: 128000
       disabled: true
     - id: nvidia/upstage/solar-10_7b-instruct
@@ -1258,8 +2862,62 @@ models:
       label: solar-10.7b-instruct
       context: 128000
       disabled: true
+    - id: opencode/deepseek-v4-flash-free
+      provider: opencode
+      label: DeepSeek V4 Flash Free (New)
+      context: 200000
+      caps:
+        - reasoning
+      disabled: true
+    - id: opencode/laguna-s-2.1-free
+      provider: opencode
+      label: Laguna S 2.1 Free
+      context: 256000
+      caps:
+        - reasoning
+      disabled: true
+    - id: opencode/ling-3.0-flash-free
+      provider: opencode
+      label: Ling-3.0-flash Free
+      context: 262144
+      caps:
+        - reasoning
+      disabled: true
+    - id: opencode/north-mini-code-free
+      provider: opencode
+      label: North Mini Code Free
+      context: 256000
+      caps:
+        - reasoning
+      disabled: true
     - id: qwen-gateway/main
       provider: qwen-gateway
       label: Qwen 3.5 122B / Auto
       context: 128000
+      disabled: true
+    - id: zen-proxy/claude-opus-4-1
+      provider: zen-proxy
+      label: Claude Opus 4 1
+      context: 0
+      disabled: true
+    - id: zen-proxy/laguna-s-2.1-free
+      provider: zen-proxy
+      label: Laguna S 2.1 Free
+      context: 256000
+      caps:
+        - reasoning
+      disabled: true
+    - id: zen-proxy/ling-3.0-flash-free
+      provider: zen-proxy
+      label: Ling-3.0-flash Free
+      context: 262144
+      caps:
+        - reasoning
+      disabled: true
+    - id: zen-proxy/north-mini-code-free
+      provider: zen-proxy
+      label: North Mini Code Free
+      context: 256000
+      caps:
+        - reasoning
       disabled: true
