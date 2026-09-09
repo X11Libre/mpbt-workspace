@@ -1,5 +1,5 @@
 Title: "Automatischer Model-Health-Check fuer proxied Provider"
-Category: active
+Category: starfleet
 Kind: "task"
 Status: "in-progress"
 Assigned-To: "Enterprise"
