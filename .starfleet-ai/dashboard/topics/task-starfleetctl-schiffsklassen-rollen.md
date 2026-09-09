@@ -1,12 +1,11 @@
 Title: "starfleetctl: schiffsklassen / rollen"
 Category: active
-Kind: task
-Status: "open"
+Kind: "task"
+Status: "assigned"
+Assigned-To: "Scotty"
 Created-By: "McKinley"
 Created: "2026-09-08T11:55:26Z"
-Assigned-To: "—"
 Doc-Ref: "—"
-Slug: task-starfleetctl-schiffsklassen-rollen
 
 Neue metadaten für schiffe: Schiffsklasse (Text/Name)
 
