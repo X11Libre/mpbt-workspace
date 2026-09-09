@@ -26,8 +26,15 @@ model_proxy:
 
     - id: zen-proxy
       name: "OpenCode Zen (local proxy)"
+      type: opencode-zen
       base_url: "https://opencode.ai/zen/v1"
       api_key: "{env:OPENCODE_API_KEY}"
+      # OpenCode Zen's free tier only accepts requests that look like the
+      # official opencode client, and now requires the x-opencode-* identity
+      # headers on top of the User-Agent. The "opencode-zen" type makes the
+      # proxy forward the client's real session id (opencode sends it as
+      # X-Session-Id; forwarded verbatim so Zen's per-session prefix cache
+      # stays warm) and stamps the missing identity headers.
 
     - id: nvidia-direct
       name: "NVIDIA NIM (direct)"
