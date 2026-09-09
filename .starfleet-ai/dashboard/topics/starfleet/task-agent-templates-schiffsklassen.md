@@ -7,6 +7,7 @@
 - **Status:** open
 - **Category:** active
 - **Kind:** task
+- **See-Also:** task-starfleetctl-schiffsklassen-rollen (Datenmodell, McKinley)
 
 ## Zusammenfassung
 
@@ -18,10 +19,12 @@ Spawn, Überwachung, Aufräumen.
 ## Bisherige Arbeit
 
 Bereits existierende Topics:
-- `task-starfleetctl-schiffsklassen-rollen` — Metadaten/Board-Anzeige
-- `starfleet/task-workspace-sop-erweitern-auto-assign-und-automatisches-ship-spawn-on-demand` — Auto-Spawn SOP
+- **`task-starfleetctl-schiffsklassen-rollen`** (McKinley) — Metadaten-Modell:
+  Klasse als Text/Name, Board-Anzeige, Web-Dropdown, Kommunikation
+- **`starfleet/task-workspace-sop-erweitern-auto-assign-und-automatisches-ship-spawn-on-demand`**
+  (Discovery) — Auto-Assign + Auto-Spawn SOP
 
-Dieser Topic konsolidiert und erweitert beides.
+Dieser Topic konsolidiert und erweitert beides um den operationalen Workflow.
 
 ## Anforderungen
 
@@ -62,7 +65,7 @@ Enterprise als koordinierendes Flagschiff:
 3. `session ship-run` erweitern: `--template <name>` Flag
 4. Enterprise-SOP: Auto-Assign → Template-Auswahl → Spawn → Cleanup
 5. Web-API: `/api/templates` Endpoint für Dropdown
-6. Board: Klassenname als zusätzliches Feld
+6. Board: Klassenname als zusätzliches Feld (komplementär zu McKinley's Metadaten-Topic)
 
 ## Offene Fragen
 
