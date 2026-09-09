@@ -40,7 +40,7 @@ Strategie ab (Fallback, Round-Robin, Weighted).
 
 ---
 
-## Teil 1: Strategie-Definitionen
+## Teil 1: Strategie-Definitionen (mit echten Context-Windows)
 
 ```yaml
 strategies:
@@ -50,38 +50,58 @@ strategies:
     models:
       - id: big-pickle
         provider: nim-proxy
-        context-window: 131072
+        context-window: 200000    # 200k
         priority: 1
       - id: nvidia/nemotron-3-ultra-550b-a55b
         provider: nim-proxy
-        context-window: 32768
+        context-window: 1000000   # 1000k = 1M
         priority: 2
     strategy: fallback
-    # Effektives Limit: min(131072, 32768) = 32768
+    # Effektives Limit: min(200000, 1000000) = 200000
 
   cruiser-model:
     description: "Allgemeine Arbeit — Round-Robin für Verfügbarkeit"
     models:
       - id: nvidia/nemotron-3-ultra-550b-a55b
         provider: nim-proxy
-        context-window: 32768
+        context-window: 1000000   # 1000k = 1M
         weight: 1
       - id: nvidia/nemotron-3-nano-30b-a3b
         provider: nim-proxy
-        context-window: 16384
-        weight: 1
+        context-window: 16384     # 16k (basierend auf config: nemotron-3-nano-30b-a3b)
     strategy: round-robin
-    # Effektives Limit: min(32768, 16384) = 16384
+    # Effektives Limit: min(1000000, 16384) = 16384
 
   scout-model:
     description: "Leichte Aufgaben — schnell, billig"
     models:
       - id: nvidia/nemotron-3-nano-30b-a3b
         provider: nim-proxy
-        context-window: 16384
+        context-window: 16384     # 16k
     strategy: single
     # Effektives Limit: 16384
+
+  balanced-model:
+    description: "60% BigPickle, 40% Nemotron Ultra"
+    models:
+      - id: big-pickle
+        provider: nim-proxy
+        context-window: 200000    # 200k
+        weight: 3
+      - id: nvidia/nemotron-3-ultra-550b-a55b
+        provider: nim-proxy
+        context-window: 1000000   # 1000k = 1M
+        weight: 2
+    strategy: weighted
+    # Effektives Limit: min(200000, 1000000) = 200000
 ```
+
+### Bekannte Modelle aus opencode config
+- **Nemotron 3 Super** (`nvidia/nemotron-3-super-120b-a12b`): 262144 tokens (~262k)
+- **Nemotron Ultra** (`nvidia/nemotron-3-ultra-550b-a55b`): 1000000 tokens (1000k = 1M)
+- **Big Pickle** (`big-pickle`): 200000 tokens (200k)
+- **Nemotron Nano** (`nvidia/nemotron-3-nano-30b-a3b`): 16384 tokens (16k)
+- **DeepSeek V4 Flash**: 1000000 tokens (1M)
 
 ### Strategien-Typen
 
@@ -99,26 +119,27 @@ strategies:
 ### Problem-Szenario
 
 ```
-1. Session startet mit BigPickle (128k Context)
-2. Session wächst auf 80k Tokens
-3. BigPickle wird unverfügbar (Quota aufgebraucht)
-4. Proxy wechselt auf Nemotron Ultra (32k Context)
-5. 80k Tokens > 32k Limit → Upstream lehnt ab
-6. Compaction auf Nemotron Ultra: 80k zu verarbeiten → möglicherweise zu groß
-7. Session steckt fest
+1. Session startet mit Nemotron Ultra (1M Context)
+2. Session wächst auf 150k Tokens
+3. Nemotron Ultra wird unverfügbar (Quota aufgebraucht)
+4. Proxy wechselt auf Big Pickle (200k Context)
+5. 150k < 200k → OK, kein Problem
+6. Wenn wir stattdessen auf Nemotron Nano (16k) fallen würden:
+   150k > 16k → upstream lehnt ab → Compaction auf 16k-Modell → ggf. zu groß
 ```
 
 ### Lösung: Min-Limit von Anfang an
 
 ```
 1. Strategie "heavy-model" definiert:
-   - BigPickle: 128k
-   - Nemotron Ultra: 32k
-2. Proxy berechnet: effective_limit = min(128k, 32k) = 32k
-3. Proxy sendet an opencode: X-Context-Limit: 32768
-4. opencode behandelt 32k als hartes Limit
-5. Compaction wird bei ~27k getriggert (32k - buffer)
-6. Bei Fallback auf Nemotron Ultra: Context passt immer
+   - Big Pickle: 200k
+   - Nemotron Ultra: 1M
+2. Proxy berechnet: effective_limit = min(200k, 1000k) = 200k
+3. Proxy sendet an opencode: X-Context-Limit: 200000
+4. opencode behandelt 200k als hartes Limit
+5. Compaction wird bei ~170k getriggert (200k - buffer)
+6. Bei Fallback auf Big Pickle: Context passt immer
+7. Bei Fallback auf Nemotron Ultra: noch mehr Headroom
 ```
 
 ### Vorteile
@@ -130,7 +151,7 @@ strategies:
 
 ### Nachteile
 
-- **Verschwendung:** BigPickle's 128k werden nicht ausgenutzt
+- **Verschwendung:** Größere Modelle werden nicht voll ausgenutzt
 - **Konservativ:** Nutzer könnte mehr Context haben
 
 ### Abwägung
@@ -138,7 +159,7 @@ strategies:
 Für unsere Fleet-Nutzung überwiegen die Vorteile:
 - Ships arbeiten meistens autonom (Hintergrund)
 - Sicherheit > maximale Context-Ausnutzung
-- Nutzer kann bei Bedarf manuell mit `--model big-pickle` starten (ohne Strategie)
+- Nutzer kann bei Bedarf manuell mit `--model <specific>` starten (ohne Strategie)
 
 ---
 
