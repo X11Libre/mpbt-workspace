@@ -16,94 +16,174 @@ Ein Meta-Model ist eine benannte Auswahlregel für Modelle, die der Agent nie
 direkt sieht — er spricht nur das Meta-Model an, der Proxy handelt die
 Strategie ab (Fallback, Round-Robin, Weighted).
 
-## Konfiguration (YAML)
+## Design-Entscheidungen (2026-09-09)
+
+### Session-ID
+- Client-Session-Id wird IMMER an den tatsächlichen Upstream durchgereicht
+- Egal welches Modell tatsächlich angesprochen wird
+- Cache-Affinität bleibt erhalten (wie opencode es direkt tun würde)
+
+### Modell-Kompatibilität
+- Modelle sind üblicherweise kompatibel (manuell getestet)
+- Bei Context-Window-Unterschieden: ggf. Compact-Trigger auslösen
+- Noch zu klären: differentielle Behandlung von system-prompt/parameters
+
+### Monitoring/Heuristiken
+- Konfigurierbar: globale Defaults + per-Strategy Override
+- Metriken: Latenz, Fehlerrate, Token-Durchsatz, Consecutive Failures
+
+---
+
+## Teil 1: Strategie-Definitionen
 
 ```yaml
-# .starfleet-ai/conf/model-strategies.yaml
 strategies:
   heavy-model:
     description: "Komplexe Aufgaben — erst BigPickle, dann Fallback"
+    default-model: big-pickle
     models:
-      - id: "big-pickle"
+      - id: big-pickle
         provider: nim-proxy
-        weight: 1
-      - id: "nvidia/nemotron-3-ultra-550b-a55b"
+        priority: 1
+      - id: nvidia/nemotron-3-ultra-550b-a55b
         provider: nim-proxy
-        weight: 1
+        priority: 2
     strategy: fallback
-    fallback-on:
-      - quota-exhausted
-      - rate-limited
-      - timeout
 
   cruiser-model:
-    description: "Allgemeine Arbeit — zwischen Nemotron ultra/3 wechseln"
+    description: "Allgemeine Arbeit — Round-Robin für Verfügbarkeit"
     models:
-      - id: "nvidia/nemotron-3-ultra-550b-a55b"
+      - id: nvidia/nemotron-3-ultra-550b-a55b
         provider: nim-proxy
-      - id: "nvidia/nemotron-3-nano-30b-a3b"
+        weight: 1
+      - id: nvidia/nemotron-3-nano-30b-a3b
         provider: nim-proxy
+        weight: 1
     strategy: round-robin
-    fallback-on:
-      - rate-limited
-      - timeout
 
   scout-model:
-    description: "Leichte Aufgaben — schnell und billig"
+    description: "Leichte Aufgaben — schnell, billig"
     models:
-      - id: "nvidia/nemotron-3-nano-30b-a3b"
+      - id: nvidia/nemotron-3-nano-30b-a3b
         provider: nim-proxy
     strategy: single
+
+  balanced-model:
+    description: "60% BigPickle, 40% Nemotron Ultra"
+    models:
+      - id: big-pickle
+        provider: nim-proxy
+        weight: 3
+      - id: nvidia/nemotron-3-ultra-550b-a55b
+        provider: nim-proxy
+        weight: 2
+    strategy: weighted
 ```
 
-## Strategien
+### Strategien-Typen
 
 | Strategie     | Verhalten                                           |
 |---------------|-----------------------------------------------------|
 | `single`      | Nur ein Modell, kein Fallback                       |
-| `fallback`    | Erst Modell 1, bei Fehler → Modell 2, etc.         |
-| `round-robin` | Wechsel nach jedem Request (oder nach Quota)        |
-| `weighted`    | Zufällig nach Gewicht, Schwerpunkt auf erstes       |
+| `fallback`    | Sequenz nach `priority` (niedriger = zuerst)        |
+| `round-robin` | Gleichmäßig wechseln                                |
+| `weighted`    | Nach `weight`-Faktor                                |
 
-## Trigger für Fallback
+---
 
-- `quota-exhausted` — Free-Tier Limit erreicht (z.B. zen-proxy)
-- `rate-limited` — 429 von Provider
-- `timeout` — Provider antwortet nicht
-- `error` — allgemeiner API-Fehler
+## Teil 2: Session-Affinität + Circuit Breaker
 
-## Vorteile
+### Affinität
+- Default: gleiche Session → gleiches Modell (Cache-Shard)
+- Fallback bricht Affinität temporär
+- Session-ID wird konsistent an Upstream durchgereicht
 
-- **Agent merkt nichts** — spricht immer dasselbe Meta-Model an
-- **Proxy handelt ab** — Fallback/Wechsel komplett transparent
-- **Kosteneffizient** — teure Modelle nur wenn nötig, sonst günstigere
-- **Verfügbarkeit** — automatischer Wechsel bei Provider-Problemen
-
-## Use Cases
-
-1. **BigPickle → Nemotron Ultra Fallback:** Bei Free-Tier-Aufbrauchen
-   schaltet Proxy vollautomatisch auf Nemotron Ultra um. Agent merkt nichts.
-2. **Nemotron Ultra ↔ Nano Round-Robin:** Wechselt zwischen beiden für
-   bessere Verfügbarkeit bei temporären Blocks.
-3. **Scout mit single:** Nano allein, kein Fallback — billig und schnell.
-
-## Integration mit Schiffsklassen
+### Circuit Breaker (Netflix-Style)
 
 ```
-Template "Heavy"  → Meta-Model "heavy-model"  → Proxy: BigPickle → (fallback) → Nemotron Ultra
-Template "Cruiser"→ Meta-Model "cruiser-model"→ Proxy: Round-Robin ultra/nano
-Template "Scout"  → Meta-Model "scout-model"  → Proxy: Nano (single)
+Zustände:
+  CLOSED    → normal, Affinität aktiv
+  OPEN      → Modell geskippt, Fallback aktiv
+  HALF-OPEN → nach Cooldown 1 Request testen
+
+Transition:
+  CLOSED  → OPEN:      bei Schwellenwert-Überschreitung
+  OPEN    → HALF-OPEN: nach cooldown
+  HALF-OPEN → CLOSED:  bei Erfolg
+  HALF-OPEN → OPEN:    bei erneutem Fehler
 ```
 
-## Implementierung
+### Heuriken (konfigurierbar: global + per Strategy)
 
-1. YAML-Config für Meta-Model-Strategien (`.starfleet-ai/conf/model-strategies.yaml`)
-2. Model-Proxy erweitern: Meta-Model-Routing + Fallback-Logik
-3. Status/Health-Endpoint für aktuelle Strategie + Fallback-Historie
-4. `--model` Flag akzeptiert Meta-Model-Namen (nicht nur echte Modelle)
+| Metrik              | Schwellenwert (Default) | Aktion                    |
+|---------------------|-------------------------|---------------------------|
+| Latenz p95          | > 30s                   | Affinität 1 Request brechen|
+| Fehlerrate          | > 20% in 5min          | Circuit Breaker OPEN      |
+| Token-Durchsatz     | < 10 tokens/s          | Modell-Wechsel            |
+| Consecutive Failures| ≥ 3                     | Sofortiges Skip           |
 
-## Offene Fragen
+---
 
-- Meta-Model-Strategien: pro Provider oder pro Meta-Model?
-- Soll Fallback-Historie im Proxy-Log oder als Endpoint sichtbar sein?
-- Weighted-Round-Robin: nach Request-Zahl oder nach Zeitfenster?
+## Teil 3: Trigger-Regeln
+
+```yaml
+triggers:
+  rate-limited:
+    action: skip
+    cooldown: 60s
+    after: 3 retries
+
+  quota-exhausted:
+    action: skip
+    cooldown: 3600s
+    auto-recover: true
+
+  timeout:
+    action: skip
+    cooldown: 30s
+    max-consecutive: 3
+
+  error:
+    action: skip
+    cooldown: 10s
+```
+
+---
+
+## Teil 4: Provider-Health
+
+```yaml
+providers:
+  nim-proxy:
+    base-url: http://127.0.0.1:8443/v1
+    health-check:
+      interval: 30s
+      timeout: 5s
+      endpoint: /v1/models
+
+  zen-proxy:
+    base-url: http://127.0.0.1:8443/v1
+    health-check:
+      interval: 60s
+```
+
+---
+
+## Teil 5: Routing-Tabelle
+
+```yaml
+routing:
+  heavy-model: heavy-model
+  cruiser-model: cruiser-model
+  scout-model: scout-model
+  balanced-model: balanced-model
+```
+
+---
+
+## Offene Punkte
+
+- [ ] Context-Window-Unterschiede: Compact-Trigger wie implementieren?
+- [ ] System-Prompt / Parameters bei Modell-Wechsel: durchreichen oder anpassen?
+- [ ] Weighted-Round-Robin: nach Request-Zahl oder Zeitfenster?
+- [ ] Monitoring-Endpoint: /v1/meta-models/status für aktuelle Strategie
