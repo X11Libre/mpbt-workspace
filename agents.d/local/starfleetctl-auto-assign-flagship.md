@@ -36,25 +36,15 @@ Gelernt beim Diagnose/Fix der Web-Auto-Zuweisung (2026-07-31).
 - End-to-End-Webtest-Muster: Wegwerf-Task via `POST /api/task` mit `assign:"__auto__"`,
   Ergebnis im `/api/tasks` prüfen, dann `task rm` + aufräumen.
 
-## opencode-plugin Build-Test (Makefile `check-plugin`, Commit 8dee257, 2026-07-31)
+## opencode-plugin Build-Test (Makefile `check-plugin`, Commit 8dee257)
 
-- Plugin `fragments/opencode-plugins/starfleet-dispatch.ts` importiert nur
-  `node:child_process` — standalone, `types:["node"]` reicht für tsc komplett.
-- Bootstrap (`internal/bootstrap/checks.go` `verifyOpencodePlugins`): deployed nur
-  `.ts`-Dateien byte-identisch nach `.opencode/plugins/` + Registry in
-  `.opencode/opencode.json` `plugin`-Array. Ein `tsconfig.json` im Plugin-Dir wird
-  embedded aber **nicht** deployed/geprüft — sicher, dort abzulegen.
-- `scripts/check-opencode-plugin.sh`: esbuild-Bundlecheck (Pflicht wenn esbuild da)
-  + `tsc --noEmit` (nur wenn typescript UND @types/node auflösbar, sonst skip mit
-  Hinweis → `make all` bleibt auf Hosts ohne node grün). In `make all` eingehängt.
-- TypeScript v7.0.2-Getchas: `--typeRoots` als CLI-Flag wird **ignoriert** (TS5108:
-  `moduleResolution node10` entfernt → `bundler` nutzen); `typeRoots`/`types`
-  auflösen läuft **ab dem tsconfig-Ort nach oben** — temporäre tsconfigs in `/tmp`
-  finden `node_modules/@types` nicht (Test also im Repo ablegen).
-- Host-Bestand: `/bin/esbuild` v0.25.5, node v20.19.2; `tsc` global NICHT installiert,
-  npx-Registry offline. Caches: typescript v7.0.2 unter
-  `/home/nekrad/.npm/_npx/11d9e06b573ee33f/node_modules/typescript`,
-  `@types/node` unter `/home/nekrad/.npm/_npx/e5f4bcd55d2c7c9f/node_modules/@types`
-  (für Validierung per Symlink nach `node_modules/` einspielen, danach entfernen).
-- Optionale Harness-/Unit-Test-Idee (Topic-Vorschlag 3) bewusst **nicht** umgesetzt —
-  esbuild+tsc decken Syntax/Imports/Typen ab; Plugin-Logik-Test wäre eigener Task.
+- `scripts/check-opencode-plugin.sh`: esbuild-Bundlecheck + `tsc --noEmit` (nur wenn
+  typescript UND @types/node auflösbar, sonst skip → `make all` bleibt ohne node grün).
+- Bootstrap deployed nur `.ts`-Dateien byte-identisch nach `.opencode/plugins/`; ein
+  `tsconfig.json` im Plugin-Dir wird embedded aber **nicht** deployed/geprüft.
+- TypeScript v7 ähnlich `--typeRoots` als CLI-Flag wird **ignoriert** →
+  `moduleResolution bundler` nutzen; Tests nicht in `/tmp` (typeRoots lösen ab dem
+  tsconfig-Ort nach oben auf, finden `node_modules/@types` nicht).
+
+*(Host-spezifische Tooling-Details von 2026-07-31 — esbuild/node-Versionen, npx-Caches —
+bewusst entfernt; in Git-History nachschlagbar.)*
