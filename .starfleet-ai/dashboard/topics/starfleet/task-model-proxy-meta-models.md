@@ -33,7 +33,9 @@ Strategie ab (Fallback, Round-Robin, Weighted, Sticky Selection).
 
 ### Context-Window-Management (Kern-Design)
 - **Proxy berechnet `min(context_window)` über alle Modelle in der Strategie**
-- Dieses Limit wird opencode via `X-Context-Limit` Header mitgeteilt
+- Dieses Limit wird opencode via **zwei Wege** mitgeteilt:
+  1. **Erster Response-Header bei Session-Start** (`X-Context-Limit`)
+  2. **Erweitertes `/v1/models` Endpoint** (neues Feld `context_window` pro Modell)
 - opencode treated dies als effektives Context-Limit
 - Compaction wird IMMER vor Erreichen des kleinsten Modells getriggert
 - Kein Abhängig davon welches Modell gerade aktiv ist
@@ -135,7 +137,9 @@ strategies:
    - Big Pickle: 200k
    - Nemotron Ultra: 1M
 2. Proxy berechnet: effective_limit = min(200k, 1000k) = 200k
-3. Proxy sendet an opencode: X-Context-Limit: 200000
+3. Proxy sendet an opencode:
+   a. X-Context-Limit: 200000 Header bei Session-Start
+   b. Erweiterte /v1/models Response mit context_window: 200000 pro Modell
 4. opencode behandelt 200k als hartes Limit
 5. Compaction wird bei ~170k getriggert (200k - buffer)
 6. Bei Fallback auf Big Pickle: Context passt immer
@@ -163,51 +167,56 @@ Für unsere Fleet-Nutzung überwiegen die Vorteile:
 
 ---
 
-## Teil 3: Implementierung im Proxy
+## Teil 3: Implementierungsplan
 
-### Context-Window-Berechnung
+### Phase 1: Model-Proxy Änderungen
+1. Context-Windows in Model-Definitionen pflegen
+2. Effektives-Limit-Berechnung implementieren (`min(context_window)`)
+3. Header-Injection: `X-Context-Limit` in Antworten hinzufügen
+4. `/v1/models` Endpoint erweitern: `context_window` Feld pro Modell hinzufügen
+5. Provider-Health-Checks implementieren
 
-```go
-func (r *Router) EffectiveContextLimit(strategy string) int {
-    s := r.strategies[strategy]
-    minCtx := math.MaxInt32
-    for _, m := range s.Models {
-        if m.ContextWindow < minCtx {
-            minCtx = m.ContextWindow
-        }
-    }
-    return minCtx
-}
-```
+### Phase 2: Routing-Strategien
+1. Strategie-Definitionen (fallback, round-robin, weighted-sticky)
+2. Weighted-Round-Robin als Sticky Selection:
+   - Bei Session-Start: gewichtete Zufallsauswahl
+   - Bei Fehler/Timeout: zum nächsten gewichteten Modell wechseln
+   - Cooldown-basiert: nach 5 Minuten automatisch zurück ins Pool
+3. Circuit Breaker (Netflix-Style) implementieren
+4. Session-Affinität: gleiche Session → gleiches Modell (Cache-Shard)
 
-### Header-Injection
+### Phase 3: Trigger-Regeln & Heuristiken
+1. Trigger-Regeln implementieren:
+   - rate-limited: skip + 60s cooldown + after 3 retries
+   - quota-exhausted: skip + 3600s cooldown + auto-recover
+   - timeout: skip + 30s cooldown + max-consecutive: 3
+   - error: skip + 10s cooldown
+2. Heuristiken (konfigurierbar):
+   - Latenz p95 > 30s → Affinität 1 Request brechen
+   - Fehlerrate > 20% in 5min → Circuit Breaker OPEN
+   - Token-Durchsatz < 10 tokens/s → Modell-Wechsel
+   - Consecutive Failures ≥ 3 → Sofortiges Skip
 
-```go
-func (r *Router) RoundTrip(req *http.Request) (*http.Response, error) {
-    strategy := r.resolveStrategy(req)
-    if strategy != "" {
-        limit := r.EffectiveContextLimit(strategy)
-        req.Header.Set("X-Context-Limit", strconv.Itoa(limit))
-    }
-    return r.upstream.RoundTrip(req)
-}
-```
+### Phase 4: starfleetctl Integration
+1. `starfleetctl model-proxy meta-models list/show`
+2. `starfleetctl model-proxy sessions list/show`
+3. `starfleetctl model-proxy switch <session-id> <strategy> <model>`
+4. `starfleetctl model-proxy force <strategy> <model>`
+5. Web-API Endpoints:
+   - `GET /v1/meta-models` — Liste aller Strategien
+   - `GET /v1/meta-models/<strategy>` — Strategie-Details
+   - `GET /v1/meta-models/sessions` — Alle Sessions
+   - `POST /v1/meta-models/switch` — Manuell Switch
+   - `POST /v1/meta-models/force` — Alle Sessions zwingen
 
-### opencode-Integration
-
-```json
-// opencode.json — Context-Limit aus Header lesen
-{
-  "agent": {
-    "context": {
-      "source": "header",
-      "header": "X-Context-Limit"
-    }
-  }
-}
-```
-
-Oder: Proxy sendet das Limit als ersten Response-Header, opencode liest es bei Session-Start.
+### Phase 5: Testing & Dokumentation
+1. Unit Tests für alle Komponenten
+2. Integration Tests mit echtem opencode
+3. User-Dokumentation aktualisieren:
+   - Model-Proxy-Konfiguration erklären
+   - starfleetctl Befehle dokumentieren
+   - Context-Limit-Header Verhalten erklären
+   - Beispiele für Strategien zeigen
 
 ---
 
@@ -301,121 +310,11 @@ routing:
 
 ---
 
-## Teil 8: starfleetctl Integration (Neu)
-
-### Befehle für das Flagschiff (Enterprise)
-
-```bash
-# Meta-Model Status anzeigen
-starfleetctl model-proxy meta-models list
-starfleetctl model-proxy meta-models show <strategy-name>
-
-# Aktuelle Modell-Zuweisung pro Session anzeigen (Debugging)
-starfleetctl model-proxy sessions list
-starfleetctl model-proxy sessions show <session-id>
-
-# Manuell Switch erzwingen (Notfall/Debug)
-starfleetctl model-proxy switch <session-id> <strategy> <model>
-starfleetctl model-proxy force <strategy> <model>  # alle Sessions dieser Strategie
-```
-
-### Web-API Endpoints
-
-- `GET /v1/meta-models` — Liste aller Strategien mit aktuellem Status
-- `GET /v1/meta-models/<strategy>` — Details zu einer spezifischen Strategie
-- `GET /v1/meta-models/sessions` — Alle aktiven Sessions mit ihren Zuweisungen
-- `POST /v1/meta-models/switch` — Manuell Switch erzwingen (Body: {session_id, strategy, model})
-- `POST /v1/meta-models/force` — Alle Sessions einer Strategie zwingen (Body: {strategy, model})
-
----
-
-## Teil 9: Circuit Breaker + Session-Affinität
-
-### Affinität
-- Default: gleiche Session → gleiches Modell (Cache-Shard)
-- Fallback bricht Affinität temporär
-- Session-ID wird konsistent an Upstream durchgereicht
-
-### Circuit Breaker (Netflix-Style)
-
-```
-Zustände:
-  CLOSED    → normal, Affinität aktiv
-  OPEN      → Modell geskippt, Fallback aktiv
-  HALF-OPEN → nach Cooldown 1 Request testen
-
-Transition:
-  CLOSED  → OPEN:      bei Schwellenwert-Überschreitung
-  OPEN    → HALF-OPEN: nach cooldown
-  HALF-OPEN → CLOSED:  bei Erfolg
-  HALF-OPEN → OPEN:    bei erneutem Fehler
-```
-
-### Heuriken (konfigurierbar: global + per Strategy)
-
-| Metrik              | Schwellenwert (Default) | Aktion                    |
-|---------------------|-------------------------|---------------------------|
-| Latenz p95          | > 30s                   | Affinität 1 Request brechen|
-| Fehlerrate          | > 20% in 5min          | Circuit Breaker OPEN      |
-| Token-Durchsatz     | < 10 tokens/s          | Modell-Wechsel            |
-| Consecutive Failures| ≥ 3                     | Sofortiges Skip           |
-
----
-
-## Teil 10: Trigger-Regeln
-
-```yaml
-triggers:
-  rate-limited:
-    action: skip
-    cooldown: 60s
-    after: 3 retries
-
-  quota-exhausted:
-    action: skip
-    cooldown: 3600s
-    auto-recover: true
-
-  timeout:
-    action: skip
-    cooldown: 30s
-    max-consecutive: 3
-
-  error:
-    action: skip
-    cooldown: 10s
-```
-
----
-
-## Teil 11: Provider-Health
-
-```yaml
-providers:
-  nim-proxy:
-    base-url: http://127.0.0.1:8443/v1
-    health-check:
-      interval: 30s
-      timeout: 5s
-      endpoint: /v1/models
-
-  zen-proxy:
-    base-url: http://127.0.0.1:8443/v1
-    health-check:
-      interval: 60s
-```
-
----
-
 ## Offene Punkte
 
-1. **Context-Limit-Header:** Wie soll opencode das Limit lesen?
-   - Empfehlung: Erster Response-Header bei Session-Start (einfachste Integration)
-   - Alternative: `/v1/models` Endpoint um `context_window` Feld erweitern
-   - Alternative: separater Endpoint `/v1/strategy/<name>/limits`
+1. **Weighted-Round-Robin Sticky Selection - Cooldown:** Nach wie vielen Sekunden soll ein fehlgeschlagenes Modell wieder in den Pool zurückgenommen werden? (Empfehlung: 300s = 5 Minuten)
+2. **User-Dokumentation:** Welche Beispiele sollen in der Doku gezeigt werden? (Empfehlung: heavy-model, cruiser-model, scout-model)
 
-2. **Weighted-Round-Robin Sticky Selection:** Nach wie vielen erfolgreichen Requests soll ein fehlgeschlagenes Modell wieder in den Pool zurückgenommen werden? (Cooldown-basiert oder success-basiert)
-
-Die beiden Topics sind jetzt komplett:
+Die beiden Topics sind jetzt komplett spezifiziert:
 - `starfleet/task-agent-templates-schiffsklassen` – Schiffs-Klassen-Templates + Enterprise-Koordination
-- `starfleet/task-model-proxy-meta-models` – Model-Routing mit Context-Sicherheit, starfleetctl-Integration, forced switching
+- `starfleet/task-model-proxy-meta-models` – Model-Routing mit Context-Sicherheit, starfleetctl-Integration, forced switching, session-affinity, circuit breaker, heuristiken, Implementierungsplan
