@@ -54,11 +54,14 @@ For other kernels: same structure, different URLs/refs.
 
 Two different versions must not be confused:
 
-- **Final target version** (the version the whole effort ends on): taken from the
-  **task/order** (e.g. `lts/v5.10.264` — the tag must exist in the clone). It is
-  **never** derived from individual commits or from commit messages. The
-  `Makefile`'s `SUBLEVEL` only documents the vendor's baseline (Volla writes
-  5.10.198) — it is a *lower bound*, not the end goal.
+- **Final target version** (the version the whole effort ends on): **from the
+  `Makefile` of the vendor tree** (`VERSION`/`PATCHLEVEL`/`SUBLEVEL` — Volla's
+  `volla-15.0-baseline` declares 5.10.198). It is **never** derived from
+  individual commits or commit messages. If a task/order names a different
+  final version (e.g. `v5.10.264`), verify it against the Makefile — the
+  Makefile is authoritative and a conflicting order value is treated as wrong
+  until confirmed. The corresponding LTS tag must exist in the clone
+  (`lts/v5.10.198` exists).
 - **Next interim version** (which mainline tag to rebase onto in the current
   step): determined from the **actual current basis**, not from branch names
   (`step33-v5.6-base` and similar are only reference markers of earlier
@@ -174,9 +177,11 @@ send a comms message to **Enterprise** (flagship) **and** **McKinley**
   branch names / assumed `v5.6` while the actual basis was `v5.4` (→ must be
   `v5.5`). Next interim version always comes from the current basis
   (`git describe --tags` / merge-base), never from branch names or tagnames.
-- Another wanted to derive the final target version from individual commits
-  instead of from the task. The final target comes from the task/order and its
-  tag must exist (`lts/v5.10.264`), never from commit content or messages.
+- Another wanted to derive the final target version from individual commits.
+  The final target comes from the **vendor tree's `Makefile`**
+  (`VERSION`/`PATCHLEVEL`/`SUBLEVEL` → Volla: 5.10.198 = `lts/v5.10.198`),
+  never from commit content or messages. A conflicting task/order value
+  (e.g. v5.10.264) must be checked against the Makefile first.
 
 ## Anti-patterns (explicit)
 
