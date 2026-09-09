@@ -46,9 +46,27 @@ Generic layout; the Volla mt8781 kernel is the concrete embedding.
 | Remotes | `volla`/`origin` (HelloVolla vendor), `linux` (torvalds), `lts` (gregkh stable), `mediatek` (BSP) |
 | Tag namespaces | `volla/`, `linux/`, `lts/`, `mediatek/` |
 | Branch pattern | `<stem>-step<N>` (optionally `wip/` prefix), e.g. `wip/linearize-volla-15.0-step33` |
-| Target detection | `Makefile`: `VERSION`/`PATCHLEVEL`/`SUBLEVEL` (current Volla: 5.10.198) |
+| Baseline detection | `Makefile`: `VERSION`/`PATCHLEVEL`/`SUBLEVEL` (current Volla: 5.10.198) |
 
 For other kernels: same structure, different URLs/refs.
+
+### Determining the target versions (critical)
+
+Two different versions must not be confused:
+
+- **Final target version** (the version the whole effort ends on): taken from the
+  **task/order** (e.g. `lts/v5.10.264` — the tag must exist in the clone). It is
+  **never** derived from individual commits or from commit messages. The
+  `Makefile`'s `SUBLEVEL` only documents the vendor's baseline (Volla writes
+  5.10.198) — it is a *lower bound*, not the end goal.
+- **Next interim version** (which mainline tag to rebase onto in the current
+  step): determined from the **actual current basis**, not from branch names
+  (`step33-v5.6-base` and similar are only reference markers of earlier
+  work — they are NOT authoritative). Find the current basis with
+  `git describe --tags` on the current `-step<N>` branch head; then the next
+  interim version is the **next higher stable mainline release tag** above it.
+  Example: basis `v5.4` (`v5.4-111919-...` or merge-base identical for
+  v5.4/v5.5/v5.6) → next interim is `v5.5`, then `v5.6`, `v5.7`, ...
 
 ## Workspace isolation & repo hygiene (critical)
 
@@ -152,6 +170,13 @@ send a comms message to **Enterprise** (flagship) **and** **McKinley**
   workspace root, twisted remotes onto xlibre/xserver URLs, and checked out an
   xserver branch — corrupting the environment for everyone. See the workspace
   isolation section above.
+- A session targeted the wrong interim version because it read the version from
+  branch names / assumed `v5.6` while the actual basis was `v5.4` (→ must be
+  `v5.5`). Next interim version always comes from the current basis
+  (`git describe --tags` / merge-base), never from branch names or tagnames.
+- Another wanted to derive the final target version from individual commits
+  instead of from the task. The final target comes from the task/order and its
+  tag must exist (`lts/v5.10.264`), never from commit content or messages.
 
 ## Anti-patterns (explicit)
 
