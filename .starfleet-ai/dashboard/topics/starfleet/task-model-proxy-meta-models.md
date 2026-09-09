@@ -12,9 +12,9 @@
 ## Zusammenfassung
 
 Der Model-Proxy bekommt eine neue Schicht: **Meta-Models** (Model Strategies).
-Ein Meta-Model ist eine benannte Auswahlregel für Modelle, die der Agent nie
+Ein Meta-Model ist eine benannte Auswahlregel für Modelle, der Agent nie
 direkt sieht — er spricht nur das Meta-Model an, der Proxy handelt die
-Strategie ab (Fallback, Round-Robin, Weighted).
+Strategie ab (Fallback, Round-Robin, Weighted, Sticky Selection).
 
 ## Design-Entscheidungen (2026-09-09)
 
@@ -301,14 +301,121 @@ routing:
 
 ---
 
+## Teil 8: starfleetctl Integration (Neu)
+
+### Befehle für das Flagschiff (Enterprise)
+
+```bash
+# Meta-Model Status anzeigen
+starfleetctl model-proxy meta-models list
+starfleetctl model-proxy meta-models show <strategy-name>
+
+# Aktuelle Modell-Zuweisung pro Session anzeigen (Debugging)
+starfleetctl model-proxy sessions list
+starfleetctl model-proxy sessions show <session-id>
+
+# Manuell Switch erzwingen (Notfall/Debug)
+starfleetctl model-proxy switch <session-id> <strategy> <model>
+starfleetctl model-proxy force <strategy> <model>  # alle Sessions dieser Strategie
+```
+
+### Web-API Endpoints
+
+- `GET /v1/meta-models` — Liste aller Strategien mit aktuellem Status
+- `GET /v1/meta-models/<strategy>` — Details zu einer spezifischen Strategie
+- `GET /v1/meta-models/sessions` — Alle aktiven Sessions mit ihren Zuweisungen
+- `POST /v1/meta-models/switch` — Manuell Switch erzwingen (Body: {session_id, strategy, model})
+- `POST /v1/meta-models/force` — Alle Sessions einer Strategie zwingen (Body: {strategy, model})
+
+---
+
+## Teil 9: Circuit Breaker + Session-Affinität
+
+### Affinität
+- Default: gleiche Session → gleiches Modell (Cache-Shard)
+- Fallback bricht Affinität temporär
+- Session-ID wird konsistent an Upstream durchgereicht
+
+### Circuit Breaker (Netflix-Style)
+
+```
+Zustände:
+  CLOSED    → normal, Affinität aktiv
+  OPEN      → Modell geskippt, Fallback aktiv
+  HALF-OPEN → nach Cooldown 1 Request testen
+
+Transition:
+  CLOSED  → OPEN:      bei Schwellenwert-Überschreitung
+  OPEN    → HALF-OPEN: nach cooldown
+  HALF-OPEN → CLOSED:  bei Erfolg
+  HALF-OPEN → OPEN:    bei erneutem Fehler
+```
+
+### Heuriken (konfigurierbar: global + per Strategy)
+
+| Metrik              | Schwellenwert (Default) | Aktion                    |
+|---------------------|-------------------------|---------------------------|
+| Latenz p95          | > 30s                   | Affinität 1 Request brechen|
+| Fehlerrate          | > 20% in 5min          | Circuit Breaker OPEN      |
+| Token-Durchsatz     | < 10 tokens/s          | Modell-Wechsel            |
+| Consecutive Failures| ≥ 3                     | Sofortiges Skip           |
+
+---
+
+## Teil 10: Trigger-Regeln
+
+```yaml
+triggers:
+  rate-limited:
+    action: skip
+    cooldown: 60s
+    after: 3 retries
+
+  quota-exhausted:
+    action: skip
+    cooldown: 3600s
+    auto-recover: true
+
+  timeout:
+    action: skip
+    cooldown: 30s
+    max-consecutive: 3
+
+  error:
+    action: skip
+    cooldown: 10s
+```
+
+---
+
+## Teil 11: Provider-Health
+
+```yaml
+providers:
+  nim-proxy:
+    base-url: http://127.0.0.1:8443/v1
+    health-check:
+      interval: 30s
+      timeout: 5s
+      endpoint: /v1/models
+
+  zen-proxy:
+    base-url: http://127.0.0.1:8443/v1
+    health-check:
+      interval: 60s
+```
+
+---
+
 ## Offene Punkte
 
-1. **Weighted-Round-Robin:** Beim Ship-Start ein Modell nach Gewicht wählen und dabei bleiben, außer es fällt aus oder wird zu langsam (sticky selection mit Failover).  
-   Implementierung: Bei neuer Session: gewichtete Zufallsauswahl. Bei Fehler/Timeout: zum nächstengewichteten Modell wechseln.
+1. **Context-Limit-Header:** Wie soll opencode das Limit lesen?
+   - Empfehlung: Erster Response-Header bei Session-Start (einfachste Integration)
+   - Alternative: `/v1/models` Endpoint um `context_window` Feld erweitern
+   - Alternative: separater Endpoint `/v1/strategy/<name>/limits`
 
-2. **Monitoring-Endpoint:** `/v1/meta-models/status` für aktuelle Strategie + Fallback-Historie
+2. **Weighted-Round-Robin Sticky Selection:** Nach wie vielen erfolgreichen Requests soll ein fehlgeschlagenes Modell wieder in den Pool zurückgenommen werden? (Cooldown-basiert oder success-basiert)
 
-3. **Context-Limit-Header:** Wie genau soll opencode das Limit lesen?
-   - Option A: Erster Response-Header bei Session-Start
-   - Option B: `/v1/models` Endpoint erweitert um `context_window`
-   - Option C: separater Endpoint `/v1/strategy/<name>/limits`
+Die beiden Topics sind jetzt komplett:
+- `starfleet/task-agent-templates-schiffsklassen` – Schiffs-Klassen-Templates + Enterprise-Koordination
+- `starfleet/task-model-proxy-meta-models` – Model-Routing mit Context-Sicherheit, starfleetctl-Integration, forced switching
