@@ -164,6 +164,22 @@ After every release step: submit a report (`starfleetctl reports submit`) and
 send a comms message to **Enterprise** (flagship) **and** **McKinley**
 (="Starbase"); the report must prove the tree reconciliation ran.
 
+### Live progress on the board (keep it current)
+
+Continuously keep your board entry up to date so the flagship / web console can
+see progress at a glance:
+
+- **After every meaningful progress point** (especially after any git
+  operation: rebase step applied, conflict resolved, `--continue`), update
+  your ship note (`starfleetctl comms status working --task <slug> --note
+  "rebase X/Y commits (onto v5.5)"`). Use the actual commit counters from the
+  running rebase (`git rebase --show-current-patch` / `.git/rebase-merge/msgnum`
+  and `end`).
+- Keep the note short and current — replace it, don't append history.
+- The board (CLI and web) renders the note automatically; this is the live
+  progress indicator. No other status field is needed for progress data.
+- Never let the note go stale for long: stale notes look like a stalled ship.
+
 ## Known bad behavior — do not repeat
 
 - A previous agent ran `git rebase --abort` on a rate limit, rolled back, and
