@@ -2,7 +2,7 @@ Title: "Enforcement: Dashboard-Zugriff ausschließlich über starfleetctl CLI (p
 Category: active
 Kind: "task"
 Status: "parked"
-Assigned-To: "Saturn"
+Assigned-To: "—"
 Created-By: "Enterprise"
 Created: "2026-07-31T10:42:06Z"
 Doc-Ref: "—"
