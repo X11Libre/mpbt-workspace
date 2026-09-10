@@ -1,7 +1,7 @@
 Title: "dashboard file format auf rfc288-stil umstellen"
 Category: active
 Kind: "task"
-Status: "open"
+Status: "done"
 Assigned-To: "—"
 Created-By: ""
 Created: ""
@@ -17,3 +17,5 @@ Wenn zb. das State-Feld fehlt, dann ist das ein neu eingestellter Task
 * migration der existierenden einträge & reindex
 * support für altes Format entfernen
 * dokumentation und skills im starfleet anpassen & neu bauen & ausrollen
+
+- 2026-09-10T14:44:33Z Enterprise: completed
