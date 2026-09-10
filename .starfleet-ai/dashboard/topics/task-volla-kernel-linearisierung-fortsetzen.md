@@ -121,3 +121,25 @@ Nach jedem Schritt: **Report** (`reports submit`, belegt den Tree-Abgleich) +
 - **Workspace nicht verpfuschen:** nur im Kernel-Clone arbeiten, Remotes und
   Workspace-Root-Branch (`mtx/agent-config`) nicht anfassen, keine fremden
   Branches auschecken (siehe Skill, Abschnitt Workspace isolation).
+
+## Aktueller Stand / Wiederaufnahme (2026-09-10, Enterprise)
+
+**Barcley hing am 2026-09-10 in einer Modell-Repetitions-Loop** (Modell
+`nemotron-3-super-120b`, lahmte ~10h) und wurde von Enterprise mit
+`nemotron-3-ultra-550b-a55b` neu gestartet. Exakter Fortsetzungszustand:
+
+- **Aktiver Rebase** auf `wip/linearize-volla-15.0-step34`
+  (`.git/rebase-merge` vorhanden) — **NICHT zurückrollen**, nur fortsetzen.
+- **Fortschritt:** `msgnum`/`end` = **303 / 86186** Commits rebased.
+- **HEAD:** `b304ec2a88759 net: aquantia: adding fields and device features
+  for vlan offload`
+- **Angehalen an:** `969593e39d67e net/mlx5: Support querying max VFs from
+  device` — **Conflict** in
+  - `drivers/net/ethernet/aquantia/atlantic/aq_nic.c`
+  - `drivers/net/ethernet/aquantia/atlantic/hw_atl/hw_atl_b0.c`
+- **Conflict-Auflösung war bereits gestaged** (VLAN-offload fields, ~2730
+  Diff-Zeilen). Nächstes Kommando: semantische Prüfung des gestagten Stands,
+  `git add` falls nötig, dann `git rebase --continue`.
+- **Voll-Snapshot 2026-09-10** der Rebase-Metadaten unter
+  `_WORK_/volla-kernel/rebase-snapshot-2026-09-10/` (`git-rebase-todo`,
+  `done`, `aquantia-staged.diff`) — dient als Referenz/Backup.
