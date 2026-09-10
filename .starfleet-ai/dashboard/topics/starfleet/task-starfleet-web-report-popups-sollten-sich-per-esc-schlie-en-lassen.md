@@ -2,7 +2,7 @@ Title: "starfleet: web: report popups sollten sich per ESC schließen lassen"
 Category: starfleet
 Kind: "task"
 Status: "open"
-Assigned-To: "Discovery"
+Assigned-To: "—"
 Created-By: "Stargazer"
 Created: "2026-08-03T10:02:12Z"
 Doc-Ref: "—"
