@@ -1,5 +1,5 @@
 Title: "Implementiere Model-Proxy Meta-Models System"
-Category: active
+Category: starfleet
 Kind: "task"
 Status: "assigned"
 Assigned-To: "McKinley"
