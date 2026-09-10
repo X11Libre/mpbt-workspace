@@ -1,7 +1,7 @@
 Title: "starfleet: web: projekt-SOPs per web anschauen und bearbeiten"
 Category: starfleet
 Kind: "task"
-Status: "open"
+Status: "done"
 Assigned-To: "—"
 Created-By: "Worf"
 Created: "2026-09-04T11:03:57Z"
@@ -13,3 +13,5 @@ Doc-Ref: "—"
 * außerdem ein button um die flotte zu einem reload anzuweisen.
 
 Zunächst in separater branch / worktree arbeiten, sorgfältig testen (lokal in der workspace deployen / restart). die WIP-branch pushen.
+
+- 2026-09-10T20:16:53Z Enterprise: completed
