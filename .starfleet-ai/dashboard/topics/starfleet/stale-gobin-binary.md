@@ -1,10 +1,8 @@
----
 status: parked
 category: parked
 created: 2026-08-04
 created-by: Defiant
 tags: [starfleetctl, deployment, path]
----
 
 ## Parked: stale starfleetctl binary in ~/go/bin
 

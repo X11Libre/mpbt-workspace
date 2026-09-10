@@ -1,10 +1,8 @@
----
 Title: Scan for uninitialized variables in xserver source
 Status: in-progress
 Created: 2026-09-02
 Assigned-To: Defiant
 Category: active
----
 
 ## Scan for uninitialized variables in xserver source
 

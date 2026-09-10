@@ -1,15 +1,13 @@
----
-Title: "generateOpencodeConfig: gueltigen Default-Model-Fallback setzen (Root Cause Ship-Crash ohne --model)"
+Title: generateOpencodeConfig: gueltigen Default-Model-Fallback setzen (Root Cause Ship-Crash ohne --model)
 Category: starfleet
-Kind: "task"
-Status: "done"
-Assigned-To: "Discovery"
-Created-By: "Enterprise"
-Created: "2026-09-04T16:49:21Z"
-Doc-Ref: "—"
+Kind: task
+Status: done
+Assigned-To: Discovery
+Created-By: Enterprise
+Created: 2026-09-04T16:49:21Z
+Doc-Ref: —
 Updated: 2026-09-04
-Noted-By: "Enterprise"
----
+Noted-By: Enterprise
 
 Folge-Task zum Bug 'bug-ship-run-extra-arg-und-spawn-crash-ohne-klare-fehlerursache'. Der eigentliche Root Cause war noch offen: Spawn OHNE explizites --model (frueher Web-GUI, generell) crashte, weil der Default-Model-Fallback in generateOpencodeConfig keine gueltige Model-ID setzte. Workaround aktiv (Web-Pflichtfeld, CLI ohne --model nicht empfohlen).
 
