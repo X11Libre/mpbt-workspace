@@ -2,7 +2,7 @@ Title: "Alle xwayland-Reste in tests/ entfernen"
 Category: xlibre
 Kind: "task"
 Status: "open"
-Assigned-To: "Enterprise"
+Assigned-To: "—"
 Created-By: "Enterprise"
 Created: "2026-08-06T16:36:52Z"
 Doc-Ref: "—"
