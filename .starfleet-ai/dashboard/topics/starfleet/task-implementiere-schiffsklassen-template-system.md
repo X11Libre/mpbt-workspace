@@ -1,5 +1,5 @@
 Title: "Implementiere Schiffsklassen-Template-System"
-Category: active
+Category: starfleet
 Kind: "task"
 Status: "assigned"
 Assigned-To: "McKinley"
