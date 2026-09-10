@@ -1,7 +1,7 @@
 Title: "Model-Proxy: Retry-Verbesserungen gegen anhaltende 429-Rate-Limits"
 Category: starfleet
 Kind: "task"
-Status: "assigned"
+Status: "done"
 Assigned-To: "Scotty"
 Created-By: "Defiant"
 Created: "2026-09-10T09:10:08Z"
@@ -62,3 +62,5 @@ proxy-max_retries (3) → Keepalive-Hold bis hold_timeout (15s) → finaler 429 
 - 2026-09-10 Defiant: Keepalive-Buffer Assessment
 - 2026-09-10 Praetor: Entscheidung hold=15s max, Saturation Gate beide Pfade
 - 2026-09-10 Enterprise: Analyse-Update bestaetigt, Praetor-Fragen weitergeleitet
+
+- 2026-09-10T10:57:29Z Enterprise: completed
