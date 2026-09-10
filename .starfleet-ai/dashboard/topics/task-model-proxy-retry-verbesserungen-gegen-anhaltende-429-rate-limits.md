@@ -144,12 +144,19 @@ if retryCount > 5 && p.hasFallbackModel(model) {
 }
 ```
 
-## Offene Fragen
+## Praetor-Entscheidung (2026-09-10, via Enterprise/m100175)
 
-1. **Soll der Hold-Modus für ALLE Provider gelten oder nur für bestimmte?** (z.B. nur NIM, nicht Zen)
-2. **Soll der Keepalive-Ping als SSE-Kommentar (`: keepalive\n\n`) oder als leere JSON-Events gesendet werden?**
-3. **Wie soll der Übergang von Hold-Modus zu normalem Retry aussehen?** (Proxy-Internen Retries bleiben für nicht-Hold-Fälle)
-4. **Soll der Hold-Timeout pro Provider konfigurierbar sein?**
+1. **Verbindungs-Hold: JA, aber konservativ** — `hold_timeout_ms=15000` als Default UND Maximum (kein 30s/60s). Keepalive-Buffer nur für `stream:true`-Requests, NIM als erste Instanz, Zen default aus.
+2. **Global Saturation Gate: BEIDES** — der Cooldown greift für ALLE neuen Requests zu einem gesättigten Provider (normaler Retry-Pfad UND Hold), gebündelt hinter einem Retry-After-respektierenden Timer. Damit ist die 24-parallele-Retry-Amplifikation (8 opencode × 3 proxy) für beide Pfade ausgeschlossen.
+
+Damit sind die unterstehenden offenen Fragen wie folgt entschieden.
+
+## Offene Fragen (ENTSCHEIDEN)
+
+1. **Soll der Hold-Modus für ALLE Provider gelten oder nur für bestimmte?** → Nur NIM anfangs, weitere per Config-Flag. (ENTSCHEIDEN)
+2. **Keepalive-Ping-Format?** → SSE-Kommentar `: keepalive\n\n` (Go-Scanner ignoriert Kommentare). (ENTSCHEIDEN: SSE-Kommentar)
+3. **Übergang Hold-Modus ↔ normaler Retry?** → Erst proxy-`max_retries` (3) erschöpfen, dann Hold bis `hold_timeout_ms`, danach finaler 429 an opencode (dessen 8-Retry-Raum bleibt erhalten). (ENTSCHEIDEN: so)
+4. **Hold-Timeout pro Provider?** → Ja, konfigurierbar; Default 15000ms, Max 15000ms. (ENTSCHEIDEN: ja)
 
 ## Nächste Schritte
 
