@@ -1,7 +1,7 @@
 Title: "workspace SOP erweitern: auto-assign und automatisches ship-spawn on demand"
 Category: starfleet
 Kind: "task"
-Status: "open"
+Status: "done"
 Assigned-To: "—"
 Created-By: "McKinley"
 Created: "2026-09-04T14:39:45Z"
@@ -11,3 +11,5 @@ SOP für das Flagschiff: wenn task per auto-assign (zb. via web) ans flagship zu
 
 --> neuen SOP eintrag in der workspace (nicht die von starfleet kommenden) anlegen
 --> falls es zum token-sparen hilft, dann ggf. noch etwas technische erklärung zu
+
+- 2026-09-10T21:46:30Z Enterprise: completed
