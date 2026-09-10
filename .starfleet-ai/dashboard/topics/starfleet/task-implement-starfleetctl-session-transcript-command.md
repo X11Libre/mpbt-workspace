@@ -1,5 +1,5 @@
 Title: "Nachtrag: Implement starfleetctl session transcript command"
-Category: active
+Category: starfleet
 Kind: "task"
 Status: "offen"
 Assigned-To: "—"
