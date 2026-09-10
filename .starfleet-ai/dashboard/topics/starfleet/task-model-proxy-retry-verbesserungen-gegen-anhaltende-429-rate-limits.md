@@ -1,6 +1,6 @@
 Title: "Model-Proxy: Retry-Verbesserungen gegen anhaltende 429-Rate-Limits"
-Category: active
-Kind: task
+Category: starfleet
+Kind: "task"
 Status: "blocked-auf-scotty"
 Assigned-To: "Scotty (nach Tree-Freigabe)"
 Created-By: "Defiant"
