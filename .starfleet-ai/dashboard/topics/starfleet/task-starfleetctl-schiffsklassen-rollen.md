@@ -1,5 +1,5 @@
 Title: "starfleetctl: schiffsklassen / rollen"
-Category: active
+Category: starfleet
 Kind: "task"
 Status: "assigned"
 Assigned-To: "Scotty"
