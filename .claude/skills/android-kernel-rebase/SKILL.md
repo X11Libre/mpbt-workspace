@@ -76,6 +76,35 @@ Two different versions must not be confused:
 Previous agents have damaged the shared mpbt-workspace while working on this
 task. Protect it — it is a **multi-project worktree**, not a scratch area.
 
+### Temp files — NEVER in the source tree
+
+During conflict resolution you will need to compare file versions (base/ours/
+theirs). **Never** write diff output, comparison files, or merge artifacts
+directly into the kernel source tree. This includes:
+
+- `our.c`, `their.c`, `base.c`, `merged.c` and similar comparison dumps
+- `resolve/`, `resolve_kconfig/` or similar conflict-resolution directories
+- `.bak`, `.backup`, `.tmp` files anywhere in the tree
+- Any other temporary analysis files
+
+**Instead**, use a dedicated temp directory under `_WORK_/`:
+
+```bash
+WORKDIR=/home/nekrad/src/xorg/mpbt-workspace/_WORK_/volla-kernel/tmp
+mkdir -p "$WORKDIR"
+
+# Compare versions there:
+diff <(git show HEAD:fs/proc/base.c) <(git show HEAD~1:fs/proc/base.c) > "$WORKDIR/base.c.diff"
+
+# Or extract files for manual inspection:
+git show HEAD:fs/proc/base.c > "$WORKDIR/base.c.head"
+git show v5.5:fs/proc/base.c > "$WORKDIR/base.c.v5.5"
+```
+
+**Before every commit**: run `git status --short` in the kernel clone and
+verify there are no untracked files in the tree root or subdirectories.
+If you find unexpected files, clean them up immediately.
+
 - **Trade only in the kernel clone.** All git work happens inside the kernel
   clone (e.g. `_WORK_/volla-kernel/sources/volla/kernel-mt8781`). The workspace
   root (`/home/nekrad/src/xorg/mpbt-workspace`) is a separate repo with its own
@@ -108,6 +137,23 @@ task. Protect it — it is a **multi-project worktree**, not a scratch area.
   base silently produces a wrong rebase.
 
 ## Procedure
+
+### Conflict resolution — how to proceed (not just "don't stop")
+
+When `git rebase` stops on a conflict:
+
+1. **Read the conflict markers** in the conflicted file(s) — `<<<<<<<`, `=======`, `>>>>>>>`.
+2. **Understand the conflict**: what did mainline change vs. what did Android/Volla change?
+3. **Resolve semantically**: usually the Android/Volla change is the one to keep (it's the vendor delta). If mainline already has the fix, drop the vendor version.
+4. **Do NOT dump files** — resolve inline in the editor. Use `_WORK_/volla-kernel/tmp/` only for temporary reference copies.
+5. After editing: `git add <file>` then `git rebase --continue`.
+6. If the tree diff shows a difference vs. the original, append a reconciliation commit.
+
+**If you're stuck** (too many conflicts, can't determine the right resolution):
+- Update your board note: `starfleetctl comms status working --task <slug> --note "blocked: N conflicts in <files>, need guidance"`
+- Send a comms message to Enterprise explaining what files conflict and what the choices are.
+- **Do NOT abort**, do NOT create temp files in the source tree, do NOT give up.
+- Wait for guidance, then continue.
 
 ### Phase 1 — Incremental rebase up to the highest used mainline release
 
@@ -198,6 +244,12 @@ see progress at a glance:
   (`VERSION`/`PATCHLEVEL`/`SUBLEVEL` → Volla: 5.10.198 = `lts/v5.10.198`),
   never from commit content or messages. A conflicting task/order value
   (e.g. v5.10.264) must be checked against the Makefile first.
+- **Barcley (2026-09-09)**: dumped 37 diff-comparison files (`our.c`,
+  `their.c`, `base.c`, `merged.c` + variants, `resolve/` dirs) directly into
+  the kernel source root during conflict resolution. Also left `.bak`,
+  `.backup`, `.tmp` files in subdirs. Cleaned up by Enterprise. Cause: missing
+  temp-file hygiene rule in the skill. Added "Temp files — NEVER in the source
+  tree" section above.
 
 ## Anti-patterns (explicit)
 
