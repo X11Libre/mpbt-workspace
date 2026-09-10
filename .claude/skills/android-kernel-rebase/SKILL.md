@@ -149,6 +149,58 @@ When `git rebase` stops on a conflict:
 5. After editing: `git add <file>` then `git rebase --continue`.
 6. If the tree diff shows a difference vs. the original, append a reconciliation commit.
 
+### How to resolve Kconfig conflicts (and other structured files)
+
+**DO NOT** build complex AWK/sed scripts to resolve Kconfig conflicts. This is
+the wrong approach — it wastes tokens, produces fragile line-number-based code,
+and creates temp files in the source tree.
+
+**Instead**, use one of these simple approaches:
+
+**Option A: Editor resolution (preferred for simple conflicts)**
+```bash
+# Open the conflicted file, find <<<<<<< / ======= / >>>>>>> markers
+# Choose the correct side (usually Android/Volla's config entries)
+# Save, then:
+git add fs/proc/Kconfig
+git rebase --continue
+```
+
+**Option B: Checkout one side (when one side is clearly correct)**
+```bash
+# If Android/Volla's version is correct:
+git checkout --ours fs/proc/Kconfig
+git add fs/proc/Kconfig
+git rebase --continue
+
+# If mainline's version is correct:
+git checkout --theirs fs/proc/Kconfig
+git add fs/proc/Kconfig
+git rebase --continue
+```
+
+**Option C: Manual merge (when both sides have unique entries)**
+```bash
+# Extract both versions to a temp dir for comparison:
+WORKDIR=/home/nekrad/src/xorg/mpbt-workspace/_WORK_/volla-kernel/tmp
+mkdir -p "$WORKDIR"
+git show HEAD:fs/proc/Kconfig > "$WORKDIR/ours.kconfig"
+git show MERGE_HEAD:fs/proc/Kconfig > "$WORKDIR/theirs.kconfig"
+# Compare them, then edit the conflicted file directly
+# Copy the result back:
+cp "$WORKDIR/merged.kconfig" fs/proc/Kconfig
+git add fs/proc/Kconfig
+git rebase --continue
+```
+
+**NEVER**: build AWK scripts line-by-line with `echo`, use `sed -i "${line}a..."`,
+or create `resolve_kconfig/` directories. These approaches are fragile, waste
+tokens, and leave temp files in the source tree.
+
+**Common pitfall**: `git show :1:path` does NOT work for files in unmerged state.
+Use `:2:` (ours) or `:3:` (theirs) instead, or resolve by checking out one side
+directly (`git checkout --ours <file>`).
+
 **If you're stuck** (too many conflicts, can't determine the right resolution):
 - Update your board note: `starfleetctl comms status working --task <slug> --note "blocked: N conflicts in <files>, need guidance"`
 - Send a comms message to Enterprise explaining what files conflict and what the choices are.
@@ -250,6 +302,13 @@ see progress at a glance:
   `.backup`, `.tmp` files in subdirs. Cleaned up by Enterprise. Cause: missing
   temp-file hygiene rule in the skill. Added "Temp files — NEVER in the source
   tree" section above.
+- **Barcley (2026-09-10)**: tried to build a Kconfig-conflict-resolution AWK
+  script via ~30 individual `echo` appends (instead of one heredoc), used a
+  typo'd path (`/home/nekrad/src/xom/...` instead of `xorg`), and hit the
+  `git show :1:path` unmerged-state pitfall. Wasted many tokens and attempts.
+  Eventually resolved all conflicts correctly with `git show :2:<file> > <file>`
+  (taking "ours"). Lesson: conflict resolution must use the simple
+  `--ours`/`--theirs`/`git show :2:`/`:3:` approaches — never scripting.
 
 ## Anti-patterns (explicit)
 
