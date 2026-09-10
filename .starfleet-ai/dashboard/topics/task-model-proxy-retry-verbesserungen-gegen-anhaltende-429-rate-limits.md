@@ -1,11 +1,11 @@
----
-title: "Model-Proxy: Retry-Verbesserungen gegen anhaltende 429-Rate-Limits"
-category: active
-kind: task
-status: assigned
-assigned-to: Enterprise
-created-by: Defiant
----
+Title: "Model-Proxy: Retry-Verbesserungen gegen anhaltende 429-Rate-Limits"
+Category: active
+Kind: "task"
+Status: "assigned"
+Assigned-To: "Enterprise"
+Created-By: "Defiant"
+Created: ""
+Doc-Ref: ""
 
 # Model-Proxy: Retry-Verbesserungen gegen anhaltende 429-Rate-Limits
 
@@ -158,3 +158,5 @@ if retryCount > 5 && p.hasFallbackModel(model) {
 3. Config-Parser in `internal/modelproxy/config.go` anpassen
 4. Tests in `internal/modelproxy/proxy_test.go` ergänzen
 5. Deploy via `starfleet-bootstrap`
+
+- 2026-09-10T09:37:18Z Enterprise: Enterprise-Assessment zum Keepalive-Buffer (Gemini-Vorschlag von Defiant): (1) Hold nur bei stream:true gaten, sonst Body-Korruption; (2) Global-Saturation-Gate noetig, sonst Thundering-Herd/Amplifikation (jeder held Request retryt einzeln); (3) Model-Switch waehrend Hold default AUS, opt-in pro Provider; (4) offene Fragen beantwortet: per-Provider Hold (NIM zuerst), SSE-Kommentar-Format, Hold beginnt NACH Erschoepfung der Proxy-max_retries, finaler 429 nach hold_timeout; (5) vor Implementierung Praetor fragen ob 60s+ gehaltene Verbindungen OK. Gesteht auf Scotty-Freigabe. Antwort m100168 an Defiant.
