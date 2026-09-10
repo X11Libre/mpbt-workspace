@@ -1,8 +1,8 @@
 Title: "compiler.h: Private Header für xserver-internen Code"
 Category: active
 Kind: "task"
-Status: "open"
-Assigned-To: "Lycos"
+Status: "parked"
+Assigned-To: "—"
 Created-By: "Saratoga"
 Created: "2026-07-29T15:54:48Z"
 Doc-Ref: "—"
