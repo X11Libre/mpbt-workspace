@@ -1,6 +1,6 @@
 Title: "Bug: dashboard topic update --status verliert Felder + setzt Status nicht"
 Category: parked
-Noted-By: ""
+Status: "done"
 Since: "2026-08-06"
 
 `starfleetctl dashboard topic update <slug> --status done` ist kaputt (festgestellt
@@ -29,3 +29,5 @@ der message-storm-Topics verwendet wurde.
 angegebenen Flags aendern und unveraendert zurueckschreiben — niemals das komplette
 Topic aus einem Teil-Struct neu serialisieren. Optional: Status-Feld bei `--status`
 wirklich setzen.
+
+- 2026-09-10T17:48:03Z Enterprise: completed
