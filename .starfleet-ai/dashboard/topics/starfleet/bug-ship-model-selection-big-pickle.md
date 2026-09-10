@@ -1,8 +1,8 @@
 Title: "bug: ship model-selection ignoriert --model (Scotty lief mit big-pickle)"
 Category: active
 Kind: "task"
-Status: "open"
-Assigned-To: "—"
+Status: "assigned"
+Assigned-To: "Scotty"
 Created-By: "Enterprise"
 Created: "2026-09-10T09:09:29Z"
 Doc-Ref: "—"
