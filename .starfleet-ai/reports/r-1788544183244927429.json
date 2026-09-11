@@ -1,7 +1,0 @@
-{
-  "id": "r-1788544183244927429",
-  "title": "--title",
-  "ship": "Discovery",
-  "body": "5 Fixes implementiert \u0026 verifiziert:\n1. Web-UI Model-Pflichtfeld (UI + Backend 400)\n2. CLI Extra-Args nach -- blockiert mit Erklärung\n3. Crash-Fehlermeldung zeigt Log-Pfad statt 'model error'\n4. Question-Permission: 'deny' (String) für background/auto\n5. Default-Model-Fallback in generateOpencodeConfig (Nemotron Ultra) — CLI ohne --model läuft jetzt\n\nFolge-Task (Default-Model-Fallback) erledigt. SOP für Auto-Assign/Ship-Spawn erstellt. Web-Bug Model-Dropdown Vorauswahl gefixt.",
-  "created": 1788544183
-}
