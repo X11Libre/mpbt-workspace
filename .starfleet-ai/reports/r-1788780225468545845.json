@@ -1,7 +1,0 @@
-{
-  "id": "r-1788780225468545845",
-  "title": "--title",
-  "ship": "Galactica",
-  "body": "Part 1 fertig und deployed:\n\n- task begin/log/progress/done Lifecycle + unattached-Flag/Hinweis\n- task sweep-stale (CLI + System-Verb, noPush=true im Timer) + runStaleSweep-Tests; Timer-config cmd=[sweep-stale]\n- Skills/Doku: task lifecycle + sweep-stale in starfleet SKILL/reference, working-practices\n\nDeploy: master 1cefafd (Rease auf origin/master, Konflikte mit b5f3f2c orphans aufgeloest, build/vet/test gruen). Da .starfleet-ai/src/starfleetctl noch uncommitted Fremd-WIP (Web-Reste etc.) hatte, Binary direkt aus eigenem Worktree deployed statt ./starfleet-bootstrap; bootstrap --fix + sop reindex mit neuem Binary; web (PID 3046) + timer worker (PID 5050) neugestartet; HTTP 200; sweep-stale-Timer geladen (next_fire 1788780600, cron */10).\n\nHinweis: .starfleet-ai/src/starfleetctl enthaelt weiterhin uncommitted Aenderungen (Voyager orphan-Erweiterung, Web-Reste) - kuenftige ./-bootstrap-Laeufe liefern bis zum Commit derselben ggf. veraltetes/kontaminiertes Binary (ff wird von dirty tree blockiert, || true schluckt das).",
-  "created": 1788780225
-}

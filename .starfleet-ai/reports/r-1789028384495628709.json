@@ -1,9 +1,0 @@
-{
-  "id": "r-1789028384495628709",
-  "title": "Task task-implement-starfleetctl-session-transcript-command abgeschlossen",
-  "subtitle": "session transcript command implemented + pushed",
-  "ship": "Enterprise",
-  "body": "Implemented `session transcript \u003cid\u003e [--limit N] [--offset N] [--output \u003cfile\u003e] [--json|--text]` — extracts an opencode session transcript from the SQLite DB (ocsessions package) and renders it as readable text or the raw JSON payload the web console consumes. Title-substring resolution, chronologically ordered parts with truncation markers.\n\nFiles: internal/session/transcript.go + transcript_test.go (new), run.go wiring, ocsessions.MaxListLimit() export. Commit cf7afb3 pushed to master.\n\nVerified go build + full test suite green in a clean worktree at HEAD. Note: the workspace starfleetctl tree currently holds another ship's WIP (internal/session/launch.go) that breaks the build, so bootstrap/deploy of this command must wait until that WIP is resolved.",
-  "task_ref": "task-implement-starfleetctl-session-transcript-command",
-  "created": 1789028384
-}

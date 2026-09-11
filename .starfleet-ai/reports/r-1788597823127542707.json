@@ -1,7 +1,0 @@
-{
-  "id": "r-1788597823127542707",
-  "title": "--title",
-  "ship": "Discovery",
-  "body": "Implementiert:\n\n1. **Report-Delete** (starfleet/task-starfleet-feature-reports-l-schen):\n   - API: DELETE /api/reports/\u003cid\u003e (bereits vorhanden)\n   - Web UI: Delete-Button im Report-Modal (rot, mit Bestätigung)\n   - Getestet via API \u0026 Web UI\n\n2. **Task-Delete** (starfleet/task-starfleet-task-l-schen):\n   - API: DELETE /api/task (neu in web.go)\n   - Web UI: Delete-Button in Task-Liste + Task-Detail-Modal\n   - Getestet via API \u0026 Web UI\n\n3. **ESC-Key Close Modals** (starfleet/task-starfleet-web-report-popups-sollten-sich-per-esc-schliessen-lassen):\n   - Global keydown listener für Escape\n   - Schließt Report-, Task-, SOP- und Ship-Modals\n   - Deployed \u0026 funktional\n\n4. **xlibre SOPs 'Claude' Referenz** (xlibre/task-xlibre-sops-nennen-immernoch-claude):\n   - Keine expliziten 'Claude'-Modell-Referenzen in xlibre-SOPs gefunden\n   - Banner-Änderung 'Starfleet statt Claude Code' bereits in bot-review erfolgt\n   - Klärung bei Enterprise angefordert",
-  "created": 1788597823
-}
