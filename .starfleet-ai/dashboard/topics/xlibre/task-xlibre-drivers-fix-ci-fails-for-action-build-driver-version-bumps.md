@@ -2,7 +2,7 @@ Title: "xlibre: drivers: fix CI fails for action-build-driver version bumps"
 Category: xlibre
 Kind: "task"
 Status: "open"
-Assigned-To: "Defiant"
+Assigned-To: "—"
 Created-By: "Enterprise"
 Created: "2026-09-04T17:47:42Z"
 Doc-Ref: "—"
