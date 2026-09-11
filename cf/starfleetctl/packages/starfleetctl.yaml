@@ -3,8 +3,8 @@
 #
 # starfleetctl fleet-coordination tool.
 #
-# Cloned into _WORK_/starfleetctl/sources/mpbt/starfleetctl. The optional build
-# runs the repo's Makefile (default target builds + tests the tool) via mpbt's
+# Cloned into _WORK_/starfleetctl/sources/starfleetctl. The optional build runs
+# the repo's Makefile (default target builds + tests the tool) via mpbt's
 # `exec` builder — no autotools/meson here (pure Go). `make-pr.*` is configured
 # so starfleetctl github pr make works from this clone too.
 #
