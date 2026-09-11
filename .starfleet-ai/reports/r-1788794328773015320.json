@@ -1,8 +1,0 @@
-{
-  "id": "r-1788794328773015320",
-  "title": "--title",
-  "ship": "Enterprise",
-  "body": "Die Fehlerbehandlung in .starfleet-ai/src/starfleetctl/internal/comms/error.go wurde angepasst, um transient getaggte Fehler (inkl. solcher mit |transient Suffix) korrekt als transient zu erkennen und sie nicht mehr an das Flagschiff zu melden. Dadurch wird das Fluten der Inboxes anderer Schiffe mit transienten Model-Fehlern verhindert. Die Unit-Tests wurden angepasst und erfolgreich ausgeführt. Alle Commando-Tests gehen durch.",
-  "task_ref": "bug/task-comms-transient-model-error-notifications-flood-other-ships-inboxes",
-  "created": 1788794328
-}

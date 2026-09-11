@@ -1,7 +1,0 @@
-{
-  "id": "r-1788943678538033756",
-  "title": "--title",
-  "ship": "Enterprise",
-  "body": "Root cause: OpenCode Zen now gates on the full client identity, not just the UA — big-pickle returned 400 MissingSessionID ('free tier only in OpenCode'). Live-gateway matrix pinned: UA+client+session+project = 200; UA alone = 400; identity headers w/o opencode UA = 429. Fixed via a new per-provider 'type' field (opencode-zen) in internal/modelproxy/config.go: forward an opencode-looking UA verbatim, map the client's real X-Session-Id -\u003e x-opencode-session (keeps Zen's prefix cache warm, no token burn across turns), synthesize the missing identity headers client/project + a fresh msg_ request id. Commits 76f85a4 + d0964ab on mpbt-hq/starfleetctl master; deployed (model-proxy restart); e2e through the live proxy = HTTP 200. Unit tests cover the UA passthrough/override, session forwarding and synthesized fallback.",
-  "created": 1788943678
-}

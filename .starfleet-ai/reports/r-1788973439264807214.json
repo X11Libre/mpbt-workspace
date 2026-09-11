@@ -1,7 +1,0 @@
-{
-  "id": "r-1788973439264807214",
-  "title": "--title",
-  "ship": "Enterprise",
-  "body": "Board autorefresh im Status-Tab erfolgreich implementiert. Zyklischer Autorefresh des Boards im Status-Tab mit Status-Tab mit setInterval alle ~30s (nur wenn Status-Tab aktiv) ermöglicht jetzt Live-Fortschritt (ship-note, progress) automatisch sichtbar zu machen.",
-  "created": 1788973439
-}

@@ -1,8 +1,0 @@
-{
-  "id": "r-1788779919169346453",
-  "title": "task orphans: built-in orphan-task detection deployed",
-  "ship": "Voyager",
-  "body": "CLI 'task orphans [--json]' + GET /api/tasks/orphans + Web-UI Orphans-Button (One-Click-Reassign via __auto__/Idle-Dropdown) implementiert, getestet und deployed. Committet als b5f3f2c. Bootstrap + Web-Restart durchgefuehrt. Live verifiziert: CLI 4 Orphans, Web HTTP 200, /api/tasks/orphans JSON ok. Docs (SKILL.md/reference.md) aktualisiert.",
-  "task_ref": "starfleet/task-starfleetctl-built-in-orphan-task-detection-cli-web",
-  "created": 1788779919
-}

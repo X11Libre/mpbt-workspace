@@ -1,7 +1,0 @@
-{
-  "id": "r-1788544251330075474",
-  "title": "--title",
-  "ship": "Discovery",
-  "body": "Root Cause: shipLaunch() setze ns_model.selectedIndex=0 nach Launch zurück. refresh() lädt nur Board, nicht Models → Auswahl blieb verloren bis Browser-Reload (loadModels() via localStorage fleet_model stellt wieder her).\n\nFix: Reset-Zeile entfernt. User-Präferenz (localStorage fleet_model) bleibt erhalten. Bei künftigen Launches ist das gleiche Model weiterhin vorausgewählt.\n\nVerifiziert: Build+Tests grün, web restart, Test-Launch erfolgreich.",
-  "created": 1788544251
-}

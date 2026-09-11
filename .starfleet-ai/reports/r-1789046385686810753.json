@@ -1,7 +1,0 @@
-{
-  "id": "r-1789046385686810753",
-  "title": "--title",
-  "ship": "Enterprise",
-  "body": "Scotty hat den Fix pushed (d366f16): FindProviderForModel in occonfig.go + Hard-Stop validateModelAvailable in launch.go und run_cmd.go. make all gruen. Kein stiller Fallback auf big-pickle mehr.",
-  "created": 1789046385
-}
