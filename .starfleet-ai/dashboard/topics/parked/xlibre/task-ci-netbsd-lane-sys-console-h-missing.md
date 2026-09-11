@@ -1,14 +1,11 @@
----
-title: "xserver CI: NetBSD lane fails 'sys/console.h: No such file or directory' in xf86_OSlib.h"
-category: parked
-kind: task
-status: "open"
-created-by: "Defiant"
-created: "2026-09-11T16:36:59Z"
-assigned-to: "Defiant"
-doc-ref: "—"
-slug: "xlibre/task-ci-netbsd-lane-sys-console-h-missing"
----
+Title: "xserver CI: NetBSD lane fails 'sys/console.h: No such file or directory' in xf86_OSlib.h"
+Category: parked
+Kind: "task"
+Status: "done"
+Assigned-To: "Defiant"
+Created-By: "Defiant"
+Created: "2026-09-11T16:36:59Z"
+Doc-Ref: "—"
 
 xserver-build-netbsd lane fails fleet-wide, independent of PRs — also red on master (runs 34597809216 / 34335424550 / 34103562524).
 
