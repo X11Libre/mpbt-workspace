@@ -1,6 +1,6 @@
 Title: "Dedicated ship for local UI automation (special privileges?)"
 Category: parked
-Noted-By: ""
+Status: "parked"
 Since: "2026-07-07"
 
 Idea, prompted by the 2026-07-06 lxterminal-kill incident (see
