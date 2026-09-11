@@ -13,7 +13,7 @@ Use this skill when you need to understand or enforce the auto-assign and auto-s
 When a task is captured with `--assign auto`:
 
 1. The task is delegated to the **flagship (Enterprise)**  
-   (`created-by: <Console>`, `assigned-to: Enterprise`).
+   (`created-by: <Console>`, `assigned-to: Enterprise`)
 2. The flagship checks the comms board for **free workers**  
    (`comms board` → status `idle`, not `stale`).
 3. If a free worker exists → `task assign <slug> <worker>` + comms tell the worker.
@@ -35,13 +35,19 @@ starfleetctl task assign <slug> <new-ship>
 - `nvidia/nemotron-3-ultra-550b-a55b` (Nemotron Ultra) – standard.
 - `nvidia/nemotron-3-nano-30b-a3b` (Nemotron Nano, fast) – for light tasks (if specified in the task).
 
+## Worktree Management
+
+**Rule:** Worktrees werden immer über starfleetctl verwaltet, nie direkt `git worktree`.
+
+Details und Subcommands sind im **starfleet-sessions Skill** dokumentiert (`starfleet-sessions` Skill, Abschnitt "Git worktrees").
+
 ## Correct procedure & examples
 
 Ships receive tasks **not** via bare arguments after `--`, but through:
 
 1. **Task capture** (`starfleetctl task capture` or Web‑GUI "Neue Aufgabe").
 2. **Task assignment** (`task assign <slug> <ship>` or `--assign` at capture)  
-   – Auto‑assign (`__auto__`) always routes to the flagship.
+   – Auto‑assign (`__auto__`) routes always to the flagship.
 3. The ship polls its comms inbox (automatically via plugin) and executes the directive.
 4. **Result via comms back** (`comms tell <sender> <reply>`).
 
@@ -55,7 +61,7 @@ Ships receive tasks **not** via bare arguments after `--`, but through:
 ### CLI
 
 ```bash
-# Capture task and delegate directly (via flagship)
+# Task capture and delegate directly (via flagship)
 starfleetctl task capture "Titel" --desc "Beschreibung" --assign auto
 
 # Or: start ship first (with --model!), then assign task
@@ -85,8 +91,8 @@ Worker:
 2. Read task from dashboard (`starfleetctl dashboard topic show <slug>`)
 3. Perform work
 4. `comms tell Enterprise "Task <slug> erledigt: <Zusammenfassung>"`
-5. `task update <slug> --status done` (optional; flagship also does this)
-6. **`starfleetctl report submit --title "Task <slug> abgeschlossen" --body "<Zusammenfassung>" --taskref <slug>`** – submit report
+5. `task update <slug> --status done` (optional; flagship does this too)
+6. **`starfleetctl report submit --title "Task <slug> abgeschlossen" --body "<Zusammenfassung>" --taskref <slug>`** — submit report
 
 ## Checklist for flagship (Enterprise)
 
@@ -101,15 +107,14 @@ For an auto‑assign task:
 ## Checklist for ship spawns (general)
 
 - [ ] Specify `--model` explicitly (CLI) / choose from dropdown (Web‑GUI)
-- [ ] No arguments after `--`
+- [ ] No args after `--`
 - [ ] Assign task separately via dashboard/comms
 - [ ] In Web‑GUI: model field is mandatory (UI should enforce)
 
 ## Token‑saving hint
 
-The default model Nemotron Ultra (`nvidia/nemotron-3-ultra-550b-a55b`) is powerful but token‑intensive. For light tasks (contact lookup, simple code changes, status checks) you can specify `--model nvidia/nemotron-3-nano-30b-a3b` (Nemotron Nano) in the task to save quota.
+Default model Nemotron Ultra (`nvidia/nemotron-3-ultra-550b-a55b`) is powerful but token‑intensive. For light tasks (contact lookup, simple code changes, status checks) you can specify `--model nvidia/nemotron-3-nano-30b-a3b` (Nemotron Nano) in the task to save quota.
 
 ## Reference
 
 This skill is based on lessons learned from `local/ship-spawn-and-auto-assign` and the implementation in `starfleetctl` (commit f84d312: Auto‑Assign always routes to the flagship).
-
