@@ -1,8 +1,8 @@
 Title: "opencode data.directory unter .starfleet-ai/var/ pro Ship?"
 Category: analysis
 Kind: "task"
-Status: "open"
-Assigned-To: "__auto__"
+Status: "parked"
+Assigned-To: "—"
 Created-By: "Defiant"
 Created: "2026-08-04T11:53:34Z"
 Doc-Ref: "—"
