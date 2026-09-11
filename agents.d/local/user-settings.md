@@ -47,7 +47,7 @@ starfleetctl ist seit 2026-09-11 als eigene **mpbt-Solution** ins Workspace
 eingedockt. Alle Arbeit am starfleetctl-Sourcecode (Änderungen, Branches,
 Worktrees, PRs) findet ausschließlich im mpbt-managed Clone statt:
 
-    _WORK_/starfleetctl/sources/mpbt/starfleetctl
+    _WORK_/starfleetctl/sources/starfleetctl
 
 (konfiguriert via `cf/starfleetctl/`, Abholen mit `./run-fetch.starfleetctl`,
 Bauen mit `./run-build.starfleetctl`.) Größere Arbeiten — vor allem wenn
@@ -67,7 +67,7 @@ nicht einfach den webserver killen, sondern das binary löschen und dann neu dep
 
 ### regeln für die arbeit am starfleetctl-sourcecode
 
-* der sourcecode liegt unter `_WORK_/starfleetctl/sources/mpbt/starfleetctl` (mpbt-managed, Branch `master`, make-pr-Config gesetzt)
+* der sourcecode liegt unter `_WORK_/starfleetctl/sources/starfleetctl` (mpbt-managed, Branch `master`, make-pr-Config gesetzt)
 * immer `make` drüber laufen lassen und prüfen ob die tests sauber durchlaufen
 * bei änderungen des plugin immer nochmal genau auf syntax-fehler, fehlendes exception handling, etc prüfen
 * alle änderungen sauber committen - mit genauer dokumentation
