@@ -1,6 +1,6 @@
 Title: "Federation: Multi-Fleet-Netzwerk (TCP-Transport, Peering, Dashboard-Föderation)"
 Category: parked
-Noted-By: ""
+Status: "parked"
 Since: "2026-07-21"
 Tags: "starfleet, infra, federation"
 
