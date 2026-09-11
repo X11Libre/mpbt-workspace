@@ -2,14 +2,14 @@ Title: "starfleet: internes refactoring: git utilty class"
 Category: active
 Status: "open"
 Assigned-To: "Aeon"
-Created-By: ""
-Created: ""
-Doc-Ref: ""
 
 Internes refactoring: git-operationen in separate utility class / module auslagern.
 evtl. alle utils unter `./util` legen.
 
 Analog dazu mit github api access.
+
+Hinweis: lokales git und github access sind getrennte themen - getrennte utils.
+Außerdem auch prüfen was mpbt hier an der Stelle schon hat. Evtl. sollten wir eine separate repo (in der mpbt-hq org) dafür anlegen.
 
 - 2026-09-07T09:31:27Z Aeon: began work
 
