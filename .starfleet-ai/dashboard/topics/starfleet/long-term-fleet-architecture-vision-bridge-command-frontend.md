@@ -1,13 +1,9 @@
 Title: "Long-term fleet architecture vision: bridge command frontend, multi-workspace federation, decentralized/isolated execution"
 Category: parked
-Status: "Vision from praetor 2026-07-06 — bridge frontend + federation + starbases"
-Created-By: ""
-Created: ""
-Assigned-To: ""
+Status: "parked"
+Assigned-To: "—"
 Doc-Ref: "— no branch/PR yet"
-Migrated-From: d4e5fe5cf9203b2f88f811ad9184769d91c2ce77
 Tags: "starfleet"
-Slug: long-term-fleet-architecture-vision-bridge-command-frontend
 
 Triggered by an Enterprise research request into **Paperclip AI** (`github.com/paperclipai/paperclip`, MIT, self-hosted
 agent-orchestration platform — Node/React/Postgres, org-chart/governance, atomic task checkout, budget/token tracking,
