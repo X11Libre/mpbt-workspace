@@ -1,10 +1,8 @@
 Title: "starfleetctl: rework: kommando um alte messages zu entfernen"
 Category: active
 Status: "done"
-Assigned-To: "McKinley"
+Assigned-To: "—"
 Created-By: "McKinley"
-Created: ""
-Doc-Ref: ""
 
 Beim letzten test schien das noch immer nicht komplett zu funktionieren - zumindest bleibt die Ausgabe bei mehreren runs immer gleich:
 
