@@ -1,0 +1,7 @@
+{
+  "id": "r-1789037858643965628",
+  "title": "--title",
+  "ship": "Enterprise",
+  "body": "Scotty: Global Saturation Gate (beide Pfade, pro Provider, Retry-After-respektierend) + SSE Keepalive-Buffer (stream:true, HoldTimeoutMS=15000 default, ': keepalive'-Kommentare alle 3s). Commit aad3616 auf origin/master; verifiziert: Tree sauber, make all gruen, Spec-Konformitaet geprueft (HoldTimeoutMS default 15000, 0=disabled). Praetor-Entscheidungen (15s max, Gate beide Pfade) umgesetzt.",
+  "created": 1789037858
+}
