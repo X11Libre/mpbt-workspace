@@ -1,7 +1,7 @@
 Title: "starfleetctl: schiffsklassen / rollen"
 Category: starfleet
 Kind: "task"
-Status: "done"
+Status: "open"
 Assigned-To: "Scotty"
 Created-By: "McKinley"
 Created: "2026-09-08T11:55:26Z"
