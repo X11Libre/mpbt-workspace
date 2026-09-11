@@ -1,12 +1,11 @@
 Title: "starfleet: additional ship-launch mode via opencode serve"
 Category: starfleet
-Kind: task
+Kind: "task"
 Status: "open"
+Assigned-To: "—"
 Created-By: "McKinley"
 Created: "2026-09-07T08:48:29Z"
-Assigned-To: "—"
 Doc-Ref: "—"
-Slug: starfleet/task-starfleet-additional-ship-launch-mode-via-opencode-serve
 
 # 🛰️ Starfleet Task: Implement Dual-Mode Architecture with Unix Domain Sockets (PTY vs. Native API)
 
@@ -67,3 +66,5 @@ Create a clean abstraction layer inside a new `pkg/opencode` package.
 * clean testing w/o interrupting the current workspace (other work still needs to be done in the same workspace)
 * add starfleetctl repo to the "mpbt" solution within this mpbt workspace.
 * report to McKinley and add a starfleet report.
+
+- 2026-09-11T15:12:35Z Enterprise: Praetor-Entscheidung (2026-09-11): Direkt-Modus (opencode serve, ohne opencode-Frontend) ist REIN OPTIONAL. Standard bleibt der alte PTY-Modus. Ein explizites Flag beim Ship-Launch (Web + CLI, per-Schiff-Einzelentscheidung) aktiviert ihn. Das Flag wird pro Schiff in den Ship-Metadaten erfaßt, damit Web-Terminal/Screen-Dump/Session-Listing den Modus je Schiff kennen und entsprechend behandeln (API-Mode: keine PTY-Attach, native Chat/Log-UI; Modus sichtbar in Board/Session-Anzeige). Frontend-Umbau inkrementell (Option C: erst Chat/Log-UI für API-mode ships). Weiterleitung an Scotty (m100743).
