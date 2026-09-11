@@ -15,7 +15,7 @@ mpbt_git:     git@github.com:mpbt-hq
 install-prefix: ${@PROJECT::@workdir}/target
 
 build:
-    - mpbt/starfleetctl
+    - starfleetctl
 
 packages:
     - ${@PROJECT::@rootdir}/cf/starfleetctl/packages
