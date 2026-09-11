@@ -1,8 +1,8 @@
-Title: Scan for uninitialized variables in xserver source
-Status: in-progress
-Created: 2026-09-02
-Assigned-To: Defiant
+Title: "Scan for uninitialized variables in xserver source"
 Category: active
+Status: "in-progress"
+Assigned-To: "—"
+Created: "2026-09-02"
 
 ## Scan for uninitialized variables in xserver source
 
