@@ -79,11 +79,8 @@ dashboard tasks in the starfleet section.
 - **`curl /v1/models` from the proxy regularly TIMES OUT** while it refreshes catalogs from overloaded upstreams — looks like a crash but is just slowness. `/v1/health` (404 fast) + `ss -ltnp` + `model-proxy status` confirm liveness.
 
 ### CI (xserver)
-- **GH Actions cache is branch-scoped AND evictable.** A hit from branch X does NOT mean it exists in master's/another PR's scope. `actions/cache` saves ONLY when its restore MISSED. After eviction, every lane with `fail-on-cache-miss: true` fails until a full workflow run's fetch-pkg misses→downloads→saves.
-- **`gh run rerun --failed` CANNOT recover a cache eviction** (skips fetch-pkg). Use a FULL `gh run rerun <id>`.
-- **The "delete old workflow runs" workflow wipes run history** — old run IDs can 404 later; capture what you need while it exists.
-- **Master red + PR green pattern:** check whether master's failures share the root cause before assuming a PR defect.
-- **Backport tooling gap:** `backport commit` only resolves the TIP commit of a master PR. For a multi-commit PR, manually rebuild each PR branch (reset onto `origin/release/<rel>`, apply both commits, force-push).
+→ migriert in Skill `ci-platform` (Sektion "GH Actions cache & workflow-run gotchas"): GH-Actions-Cache branch-scoped/evictable, `gh run rerun --failed` kann Cache-Eviction NICHT reparieren (voller rerun nötig), delete-old-runs wipes history, Master-red+PR-green pattern.
+→ Backport-Tooling-Gap (Multi-Commit-PR, TIP-only) migriert in Skill `backport` (Sektion Gotchas).
 
 ### Session / Ship lifecycle
 - **A ship that crashed/exited BEFORE `session stop` arrives leaves a zombie heartbeat** on the board. `session stop <id>` on an already-dead ship is a no-op teardown that leaves heartbeat + files.
