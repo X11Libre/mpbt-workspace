@@ -30,11 +30,12 @@ blind spot:
    subsystems) — those need manual, build-verified rebasing and must **not** be auto-pushed.
    Only force-push the ones that rebase/cherry-pick **cleanly**.
 
-Do all of this in a **separate detached worktree** (`git worktree add --detach … origin/master`),
-never the user's checkout — and note the user may be switching branches / rebasing in the same
-clone concurrently (their reflog churn is theirs, not yours). The throwaway analysis scripts live
-in the session scratchpad (`classify.sh`, `cherrypick-missing.sh`); promote to `scripts/` only if
-this becomes recurring.
+Do all of this in a **separate throwaway worktree** via `starfleetctl worktree add <repo> [name]
+--from origin/master` (never bare `git worktree`, never the user's checkout — starfleetctl tracks
+worktrees under `_WORK_/worktrees/<reponame>/<name>`), and note the user may be switching branches
+/ rebasing in the same clone concurrently (their reflog churn is theirs, not yours). The throwaway
+analysis scripts live in the session scratchpad (`classify.sh`, `cherrypick-missing.sh`); promote
+to `scripts/` only if this becomes recurring.
 
 **Incremental "zipper" rebase for deeply-stale branches.** `~/.bin/git-zipper-rebase.sh`
 (`git zipper-rebase <target>`) rebases a branch onto `<target>` **one upstream commit at a time**

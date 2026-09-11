@@ -22,12 +22,18 @@ practices) — hand them a task via the dashboard/comms, not as extra CLI args.
 
 ## Git worktrees
 
+**Always use `starfleetctl worktree …`** — never bare `git worktree` in any workspace
+repo, including mpbt-cloned sources under `_WORK_/`. starfleetctl creates and tracks
+every worktree under `_WORK_/worktrees/<reponame>/<name>`, so they stay visible to
+`worktree list`/`prune` and cannot silently leak as untracked orphan directories with
+dangling `wt/*` branches.
+
 | Subcommand | Purpose |
 |---|---|
-| `worktree add <repo> [name]` | Create a per-task git worktree |
-| `worktree list` | List worktrees |
-| `worktree remove <path>` | Remove a worktree |
-| `worktree prune` | Garbage-collect stale worktrees |
+| `worktree add <repo-path> [name] [--from <ref>] [--branch <existing>]` | Create a tracked worktree under `_WORK_/worktrees/<reponame>/<name>` on branch `wt/<name>` |
+| `worktree list [repo-path]` | List all tracked worktrees (all repos or one repo) |
+| `worktree remove <repo-path> <name> [--force] [--keep-branch]` | Remove a worktree and its `wt/<name>` branch (`--keep-branch` to keep the branch) |
+| `worktree prune [repo-path]` | Garbage-collect stale worktree directories |
 
 ## Web console & setup
 

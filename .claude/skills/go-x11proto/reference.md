@@ -71,17 +71,18 @@ apply to it):
   don't apply to a personal repo.
 
 **starfleetctl** (the Go CLI consolidating the flock/race-prone fleet-coordination scripts —
-`comms`, `github pr claim`, `ws-commit` — into one tool, `mpbt-hq/starfleetctl`) **used to** be a
-sister mpbt solution like the two above, but **no longer is** (removed 2026-07-13). It now lives
-solely under `.starfleet-ai/` and is managed by `./starfleet-bootstrap` — see the starfleetctl
-skill and `agents.d/local/local-knowledge-dump.md`. Kept here for the still-relevant standing
-constraint and a note on what was removed:
+`comms`, `github pr claim`, `ws-commit` — into one tool, `mpbt-hq/starfleetctl`) **is again** a
+sister mpbt solution like the two above (re-docked **2026-09-11**). It had briefly been removed
+from mpbt (2026-07-13) and managed solely under `.starfleet-ai/`, but is now back as its own
+solution:
 
-- **Removed 2026-07-13:** its mpbt solution (`cf/starfleetctl/`), the `./run-fetch.starfleetctl`
-  / `./run-build.starfleetctl` wrappers, and the `_WORK_/starfleetctl/` clone. The workspace no
-  longer keeps a second starfleetctl checkout; the source + built binary live at
-  `.starfleet-ai/src/starfleetctl/` and `.starfleet-ai/bin/starfleetctl`. `.starfleet-ai/bin/starfleetctl`
-  is now a thin wrapper that execs that binary.
+- **`cf/starfleetctl/`** (`config.sh`, `solutions/default.yaml`,
+  `packages/starfleetctl.yaml` — flat, no namespace subdir) with `./run-fetch.starfleetctl`
+  / `./run-build.starfleetctl` wrappers; clone at `_WORK_/starfleetctl/sources/starfleetctl`,
+  built via `make` (pure Go). Larger starfleetctl work (branches, worktrees) happens only there —
+  `.starfleet-ai/src/` is just the bootstrap deploy target.
+- Worktrees on any of these mpbt clones are created via `starfleetctl worktree add <repo> …`,
+  never bare `git worktree` (see the `starfleet-sessions` skill).
 - History: started life in-tree (branch `mtx/mpbtctl`), extracted to its own repo, then moved
   from `metux/starfleetctl` to `mpbt-hq/starfleetctl` (2026-07-06, praetor-authorized org
   transfer). Naming fits the workspace's Star-Trek ship-name/fleet theme.
