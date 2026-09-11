@@ -75,3 +75,6 @@ agent its own clone name: `.starfleet-ai/bin/starfleetctl github pr mk-agent-clo
   clones (which borrow its objects via alternates) exist.
 - `github pr make` rewrites the `rfc/backport-<rel>` history and needs **exclusive** access to its
   clone for its whole runtime — that's why each agent uses its own clone, not a worktree.
+- **`github backport commit` only resolves the TIP commit of a master PR.** For a multi-commit PR,
+  manually rebuild each PR branch: reset each release clone onto `origin/release/<rel>`, apply
+  BOTH commits (cherry-pick), then force-push the `rfc/backport-<rel>` branch.
