@@ -1,0 +1,24 @@
+# SPDX-License-Identifier: AGPL-3.0-or-later
+# Copyright © 2026 Enrico Weigelt, metux IT consult
+#
+# Standalone solution for the starfleetctl fleet-coordination tool.
+#
+# Deliberately SEPARATE from the xserver build: starfleetctl is only cloned
+# here (and optionally built via its Makefile), never mixed into the xserver
+# package set. Its sole build entry is mpbt/starfleetctl below.
+#
+# Work on starfleetctl (branches, worktrees, api-mode feature etc.) happens
+# under this solution's clone: _WORK_/starfleetctl/sources/mpbt/starfleetctl.
+
+mpbt_git:     git@github.com:mpbt-hq
+
+install-prefix: ${@PROJECT::@workdir}/target
+
+build:
+    - mpbt/starfleetctl
+
+packages:
+    - ${@PROJECT::@rootdir}/cf/starfleetctl/packages
+
+package-defaults:
+    mpbt_git:     ${mpbt_git}

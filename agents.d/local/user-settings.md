@@ -41,18 +41,33 @@ außerdem regelmäßig zwischenstand auf der console und an McKinley geben.
 
 ## starfleetctl
 
+### Arbeits-Repository: mpbt-Solution (seit 2026-09-11)
+
+starfleetctl ist seit 2026-09-11 als eigene **mpbt-Solution** ins Workspace
+eingedockt. Alle Arbeit am starfleetctl-Sourcecode (Änderungen, Branches,
+Worktrees, PRs) findet ausschließlich im mpbt-managed Clone statt:
+
+    _WORK_/starfleetctl/sources/mpbt/starfleetctl
+
+(konfiguriert via `cf/starfleetctl/`, Abholen mit `./run-fetch.starfleetctl`,
+Bauen mit `./run-build.starfleetctl`.) Größere Arbeiten — vor allem wenn
+separate Branches oder Worktrees gebraucht werden — NIE mehr direkt im
+Workspace-Root-Tree oder in `.starfleet-ai/src/starfleetctl` machen.
+
+`.starfleet-ai/src/starfleetctl` ist nur noch das **Deployment-Target** des
+uber `starfleet-bootstrap` ausgelieferten Binaries — dort wird nicht mehr
+entwickelt.
+
 änderungen an von starfleetctl installierten dingen (zb. skills, plugin, etc) immer in der starfleet-repo
 arbeiten, dort sauber committen und dann neu bauen & ausrollen (starfleet-bootstrap). nicht direkt
 innerhalb der workspace bearbeiten (die änderungen gehen sonst verloren)
-
-quellen unter .starfleet-ai/src/starfleetctl
 
 wenn starfleetctl binary nicht deployed werden kann, weil das file locked ist (text file busy), dann
 nicht einfach den webserver killen, sondern das binary löschen und dann neu deployen.
 
 ### regeln für die arbeit am starfleetctl-sourcecode
 
-* der sourcecode ist bereits in .starfleet-ai/src/starfleetctl
+* der sourcecode liegt unter `_WORK_/starfleetctl/sources/mpbt/starfleetctl` (mpbt-managed, Branch `master`, make-pr-Config gesetzt)
 * immer `make` drüber laufen lassen und prüfen ob die tests sauber durchlaufen
 * bei änderungen des plugin immer nochmal genau auf syntax-fehler, fehlendes exception handling, etc prüfen
 * alle änderungen sauber committen - mit genauer dokumentation

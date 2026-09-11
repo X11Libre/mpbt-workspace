@@ -1,0 +1,32 @@
+# SPDX-License-Identifier: AGPL-3.0-or-later
+# Copyright © 2026 Enrico Weigelt, metux IT consult
+#
+# starfleetctl fleet-coordination tool.
+#
+# Cloned into _WORK_/starfleetctl/sources/mpbt/starfleetctl. The optional build
+# runs the repo's Makefile (default target builds + tests the tool) via mpbt's
+# `exec` builder — no autotools/meson here (pure Go). `make-pr.*` is configured
+# so starfleetctl github pr make works from this clone too.
+#
+# Tracks `master` (the fleet deploys straight from master via bootstrap).
+
+sources:
+    git:
+        ref:    origin/master
+        remotes:
+            origin:
+                url:    ${mpbt_git}/starfleetctl.git
+                fetch:
+                  - refs/tags/*:refs/tags/origin/*
+                  - refs/heads/*:refs/remotes/origin/*
+                tagopt: --no-tags
+        local-branch: master
+        config:
+            make-pr.upstream-remote: origin
+            make-pr.upstream-branch: master
+            make-pr.reviewers:       mpbt-hq/dev
+
+buildsystem: exec
+commands:
+    build:
+        - make
