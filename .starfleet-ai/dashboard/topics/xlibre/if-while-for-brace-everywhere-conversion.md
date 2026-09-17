@@ -1,9 +1,6 @@
-Automatischen Stash erzeugt: a1cfa83d45
-Aktueller Branch mtx/agent-config ist auf dem neuesten Stand.
-Automatischen Stash angewendet.
 Title: "if/while/for brace-everywhere conversion (xserver coding style)"
 Category: active
-Status: "open"
+Status: "done"
 Assigned-To: "—"
 Doc-Ref: "PR #3258 (`os/Xtranssock.c` `set_sun_path()`, master, single commit, build-verified via `meson setup` + `ninja hw/vfb/Xvfb hw/xnest/Xnest`)"
 Tags: "xlibre"
@@ -15,3 +12,17 @@ mixed changes). **First batch (Potemkin):** braced `set_sun_path()`'s 4 previous
 matching the file's already-dominant same-line brace style; scope deliberately kept to exactly this one function (the
 candidate this row itself named earlier), not the whole file, to keep the diff trivially reviewable. Update this row
 each time a further batch lands so the initiative doesn't stall silently.
+
+## Progress
+
+- [x] **Batch 1 (Potemkin):** `set_sun_path()` in `os/Xtranssock.c` — 5 unbraced if/else if bodies braced (PRs opened for 25.1 and 25.2 branches)
+  - `if (!port || !*port || !path)`
+  - `if (port[0] == '@')`
+  - `else if (abstract)`
+  - `if (*port == '/')`
+  - `if ((ssize_t)(strlen(at) + strlen(upath) + strlen(port)) > maxlen)`
+
+- [ ] Batch 2: Next function/file
+- [ ] Batch 3: ...
+
+- 2026-09-17T12:29:52Z Scotty: completed
