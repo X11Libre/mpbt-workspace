@@ -1,7 +1,7 @@
 Title: "Volla kernel linearisierung fortsetzen"
 Category: active
 Kind: "task"
-Status: "in-progress"
+Status: "done"
 Assigned-To: "Barcley"
 Created-By: "McKinley"
 Created: "2026-08-10T18:08:22Z"
