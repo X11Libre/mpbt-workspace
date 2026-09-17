@@ -120,33 +120,32 @@ Nach jedem Schritt: **Report** (`reports submit`, belegt den Tree-Abgleich) +
   Workspace-Root-Branch (`mtx/agent-config`) nicht anfassen, keine fremden
   Branches auschecken (siehe Skill, Abschnitt Workspace isolation).
 
-## Aktueller Stand (2026-09-17, Barcley)
+## Aktueller Stand (2026-09-17, Barcley — Abend)
 
-**Phase 1 (Mainline-Releases v5.4 → v5.10.0) ist abgeschlossen.**
-`wip/linearize-volla-15.0-step37` ist fertig und verifiziert:
+**`step37` (Phase 1, Basis v5.10.0) war heute fertig** (Tree == `volla-15.0-baseline`).
+Danach hat **Praetor** den Rebase auf **v5.9** gestartet (`step38`); Barcley hat
+den Lauf übernommen und **abgeschlossen**:
 
-- **Basis (onto):** `11d7b8c180e51` = v5.10.0 (Makefile 5.10.0).
-- **Rebase vollständig:** **25090 Commits** linear neu aufgetragen,
-  **keine Merge-Commits** oberhalb der Basis.
-- **Tree-Konformität:** finaler Tree == `volla-15.0-baseline` (Tag) —
-  `git diff volla-15.0-baseline HEAD` ist leer (0 Dateien); Worktree clean.
-- **Angleichs-Commit:** `5ee9db558ce4f` („reconcile tree to
-  volla-15.0-baseline") setzt die 85 verbliebenen Divergenz-Dateien auf den
-  Original-Inhalt zurück. **Branch-Tip = `5ee9db558ce4f`.**
-- **Abschluss des Rebase-Runs:** der Run war in der finalen
-  Ref-Aktualisierung hängengeblieben (`cannot lock ref … is at 11d7b8c… but
-  expected 3b77453e…`, weil der Branch-Ref zuvor auf die onto-Basis statt auf
-  orig-head zeigte). Sauber gelöst OHNE Rollback: Branch-Ref auf `orig-head`
-  (`3b77453e2c869`) gesetzt, dann `git rebase --continue` → git aktualisierte
-  den Ref selbst auf den Rebase-Tip und räumte den Rebase-State auf.
-- **Refs/Backups:** `orig-head` = `3b77453e2c869` (Volla-Tip = Inhalt-Ziel),
+- **`wip/linearize-volla-15.0-step38`**, onto `bbf5c979011a0` = **v5.9**.
+- **41198 Picks** vollständig verarbeitet (Driver `continue-rebase.sh`, 482
+  Runden; Konflikte → Pick-Blobs, gesetzte Rename-Härtung `unmerged→theirs`).
+- **linear:** 41164 Commits oberhalb der Basis, **0 Merge-Commits**
+  (`drop_redundant_commits` leer).
+- **Tree-Konformität:** finaler Tree == `volla-15.0-baseline` —
+  `git diff volla-15.0-baseline HEAD` leer (0 Dateien); Worktree clean.
+- **Angleichs-Commit:** `4998c77668e21` („reconcile tree to
+  volla-15.0-baseline", 312 Divergenz-Dateien auf Original-Inhalt zurück).
+  **Branch-Tip = `4998c77668e21`.**
+- **Makefile am Tip:** `VERSION=5 PATCHLEVEL=10 SUBLEVEL=198` (= Ziel
+  v5.10.198, `lts/v5.10.198` = `2a1872e33b54`).
+- **Refs/Backups unverändert:** `orig-head` = `3b77453e2c869`,
   `backup/orig-head-step37-3b77453`, `backup/rebase-stand-11d7b8c`,
-  `backup-rebase-progress` = `cbff4951fe7c`, Tag `volla-15.0-baseline`
-  (== `3b77453e2c869`).
-- **Nächster Schritt (Phase 2):** neuen Branch `…-step38` von step37 abzweigen,
-  auf `lts/v5.10.1` rebasen, Tree-Abgleich, dann schrittweise weiter bis
-  `lts/v5.10.198` (= `2a1872e33b54`).
+  `backup-rebase-progress` = `cbff4951fe7c`, Tag `volla-15.0-baseline`.
+- **Report:** `r-1789666453496341949`.
+- **Nächste Schritte** gemäß Auftrag/Skill: weiter in die LTS-Unterschritte
+  (Basis v5.10.x, schrittweise bis v5.10.198), jeweils Tree-Abgleich +
+  Angleichs-Commit + Report.
 
-*(Vorheriger Stand 2026-09-10: Rebase hing auf step34; Modell-Repetitions-Loop
-von `nemotron-3-super-120b`, von Enterprise auf `nemotron-3-ultra-550b-a55b`
-neu gestartet. Snapshot unter `_WORK_/volla-kernel/rebase-snapshot-2026-09-10/`.)*
+*(Vorheriger Stand: step37 Phase-1-Abschluss; davor 2026-09-10 Rebase hing auf
+step34, Modell-Loop, von Enterprise auf `nemotron-3-ultra-550b-a55b` neu
+gestartet. Snapshot `_WORK_/volla-kernel/rebase-snapshot-2026-09-10/`.)*
