@@ -1,7 +1,7 @@
 Title: "starfleet: bug: termctl terminal -> nach resize alles dunkel"
 Category: starfleet
 Kind: "task"
-Status: "assigned"
+Status: "done"
 Assigned-To: "Scotty"
 Created-By: "Pasteur"
 Created: "2026-08-04T08:15:27Z"
@@ -11,3 +11,5 @@ wenn man das fenster resized, wird's dunkel, keine ausgabe mehr.
 
 beim ersten aufschalten startet das terminal extrem klein - da geht das vergrößern noch.
 aber ab einer gewissen größe hinaus wird's dann schwarz
+
+- 2026-09-17T13:16:31Z Scotty: completed
