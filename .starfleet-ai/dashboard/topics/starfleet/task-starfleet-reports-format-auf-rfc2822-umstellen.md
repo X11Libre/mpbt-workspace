@@ -1,8 +1,8 @@
 Title: "starfleet: reports format auf rfc2822 umstellen"
 Category: starfleet
 Kind: "task"
-Status: "assigned"
-Assigned-To: "Scotty"
+Status: "open"
+Assigned-To: "—"
 Created-By: "McKinley"
 Created: "2026-09-11T15:27:57Z"
 Doc-Ref: "—"
