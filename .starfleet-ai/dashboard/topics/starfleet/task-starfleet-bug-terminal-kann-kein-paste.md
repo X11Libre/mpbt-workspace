@@ -1,7 +1,7 @@
 Title: "starfleet: bug: terminal kann kein paste"
 Category: starfleet
 Kind: "task"
-Status: "assigned"
+Status: "done"
 Assigned-To: "Scotty"
 Created-By: "Pasteur"
 Created: "2026-08-04T08:13:52Z"
@@ -19,3 +19,5 @@ Fix implementiert und auf `wip/term-paste-fix` gepusht (Commit a021749):
 - Tests: `TestLookupPasteShortcuts` + erweitertes `TestLookupSpecialKeys` in tk/keyboard; `go build ./...` + `go test ./...` grün.
 
 Offen: visuelle Verifikation mit echter X-Verbindung (termctl + Clipboard-Owner) sowie PR gegen master, falls gewünscht.
+
+- 2026-09-17T13:16:14Z Scotty: completed
