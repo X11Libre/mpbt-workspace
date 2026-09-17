@@ -102,3 +102,50 @@ model_proxy:
           weight: 2
       strategy: "weighted"
       # Effective limit: min(200000, 1000000) = 200000
+
+    - id: nim-primary
+      description: "NIM-first Agent-Strategie — Nemotron Ultra/Super direkt, Fallback Nano->Glimmer->Zen"
+      default_model: "nvidia/nemotron-3-ultra-550b-a55b"
+      models:
+        - id: "nvidia/nemotron-3-ultra-550b-a55b"
+          provider: "nvidia-direct"
+          context_window: 131072
+          priority: 1
+        - id: "nvidia/nemotron-3-super-120b-a12b"
+          provider: "nvidia-direct"
+          context_window: 131072
+          priority: 2
+        - id: "nvidia/nemotron-3-nano-omni-30b-a3b-reasoning"
+          provider: "nvidia-direct"
+          context_window: 65536
+          priority: 3
+        - id: "meta/muse-glimmer-30b"
+          provider: "nvidia-direct"
+          context_window: 131072
+          priority: 4
+        - id: "meta/llama-3.2-11b-vision-instruct"
+          provider: "nvidia-direct"
+          context_window: 131072
+          priority: 5
+        - id: "big-pickle"
+          provider: "zen-proxy"
+          context_window: 200000
+          priority: 90
+        - id: "nemotron-3-ultra-free"
+          provider: "zen-proxy"
+          context_window: 1000000
+          priority: 99
+      strategy: "fallback"
+      # Effective limit: min(131072, ...) = 65536 (nano) / 131072 sonst
+      # Reihenfolge: NIM-direct zuerst (verifiziert tool-call-faehig), Zen erst
+      # als letzte Nothilfe (Quota gilt fuer alle Zen-Modelle gemeinsam).
+      # Prio 90 big-pickle > Prio 99 ultra-free: BigPickle zuerst wenn Zen frei.
+
+  # Automated background model-health check: served-listing + chat probe +
+  # agent-capability (tool-call) probe, persisted to
+  # .starfleet-ai/var/model-health.json and served at /v1/model-health.
+  health:
+    interval: "30m"
+    timeout: "20s"
+    parallel: 4
+    capability_probe: true
