@@ -172,3 +172,17 @@ uebernommen und **abgeschlossen**:
   aus, Praetor-btrfs-balance (Meta 75.7%); interrupted-apply-Faelle (nl80211/kfence/
   KVM/r8169/mt6879/cgroup) per Pick-Blob + stale-staged-Reset; Driver gehaertet.
 - **Naechster Schritt:** naechste Basis-Vorgabe des Praetors (Ziel bleibt v5.10.198).
+
+## Aktueller Stand (2026-09-18, Barcley) — step40 (Basis Linux 5.10.1)
+
+**Praetor startete Rebase auf Linux 5.10.1** (`841fca5a32ccc`); Barcley abgeschlossen:
+
+- **`wip/linearize-volla-15.0-step40`**, onto `841fca5a32ccc` = **Linux 5.10.1**.
+- **25679 Picks** vollstaendig (Driver `continue-rebase.sh`, 2 Runden; nur der uebliche
+  Makefile/clang-android-Startkonflikt, automatisch geloest).
+- **linear:** 25679 Commits oberhalb der Basis, **0 Merge-Commits**.
+- **Tree-Konformität:** `git diff --quiet volla-15.0-baseline HEAD` rc=0 (0 Dateien);
+  Worktree clean. **Kein zusaetzlicher Angleichs-Commit noetig** — der letzte Pick
+  (step39-Reconcile, Tree==baseline) zog die Baumgleichheit beim Rebase mit.
+- **Tip:** `6cb4a236bbeb0`. **Report:** `r-1789762132527024658`.
+- **Naechster Schritt:** naechste Basis-Vorgabe des Praetors (Ziel bleibt v5.10.198).
