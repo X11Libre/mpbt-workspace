@@ -219,10 +219,38 @@ directly (`git checkout --ours <file>`).
 4. If git halts mid-rebase, inspect what is going on, repair, and **continue** —
    never abort.
 5. After each step the before/after trees must be content-identical; otherwise
-   append the inverse diff as a final commit.
+   append the inverse diff as a final commit. **Use the deterministic reconcile
+   below** — do NOT use `git checkout <baseline> -- .` (see Known bad behavior).
 6. When the step is done, branch off again (bump the counter) and continue with
    the next higher mainline version — loop until the highest mainline version
    used in the tree is reached (excluding LTS subversions).
+
+### Tree reconcile (make HEAD tree == baseline) — deterministic method
+
+Goal: at the very end, `git diff <baseline> HEAD` must be empty. The naive
+`git checkout <baseline> -- .` + `git add -A` is **NOT reliable** — it silently
+left ~28 paths unsynced (Barcley, step39). Force the index to the baseline tree
+and materialise it byte-for-byte:
+
+```sh
+git reset --hard HEAD                      # clean working tree first
+git read-tree <baseline>                   # index := baseline tree EXACTLY
+git checkout-index -f -u -a                # worktree := index (all files)
+git clean -fd                              # drop worktree leftovers not in baseline
+git add -A                                 # stage the baseline-vs-HEAD delta
+git commit --amend -F - <<'EOF'
+linearize step<N>: reconcile tree to <baseline>
+
+Align the rebased tree onto <base> to the original vendor tree.
+EOF
+# verify
+git diff <baseline> HEAD | wc -l           # MUST be 0
+git status --short | wc -l                 # MUST be 0
+```
+
+`read-tree` bypasses path-spec/attribute quirks that make `checkout -- .`
+incomplete. The reconcile commit may legitimately delete paths (present in the
+rebased tree, absent in baseline) — `git clean -fd` + `git add -A` handles that.
 
 ### Phase 2 — Incremental rebase within the LTS subversions
 
@@ -255,6 +283,53 @@ directly (`git checkout --ours <file>`).
 
 Every step must be re-runnable: check the invariant before restarting
 (merge-base, tree diff against the baseline) so that re-running is safe.
+
+### Index-write ENOSPC (Btrfs) — "Konnte neue Index-Datei nicht schreiben"
+
+Symptom: after a while the rebase driver stops; `git add`/`git rebase --continue`
+fail with `Schwerwiegend: Konnte neue Index-Datei nicht schreiben.` — even though
+`df` shows lots of free data space and a `dd` write test succeeds.
+
+Cause: **Btrfs metadata exhaustion**. `btrfs filesystem usage /` shows
+`Metadata,DUP` near 100% and `Device unallocated: 1.00MiB` (whole device
+allocated). Data writes still work, but *creating new files* (git's
+`index.lock`, loose objects) needs a free metadata block → ENOSPC.
+
+Immediate mitigation (self-service, in-workspace only — `~/.cache` etc. are
+outside the allowed root):
+
+- Delete rebuildable/re-fetchable artefacts under `_WORK_/` (`*/target`,
+  `*/build`, `*/tarball`, ISO/clone dirs, `toolchains/`) — each deletion frees
+  metadata too, enough for the next few hundred commits.
+- Disable index-write amplifers: `git config core.splitIndex false;
+  git config core.untrackedCache false` (also `gh`-style `core.fsmonitor` off).
+  Keep a `FREE-SPACE-NOTES.md` in your tmp dir naming the re-fetch path for
+  anything you delete (e.g. mpbt package `3rdparty/gcc-aarch64` via
+  `run-fetch.<solution>`).
+- Durable fix (needs **root** — ask the Praetor): `btrfs balance start
+  -dusage=30 /` typically frees tens of GiB of unallocated space and drops
+  metadata to ~75%. A weekly cron is worth setting.
+
+### Interrupted apply — git says "staged changes exist; commit or amend"
+
+`git rebase --continue` refusing with `Es befinden sich zum Commit vorgemerkte
+Änderungen … git commit --amend / git commit` is an **interrupted-apply**
+leftover (often after an ENOSPC): the pick's content is already staged, but the
+commit never happened, and stale staged entries from an *earlier* pick may
+lurk in the index too.
+
+Fix (driver must do this automatically, else it loops forever):
+
+1. Identify the pick: `git log -1 $(tail -1 .git/rebase-merge/done | awk '{print $2}')`.
+   Its pathset is `git diff --no-renames --name-only <pick>^ <pick>`.
+2. `git reset HEAD -- <p>` for every path that is staged but **not** in the
+   pick's pathset (stale leftovers) — otherwise they get folded into the pick.
+3. Verify every pick path staged == `git rev-parse <pick>:<path>`.
+4. Commit the pick with its original message:
+   `git log --format=%B -1 <pick> | git commit -F -`, then `git rebase --continue`.
+
+A robust driver also needs a **loop watchdog**: if the same pick + msgnum
+repeats N times (e.g. 20), stop with `MANUAL NEEDED` instead of spinning.
 
 ## Reporting
 
@@ -309,6 +384,11 @@ see progress at a glance:
   Eventually resolved all conflicts correctly with `git show :2:<file> > <file>`
   (taking "ours"). Lesson: conflict resolution must use the simple
   `--ours`/`--theirs`/`git show :2:`/`:3:` approaches — never scripting.
+- **Barcley (2026-09-18, step39)**: the tree reconcile via
+  `git checkout <baseline> -- .` + `git add -A` looked done but left 28 paths
+  unsynced (`git diff <baseline> HEAD` was still 5054 lines). Only the
+  `git read-tree` + `git checkout-index -f -u -a` method (see "Tree reconcile")
+  guarantees byte-identity. Always verify with `git diff <baseline> HEAD | wc -l`.
 
 ## Anti-patterns (explicit)
 
