@@ -95,3 +95,9 @@ dashboard tasks in the starfleet section.
 
 ### (Historie — erledigte Bugs, Referenz nur bei Bedarf)
 - Frühere Bugs (default-model-fallback, web-PATH, permission-ask-hang, broadcast-ack, loadAllTopics, stale go/bin shadowing) sind BEHOBEN und durch andere Fragmente/working-practices abgedeckt. Details in Git-History/Commit-Messages.
+
+## starfleet web von außen (Handy) unerreichbar — Docker-Netzwerk
+- Symptom: web 0.0.0.0:8080 läuft lokal (200), aber vom Handy im LAN nicht erreichbar; Docker stoppen half.
+- Vermutete Ursache: Docker iptables-Chains (FORWARD DROP) + userland-proxy (docker-proxy 0.0.0.0-Bind) / Port-Bind-Konflikt / Forward-Drop blockt externen LAN-Zugriff.
+- Diagnose-Plan beim Wiederauftreten: vor/nach Docker-Start `ss -ltnp | grep 8080` vergleichen, `docker ps` nach `-p`-Mappings, als root `iptables -L FORWARD` + `iptables -t nat -L`.
+- Detail: Docker-Bridges/Routen (172.17/16, 172.18/16, 172.66/16) bleiben auch nach Daemon-Stopp im Kernel (linkdown).
