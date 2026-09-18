@@ -1,12 +1,13 @@
-Title: "Volla kernel linearisierung fortsetzen"
-Category: active
-Kind: "task"
-Status: "done"
-Assigned-To: "Barcley"
-Created-By: "McKinley"
-Created: "2026-08-10T18:08:22Z"
-Doc-Ref: ""
-
+---
+title: "Volla kernel linearisierung fortsetzen"
+category: active
+kind: "task"
+status: "done"
+assigned-to: "Barcley"
+created-by: "McKinley"
+created: "2026-08-10T18:08:22Z"
+doc-ref: ""
+---
 ## Verweis
 
 Ablauf, Regeln, Verbotenes und Resilienz: **Skill `android-kernel-rebase`**
@@ -149,3 +150,25 @@ den Lauf übernommen und **abgeschlossen**:
 *(Vorheriger Stand: step37 Phase-1-Abschluss; davor 2026-09-10 Rebase hing auf
 step34, Modell-Loop, von Enterprise auf `nemotron-3-ultra-550b-a55b` neu
 gestartet. Snapshot `_WORK_/volla-kernel/rebase-snapshot-2026-09-10/`.)*
+
+## Aktueller Stand (2026-09-18, Barcley) — step39 (Basis Linux 5.10)
+
+**Praetor startete Rebase auf Linux 5.10** (`2c85ebc57b3e1`); Barcley hat den Lauf
+uebernommen und **abgeschlossen**:
+
+- **`wip/linearize-volla-15.0-step39`**, onto `2c85ebc57b3e1` = **Linux 5.10**.
+- **25718 Picks** vollstaendig verarbeitet (Driver `continue-rebase.sh`, 11 Runden).
+- **linear:** 25678 Picks + 1 Angleichs-Commit = **25679 Commits** oberhalb der
+  Basis, **0 Merge-Commits**.
+- **Tree-Konformität:** `git diff volla-15.0-baseline HEAD` = **0 Zeilen**;
+  Worktree clean. Tree byte-identisch zu `volla-15.0-baseline`.
+- **Angleichs-Commit:** `ce0c10880e756` („reconcile tree to
+  volla-15.0-baseline"), Branch-Tip. Deterministisch via
+  `git read-tree volla-15.0-baseline` + `git checkout-index -f -u -a` + Amend
+  (der naive `git checkout -- .`-Weg liess 28 Pfade aus).
+- **Report:** `r-1789731767723196516`.
+- **Zwischenfaelle behoben:** wiederholte git-Index-Write-ENOSPC (Btrfs-Metadaten
+  92.6% voll) — rebuildbare `_WORK_`-Artefakte geloescht, splitIndex/untrackedCache
+  aus, Praetor-btrfs-balance (Meta 75.7%); interrupted-apply-Faelle (nl80211/kfence/
+  KVM/r8169/mt6879/cgroup) per Pick-Blob + stale-staged-Reset; Driver gehaertet.
+- **Naechster Schritt:** naechste Basis-Vorgabe des Praetors (Ziel bleibt v5.10.198).
