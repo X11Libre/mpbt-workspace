@@ -186,3 +186,15 @@ uebernommen und **abgeschlossen**:
   (step39-Reconcile, Tree==baseline) zog die Baumgleichheit beim Rebase mit.
 - **Tip:** `6cb4a236bbeb0`. **Report:** `r-1789762132527024658`.
 - **Naechster Schritt:** naechste Basis-Vorgabe des Praetors (Ziel bleibt v5.10.198).
+
+## Aktueller Stand (2026-09-19, Barcley) — step41 (Basis Linux v5.10.2)
+
+**Praetor startete Rebase auf Linux v5.10.2** (`lts/v5.10.2` = `d1988041d19dc`). Barcley abgeschlossen:
+
+- **`wip/linearize-volla-15.0-step41`**, onto `d1988041d19dc` = **Linux v5.10.2**.
+- **25663 lineare Commits** oberhalb der Basis, **0 Merge-Commits**.
+- **Tree-Konformität:** `git diff --quiet volla-15.0-baseline HEAD` rc=0; Worktree clean.
+  **Kein zusaetzlicher Angleichs-Commit noetig** (letzter Pick = step39-Reconcile zog die
+  Baumgleichheit beim Rebase mit).
+- **Tip:** `2e93fad4c49f7`. **Report:** `r-1789778653849208335`.
+- **Naechster Schritt:** Schritt 42 (naechste Basis) bzw. Push auf `mtx` (metux/linux), sobald gewuenscht.
