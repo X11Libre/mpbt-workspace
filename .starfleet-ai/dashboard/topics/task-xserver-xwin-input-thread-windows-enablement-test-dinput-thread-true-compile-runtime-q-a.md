@@ -25,3 +25,11 @@ notwendig, kein Risiko für bestehende Builds. Der praktische Effekt einer Freis
 nativem Windows wäre ohnehin „kein Thread" (xwin ruft `InputThreadPreInit()` nicht auf).
 
 **Verifikation:** GitHub-Actions-Run 35718780939 (mingw32-ubuntu rot, cygwin grün).
+**Follow-up (2026-09-22, Enterprise+Voyager):** Prototyp-Branch
+`wip/input-thread-mingw-port` (Voyager): `os/inputthread.c`-Socketpair-Emulation für
+mingw32 (loopback WSASocket + send/recv), kompiliert mit `-Dinput_thread=true`. **Nicht**
+zum Mergen bestimmt — reiner Compile/Capability-Beweis. Windows-`auto`-Disable in
+`include/meson.build` wurde wiederhergestellt (Default bleibt `false`); Nutzung nur opt-in.
+Kein Consumer für echten Windows-Input-Thread; Turney-Designproblem unverändert gültig
+(Thread hätte keine Geräte, würde nur internes Socketpair pollen). Falls später doch Mal
+gemerged werden soll: volles Review/PR im Shared-Core nötig.
