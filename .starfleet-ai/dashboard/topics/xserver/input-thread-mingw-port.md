@@ -14,9 +14,15 @@ slug: xserver/input-thread-mingw-port
 
 Prototype to make `input_thread` compile on Windows (mingw32) by replacing POSIX `pipe()`/`fcntl()` with Windows socketpair emulation.
 
+## Governance Decision (per Enterprise)
+
+**Default remains OFF on Windows** - auto-disable in meson.build preserved. Opt-in only via `-Dinput_thread=true`.
+
+No consumer currently needs Windows input thread. Prototype is for CI/compile-proof only.
+
 ## Changes
 
-1. **os/inputthread.c** - Full Windows port:
+1. **os/inputthread.c** - Full Windows port (compile-proof):
    - Added `PIPE_FD`/`PIPE_CLOSE`/`PIPE_NONBLOCK`/`PIPE_MAKE_INHERIT` macros for platform abstraction
    - Socketpair emulation via `WSASocket` + loopback connect (bind/listen/accept on 127.0.0.1:0)
    - Non-blocking via `ioctlsocket(FIONBIO)` instead of `fcntl(O_NONBLOCK)`
@@ -25,9 +31,9 @@ Prototype to make `input_thread` compile on Windows (mingw32) by replacing POSIX
    - Signal masking no-op on Windows (no `sigfillset`/`pthread_sigmask`)
    - `closesocket` instead of `close`
 
-2. **include/meson.build** - Removed Windows auto-disable:
-   - Deleted block that forced `enable_input_thread = false` for Windows + `input_thread=auto`
-   - Now `input_thread=true` enables it on Windows too (requires `PTHREAD_MUTEX_RECURSIVE`)
+2. **include/meson.build** - Windows auto-disable preserved:
+   - `input_thread=auto` -> false on Windows
+   - Explicit `-Dinput_thread=true` enables it (requires `PTHREAD_MUTEX_RECURSIVE`)
 
 ## Behavior on Windows
 
@@ -36,11 +42,16 @@ Prototype to make `input_thread` compile on Windows (mingw32) by replacing POSIX
 - Thread polls its own socketpair, effectively idle
 - Same code path as Linux, just no devices to process
 
+## Outstanding Issues
+
+- Runtime: thread is "useless" on native Windows (Turney's point stands - no /dev/input, window events tied to creating thread)
+- Shared core `os/inputthread.c` change needs proper review/PR before merge consideration
+- No concrete consumer for Windows input thread identified
+
 ## Branch
 
 `wip/input-thread-mingw-port` on X11Libre/xserver
 
-## Next Steps
+## CI Status
 
-- Run GitHub CI (mingw32-ubuntu + cygwin lanes) to validate compile
-- Test runtime behavior on Windows host
+GitHub Actions running - validates opt-in compile on mingw32-ubuntu + cygwin
