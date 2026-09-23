@@ -63,6 +63,10 @@ These are the dangerous, easy-to-miss ones. **Must stay `_X_EXPORT`.**
 - **Present:** `present_event_notify`, `present_screen_init`
 - **Shadow:** `shadowAdd`, `shadowRemove`, `shadowSetup`
 - **GLX (needs confirmation — may be nvidia's own module symbols):** `glxModuleData`, `glxServer`
+- **DIX:** `ConnectionInfo` — `extern _X_EXPORT char *ConnectionInfo` (`dix/server_priv.h`, defined
+  `dix/globals.c`; pointer to the connection-setup blob). **Runtime-looked-up by 390.157 only**
+  (`nvidia_drv.so` — string present + `dlsym` import; verified via `nvidia-abi-check`, 2026-09-23).
+  470/550/570 do **not** reference it. Keep exported (and let it keep pointing at the setup data).
 - _Auto-extracted noise to ignore (binary fragments, not real symbols): `fbconfigH/I`, `miAqW`,
   `RR2G`, `RRK3y`, `Xve9`, `Xvgh`, `XvMx6N`, `present_H`._
 
