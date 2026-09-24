@@ -77,6 +77,7 @@ These are the dangerous, easy-to-miss ones. **Must stay `_X_EXPORT`.**
 | `miInitOverlay`, `miOverlayComputeCompositeClip`, `miOverlayCollectUnderlayRegions`, `miOverlayCopyUnderlay`, `miOverlayGetPrivateClips`, `miOverlaySetRootClip` | keep exported — **link-imported by all of 390/470/550/570** | #1786 (delete) breaks all; #1787 (dummy-export) is safe |
 | `xf86CursorScreenKeyRec` | keep `_X_EXPORT` — **runtime-looked-up by all 4** | #2070 |
 | `monitorResolution` | keep `_X_EXPORT` — **runtime-looked-up by all 4** | (still exported in `include/globals.h`; watch it) |
+| `ClientStateCallback` | keep `_X_EXPORT` — **link-imported by ALL of 390/470/550/570** (`nvidia_drv.so`/`libglxserver_nvidia.so`) | `include/dixstruct.h:44` (`extern _X_EXPORT CallbackListPtr ClientStateCallback`; defined `dix/globals.c`); also used by internal modules (GLX, RandR, Record, Security, SELinux, DGA) + amdgpu/radeon/intel-source drivers. Do NOT unexport (Defiant, 2026-09-24) |
 | `PictureMatchVisual`, `PictureFindFilter`, `PictureMatchFilter`, `SetPictureFilter` | keep exported | #1469 keeps them; drivers use them |
 | `ScreenRec` / `ScrnInfoRec` etc. | append new fields only at the **tail** (past the PRIVATE marker) | #2662 (tail-append) was safe |
 
