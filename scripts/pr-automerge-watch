@@ -1,0 +1,50 @@
+#!/bin/bash
+# Watch xserver PRs: rerun flaky failed CI jobs; rebase-merge once all checks are green.
+# Usage: scripts/pr-automerge-watch [pr ...]   (default: 3732 3733 3734)
+# Authorized by the Praetor for master PRs that passed bot-review.
+set -u
+
+REPO="X11Libre/xserver"
+PRS="${*:-3732 3733 3734}"
+
+for pr in $PRS; do
+    st=$(gh pr view "$pr" --repo "$REPO" --json state --jq .state 2>/dev/null)
+    case "$st" in
+        MERGED) echo "#$pr: already MERGED"; continue ;;
+        CLOSED) echo "#$pr: CLOSED"; continue ;;
+    esac
+
+    checks=$(gh pr checks "$pr" --repo "$REPO" 2>&1)
+    fails=$(printf '%s\n' "$checks" | awk -F'\t' '$2=="fail"{print $4}')
+    pending=$(printf '%s\n' "$checks" | awk -F'\t' '$2=="pending"{c++} END{print c+0}')
+    passed=$(printf '%s\n' "$checks" | awk -F'\t' '$2=="pass"{c++} END{print c+0}')
+
+    if [ -n "$fails" ]; then
+        echo "#$pr: $passed pass, $pending pending, $(printf '%s\n' "$fails" | grep -c .) FAIL -> rerun failed jobs"
+        for url in $fails; do
+            run=$(printf '%s' "$url" | sed -E 's#.*/runs/([0-9]+)/job/.*#\1#')
+            rstat=$(gh run view "$run" --repo "$REPO" --json status --jq .status 2>/dev/null)
+            if [ "$rstat" = "completed" ]; then
+                gh run rerun "$run" --repo "$REPO" --failed >/dev/null 2>&1 \
+                    && echo "#$pr:   rerun --failed run $run" \
+                    || echo "#$pr:   rerun $run failed to start"
+            else
+                echo "#$pr:   run $run still $rstat - wait"
+            fi
+        done
+        continue
+    fi
+
+    if [ "$pending" -gt 0 ]; then
+        echo "#$pr: $passed pass, $pending pending - wait"
+        continue
+    fi
+
+    # no failures, nothing pending -> all green -> merge
+    if [ "$passed" -gt 0 ]; then
+        echo "#$pr: ALL GREEN ($passed) -> rebase-merge"
+        gh pr merge "$pr" --repo "$REPO" --rebase 2>&1 | sed "s/^/#$pr: /"
+    else
+        echo "#$pr: no checks yet - wait"
+    fi
+done
