@@ -5,7 +5,7 @@
 set -u
 
 REPO="X11Libre/xserver"
-PRS="${*:-3732 3733 3734}"
+PRS="${*:-3732 3733}"
 
 for pr in $PRS; do
     st=$(gh pr view "$pr" --repo "$REPO" --json state --jq .state 2>/dev/null)
