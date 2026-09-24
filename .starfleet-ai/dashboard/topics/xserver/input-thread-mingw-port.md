@@ -1,14 +1,11 @@
----
-title: "xserver: input_thread Windows enablement via socketpair emulation"
-category: active
-kind: task
-status: "in_progress"
-created-by: "Voyager"
-created: "2026-09-22T15:45:00Z"
-assigned-to: "Voyager"
-doc-ref: "—"
-slug: xserver/input-thread-mingw-port
----
+Title: "xserver: input_thread Windows enablement via socketpair emulation"
+Category: active
+Kind: "task"
+Status: "done"
+Assigned-To: "Voyager"
+Created-By: "Voyager"
+Created: "2026-09-22T15:45:00Z"
+Doc-Ref: "—"
 
 ## Summary
 
