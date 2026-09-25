@@ -1,8 +1,8 @@
 Title: "Tavor bei MCAS zusammen mit Hydrocortison bei NBRI"
 Category: active
 Kind: "task"
-Status: "open"
-Assigned-To: "—"
+Status: "assigned"
+Assigned-To: "Pasteur"
 Created-By: "McKinley"
 Created: "2026-09-25T19:17:29Z"
 Doc-Ref: "—"
