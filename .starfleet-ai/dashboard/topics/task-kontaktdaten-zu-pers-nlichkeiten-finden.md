@@ -1,7 +1,7 @@
 Title: "Kontaktdaten zu Persönlichkeiten finden"
 Category: active
 Kind: "task"
-Status: "in-progress"
+Status: "open"
 Assigned-To: "Enterprise"
 Created-By: "Endeavour"
 Created: "2026-09-04T14:18:00Z"
