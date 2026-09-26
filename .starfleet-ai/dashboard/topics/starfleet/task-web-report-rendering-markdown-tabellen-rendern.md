@@ -1,6 +1,6 @@
 Title: "web report rendering: Markdown-Tabellen rendern"
 Category: active
-Status: "assigned"
+Status: "done"
 Assigned-To: "Scotty"
 Doc-Ref: "—"
 
