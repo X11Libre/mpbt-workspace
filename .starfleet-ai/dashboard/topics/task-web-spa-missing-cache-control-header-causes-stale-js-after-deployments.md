@@ -1,7 +1,7 @@
 Title: "Web: SPA missing Cache-Control header causes stale JS after deployments"
 Category: active
 Kind: "task"
-Status: "open"
+Status: "done"
 Assigned-To: "—"
 Created-By: "Laforge"
 Created: "2026-09-26T15:34:19Z"
