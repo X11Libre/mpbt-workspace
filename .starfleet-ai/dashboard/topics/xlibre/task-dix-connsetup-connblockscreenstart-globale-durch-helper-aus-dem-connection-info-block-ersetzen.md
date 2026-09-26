@@ -1,12 +1,11 @@
 Title: "dix/connsetup: connBlockScreenStart-Globale durch Helper aus dem Connection-Info-Block ersetzen"
 Category: xlibre
-Kind: task
+Kind: "task"
 Status: "assigned"
+Assigned-To: "Interpid"
 Created-By: "Enterprise"
 Created: "2026-09-26T11:46:02Z"
-Assigned-To: "Interpid"
 Doc-Ref: "—"
-Slug: xlibre/task-dix-connsetup-connblockscreenstart-globale-durch-helper-aus-dem-connection-info-block-ersetzen
 
 Ziel: Die globale Variable connBlockScreenStart (dix/dix_priv.h:71, dix/connsetup.c:26) entfaellt vollstaendig. Sie dupliziert Zustand, der bereits vollstaendig aus dem Connection-Info-Block selbst ableitbar ist, und sie ist int, obwohl der Offset ein size_t ist.
 
@@ -34,3 +33,5 @@ Verifikation: bauen, dann testen mit Xvfb, Xnest und Xephyr ueber simple-xinit (
 Sind Xephyr (Screen-Nesting) und PanoramiX nicht in derselben Konfiguration testbar, beide Varianten separat fahren und das im Report festhalten.
 
 Abschluss: starfleetctl reports submit mit --task-ref auf diesen Task, plus comms an Enterprise und McKinley. Branch auf GitHub pushen, Pipeline beobachten.
+
+- 2026-09-26T13:19:10Z Enterprise: CI-Run 36241690977 auf wip/screenlist abgeschlossen: conclusion=success, 26 Jobs gruen, 5 skipped (abi_changed=false, deps-images cached, Signed-Off-By nur bei PRs), 0 Fehler. commit 9fe8290e63.
