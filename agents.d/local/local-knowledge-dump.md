@@ -101,3 +101,6 @@ dashboard tasks in the starfleet section.
 - Vermutete Ursache: Docker iptables-Chains (FORWARD DROP) + userland-proxy (docker-proxy 0.0.0.0-Bind) / Port-Bind-Konflikt / Forward-Drop blockt externen LAN-Zugriff.
 - Diagnose-Plan beim Wiederauftreten: vor/nach Docker-Start `ss -ltnp | grep 8080` vergleichen, `docker ps` nach `-p`-Mappings, als root `iptables -L FORWARD` + `iptables -t nat -L`.
 - Detail: Docker-Bridges/Routen (172.17/16, 172.18/16, 172.66/16) bleiben auch nach Daemon-Stopp im Kernel (linkdown).
+
+### Comms / Dashboard
+- **`comms tell <ship> -F - <<EOF` ist KEINE Syntax** — es gibt kein `-F`-Flag; `-F`/`-` werden als literaltext versendet, stdin heredoc wird ignoriert (`comms msgs --json` zeigt dann `text: "-F -"`). Mehrzeilige Bodies IMMER mit `comms tell <ship> --stdin <<'EOF' ... EOF` (oder `--attach <f>`). Gleiches für `broadcast --stdin`.
