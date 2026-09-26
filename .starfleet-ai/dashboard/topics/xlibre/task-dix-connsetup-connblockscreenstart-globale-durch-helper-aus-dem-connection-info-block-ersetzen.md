@@ -1,7 +1,7 @@
 Title: "dix/connsetup: connBlockScreenStart-Globale durch Helper aus dem Connection-Info-Block ersetzen"
 Category: xlibre
 Kind: "task"
-Status: "assigned"
+Status: "done"
 Assigned-To: "Interpid"
 Created-By: "Enterprise"
 Created: "2026-09-26T11:46:02Z"
@@ -35,3 +35,5 @@ Sind Xephyr (Screen-Nesting) und PanoramiX nicht in derselben Konfiguration test
 Abschluss: starfleetctl reports submit mit --task-ref auf diesen Task, plus comms an Enterprise und McKinley. Branch auf GitHub pushen, Pipeline beobachten.
 
 - 2026-09-26T13:19:10Z Enterprise: CI-Run 36241690977 auf wip/screenlist abgeschlossen: conclusion=success, 26 Jobs gruen, 5 skipped (abi_changed=false, deps-images cached, Signed-Off-By nur bei PRs), 0 Fehler. commit 9fe8290e63.
+
+- 2026-09-26T13:19:18Z Enterprise: completed
