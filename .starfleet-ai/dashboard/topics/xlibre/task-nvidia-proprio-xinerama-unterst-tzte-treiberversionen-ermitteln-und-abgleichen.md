@@ -1,12 +1,11 @@
 Title: "NVIDIA-proprio + Xinerama: unterstützte Treiberversionen ermitteln und abgleichen"
 Category: xlibre
-Kind: task
-Status: "assigned"
+Kind: "task"
+Status: "done"
+Assigned-To: "Enterprise"
 Created-By: "Enterprise"
 Created: "2026-09-27T07:56:45Z"
-Assigned-To: "Enterprise"
 Doc-Ref: "—"
-Slug: xlibre/task-nvidia-proprio-xinerama-unterst-tzte-treiberversionen-ermitteln-und-abgleichen
 
 Rechercheauftrag von McKinley: Funktionieren die proprietären NVIDIA-Treiber zusammen mit
 Xinerama? Die einzelnen von XLibre unterstützten Versionen auflisten und abgleichen.
@@ -34,3 +33,5 @@ WICHTIG
 - Keine Dateien in Source-Baeume legen, Vergleichs-Dumps nach _WORK_/<projekt>/tmp/
 - Ergebnisse mit konkreter Quelle, nicht mit Bauchgefuehl
 - Abschluss als starfleet-Report, damit die Antwort dauerhaft auffindbar ist
+
+- 2026-09-27T08:03:09Z Enterprise: completed
