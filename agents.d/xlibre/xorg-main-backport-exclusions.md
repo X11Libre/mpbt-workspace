@@ -49,3 +49,25 @@ nicht im Incubator, damit Rebase/Force-Push es nicht zerstören.
 ist und kein Cherry-Pick des upstream-Commits. **Patch-äquivalent ist nicht
 inhaltliche Enthaltenheit.** Vor dem Einreichen eines "gleiche Funktion"-Commits
 prüfen, ob unser master den gleichen Codepfad bereits behebt.
+
+## Bauregel auf Release-Zweigen (ab 2026-09-28)
+
+Build wie die CI: `-Dwerror=true`, nicht `-Dwerror=false`. Die alte Empfehlung
+`-Dwerror=false` (wegen `os/Xtranssock.c:631 -Werror=format-truncation`) hat
+genau den Mechanismus abgeschaltet, mit dem die CI toten Code findet
+(`-Wunused-function` auf FreeBSD/DragonFly, gefunden 2026-09-28 an den
+Backports 3759/3760). Ein Fehler, den nur ein bestimmter Compiler mit
+bestimmten Flags sieht, sieht ein lokales Setup ohne diese Flags per
+Definition nicht.
+
+Erlaubte Ausnahme: **genau ein Eintrag**, `os/Xtranssock.c:631
+-Werror=format-truncation` (vorbestehend, kein Backport). Alles andere ist
+der zu prüfende Backport.
+
+## Eigene Dokumentation ist Hypothese, nicht Evidenz
+
+Eine Anweisung, die wir selbst geschrieben haben (Build-Empfehlungen,
+Auslass-Kriterien, `.backport-skips`-Vorschlag), ist keine Evidenz, sie ist
+eine Hypothese. Gegen eine Messung halten, nie übernehmen. Das galt beim
+`-Dwerror=false`-Fehler und bei der Annahme, `test/pyxtest` sei nicht auf
+den Releases (war es doch, Messung: 42 Einträge auf 25.2).
