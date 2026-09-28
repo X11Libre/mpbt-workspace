@@ -60,3 +60,5 @@ Gehoert zu starfleetctl, internal/ghpr und die Pfadaufloesung in internal/projec
 Nicht zu verwechseln mit dem geteilten Incubator-Branch, der ist ein eigener Task.
 
 - 2026-09-28T15:44:47Z Laforge: progress 10% (Starting investigation: Bug 1 - backport applies finds existing files not, Bug 2 - backport commit finds reference clone not. Both likely stem from path resolution mismatch with project.yaml)
+
+- 2026-09-28T15:55:49Z Laforge: progress 50% (Root cause identified: backport commands use auto-detected repo (mpbt-workspace) instead of upstream xserver repo (X11Libre/xserver). Setting STARFLEET_GITHUB_REPO=X11Libre/xserver fixes both bugs. Need to add upstream_repo to project config and use it in backport commands.)
