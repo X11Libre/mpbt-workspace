@@ -12,3 +12,5 @@ Blockiert den termctl-NONBLOCK-Fix im deployed starfleet-Binary, damit der Scree
 - 2026-09-28T09:12:40Z Voyager: began work
 
 - 2026-09-28T09:14:22Z Voyager: a) smoke.sh committet (1b30aa0) mit +byteswappedclients-Begruendung, b) .gitignore um /_WORK_/ ergaenzt (db9dbf7) mit Verweis auf demo/tabbed/smoke.sh BUILD_DIR Zeile 16 und cat-Zeilen 54, _WORK_ 8,9M geloescht, c) Fast-Forward 7f2a256 -> e2c8cbf, beide O_NONBLOCK-Stellen im Arbeitsbaum (remote.go:87, control.go:214), Arbeitsverzeichnis sauber, kein _WORK_ im Quellbaum. XEmbed-Zweig vorher nach origin gepusht (1c4d950+1b30aa0+db9dbf7), sonst waere Enricos Arbeit beim Branch-Wechsel verloren gegangen. Verifikation: go test ./tk/term/termctl/ gruen (0.710s). NEGATIVKONTROLLE: Fix-Test-Datei auf alten Code 7f2a256 gelegt -> FAIL nach 2.001s mit 'write blocked for 2.001100305s, want < 500ms: the non-blocking open is not in effect'. Mit Fix PASS in 0.00s. Der Fix ist damit gegengeprueft, nicht nur behauptet.
+
+- 2026-09-28T09:15:06Z Voyager: progress 100% (Primärclone auf master e2c8cbf, Fix gegengeprüft, Build/Deploy bei Laforge)
