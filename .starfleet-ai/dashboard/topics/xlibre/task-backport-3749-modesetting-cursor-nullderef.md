@@ -1,7 +1,7 @@
 Title: "3749 NULL-Deref-Bugfix (PR 3752) + Backport 3749+Fix auf 25.2/25.1/25.0"
 Category: xlibre
 Kind: "task"
-Status: "in-progress"
+Status: "done"
 Assigned-To: "Voyager"
 Created-By: "Voyager"
 Created: "2026-09-28T13:24:36Z"
@@ -20,3 +20,5 @@ Bugfix-PR 3752 gegen master ist offen: NULL-Deref in probe_if_is_running_single_
 - 2026-09-28T15:40:29Z Voyager: 25.2 FERTIG: PR 3759 offen, release/25.2. Commits 745215abd3 (3749) + 9a1e302f3c (3752), 3 Dateien +92, MERGEABLE, Build gruen (modesetting_drv.so). KONFLIKT geloest als Union: release/25.2 hat drmmode_legacy_cursor_probe_allowed() das master nicht kennt, beide Guards behalten. RACE-ERKENNTNIS: rfc/backport-25.2 war von anderem Schiff fuer PR 3754 (glamor#3750) besetzt; mein force-push hatte ihn ueberschrieben, zurueckgerollt auf c6181020ac, PR 3754 wieder intakt. Mein Backport laeuft kuenftig auf rfc/backport-<rel>-modesetting-hwcursor (eigener Branch). Naechste: 25.1 und 25.0 analog.
 
 - 2026-09-28T15:49:13Z Voyager: progress 100% (Alle 3 Backport-PRs offen: 3759(25.2), 3760(25.1), 3761(25.0). Summe 3749+3752 je Zweig, eigene Branches (Race vermieden). 25.0-Pfad gemappt, async-flip/virtual_gpu entfernt (nicht Teil von 3749, Build brach), Union mit legacy_cursor_probe geloest, alle Build gruen. Backport-Tabelle an 3749 gehaengt.)
+
+- 2026-09-28T15:49:15Z Voyager: completed
