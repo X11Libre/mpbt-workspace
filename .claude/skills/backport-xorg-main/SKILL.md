@@ -13,6 +13,12 @@ Der Workflow läuft **pro Target vollkommen unabhängig** und **immer im Clone, 
 Target gehört**: `_WORK_/xserver-master` für master, `_WORK_/xserver-25.0` / `-25.1` / `-25.2`
 für die Releases. Es sind getrennte mpbt-Clones mit getrennter `make-pr.*`-Konfiguration.
 
+## Die gemeinsamen Inkubator-Regeln stehen im Router
+
+Rebase-Kadenz, das `[PR #NNNN]`-Ledger, das **Abbrechen bei noch ungemergten PRs** (mit den
+verrückten Konflikten, die man nicht auflösen, sondern aussitzen soll) und die Clone-zu-target-
+Zuordnung stehen in `backport`. Hier nur das, was spezifisch für `xorg/main` ist.
+
 ## Die beiden Branches pro Target
 
 | Branch | Rolle |
@@ -20,7 +26,9 @@ für die Releases. Es sind getrennte mpbt-Clones mit getrennter `make-pr.*`-Konf
 | `tracking/xorg/main-on-<target>` | **Tracker**: der letzte `xorg/main`-Commit, den wir für dieses Target **bearbeitet** haben. Alles bis dahin ist erledigt: gemergt, in einem offenen PR, oder bewusst ausgelassen. |
 | `rfc/backport-<target>` | **Incubator**: die Queue der noch nicht eingereichten `xorg/main`-Commits, rebased auf den Target-Branch. |
 
-`rfc/backport-<target>` ist ein **geteilter** Branch — er ist die Queue, nicht ein privater
+`rfc/backport-<target>` ist ein **geteilter** Branch. Er sammelt laut Definition immer
+Commits, die in `<target>` wandern sollen, und dient **auch** als WIP-Sammelstrecke, aus
+der fertige Stücke isoliert herausgezogen werden. Geteilter Branch — er ist die Queue, nicht ein privater
 Arbeitsplatz. Commits, die bereits als PR eingereicht wurden, tragen den Marker `[PR #NNNN]`
 im Subject; den setzt `scripts/xx-make-pr.sh`, und dieselbe Stelle entfernt ihn wieder, wenn der
 Incubator auf den Submission-Branch rebased wird. **Dieses Subject-Marking ist das Ledger.**
@@ -97,6 +105,11 @@ Submission-Branch, sodass die eingereichten Commits mit Marker unten liegen.
 
 Danach `origin` und lokal vergleichen: **die Trees müssen gleich sein, die History darf
 abweichen.** Erst dann force-pushen.
+
+**Bricht das Skript mit verrückten Konflikten ab, ist das eine Blockierung durch noch
+ungemergte PRs, keine kaputte Basis.** Nicht auflösen, sondern liegen lassen, bis zum nächsten
+Rebase auf die target-branch neu versuchen — in der Regel ist der blockierende PR dann gemerged.
+Wer das nicht kennt, erzwingt Konflikte und macht aus einer Warteschleife eine Scheinlösung.
 
 ## Was nicht mehr dazugehört
 
