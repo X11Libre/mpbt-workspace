@@ -62,3 +62,23 @@ Nicht zu verwechseln mit dem geteilten Incubator-Branch, der ist ein eigener Tas
 - 2026-09-28T15:44:47Z Laforge: progress 10% (Starting investigation: Bug 1 - backport applies finds existing files not, Bug 2 - backport commit finds reference clone not. Both likely stem from path resolution mismatch with project.yaml)
 
 - 2026-09-28T15:55:49Z Laforge: progress 50% (Root cause identified: backport commands use auto-detected repo (mpbt-workspace) instead of upstream xserver repo (X11Libre/xserver). Setting STARFLEET_GITHUB_REPO=X11Libre/xserver fixes both bugs. Need to add upstream_repo to project config and use it in backport commands.)
+
+- 2026-09-28T16:15:26Z Laforge: progress 100% (Fixed both bugs:
+
+**Bug 1 - backport applies findet existierende Dateien nicht**: Root cause was that backport-applies used auto-detected repo (mpbt-workspace) instead of upstream xserver repo (X11Libre/xserver). Fixed by adding upstream_repo field to project.yaml and using it in backport-applies via UpstreamRepo() function.
+
+**Bug 2 - backport commit findet die Referenz nicht**: Root cause was same - the reference clone path was computed correctly but the upstream repo was wrong for fetching. The RefDir from project config was already correct (_WORK_/xserver-25.2/sources/xlibre/xserver).
+
+**Changes made**:
+1. Added upstream_repo field to ProjectConfig (internal/projectconfig/projectconfig.go)
+2. Added upstream_repo: X11Libre/xserver to project.yaml
+3. Added UpstreamRepo() function in ghpr.go
+4. Modified backport-applies to use upstream repo (internal/ghpr/backportapplies.go)
+5. Added fetchBranchFileWithRepo() to accept explicit repo slug (internal/ghpr/showbranchfile.go)
+6. Updated github.go to pass workspace root to RunBackportApplies
+
+**Verified**: backport-applies now finds files on all release lines (25.2, 25.1, 25.0). backport-commit finds reference clone at correct path.
+
+**Additional finding documented**: -Dwerror=true fails on release branches due to pre-existing format-truncation warning in os/Xtranssock.c:631. Use -Dwerror=false for backport verification builds.
+
+All changes committed and pushed to both mpbt-hq/starfleetctl and mpbt-workspace.)
