@@ -111,6 +111,26 @@ ungemergte PRs, keine kaputte Basis.** Nicht auflösen, sondern liegen lassen, b
 Rebase auf die target-branch neu versuchen — in der Regel ist der blockierende PR dann gemerged.
 Wer das nicht kennt, erzwingt Konflikte und macht aus einer Warteschleife eine Scheinlösung.
 
+## Der Target wird ausschließlich über PRs weitergeschrieben
+
+In diesem Workflow wird **kein** Target-Branch direkt gepusht oder gemergt — weder `master` noch
+`release/*`. Phasen I und II pushen auf `rfc/backport-<target>` und `tracking/xorg/main-on-<target>`,
+Phase III reicht PRs ein. Das ist der Weg.
+
+Grund: dass bereits gemergte Commits beim Rebase automatisch aus der Queue fallen, setzt
+voraus, dass der Target über PRs vorankommt. Ein direkter Merge macht den Tracker-Fortschritt
+unüberprüfbar und erzeugt beim nächsten Rebase Konflikte über Commits, die nie reviewt wurden.
+Die vollständige Regel steht im Router unter „Merge-Grenze".
+
+## Einzelfall, der vor dem Einreichen zu entscheiden ist
+
+Patch-Äquivalenz ist nicht inhaltliche Enthaltenheit. Beispiel aus dem aktuellen Intervall
+(Stand 2026-09-28): `316321933a glamor: free the link log on shader link failure` ist das
+Upstream-Gegenstück zu unserem gemergten PR #3750 (`482f7b326d`). `git cherry` meldet es als
+fehlend, weil unser Fix ein eigener Patch ist und kein Cherry-Pick. Inhaltlich deckt unser Fix
+das ab und ist der vollständigere, weil er den `calloc`-Guard mitbringt. Solche Commits gehören
+ausgelassen und im Plan begründet — nicht eingereicht und später bereinigt.
+
 ## Was nicht mehr dazugehört
 
 Eigene Commits aus unseren master-PRs in den Incubator zu legen war früher üblich und ist
