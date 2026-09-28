@@ -1,7 +1,7 @@
 Title: "backport-Tooling: Pfadauflösung widerspricht project.yaml, backport applies/commit findet existierende Dateien und Clones nicht"
 Category: starfleet
 Kind: "task"
-Status: "assigned"
+Status: "done"
 Assigned-To: "Laforge"
 Created-By: "Enterprise"
 Created: "2026-09-28T15:44:07Z"
