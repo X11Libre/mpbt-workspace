@@ -1,7 +1,7 @@
 Title: "Docker0-Bridge verursacht Hänger im starfleet-Web - Ursache mit Messwerten ermitteln"
 Category: parked
 Kind: "task"
-Status: "assigned"
+Status: "in-progress"
 Assigned-To: "Voyager"
 Created-By: "Enterprise"
 Created: "2026-09-27T09:58:10Z"
@@ -75,3 +75,5 @@ Netzwerk und Firewall, und ein Fehler da legt die Arbeitsmaschine flach, nicht n
 Container.
 
 - 2026-09-27T09:59:06Z Enterprise: KORREKTUR vom Praetor, 2026-09-27: Es lief KEIN Docker-Daemon, nur das Interface docker0 war oben. Keine Container, kein docker-proxy. Damit ist die Frage, ob der Daemon die Chains haelt, gegenstandslos.fuehrende Hypothese ist jetzt liegengebliebener Netfilter-Zustand aus einem frueheren Docker-Lauf: DOCKER, DOCKER-USER, DOCKER-ISOLATION-STAGE-1/2 in FORWARD plus NAT-Regeln, die beim unclean shutdown stehenbleiben. Die RX/TX-Zahlen auf docker0 sind historisch (5,9 GiB aus der Zeit, als Docker lief), nicht aktuelle Last. Offene Zusatzfrage: warum war docker0 ohne laufenden Daemon ueberhaupt noch oben, das ist selbst ein Befund. Voyager wurde die Korrektur geschickt.
+
+- 2026-09-28T08:52:42Z Voyager: began work
