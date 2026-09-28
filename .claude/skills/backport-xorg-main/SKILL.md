@@ -45,7 +45,11 @@ auf den Target-Branch ergeben andere Hashes. Das ist kein Fehler, sondern zu erw
    hat einmal 20 fremde Commits und einmal einen Backport zerstört. Der Board-Status sagt
    nichts darüber aus, ob der Branch frei ist.
 3. **`xwayland` und andere bewusst entfernte Bereiche werden ausgelassen**, ebenso
-   xorg-Testskripte, die in ältere Releases nicht übernommen werden. Auslassungen gehören
+   **zweig-spezifisch**, und **je Zweig einzeln messen**. Das gilt besonders für
+   xorg-Testskripte: `test/pyxtest` ist **nicht** auf master beschränkt, es existiert
+   mit identischem Umfang auch auf `release/25.2` (42 Einträge auf beiden, gemessen am
+   2026-09-28). Eine pauschale Annahme wie „die Tests nehmen wir nur mit master" ist
+   falsch. Auslassungen gehören
    **vor** den Lauf in den Task/Plan, nicht hinterher in einen PR-Body.
 
 ## Die drei Phasen
@@ -110,6 +114,18 @@ abweichen.** Erst dann force-pushen.
 ungemergte PRs, keine kaputte Basis.** Nicht auflösen, sondern liegen lassen, bis zum nächsten
 Rebase auf die target-branch neu versuchen — in der Regel ist der blockierende PR dann gemerged.
 Wer das nicht kennt, erzwingt Konflikte und macht aus einer Warteschleife eine Scheinlösung.
+
+## Wo die Auslassungen dokumentiert sind
+
+Kanonisch ist **`agents.d/xlibre/xorg-main-backport-exclusions.md`** im Workspace,
+versioniert auf `mtx/agent-config`. Nicht in `_WORK_/` — das ist nicht versioniert und
+überlebt keinen Reset. Nicht im Inkubator — `.backport-skips` wurde verworfen, weil eine
+Datei auf einem geteilten, gepushten und gelegentlich neu aufgesetzten Branch
+verlorengehen kann, während die versionierte Datei das nicht kann.
+
+Der Preis dieser Wahl ist Discoverability: wer den Inkubator öffnet, sieht die
+Auslassungen nicht. Deshalb steht hier der Verweis, und der Task-Log des
+xorg/main-Backports verweist ebenfalls darauf.
 
 ## Der Target wird ausschließlich über PRs weitergeschrieben
 
