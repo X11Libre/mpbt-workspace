@@ -41,7 +41,7 @@ nicht im Incubator, damit Rebase/Force-Push es nicht zerstören.
 | `ea297c9f22` | xwayland: Skip optional RR modes if CVT generation fails | XWL | xwayland entfernt |
 | `79774d241a` | xwayland: Handle libxcvt_gen_mode_info() failure | XWL | xwayland entfernt |
 | `4371d6d0ee` | xwayland: Skip xwl_cursor_warped_to() without an xwl_seat | XWL | xwayland entfernt |
-| `316321933a` | glamor: free the link log on shader link failure | DUP | Inhaltlich durch gemergten PR 3750 (`482f7b326d`) abgedeckt; unser Fix ist vollständiger (bringt den calloc-Guard mit) |
+| `316321933a` | glamor: free the link log on shader link failure | DUP | Inhaltlich durch gemergten PR 3750 (`482f7b326d`) abgedeckt. Upstream: `malloc` + `if(!info)` + `free`. Unser Fix: `calloc` + `if(!info)` + `ErrorF` + `free` — strenger, denn `calloc(1,0)` liefert einen validen Zeiger, `malloc(0)` nicht sicher; die Leak-Abdeckung wird an genau dieser Entartung entschieden. |
 
 ## Gegenprüfungshinweis (DUP-Kriterium)
 
