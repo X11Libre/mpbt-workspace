@@ -5,3 +5,7 @@
 /CLAUDE.md
 /.opencode/plugins/starfleet-dispatch.ts
 /tmp
+
+# Coredumps von Testlaeufen (z. B. Xvfb aus _WORK_/…/prefix-*)
+core
+core.*
