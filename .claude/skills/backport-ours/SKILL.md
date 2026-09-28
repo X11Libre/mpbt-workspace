@@ -64,20 +64,38 @@ Das ist der wichtigste Einzelfall: **der Fix muss _vor_ dem Backport existieren,
 
 ```sh
 .starfleet-ai/bin/starfleetctl github pr mk-agent-clone <rel> <name>   # bzw. eigener Agent-Clone
+```sh
+.starfleet-ai/bin/starfleetctl github pr mk-agent-clone <rel> <name>   # bzw. eigener Agent-Clone
 cd <Agent-Clone>
-meson setup <build> . -Dwerror=false -Dxephyr=true -Dxnest=true -Dxvfb=true -Dxorg=true
+meson setup <build> . -Dwerror=true -Dxephyr=true -Dxnest=true -Dxvfb=true -Dxorg=true
 ninja -C <build>
 ```
 
-**`-Dwerror=false` auf Release-Zweigen, und der Grund gehört in den PR-Body.** Mit
-`-Dwerror=true` bricht der Build in `os/Xtranssock.c:631` (`-Werror=format-truncation`) ab, und
- zwar am **sauberen Tip ohne jeden Backport** — vorbestehend. Diese Vorbedingung einmal
- prüfen und dann nicht mehr:
+**Auf Release-Zweigen mit `-Dwerror=true` bauen, genau wie die CI es tut, und die Ausgabe gegen
+eine bekannte Ausnahmeliste prüfen.** Es gibt genau **eine** vorbestehende Warnung, die hier mit
+`-Werror` fehlschlägt:
+
+    os/Xtranssock.c:631  -Werror=format-truncation
+
+Alles **andere** in der Ausgabe stammt aus dem eigenen Backport. Die Gegenprobe einmal, danach
+nicht mehr:
 
 ```sh
-git checkout origin/release/<rel> && <build mit -Dwerror=true>   # Gegenprobe
+git checkout origin/release/<rel> && <build mit -Dwerror=true>   # erwarte nur Xtranssock.c:631
 ```
 
+**Warum nicht `-Dwerror=false`.** Das war die frühere Empfehlung und sie hat eine Lücke
+zugeschlagen, die real zugeschlagen hat: mit `-Dwerror=false` ist genau der Mechanismus
+abgeschaltet, mit dem die CI-Lanes toten Code finden. Beim Backport von 3749/3752 stand
+dadurch auf 25.2 und 25.1 ein mitgeschleppter, unbenutzter Helfer im Baum, lokal unsichtbar, und
+die Lanes brachen mit
+
+    error: unused function 'ms_is_running_virtual_gpu' [-Werror,-Wunused-function]
+
+Der lokale Build lief mit Default-Warnstufe, die betroffenen Lanes bauen mit `-Dwerror=true` und
+clang. Eine Fehlerklasse, die nur ein bestimmter Compiler mit bestimmten Flags findet, findet ein
+lokales Setup ohne diese Flags nicht. Deshalb ist die Ausnahmeliste der eigentliche Gegenstand,
+nicht die `-Dwerror`-Frage.
 Belegt wird nicht „gebaut", sondern „gebaut **und** der Guard taucht im Objektfile auf":
 
 ```sh
