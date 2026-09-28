@@ -96,11 +96,46 @@ dashboard tasks in the starfleet section.
 ### (Historie — erledigte Bugs, Referenz nur bei Bedarf)
 - Frühere Bugs (default-model-fallback, web-PATH, permission-ask-hang, broadcast-ack, loadAllTopics, stale go/bin shadowing) sind BEHOBEN und durch andere Fragmente/working-practices abgedeckt. Details in Git-History/Commit-Messages.
 
-## starfleet web von außen (Handy) unerreichbar — Docker-Netzwerk
-- Symptom: web 0.0.0.0:8080 läuft lokal (200), aber vom Handy im LAN nicht erreichbar; Docker stoppen half.
-- Vermutete Ursache: Docker iptables-Chains (FORWARD DROP) + userland-proxy (docker-proxy 0.0.0.0-Bind) / Port-Bind-Konflikt / Forward-Drop blockt externen LAN-Zugriff.
-- Diagnose-Plan beim Wiederauftreten: vor/nach Docker-Start `ss -ltnp | grep 8080` vergleichen, `docker ps` nach `-p`-Mappings, als root `iptables -L FORWARD` + `iptables -t nat -L`.
-- Detail: Docker-Bridges/Routen (172.17/16, 172.18/16, 172.66/16) bleiben auch nach Daemon-Stopp im Kernel (linkdown).
+## starfleet web von außen (Handy) unerreichbar — KORRIGIERT 2026-09-28
+- **Die alte Fassung dieser Notiz war falsch und ist widerlegt.** Sie vermutete Docker
+  iptables-Chains und userland-proxy als Ursache. Für den Fall vom 2026-09-28 gemessen:
+  `dockerd` läuft nicht, `docker0` ist DOWN, es gibt **nicht einmal ein `iptables`-Binary**, und
+  der Web bindet `0.0.0.0:8080` mit `Recv-Q 0`; `curl` auf `127.0.0.1` **und** auf die eigene
+  LAN-IP antwortet in unter einer Millisekunde.
+- **Die Falle, in die ich selbst getappt bin:** daraus „kein iptables-Binary, also keine
+  Firewall" zu schließen. **Diese Schlussfolgerung ist ungültig.** ConnMan und nftables
+  installieren Regeln **über Netlink**, nicht über die Binaries; die Binaries braucht man nur
+  zum Ansehen. Auf diesem Host läuft `/usr/sbin/connmand` (PID 2454) und verwaltet das WLAN
+  (`connmanctl technologies` → `/net/connman/technology/wifi`); `nmcli` schweigt, weil
+  NetworkManager hier gar nicht das Netz verwaltet. Verbindliche Lehre: **ein fehlendes
+  `iptables`-/`nft`-Binary ist KEIN Nachweis für eine fehlende Firewall.**
+- **Reihenfolge, die sich bewährt hat: erst Host, dann Docker, dann Firewall, erst ganz zuletzt
+  WLAN-Infrastruktur.** Jede Stufe einzeln messen, und nie aus dem Fehlen von X auf das Fehlen
+  von Y schließen.
+- **Was gemessen wurde:** Client-Isolation ist **aus** — der Host erreicht andere WLAN-Clients
+  (`192.168.1.196` Port 80 offen, `192.168.1.189` ARP REACHABLE). Das schließt die
+  *WLAN*-Isolation aus, sagt aber nichts über die Firewall des Hosts, weil das die andere
+  Richtung ist. Drei ARP-`FAILED`: `.171` (~11 600 historische Probes, sehr wahrscheinlich das
+  Handy in einer früheren Sitzung), `.248`, `.82`. Aktiver Dienst `o2-WLAN17`, Gateway
+  `192.168.1.1`, Host `192.168.1.132/24`. Gespeicherte Netze `o2-WLAN17`,
+  `FRITZ!Box 7530 OC`, `HOME IH`, `FRITZ!Box 5530 II`, `buero` — alle mit derselben
+  BSSID-Präfix `wifi_d43b04a08868_`, also dieselbe Hardware.
+- **Offen, und in dieser Reihenfolge zu klären:**
+  1. **Auf welchem SSID ist das Handy?** Der Rechner hängt an `o2-WLAN17`. Ist das Handy auf
+     `buero`, `HOME IH` oder im Mobilfunk, sind beide in verschiedenen Segmenten und
+     `192.168.1.132` ist vom Handy aus prinzipiell unerreichbar — unabhängig von Lease und
+     Firewall. Billigste Frage, ersetzt die beiden anderen.
+  2. **Was hat ConnMan installiert?** `allow_host_access` steht nicht im aktiven Profil
+     (20 Schlüssel), läuft also auf Default; der Default erlaubt Zugriff, was gegen die
+     Firewall-These spricht, aber ConnMan baut Zonen bei Interface-Rebuild neu. Nur der Blick
+     entscheidet: `sudo nft list ruleset`, `sudo cat /proc/net/ip_tables_names`,
+     `sudo connmanctl technologies` — rein lesend, braucht das sudo-Passwort des Praetors.
+- **Detail bleibt gültig:** Docker-Bridges/Routen (172.17/16, 172.18/16, 172.66/16) bleiben auch
+  nach Daemon-Stopp im Kernel (linkdown).
+- **Fundort-Hinweis:** diese Datei liegt unter `agents.d/` im Workspace und ist versioniert; die
+  gleichnamige Kopie unter `.starfleet-ai/var/agents.d/` ist **ephemeral** (`.starfleet-ai/.gitignore`
+  enthält `/var/`) und überlebt kein `starfleet-bootstrap`. Wissen, das dauerhaft sein soll,
+  gehört hierher, nicht dorthin.
 
 ### Comms / Dashboard
 - **`comms tell <ship> -F - <<EOF` ist KEINE Syntax** — es gibt kein `-F`-Flag; `-F`/`-` werden als literaltext versendet, stdin heredoc wird ignoriert (`comms msgs --json` zeigt dann `text: "-F -"`). Mehrzeilige Bodies IMMER mit `comms tell <ship> --stdin <<'EOF' ... EOF` (oder `--attach <f>`). Gleiches für `broadcast --stdin`.
