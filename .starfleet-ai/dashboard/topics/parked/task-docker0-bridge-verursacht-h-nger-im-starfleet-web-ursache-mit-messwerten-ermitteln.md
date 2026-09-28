@@ -1,7 +1,7 @@
 Title: "Docker0-Bridge verursacht Hänger im starfleet-Web - Ursache mit Messwerten ermitteln"
 Category: parked
 Kind: "task"
-Status: "in-progress"
+Status: "done"
 Assigned-To: "Voyager"
 Created-By: "Enterprise"
 Created: "2026-09-27T09:58:10Z"
@@ -79,3 +79,5 @@ Container.
 - 2026-09-28T08:52:42Z Voyager: began work
 
 - 2026-09-28T08:53:57Z Voyager: Analyse abgeschlossen. docker0-Bruecke WIDERLEGT (state DOWN, kein dockerd/containerd, keine FUSE, nf_call_iptables=0, file-nr 14497/1606087, conntrack 91/262144) und als 'Relikt' fehlgedeutet: 'ip link set down' laesst das Device per Design bestehen. Web-Haenger = Thread-Leak: 4097 Threads, wchan wait_for_partner, Syscall 257 (openat), Log 'accept4: too many open files' seit 27.09. 10:46. Ausloeser ist NICHT x11term (30 Requests) sondern 1s-Polling (index.html:1540 setInterval(loadScreen,1000)) auf Zombie-Pipes ohne Leser: 217.913 screen-Requests, 144.334 auf Barcley+Galaxy, 0x11term im 54min-Fenster vor dem ersten Fehler. 2 Threads/s -> Saettigung in ~34min. Fix (a) O_NONBLOCK deckt screen+dimensions (beide rem.Send). ZUSAETZLICH noetig: Zombie-Pipes aus ResolvePipe entfernen, sonst faellt der Server nach jedem Restart zurueck. 2. unabhaengiger Bug: 'rows is null' = nil-Slice -> JSON null (web.go:259 apiBoard, web.go:396 apiTasks) -> index.html:1279/1698 TypeError; tritt auch bei gesundem Server bei leerem Board auf; Fix (c) muss apiBoard umfassen. Report r-1790585622473510107@starfleet. Nichts ausgefuehrt, keine Firewall/Netz-Aenderung, kein Repo-Eingriff.
+
+- 2026-09-28T08:54:22Z Voyager: completed
