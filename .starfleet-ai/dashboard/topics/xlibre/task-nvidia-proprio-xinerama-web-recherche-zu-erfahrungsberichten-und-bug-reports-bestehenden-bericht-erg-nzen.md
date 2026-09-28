@@ -1,12 +1,11 @@
 Title: "NVIDIA-proprio + Xinerama: Web-Recherche zu Erfahrungsberichten und Bug-Reports, bestehenden Bericht ergänzen"
 Category: xlibre
-Kind: task
-Status: "assigned"
+Kind: "task"
+Status: "done"
+Assigned-To: "Enterprise"
 Created-By: "Enterprise"
 Created: "2026-09-28T09:17:44Z"
-Assigned-To: "Enterprise"
 Doc-Ref: "—"
-Slug: xlibre/task-nvidia-proprio-xinerama-web-recherche-zu-erfahrungsberichten-und-bug-reports-bestehenden-bericht-erg-nzen
 
 Ergaenzungsauftrag von McKinley zum bereits abgeschlossenen Task
 xlibre/task-nvidia-proprio-xinerama-unterst-tzte-treiberversionen-ermitteln-und-abgleichen
@@ -44,3 +43,5 @@ erfinden, und klar sagen, was die Recherche an der statischen Analyse aendert od
 Widersprueche ausdruecklich nennen, auch wenn sie unbequem sind. Statt "nichts gefunden" lieber
 schreiben, welche Quellen man nicht erreicht hat, zum Beispiel weil sie Login oder JavaScript
 brauchen.
+
+- 2026-09-28T09:20:38Z Enterprise: completed
