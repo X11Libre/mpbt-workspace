@@ -1,7 +1,7 @@
 Title: "3749 NULL-Deref-Bugfix (PR 3752) + Backport 3749+Fix auf 25.2/25.1/25.0"
 Category: xlibre
 Kind: "task"
-Status: "assigned"
+Status: "in-progress"
 Assigned-To: "Voyager"
 Created-By: "Voyager"
 Created: "2026-09-28T13:24:36Z"
@@ -14,3 +14,5 @@ Bugfix-PR 3752 gegen master ist offen: NULL-Deref in probe_if_is_running_single_
 - 2026-09-28T14:29:28Z Voyager: PRAETOR-ENTSCHIEDUNG hinzugefuegt: 3749 ist die Antwort auf die Regression in freedesktop.org/xorg/xserver Work-Item 1922. Der Backport soll NICHT nur 3749, sondern die SUMME aus 3749 + 3752 als ein Ganzes abdecken, weil 3749 einen neuen NULL-Deref einfuehrt, der von 3752 gefixt wird. Work-Item 1922 (kleinerm, 2026-09-25): Hardware-Cursor-Darstellung kaputt auf AMD, verursacht durch Commit 1f41320e (2023-02-04, 'modesetting: Use a more optimal hw cursor size'). AMD-Polaris-11/DCE 11.2 zeigt zu kleine, verzerrte Cursor mit falschem Hotspot, weil die Display HW nur 64 oder 128 Pixel WEITE und NUR 128 HOHE Cursor akzeptiert, aber amdgpu-kms jede Groesse annimmt und der Treiber die Nicht-Validitaet nicht melden kann. gemessen: 1f41320e ist ANCESTOR auf ALLEN drei Release-Zweigen (25.2/25.1/25.0), die Regression ist dort bereits aktiv. Damit ist der Backport kein Feature-Backport sondern ein Bugfix-Backport einer realen Regression. NEBENBEFUND, der die Prio setzt: 25.2 wurde von Enterprise in einer Nachricht mit merge-base 19.06. bezeichnet, das ist ein abweichender Reorg-Zeitpunkt, aber die Zeilenzahlen zeigen, dass driver.c dort die neuen Zeilen stets mitfuehrt. STATUS: PR 3752 weiterhin OPEN, UNSTABLE, mergeCommit null. PR 3750 irrelevant (glamor). Sobald 3752 gemergt ist, werden 3749 und 3752 als zwei Commits in einem PR je Zweig portiert, Summe betrachtet.
 
 - 2026-09-28T14:38:06Z Voyager: REVIEW von PR 3752 durchgefuehrt: passed, Label bot-review-passed, Kommentar mit Bot-Banner gepostet. CI laeuft noch (viele Lanes pending, einige pass: check-signed-off, abi-changes-check, cygwin, macos, ubuntu-fetch-pkg). Zwei Runs auf demselben HEAD 1f44c925 (queued, gerade erst 14:17 gestartet). Timer bold-wind-91 set: alle 5min CI-Status pruefen. Merge-Kriterium laut Praetor: alle Checks gruen. Danach Backport der Summe 3749+3752 je Zweig (25.2/25.1/25.0) als zwei Commits in einem PR, Summe betrachtet. Regression 1f41320e ist auf allen drei Zweigen bereits enthalten, der Backport ist kein Feature-Backport sondern Reparatur einer aktiven Regression.
+
+- 2026-09-28T15:29:04Z Voyager: began work
