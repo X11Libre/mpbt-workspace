@@ -21,73 +21,39 @@ Ursache für zwei zerstörte Fremd-PRs.
 | **Werkzeug** | `starfleetctl github backport applies|commit` | `git rebase`/`--onto` + `scripts/xx-make-pr.sh` |
 | **Erfolgsmetrik** | PR je Zweig gemergt | Tracker steht wieder auf `xorg/main` |
 
-## Kurz entscheiden
+## Kurz entscheiden — mechanisch, nicht nach Gefühl
 
-- **Der Commit ist ours** (Autor Enrico Weigelt / X11Libre, aus einem unserer master-PRs) →
-  `backport-ours`.
-- **Der Commit ist von xorg/main**, auch wenn Jeremy Huddleston Sequoia oder ein anderer
-  Upstream-Autor ihn geschrieben hat → `backport-xorg-main`. Upstream-Autor heißt nicht
-  xorg/main-Übernahme; entscheidend ist, ob der Commit über unseren master kam oder direkt von
-  `xorg/main` stammt.
-- **Ein master-PR `[PR #36xx]` im Subject** im Inkubator → das ist der Marker, den
-  `xx-make-pr.sh` beim Einreichen setzt. Der Commit *stammt* von `xorg/main`, nicht von unserem
-  master-PR. `backport-xorg-main`.
-- **Ein commit ohne `xwayland`-Anteil, der im Tracker-Intervall liegt** → `backport-xorg-main`.
-- **Ein Fix, den wir selbst geschrieben haben** → `backport-ours`, und zwar **zuerst** der Fix
-  auf master, **dann** der Backport. Sonst wandert der Fehler mit in die Releases.
+**Autor und Commit-Subject sind kein Kriterium.** Ein xorg/main-Commit kann über unseren
+master zu uns gekommen sein, und unsere eigenen Commits tragen dieselben Upstream-Autoren.
+Entscheidend ist die Zugehörigkeit zur `xorg/main`-Seite.
 
-## Inkubatoren, und wofür es sie gibt
+```sh
+# 1) Ist der Commit überhaupt in xorg/main?
+git merge-base --is-ancestor <commit> xorg/main
+```
 
-Ein **Inkubator** sammelt immer Commits, die in die **zugehörige target-branch** wandern sollen.
-Er ist ein geteilter Arbeitsplatz, kein privastes Repo.
+| Ergebnis | meaning | Workflow |
+|---|---|---|
+| **NEIN** — nicht in `xorg/main` | er ist über unseren master gekommen, also **unser** Commit | `backport-ours` |
+| **JA** — in `xorg/main` | weiter prüfen, ob für dieses Target schon bearbeitet | siehe 2) |
 
-Es gibt mehr als eine Nutzung, und beide kommen in der Praxis vor:
+```sh
+# 2) In xorg/main, aber für dieses Target schon erledigt?
+git merge-base --is-ancestor <commit> origin/tracking/xorg/main-on-<target>
+```
 
-- **xorg/main-Queue** — `rfc/backport-<target>` sammelt die noch nicht übernommenen Commits aus
-  dem Intervall `tracking/xorg/main-on-<target>..xorg/main`. Details in `backport-xorg-main`.
-- **WIP-Sammelstrecke** — ein Inkubator ist gleichzeitig WIP-Branch. Fertig gewordene Dinge
-  werden zwischendurch **isoliert herausgeholt** und als PR eingereicht, während der Rest als
-  WIP liegen bleibt.
+| Ergebnis | meaning | Workflow |
+|---|---|---|
+| **JA** — Commit liegt vor dem Tracker | für dieses Target bereits gemergt, in einem offenen PR oder bewusst ausgelassen | **nichts tun** |
+| **NEIN** — im Intervall `tracker..xorg/main` | für dieses Target noch nicht übernommen | `backport-xorg-main` |
 
-### Der Lebenszyklus
+Belege, die diese Regel stützen:
 
-1. **Regelmäßig auf die target-branch rebasen.** Das ist kein Kosmetik-Schritt: bereits
-   gemergte Commits fallen dabei automatisch aus der Queue heraus, und Konflikte gegen die
-   target-branch werden sichtbar, bevor jemand darauf aufsetzt.
-2. **Einzelne Commits als PR einreichen** über `scripts/xx-make-pr.sh`.
-3. **Das Ledger ist der Commit-Subject.** Das Skript schreibt die History des Inkubators um,
-   sodass der eingereichte Commit einen Subject-Prefix mit der PR-Id bekommt
-   (`[PR #NNNN]`). Daran erkennt man, was bereits submitted wurde — und genau daran verhindert
-   man das versehentliche Doppel-Einreichen. Weil umgeschrieben und auf die target-branch
-   rebased wird, weichen die SHAs im Inkubator zwangsläufig vom Original ab.
-
-### Wenn das Einreichen blockiert ist
-
-**Das ist normales Verhalten, kein Fehler.** Ist eine weitere Einreichung durch noch
-**ungemergte** PRs blockiert, bricht `xx-make-pr.sh` mit **verrückten Konflikten** ab. Diese
-Konflikte sind nicht aufzulösen, sondern zu **warten**: bis zum nächsten Rebase auf die
-target-branch, und dann erneut probieren, wenn der blockierende PR inzwischen gemerged ist.
-
-Wer's beim ersten Auftreten nicht einordnet, hält es für kaputt und fängt an, Konflikte zu
-erzwingen. Wird hier deshalb ausdrücklich genannt.
-
-### Der Clone ist Teil des Verfahrens
-
-`xx-make-pr.sh` liest `make-pr.upstream-remote`, `make-pr.upstream-branch` und
-`make-pr.reviewers` aus dem `.git/config` des **aktuellen** Repos. Daran erkennt es, **auf welche
-Baseline** der PR-Branch aufzusetzen ist. Wir haben aus gutem Grund getrennte, unterschiedlich
-konfigurierte Clones pro target-branch:
-
-| Ziel | Clone |
-|---|---|
-| `master` | `_WORK_/xserver-master` |
-| `release/25.0` | `_WORK_/xserver-25.0` |
-| `release/25.1` | `_WORK_/xserver-25.1` |
-| `release/25.2` | `_WORK_/xserver-25.2` |
-
-Alles für master passiert im `xserver-master`-Clone, alles für `release/25.0` im
-`xserver-25.0`-Clone, und so weiter. Im falschen Clone submitted man gegen die falsche Baseline
-und findet es später nicht wieder.
+- `46c411e49b` (PR 3749, die hw-cursor-Sache): **nicht** in `xorg/main`, **ja** in unserem
+  master, **nicht** im Tracker-Intervall → `backport-ours`. Genau so wurde es gemacht.
+- Die Commits aus den April-Queues mit `[PR #36xx]`-Präfix: von Jeremy Huddleston Sequoia
+  **und** von Enrico Weigelt. Trotzdem `backport-xorg-main`, weil das Präfix von
+  `xx-make-pr.sh` beim Einreichen geschrieben wird und der Commit aus `xorg/main` stammt.
 
 ## Branch-Regel, die für beide gilt
 
@@ -102,9 +68,26 @@ und findet es später nicht wieder.
 
 ## Merge-Grenze
 
-**Release-Merges sind manuell, durch den Maintainer.** `bot-review-passed` und grüne CI
-autorisieren keinen Merge in `release/*`. Auf `master` ist ein Auto-Merge nur bei expliziter
-Bitte des Nutzers zulässig. Nach dem Öffnen der PRs: **stoppen.**
+**Ein Target-Branch wird ausschließlich über gemergte GitHub-PRs weitergeschrieben.** Kein
+direktes `git push` und kein Merge des Incubators in den Target, für **keinen** Target —
+weder `master` noch `release/*`. Ausnahmen gibt es nur, wenn der Maintainer sie im konkreten
+Fall ausdrücklich erteilt.
+
+Das ist keine Formalie, sondern der Mechanismus, auf dem die Queue beruht: **Incubatoren werden
+regelmäßig auf den Target rebased, und dabei fallen die bereits gemergten Commits automatisch
+aus der Queue heraus.** Das funktioniert nur, wenn der Target über PRs vorankommt. Ein
+direkter Merge oder Push umgeht diesen Nachweis, macht den Fortschritt des Trackers unüberprüfbar
+und erzeugt beim nächsten Rebase Konflikte und Überraschungen, weil der Target plötzlich
+Commits enthält, die nie reviewt wurden.
+
+Konkret heißt das für den Ablauf: Phase I und II pushen auf `rfc/backport-<target>` und
+`tracking/xorg/main-on-<target>` — das ist erlaubt. Phase III reicht PRs ein — das ist der
+Weg. Ein Push auf `origin/master` oder `origin/release/…` gehört **nicht** dazu und ist ein
+Fehler, kein Etappenschritt.
+
+Für **Release**-Merges gilt zusätzlich: manuell, durch den Maintainer. `bot-review-passed` und
+grüne CI autorisieren keinen Merge in `release/*`. Auf `master` ist ein Auto-Merge nur bei
+ausdrücklicher Bitte des Nutzers zulässig. Nach dem Öffnen der PRs: **stoppen.**
 
 ## Und noch etwas, das beide Workflows betrifft
 
