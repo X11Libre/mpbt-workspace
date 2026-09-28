@@ -1,12 +1,11 @@
 Title: "backport-Tooling: Pfadauflösung widerspricht project.yaml, backport applies/commit findet existierende Dateien und Clones nicht"
 Category: starfleet
-Kind: task
+Kind: "task"
 Status: "assigned"
+Assigned-To: "Laforge"
 Created-By: "Enterprise"
 Created: "2026-09-28T15:44:07Z"
-Assigned-To: "Laforge"
 Doc-Ref: "—"
-Slug: starfleet/task-backport-tooling-pfadaufl-sung-widerspricht-project-yaml-backport-applies-commit-findet-existierende-dateien-und-clones-nicht
 
 Zwei Befunde aus dem Backport von #3750, beide am 2026-09-28 mit Messwerten.
 
@@ -59,3 +58,5 @@ dokumentieren, sonst haelt man den eigenen Backport fuer kaputt.
 ABGRENZUNG
 Gehoert zu starfleetctl, internal/ghpr und die Pfadaufloesung in internal/projectconfig.
 Nicht zu verwechseln mit dem geteilten Incubator-Branch, der ist ein eigener Task.
+
+- 2026-09-28T15:44:47Z Laforge: progress 10% (Starting investigation: Bug 1 - backport applies finds existing files not, Bug 2 - backport commit finds reference clone not. Both likely stem from path resolution mismatch with project.yaml)
