@@ -1,80 +1,60 @@
 ---
 name: backport
-description: Backport a merged master PR (or commit) to the maintained release lines (25.2 / 25.1 / 25.0). Use when asked to "backport", port a fix to a release branch, or apply a master change to older releases. Handles per-branch applicability, isolated agent clones, cherry-pick, PR creation, and cross-linking.
+description: "Router: backports come in two different workflows, load the right one. Use 'backport ours' for our own merged master commits going down to release lines, 'backport xorg/main' for porting new xorg/main commits onto a target branch. Load this when the request is just 'backport' and it is unclear which is meant."
 ---
 
-# Backport a master PR/commit to release lines
+# backport — zwei Workflows, nicht einer
 
-Apply a merged **master** change to every applicable release line (`25.2`, `25.1`, `25.0`),
-each in its **own isolated agent clone** — never the user's hand-edited
-`sources/xlibre/xserver` tree. Run all commands from the workspace root
-(`/home/nekrad/src/xorg/mpbt-workspace`).
+„Backport" heißt in diesem Workspace **zwei völlig verschiedene Vorgänge**. Sie haben
+unterschiedliche Quellen, unterschiedliche Konfliktbilder, unterschiedliche Nachweise und
+unterschiedliche Branch-Regeln. Sie mit einer Prozedur zu behandeln war am 2026-09-28 die
+Ursache für zwei zerstörte Fremd-PRs.
 
-> **This workflow ends at "open + cross-link the PR". NEVER merge a `release/*` PR.** Merges into
-> release lines are manual-only, by the maintainer — green CI / a passing review do not authorize
-> a merge. Fixes for existing releases must always be reviewed independently and manually.
+| | `backport-ours` | `backport-xorg-main` |
+|---|---|---|
+| **Quelle** | unsere eigenen Commits aus gemergten master-PRs | `xorg/main` |
+| **Problemklasse** | Auswahl — welcher Commit auf welchen Zweig | Integration — fremder Code strukturell einpassen |
+| **Ziel** | Release-Zweige | ein Target: master **oder** ein Release |
+| **Branch** | **pro Task**, `rfc/backport-<rel>-<task>` | **geteilter Inkubator** `rfc/backport-<target>`, plus Tracker `tracking/xorg/main-on-<target>` |
+| **Nachweis** | Commit existiert, Autor, `Signed-off-by` | ob der Zweig die Änderung **inhaltlich** enthält |
+| **Konflikte** | meist klein, oft null | pro Zweig verschieden, oft strukturell |
+| **Werkzeug** | `starfleetctl github backport applies|commit` | `git rebase`/`--onto` + `scripts/xx-make-pr.sh` |
+| **Erfolgsmetrik** | PR je Zweig gemergt | Tracker steht wieder auf `xorg/main` |
 
-Full reference: **`reference.md`** in this skill's directory (full detail, moved out of AGENTS.md). This skill is the actionable checklist.
+## Kurz entscheiden
 
-## Inputs
+- **Der Commit ist ours** (Autor Enrico Weigelt / X11Libre, aus einem unserer master-PRs) →
+  `backport-ours`.
+- **Der Commit ist von xorg/main**, auch wenn Jeremy Huddleston Sequoia oder ein anderer
+  Upstream-Autor ihn geschrieben hat → `backport-xorg-main`. Upstream-Autor heißt nicht
+  xorg/main-Übernahme; entscheidend ist, ob der Commit über unseren master kam oder direkt von
+  `xorg/main` stammt.
+- **Ein master-PR `[PR #36xx]` im Subject** im Inkubator → das ist der Marker, den
+  `xx-make-pr.sh` beim Einreichen setzt. Der Commit *stammt* von `xorg/main`, nicht von unserem
+  master-PR. `backport-xorg-main`.
+- **Ein commit ohne `xwayland`-Anteil, der im Tracker-Intervall liegt** → `backport-xorg-main`.
+- **Ein Fix, den wir selbst geschrieben haben** → `backport-ours`, und zwar **zuerst** der Fix
+  auf master, **dann** der Backport. Sonst wandert der Fehler mit in die Releases.
 
-A merged master PR number **or** a commit-ish. If given a PR number, the scripts resolve its
-merge commit automatically.
+## Branch-Regel, die für beide gilt
 
-## Procedure (per applicable release)
+- **Niemals** den nackten `rfc/backport-<rel>` für einen eigenen Task benutzen. Der ist der
+  geteilter xorg/main-Inkubator.
+- **Vor jedem Force-Push** prüfen, ob der Branch einen offenen PR eines anderen Schiffs trägt.
+  Am 2026-09-28 fehlte diese eine Prüfung zweimal: einmal mit 20 fremden Commits, einmal mit
+  einem eigenen Backport als Verlust.
+- **Vor dem Push sichern, nicht danach.** Alten Tip als `refs/rescue/…` festhalten,
+  Wiederherstellung per `--force-with-lease` mit dem erwarteten Wert, danach an Commits **und**
+  Dateien verifizieren.
 
-### 1. Check applicability first — do NOT open a PR blindly
+## Merge-Grenze
 
-The fix may already be present, or the buggy code may not exist / not be vulnerable on a given
-branch. Inspect the actual code on each release branch:
+**Release-Merges sind manuell, durch den Maintainer.** `bot-review-passed` und grüne CI
+autorisieren keinen Merge in `release/*`. Auf `master` ist ein Auto-Merge nur bei expliziter
+Bitte des Nutzers zulässig. Nach dem Öffnen der PRs: **stoppen.**
 
-- One file/symbol across all branches at once:
-  `.starfleet-ai/bin/starfleetctl github backport applies <master-path> '<grep-ERE>' [release ...]`
-- A single function on one branch:
-  `.starfleet-ai/bin/starfleetctl github pr show-branch-file release/<rel> <master-path> '<symbol>'`
-  (auto-resolves the `Xext/<ext>/` ↔ `<ext>/` directory reorg between releases)
+## Und noch etwas, das beide Workflows betrifft
 
-Classify each branch: **vulnerable** / **already-fixed** / **N-A**. Only proceed for vulnerable
-branches; record the rest in the dashboard (step 4) — don't open an empty PR.
-
-### 2. Apply + submit in one shot
-
-```bash
-.starfleet-ai/bin/starfleetctl github backport commit <release> <commit-ish|PR#>
-```
-
-It refreshes the isolated agent clone (`github pr mk-agent-clone`), `cherry-pick -x`'s onto
-`rfc/backport-<release>` (keeps original message + `Signed-off-by`, appends
-`(cherry picked from commit <sha>)`), then runs `github pr make` to push the PR against
-`release/<release>` and tag the incubator with `[PR #NNNN]` + `PR:` trailer.
-
-- A **path-only** mismatch from the `Xext/<ext>/` ↔ `<ext>/` reorg is auto-remapped → still
-  one-shot.
-- Only a genuine **content** conflict bails. Then do a manual/adapted backport inside the agent
-  clone (`.starfleet-ai/bin/starfleetctl github pr mk-agent-clone <release>` → cherry-pick → resolve → build-verify) and
-  `.starfleet-ai/bin/starfleetctl github pr make <sha>` from within that clone.
-
-### 3. Parallelize across releases freely
-
-Different release clones are fully isolated (separate working trees, push to distinct
-`rfc/backport-<rel>` branches). Run 25.2 / 25.1 / 25.0 concurrently. Within one release, give each
-agent its own clone name: `.starfleet-ai/bin/starfleetctl github pr mk-agent-clone <rel> <name>`.
-
-### 4. Cross-link (required)
-
-- Append a **Backport dashboard** table to the **original master PR** — one row per target branch
-  with its backport PR (or `—`) and status (`✅ Merged` / `🔄 Open` / `✅ Already contained`).
-- Each **backport PR** links back to the original master PR.
-- Edit PR bodies via REST, not `gh pr edit` (which fails with the *"Projects classic
-  deprecation"* GraphQL error). Write the body to a file, then:
-  `.starfleet-ai/bin/starfleetctl github pr set-body <pr#> <body-file>`
-
-## Gotchas
-
-- Never run `git gc --prune` / aggressive `repack` in the user's `sources/…` clone while agent
-  clones (which borrow its objects via alternates) exist.
-- `github pr make` rewrites the `rfc/backport-<rel>` history and needs **exclusive** access to its
-  clone for its whole runtime — that's why each agent uses its own clone, not a worktree.
-- **`github backport commit` only resolves the TIP commit of a master PR.** For a multi-commit PR,
-  manually rebuild each PR branch: reset each release clone onto `origin/release/<rel>`, apply
-  BOTH commits (cherry-pick), then force-push the `rfc/backport-<rel>` branch.
+**Ein Merge auf master beweist nicht, dass etwas backport-würdig ist.** Der master-PR kann ein
+Refactoring sein, während derselbe Codepfad auf einem Release-Zweig einen NULL-Deref trägt.
+Vor jeder Entscheidung gegen den Release-Zweig messen, nicht aus dem master-PR schließen.
