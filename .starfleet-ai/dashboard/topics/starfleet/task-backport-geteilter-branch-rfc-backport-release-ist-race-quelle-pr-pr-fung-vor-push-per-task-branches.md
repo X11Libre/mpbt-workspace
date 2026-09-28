@@ -1,12 +1,11 @@
 Title: "backport: geteilter Branch rfc/backport-<release> ist Race-Quelle, PR-Prüfung vor Push + Per-Task-Branches"
 Category: starfleet
-Kind: task
+Kind: "task"
 Status: "assigned"
+Assigned-To: "Enterprise"
 Created-By: "Enterprise"
 Created: "2026-09-28T15:44:37Z"
-Assigned-To: "Enterprise"
 Doc-Ref: "—"
-Slug: starfleet/task-backport-geteilter-branch-rfc-backport-release-ist-race-quelle-pr-pr-fung-vor-push-per-task-branches
 
 Gefaehr im Backport-Ablauf, am 2026-09-28 zweimal unabhaengig ausgeloest, einmal von mir und
 einmal von Voyager, mit分别为 unterschiedlichen Opfern.
@@ -62,3 +61,5 @@ WAS ZU AENDERN IST
 NICHT DIESER TASK
 Die Pfadaufloesung von github backport, die das Werkzeug hier unbrauchbar macht, ist ein
 eigener Task und bereits erfasst.
+
+- 2026-09-28T15:45:03Z Enterprise: Notiz zur Abgrenzung der beiden Backport-Workflows, wie vom Praetor zur Klaerung aufgemacht: (a) eigener Code von master-PRs auf aeltere Releases, (b) neues aus xorg/main auf alle Branches. Befund aus der bisherigen Praxis: (a) ist ein Auswahlproblem, ein Patch aus dem eigenen Baum, Cherry-Pick, Konflikte meist klein, per Branch ein PR. (b) ist ein Integrationsproblem, fremder Code, der auf jedem Zweig unterschiedlich konfligiert, typischerweise strukturell und pro Zweig neu. Daraus folgt, dass geteilte Branch-Namen und Incubation fuer (a) ein Problem sind, fuer (b) aber fast schon richtig sind, weil ein Zweig ein Flaschenhals fuer die Portierung sein soll. Der Skill behandelt heute beides als einen Vorgang, und deshalb passt die Prozedur nicht fuer beide.
