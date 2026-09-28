@@ -25,7 +25,7 @@ nicht im Incubator, damit Rebase/Force-Push es nicht zerstören.
 | Kürzel | Kriterium | Begründung |
 |---|---|---|
 | **XWL** | `xwayland` | Bewusst im Baum entfernt (nur hw/xwayland/ berührt) |
-| **TEST** | Python-Test-Skripte (`test/*.py`, pyxtest) | Nur nach master übernommen, nicht in die Release-Zweige; für master ggf. doch relevant → einzeln prüfen |
+| **TEST** | Python-Test-Skripte (`test/*.py`, pyxtest) | Release-spezifisch: für master nicht anwenden (dort vorhanden); für Releases einzeln prüfen, denn `test/pyxtest` existiert auch auf release/25.2 und ist nicht pauschal abwesend |
 | **DUP** | Inhaltlich durch eigenen gemergten master-PR abgedeckt | `git cherry` zeigt patch-Äquivalenz, nicht inhaltliche Enthaltenheit |
 
 ## Ausgelassene Commits
