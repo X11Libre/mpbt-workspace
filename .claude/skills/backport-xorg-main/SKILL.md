@@ -129,7 +129,10 @@ Patch-Äquivalenz ist nicht inhaltliche Enthaltenheit. Beispiel aus dem aktuelle
 Upstream-Gegenstück zu unserem gemergten PR #3750 (`482f7b326d`). `git cherry` meldet es als
 fehlend, weil unser Fix ein eigener Patch ist und kein Cherry-Pick. Inhaltlich deckt unser Fix
 das ab und ist der vollständigere, weil er den `calloc`-Guard mitbringt. Solche Commits gehören
-ausgelassen und im Plan begründet — nicht eingereicht und später bereinigt.
+ausgelassen und **in `.backport-skips` begründet** — nicht eingereicht und
+später bereinigt. Dateiformat und Begründung stehen im Router unter
+„Auslassungen festhalten“. Die Auslassungsentscheidung gehört vor den Lauf
+und muss am Branch hängen, nicht nur an einem Task.
 
 ## Was nicht mehr dazugehört
 
