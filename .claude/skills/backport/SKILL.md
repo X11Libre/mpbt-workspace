@@ -108,28 +108,32 @@ Alles für master passiert im `xserver-master`-Clone, alles für `release/25.0` 
 `xserver-25.0`-Clone, und so weiter. Im falschen Clone submitted man gegen die falsche Baseline
 und findet es später nicht wieder.
 
-### Auslassungen festhalten: `.backport-skips`
+### Auslassungen festhalten
 
 Eine bewusste Auslassung hinterlässt sonst **keine Spur**. Die beiden anderen Zustände sind
 strukturell abgesichert — gemergte Commits fallen beim Rebase aus der Queue heraus,
 eingereichte tragen den `[PR #NNNN]`-Marker. Der Tracker selbst kann die Auslassung nicht
 tragen: er wandert per **Fast-Forward** auf einen `xorg/main`-Commit und übernimmt damit dessen
-Commit-Message. Es bleibt technisch kein Platz für einen Verweis.
+Commit-Message, es bleibt technisch kein Platz für einen Verweis.
 
-Deshalb hält der Inkubator eine getrackte Datei **`.backport-skips`**, eine Zeile pro
-ausgelassenem Commit: `<sha>  <subject>  — <begründung>`, angehängt pro Lauf, nie überschrieben.
+**Kanonische Ablage ist eine versionierte Datei im Workspace:**
 
-    316321933a  glamor: free the link log on shader link failure  — inhaltlich durch
-    482f7b326d (#3750) abgedeckt, ours ist vollstaendiger (calloc-Guard)
-    b125b19fc2  xwayland: clean up glamor EGL state on fatal exits  — xwayland entfernt
+    agents.d/xlibre/xorg-main-backport-exclusions.md
 
-Sie überlebt den Rebase, reist mit dem Inkubator und liegt dort, wo das nächste Schiff
-ohnehin nachsieht. Je Target eine eigene Datei, also keine Merge-Konflikte zwischen Zweigen.
+Format: eine Zeile pro ausgelassenem Commit, `<sha>  <subject>  — <begründung>`, angehängt pro
+Lauf, nie überschrieben. Pro Target ein eigener Abschnitt.
 
-**Der Auslassungsgrund gehört in die Datei, nicht nur in den Task-Log.** Der Task-Log ist
-versioniert und bleibt, aber er ist nicht der Ort, an dem jemand beim nächsten Lauf nachsieht.
-`_WORK_/` ist aus guten Gründen nicht versioniert und taugt nicht als Ablage.
+**Warum nicht im Inkubator.** Eine Datei auf dem Inkubator-Branch war der naheliegende
+Vorschlag und wurde bewusst verworfen: ein Inkubator ist geteilt, wird gepusht und gelegentlich
+neu aufgesetzt, und genau auf so einem Branch sind in dieser Flotte zweimal Daten verloren
+gegangen. Eine versionierte Repo-Datei überlebt Force-Push per Konstruktion. Eine einzelne
+Verweiszeile im Inkubator wäre nur ein teilweises Unterlaufen derselben Entscheidung, weil sie in
+der Wirkung identisch bliebe.
 
+**Der akzeptierte Preis:** wer den Inkubator öffnet, sieht die Auslassungen nicht. Eine Auslassung
+bleibt nur für jemanden sichtbar, der die Konvention kennt. Das ist der Tradeoff, und er ist
+bewusst gewählt. Deshalb verweist `backport-xorg-main` auf die Datei, und der Task-Log des
+jeweiligen Backports sollte es ebenfalls.
 ## Branch-Regel, die für beide gilt
 
 - **Niemals** den nackten `rfc/backport-<rel>` für einen eigenen Task benutzen. Der ist der
