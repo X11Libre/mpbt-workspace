@@ -15,8 +15,17 @@ nicht im Incubator, damit Rebase/Force-Push es nicht zerstören.
   Lauf **einzeln gegenprüfen** statt die Liste zu übernehmen — ein Commit kann
   durch inzwischen gemergte Zwischenschritte anwendbar geworden sein.
 - Jede Auslassung mit **SHA + Subject + Begründung** eintragen.
-- Ausgelassene Commits werden **nicht** in den Incubator aufgenommen und der
-  Tracker **nicht** über sie hinausgezogen.
+- Ausgelassene Commits werden **nicht** in den Incubator aufgenommen — sie gelten
+  aber als **bearbeitet**, und der Tracker wandert über sie hinweg. Ausgelassen
+  heißt entschieden, nicht offen.
+- Der Tracker wird nur **nicht** über einen Commit gezogen, der **weder übernommen
+  noch ausgelassen** wurde — also über echte Lücken. Ein Commits, der ausschließlich
+  einen Auslassungsfall betrifft (nur `hw/xwayland/`, ein einzelner Commit mit
+  dokumentiertem Grund), ist keine Lücke. Zum Prüfen:
+  `git show --name-only <sha>` — betrifft die Dateiliste ausschließlich den
+  Auslassungsfall, ist es eine Auslassung; sonst ist es eine Lücke und bleibt offen.
+  Am 2026-09-28 galt das für alle 12 Auslassungen des master-Intervalls, deshalb
+  konnte der Tracker auf `b125b19fc2` gezogen werden und das Intervall ist leer.
 - Wird ein zuvor ausgelassener Commit doch übernommen (Kriterium entfällt),
   aus der Liste streichen — die Liste ist der Soll-Zustand, nicht ein Log.
 
@@ -31,8 +40,8 @@ nicht im Incubator, damit Rebase/Force-Push es nicht zerstören.
 
 ## Ausgelassene Commits
 
-*Momentaufnahme 2026-09-28, master-Tracker auf `867976ba87`, `xorg/main` auf
-`b125b19fc2`.*
+*Stand 2026-09-28, master-Tracker auf `b125b19fc2` (Intervall leer, alle 33 Commits
+bearbeitet), `xorg/main` ebenfalls auf `b125b19fc2`.*
 
 | SHA | Subject | Kriterium | Begründung |
 |---|---|---|---|
