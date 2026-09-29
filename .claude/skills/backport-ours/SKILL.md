@@ -63,7 +63,7 @@ Das ist der wichtigste Einzelfall: **der Fix muss _vor_ dem Backport existieren,
 Diese Grenze war 2026-09-28 real: der Bugfix gegen den NULL-Deref aus #3749 lag als
 eigener PR auf master, und der Release-PR wäre ohne ihn mit dem Absturz angekommen. Weil
 beide Commits getrennt cherry-picked und **nicht** zusammengefasst wurden, ließ sich einer
-später einzeln entfernen (siehe „Commit aus der Mitte entfernen" im Router-Skill) — ohne die
+später einzeln entfernen (siehe „Ein Commit aus der Mitte der Inkubator-Kette entfernen" in `backport-xorg-main`) — ohne die
 übrigen anzurühren. **Ein Commit pro PR, kein Sammel-Commit:** Das macht den Backport
 reparierbar, statt ihn unumkehrbar mit einem Fehler zu verkleben.
 
