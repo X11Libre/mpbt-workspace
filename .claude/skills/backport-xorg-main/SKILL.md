@@ -513,6 +513,52 @@ plötzlich einstellig ist, **die Ausgabe lesen, nicht den Exitcode**. Genau das
 ist am 2026-09-28 zweimal schiefgegangen, mit Auswirkung auf Position, nicht
 auf den Inhalt.
 
+## Zwei Fehler, die kein CI-Gate sieht
+
+Beide am 2026-09-28 in diesem Arbeitsstrang, beide durch Messung gefunden,
+nicht durch einen roten Job.
+
+### Ein Commit kann bauen und trotzdem falsch sein
+
+`composite: Fix PanoramiX overlay window release` (#3550) änderte in
+`Xext/composite/compext.c` den Nachschlagetyp des Overlay-Fensters von
+`XRT_WINDOW` auf `X11_RESTYPE_WINDOW` — **die Registrierung blieb aber auf
+`XRT_WINDOW`** (`:684` und `:737`). Das sind zwei verschiedene
+Resourcenklassen: `XRT_WINDOW` ist ein PanoramiX-Typ (`panoramiX.c:89`), das
+hier zu Recht benutzt wird, weil die Overlay-Nutzung ein `PanoramiXRes` mit
+Fenster-Payload ist.
+
+Gemessen: **beide** Fassungen kompilieren sauber, `meson/ninja` mit
+`-Dwerror=true`, `Xext/composite/libxserver_composite.a.p/compext.c.o`, exit 0
+vor und nach dem Patch. Der Fehler ist ein Logik-inkonsistenter Zustand, kein
+Compile-Fehler, also für kein Gate sichtbar.
+
+**Regel:** Bei Commits, die einen **Nachschlagetyp, ein Feld, ein Register oder
+eine Rückgabebedeutung** ändern, nicht nur den Compiler fragen. Die Prüfung ist:
+*Wird der Wert, nach dem gesucht wird, an anderer Stelle unter demselben Wert
+registriert?* Der Patch traf eine von zehn inkonsistenten Stellen und legte
+selbst eine neue an. Ein `git grep` auf den **verbleibenden** Vorkommen
+zeigt das in Sekunden — 9 Reststellen nach dem Patch gegenüber 10 davor.
+
+### Nach dem ersten Fehlschlag: die Konstruktion lesen, nicht weiterprobieren
+
+Der Tausch eines Commits in der Mitte der Inkubator-Kette kostete vier
+Versuche. Zwei verschiedene Ursachen, beide aus dem Werkzeug-Umfeld:
+
+- `git checkout --detach <sha>` auf einen Commit, der **nicht auf
+  `origin/master` liegt**, setzt den Zeiger dorthin und **zerschneidet die
+  Kette** — `rev-list --count origin/master..HEAD` fällt einstellig. Man hat
+  nichts angefasst, aber die Position ist falsch.
+- Ein liegengebliebener `rebase-merge`-Zustand im Worktree-Git-Dir blockiert
+  jeden weiteren Rebase mit `fatal: <pfad> is in use`; weg mit
+  `rm -rf "$(git rev-parse --git-dir)"/rebase-merge`.
+
+**Regel:** Nach dem ersten Fehlschlag die Kommandoausgabe lesen, nicht den
+Exitcode und nicht den nächsten Versuch planen. Die Zählung ist das
+Warnzeichen: wird sie einstellig, ist die Kette zerschnitten, nicht der
+Commit schuld. Und `refs/rescue/<name>` **vor** dem ersten Umbau anlegen —
+nicht danach.
+
 ## Ist-Zustand (Stand 2026-09-28, vor dem ersten Lauf messen!)
 
 Nicht ungeprüft übernehmen, das hier ist eine Momentaufnahme und dient nur der Größenordnung:
