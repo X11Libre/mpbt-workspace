@@ -150,6 +150,30 @@ nicht eingereicht und später bereinigt. Dateiformat und die Begründung, warum 
 Ablage versioniert und nicht im Inkubator liegt, stehen im Router unter
 „Auslassungen festhalten“. Die Auslassungsentscheidung gehört **vor** den Lauf.
 
+## Entscheidungspunkte → immer einen Entscheidungsreport
+
+An jedem Ort, an dem der Praetor eine Entscheidung treffen muss, wird **kein Chat-Text**,
+sondern ein **`reports submit`** mit einer klar erkennbaren **Entscheidungsvorlage** abgelegt
+— die er lesen, ggf. bearbeiten und dann freigeben kann. Chat-Kommentare sind flüchtig und
+gehen in der Fortsetzung verloren; der Report bleibt im Fleet-Archiv.
+
+Wo dieser Punkt liegt: mindestens **vor Phase III** (welche Kandidaten werden eingereicht,
+welche ausgelassen) und bei jedem **Auslassungs-Konflikt** (z.B. DUP-Fälle wie `316321933a`).
+Die Vorlage muss enthalten:
+
+- **Entscheidungspunkt**: was genau freizugeben oder zu entscheiden ist (ein Satz).
+- **Optionen** mit Vor- und Nachteilen (ein Satz je Option), eine davon als Empfehlung
+  markiert.
+- **Status-Ecke**: Tracker-Stand, xorg/main-Stand, Zahl der Kandidaten, Zahl der
+  Auslassungen, Referenz auf die versionierte Auslassungs-Konvention.
+- **Was nach der Entscheidung passiert**: der konkrete nächste Schritt (z.B. „Phase III:
+  17 clean + 9 Konflikte einzeln einreichen").
+
+`reports submit "…" --task-ref <task> --body-file <file>` — Titelsuffix „Entscheidung
+erforderlich" macht die Antwortpflicht sichtbar. Erst die Freigabe des Praetors auf den
+Report (per comms) löst den nächsten Schritt aus; kein eigenmächtiges Weiterspringen über
+einen Entscheidungspunkt hinweg.
+
 ## Was nicht mehr dazugehört
 
 Eigene Commits aus unseren master-PRs in den Incubator zu legen war früher üblich und ist
