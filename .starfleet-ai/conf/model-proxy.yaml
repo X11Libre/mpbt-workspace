@@ -52,22 +52,26 @@ model_proxy:
   # outages don't cascade into the strategy layer.
   strategies:
     - id: heavy-model
-      description: "Komplexe Aufgaben — BigPickle, Fallback Nemotron Ultra Free"
+      description: "Dreadnought"
       default_model: "big-pickle"
       models:
         - id: "big-pickle"
           provider: "zen-proxy"
           context_window: 200000
           priority: 1
-        - id: "nemotron-3-ultra-free"
-          provider: "zen-proxy"
-          context_window: 1000000
+        - id: "nvidia/nemotron-3-ultra-550b-a55b"
+          provider: "nvidia-direct"
+          context_window: 131072
           priority: 2
+        - id: "nvidia/nemotron-3-super-120b-a12b"
+          provider: "nvidia-direct"
+          context_window: 131072
+          priority: 3
       strategy: "fallback"
-      # Effective limit: min(200000, 1000000) = 200000
+      # Effective limit: min(200000, 131072, 131072) = 131072
 
     - id: cruiser-model
-      description: "Allgemeine Arbeit — Round-Robin für Verfügbarkeit"
+      description: "Cruiser"
       models:
         - id: "nemotron-3-ultra-free"
           provider: "zen-proxy"
