@@ -27,6 +27,7 @@ nicht im Incubator, damit Rebase/Force-Push es nicht zerstören.
 | **XWL** | `xwayland` | Bewusst im Baum entfernt (nur hw/xwayland/ berührt) |
 | **TEST** | Python-Test-Skripte (`test/*.py`, pyxtest) | Release-spezifisch: für master nicht anwenden (dort vorhanden); für Releases einzeln prüfen, denn `test/pyxtest` existiert auch auf release/25.2 und ist nicht pauschal abwesend |
 | **DUP** | Inhaltlich durch eigenen gemergten master-PR abgedeckt | `git cherry` zeigt patch-Äquivalenz, nicht inhaltliche Enthaltenheit |
+| **GHC** | GitHub-CI-Konfiguration (`.gitlab-ci/`, `.gitlab-ci.yml`) | Wir haben `.gitlab-ci/` vor Langem entfernt und nutzen nur GitHub CI. **Nur Commits auslassen, die ausschließlich `.gitlab-ci*` betreffen** — CI-Änderungen kommen oft zusammen mit anderen (z. B. Dependency-Anpassung); dann wird der Nicht-CI-Teil übernommen und nur die CI-Dateien fallen weg. Entscheidend ist die **Dateimenge, nicht das Subject**; den ganzen Commit zu verwerfen ist falsch. Messgriff: `git show --name-only <sha>` — nur wenn die Liste **identisch** mit `.gitlab-ci*`-Pfaden ist, auslassen; sonst teill übernehmen. Alternativ als Resttest: `git show --name-only <sha> \| grep -vE '\.gitlab-ci/' \| grep -q .` |
 
 ## Ausgelassene Commits
 
