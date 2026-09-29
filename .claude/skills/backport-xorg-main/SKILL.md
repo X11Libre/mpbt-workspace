@@ -194,6 +194,36 @@ ungemergte PRs, keine kaputte Basis.** Nicht auflösen, sondern liegen lassen, b
 Rebase auf die target-branch neu versuchen — in der Regel ist der blockierende PR dann gemerged.
 Wer das nicht kennt, erzwingt Konflikte und macht aus einer Warteschleife eine Scheinlösung.
 
+**Was ein blockierter Commit im Inkubator hinterlässt, und wie man damit
+weiterarbeitet.** Ein an Fremd-PR scheiternder Commit wird **nicht** aus dem
+Inkubator entfernt. Er bleibt liegen, ohne `[PR #NNNN]`-Marker, und wird beim
+nächsten Durchlauf erneut versucht. Das ist gewollt: der Marker ist das
+Ledger, und ein Commit ohne Marker ist im Inkubator ein **offener**, kein
+erledigter.
+
+Daraus folgt die Arbeitsregel für einen blockierten Durchlauf:
+
+1. **Nicht aufheben, nicht überspringen mit `--skip`.** `--skip` ließe den
+   Commit fallen und der nächste Durchlauf wüsste nicht mehr, dass er je
+   eingereicht werden sollte. Liegen lassen ist die richtige Antwort.
+2. **Festhalten, welcher Commit es war und wodurch blockiert.** Das ist die
+   Information, die beim nächsten Durchlauf fehlt, wenn sie nicht notiert wird.
+3. **In der Zwischenzeit die unabhängigen Commits einreichen.** Die Blockade
+   betrifft den einen Commit, nicht die 19 anderen. Ein blockierter
+   Durchlauf ist kein Grund, den ganzen Durchlauf zu verschieben.
+4. **Nicht erzwingen.** Wer die Konflikte auflöst, um weiterzukommen, nagelt
+   eine fremde, halb angepasste Änderung fest, die dann beim Merge des
+   Fremd-PRs wieder auftritt.
+
+Am 2026-09-28 war das der Fall bei #3547: der Queue-Commit `81b87194e` brach
+gegen `58f140059b` (stdbool, inzwischen in master) und musste durch den
+gerebasten PR-Head `8d4586f187` **ersetzt** werden — nicht aufgelöst. Der
+Commit blieb an derselben Position, der `[PR #3547]`-Marker blieb, und die
+Begründung („ersetzt 81b87194e, der nicht mehr baut") steht im Commit-Body.
+So ist der Durchlauf wiederholbar: fällt #3547 später in master, ist der
+eingereichte Commit patch-identisch und fällt beim nächsten Rebase von selbst
+heraus.
+
 ## Wo die Auslassungen dokumentiert sind
 
 Kanonisch ist **`agents.d/xlibre/xorg-main-backport-exclusions.md`** im Workspace,
