@@ -50,6 +50,27 @@ nicht im Incubator, damit Rebase/Force-Push es nicht zerstören.
 | `14981eea44` | Xnest: do not reset pScreen->devPrivate to NULL | DUP | Leer-Pick: unser hw/xnest/Screen.c enthält die `pScreen->devPrivate = NULL`-Zeile bereits nicht (nur `dixSetPrivate(&pScreen->devPrivates, ...)`). |
 | `bd3ca7da06` | Use _X_FALLTHROUGH macro to silence fallthrough warnings in clang as well | ÜBERTRAGEN | Nicht cherry-pick-bar: 12 Konfliktdateien, keine davon reine Kommentar-Konvertierung (InputClass.c nutzt `negated`, upstream `matchtype`; dix/events.c nutzt `GRAB_STATE_FROZEN_WITH_EVENT`, upstream `FROZEN_WITH_EVENT`; `.gitlab-ci*` existiert bei uns nicht). **Die Arbeit ist auf `wip/fallthrough` (73b55978ce) gesichert**: 35 Vorkommen von `/* fallthrough */`, `/* fall through */`, `/* fall-through */`, `/* FALLTHROUGH */` in 16 Dateien sind zu `_X_FALLTHROUGH; /* fallthrough */` ersetzt. **Baut noch nicht**, weil `_X_FALLTHROUGH` aus `xorgproto >= 2025.1` kommt und wir 7.0.33 haben. Nach der xorgproto-Hebung ist der WIP-Branch direkt anwendbar. |
 
+## Weggeworfene CI-Dateien sind ein Frühwarnsystem
+
+Wenn `.gitlab-ci/*` ausfällt, ist das **kein Informationsverlust**, solange man bewusst
+wegschaut — es ist eine verpasste Warnung. Der Upstream-CI-Block ist oft die einzige
+maschinenlesbare Stelle, an der eine neue Abhängigkeitsanforderung früh steht. Beispiel
+aus diesem Lauf: `xorg/main:.gitlab-ci/debian-install.sh:139` sagt
+„xserver requires xorgproto >= 2025.1 for _X_FALLTHROUGH" — genau die Anforderung, an der
+`wip/fallthrough` hängenbleibt. Ohne den CI-Teil fällt das erst auf, wenn der Code die
+Abhängigkeit wirklich braucht, also mitten im Lauf.
+
+**Faustregel:** bei jeder Auslassung von `.gitlab-ci/*` den CI-Inhalt auf
+Abhängigkeitsanforderungen ansehen. Braucht der übernommene Code eine solche Anforderung,
+dann als **eigene offene CI-Aufabe** mit Bezug auf den Commit festhalten, nicht in der
+Auslassungszeile verstecken. Der Nicht-CI-Teil des Commits wird trotzdem übernommen.
+
+## Offene CI-Aufgaben (aus ausgelassenen CI-Dateien)
+
+| Quelle | Abhängigkeitsanforderung | Status |
+|---|---|---|
+| `xorg/main:.gitlab-ci/debian-install.sh:139` | `xorgproto >= 2025.1` für `_X_FALLTHROUGH` | **offen.** Blockiert `wip/fallthrough` (73b55978ce). Der WIP-Branch macht 35 Stellen fertig, baut aber nicht, weil unser xorgproto 7.0.33 ist. Zum Abschluss: xorgproto heben, dann ist der Branch anwendbar. Das ist ein Build-Abhängigkeits-Wechsel für alle Lanes und damit eine eigene Entscheidung. |
+
 ## Gegenprüfungshinweis (DUP-Kriterium)
 
 `git cherry` meldet `316321933a` als fehlend, weil unser Fix ein eigener Patch
