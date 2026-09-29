@@ -113,6 +113,38 @@ git push origin tracking/xorg/main-on-25.2
 Optimalerweise steht der Tracker danach auf `xorg/main` selbst, also `origin/tracking/…` und
 `xorg/main` sind identisch und das Intervall ist leer.
 
+### Alles hängt am Target — drei Namen, pro Ziel
+
+Für jedes Ziel ist **alles eigene** und läuft ohne Bezug zu den anderen:
+
+| | master | release/25.0 | release/25.1 | release/25.2 |
+|---|---|---|---|---|
+| **Inkubator** | `rfc/backport-master` | `rfc/backport-25.0` | `rfc/backport-25.1` | `rfc/backport-25.2` |
+| **Tracker** | `tracking/xorg/main-on-master` | `tracking/xorg/main-on-25.0` | `tracking/xorg/main-on-25.1` | `tracking/xorg/main-on-25.2` |
+| **PR-Basis** | `master` | `release/25.0` | `release/25.1` | `release/25.2` |
+| **Clone** | `_WORK_/xserver-master` | `_WORK_/xserver-25.0` | `_WORK_/xserver-25.1` | `_WORK_/xserver-25.2` |
+| **Auslassliste** | eine Datei, alle Zeilen tragen ihr Kriterium; pro Ziel die passenden Zeilen | | | |
+
+Die Auslassliste ist **eine** Datei, aber jede Zeile nennt ihr Kriterium, und
+welche Zeile für welches Ziel gilt, ergibt sich aus dem Kriterium — nicht aus
+ihrer Position. `XWL` gilt überall, ein release-spezifisches `TEST` nur dort.
+
+**Was geteilt wird, ist nur Wissen, nie Zustand.** Ein erfolgreicher Durchlauf
+auf master ist ein Muster für 25.2, kein Beweis für 25.0. Konkret:
+
+- derselbe Commit kann auf einem Zweig clean picken und am anderen kollidieren
+  (am 2026-09-28 fiel `bd3ca7da06` als Patch-Konflikt, und der 3547-Tausch
+  hätte auf 25.0 anders ausgegangen als auf 25.2);
+- dieselbe Funktion kann auf einem Zweig durch einen anderen Guard geschützt
+  sein (`drmmode_legacy_cursor_probe_allowed` existiert auf 25.0/25.1/25.2, auf
+  master nicht);
+- der Build kann auf einem Zweig grün und am anderen rot sein (async-flip-
+  Helfer: auf 25.0 nicht vorhanden, auf 25.1/25.2 benutzt).
+
+Also **niemals den grünen Zweig als Beleg für den anderen zitieren.** Was man
+überträgt, ist die Methode; jedes Ergebnis ist je Ziel neu zu messen. Und ein
+blockierter Durchlauf auf 25.0 blockiert 25.2 nicht und umgekehrt.
+
 ### III-0. Vor jedem Durchlauf: Inkubator auf den Target holen
 
 Phase III ist **nicht** ein einmaliger Schritt. Zwischen den Durchläufen können
@@ -217,7 +249,7 @@ Daraus folgt die Arbeitsregel für einen blockierten Durchlauf:
 
 Am 2026-09-28 war das der Fall bei #3547: der Queue-Commit `81b87194e` brach
 gegen `58f140059b` (stdbool, inzwischen in master) und musste durch den
-gerebasten PR-Head `8d4586f187` **ersetzt** werden — nicht aufgelöst. Der
+gerebasteten PR-Head `8d4586f187` **ersetzt** werden — nicht aufgelöst. Der
 Commit blieb an derselben Position, der `[PR #3547]`-Marker blieb, und die
 Begründung („ersetzt 81b87194e, der nicht mehr baut") steht im Commit-Body.
 So ist der Durchlauf wiederholbar: fällt #3547 später in master, ist der
