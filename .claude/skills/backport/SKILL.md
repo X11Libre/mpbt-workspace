@@ -157,6 +157,25 @@ Ein toter Verweis zwischen den Skills ist kein Kosmetikum: am 2026-09-28 hat
 `backport-xorg-main` verweist auf „Auslassungen festhalten", das im Router
 existiert. Beides beim Ergänzen prüfen, in beide Richtungen.
 
+## PR-Subjects unterscheiden eigene von xorg-Backports
+
+Ein PR-Subject sagt, woher ein Backport kommt:
+
+| Workflow | PR-Subject |
+|---|---|
+| `backport-ours` (eigener master-Commit) | `(release/25.2) <Subject>` |
+| `backport-xorg-main` (xorg/main-Commit, master) | `(xorg) (master) <Subject> (backport of #NNNN)` |
+| `backport-xorg-main` (xorg/main-Commit, Release) | `(xorg) (release/25.0) <Subject> (backport of #NNNN)` |
+
+**Auf einem Release-Zweig bleibt der Release-Marker zusätzlich.** Der
+Release-Marker nennt das Ziel, der xorg-Marker die Herkunft. Reihenfolge:
+xorg zuerst, dann der Base-Marker.
+
+Das ist die einzige Stelle, an der man sieht, ob ein eingereichter Commit aus
+der Inkubator-Queue stammt oder ein eigener Patch ist — ohne die History
+aufzurollen. Der `[PR #NNNN]`-Marker im **Commit** ist davon getrennt: er ist
+das Ledger, das den Inkubator vor dem Doppel-Einreichen schützt.
+
 ## Release-Zweige bekommen Bugfixes, keine Features
 
 Gilt für **beide** Workflows: eigene master-Commits und `xorg/main`-Commits.
