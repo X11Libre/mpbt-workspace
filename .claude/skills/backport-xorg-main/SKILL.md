@@ -46,6 +46,13 @@ auf den Target-Branch ergeben andere Hashes. Das ist kein Fehler, sondern zu erw
    nichts darüber aus, ob der Branch frei ist.
 3. **`xwayland` und andere bewusst entfernte Bereiche werden ausgelassen**, ebenso
    **zweig-spezifisch**, und **je Zweig einzeln messen**. Das gilt besonders für
+   **`.gitlab-ci/`-Bereich**: auslassen, aber NUR die Commits, die **ausschließlich**
+   `.gitlab-ci/` betreffen. Wir haben GitLab-CI entfernt und nutzen nur GitHub CI, der
+   Ordner existiert hier also nicht. Achtung: nicht den ganzen Commit verwerfen, weil
+   CI-Anpassungen intern oft zusammen mit anderen Aenderungen laufen (z. B. wenn sich eine
+   Dependency aendert). Entscheidend ist die **Dateimensge**, nicht das Subject: hat der
+   Commit neben `.gitlab-ci/` auch echten Quellcode oder Build-Dateien, werden diese Teile
+   uebernommen und nur die CI-Dateien fallen weg.
    xorg-Testskripte: `test/pyxtest` ist **nicht** auf master beschränkt, es existiert
    mit identischem Umfang auch auf `release/25.2` (42 Einträge auf beiden, gemessen am
    2026-09-28). Eine pauschale Annahme wie „die Tests nehmen wir nur mit master" ist
