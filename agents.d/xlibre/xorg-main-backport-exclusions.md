@@ -42,6 +42,8 @@ nicht im Incubator, damit Rebase/Force-Push es nicht zerstören.
 | `79774d241a` | xwayland: Handle libxcvt_gen_mode_info() failure | XWL | xwayland entfernt |
 | `4371d6d0ee` | xwayland: Skip xwl_cursor_warped_to() without an xwl_seat | XWL | xwayland entfernt |
 | `316321933a` | glamor: free the link log on shader link failure | DUP | Inhaltlich durch gemergten PR 3750 (`482f7b326d`) abgedeckt. Upstream: `malloc` + `if(!info)` + `free`. Unser Fix: `calloc` + `if(!info)` + `ErrorF` + `free` — strenger, denn `calloc(1,0)` liefert einen validen Zeiger, `malloc(0)` nicht sicher; die Leak-Abdeckung wird an genau dieser Entartung entschieden. |
+| `ecb6644fdd` | xf86: bump ABI_VIDEODRV_VERSION to 28.0 | DUP | Unser master hat bereits `SET_ABI_VERSION(28,0)` plus `CONFIG_LEGACY_NVIDIA_PADDING` mit 28.1. Der 27→28-Bump ist inhaltlich abgedeckt; cherry-pick kollidiert nur und ändert nichts. |
+| `bbe30db5c0` | xf86: bump ABI_EXTENSION_VERSION to 11.0 | DUP | Unser master hat bereits `SET_ABI_VERSION(11,0)`. Der 10→11-Bump ist inhaltlich abgedeckt. |
 
 ## Gegenprüfungshinweis (DUP-Kriterium)
 
