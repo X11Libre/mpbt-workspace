@@ -145,6 +145,18 @@ jeweiligen Backports sollte es ebenfalls.
   Wiederherstellung per `--force-with-lease` mit dem erwarteten Wert, danach an Commits **und**
   Dateien verifizieren.
 
+## Wo die Workflow-Details stehen
+
+- **Konfliktklassifikation, Commits aus der Mitte entfernen, Phase-III-Ablauf
+  (Gruppierung, Probelauf, `[PR #NNNN]`-Ledger):** `backport-xorg-main`.
+- **Konflikttypen im Cherry-pick, Aufrufer-Prüfung vor dem Drop, Anpassung an
+  die lokale API, Build-Regel:** `backport-ours`.
+
+Ein toter Verweis zwischen den Skills ist kein Kosmetikum: am 2026-09-28 hat
+`backport-ours` auf einen Abschnitt verwiesen, den es erst gar nicht gab, und
+`backport-xorg-main` verweist auf „Auslassungen festhalten", das im Router
+existiert. Beides beim Ergänzen prüfen, in beide Richtungen.
+
 ## Merge-Grenze
 
 **Ein Target-Branch wird ausschließlich über gemergte GitHub-PRs weitergeschrieben.** Kein
