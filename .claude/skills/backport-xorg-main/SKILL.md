@@ -451,6 +451,32 @@ reparierten PR-Head in den Inkubator auf, ist er patch-identisch zum
 PR-Head und fällt später automatisch heraus. Genau das ist der Grund, einen
 Tausch sauber zu machen statt ihn zu verschieben.
 
+### Der PR-Subject bekommt einen xorg-Marker
+
+Commit-Marker und PR-Marker sind **zwei verschiedene Dinge** und beide
+nötig. Der `[PR #NNNN]`-Marker im Commit ist das Ledger, das den
+Inkubator vor dem Doppel-Einreichen schützt. Im **PR-Subject** muss aber
+zusätzlich erkennbar sein, dass der Commit von `xorg/main` kommt und nicht
+von uns — sonst ist ein Backport-PR nicht von einem eigenen
+Backport-PR zu unterscheiden.
+
+| Herkunft | PR-Subject |
+|---|---|
+| eigener master-Commit (`backport-ours`) | `(release/25.2) modesetting: …` |
+| `xorg/main`-Commit (`backport-xorg-main`) | `(xorg) <base> <Subject> (backport of #NNNN)` |
+| `xorg/main`-Commit auf einen Release-Zweig | `(xorg) (release/25.0) <Subject> (backport of #NNNN)` |
+
+**Auf einem Release-Zweig bleibt der Release-Marker zusätzlich stehen** —
+`(xorg) (release/25.0) …`, nicht nur `(xorg)`. Der Release-Marker sagt dem
+Reviewer, welcher Target-Zweig gemeint ist, der xorg-Marker sagt, woher der
+Patch stammt. Beides geht in **einem** Subject, in dieser Reihenfolge.
+
+Er ist nicht Kosmetik: an einem PR-Subject lässt sich ablesen, ob ein
+eingereichter Commit aus der Inkubator-Queue (xorg) oder aus
+`backport-ours` (eigener Patch) stammt, **ohne** die Commit-Historie
+aufzurollen. Genau das ist die Prüfung, die beim Sichten der offenen PRs
+immer wieder Zeit kostet.
+
 ### Der `[PR #NNNN]`-Marker gehört in den Commit-Subject
 
 Beim Einsetzen eines fremden PR-Commits in den Inkubator den Marker
