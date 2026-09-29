@@ -129,6 +129,30 @@ Submission-Branch, sodass die eingereichten Commits mit Marker unten liegen.
 Danach `origin` und lokal vergleichen: **die Trees müssen gleich sein, die History darf
 abweichen.** Erst dann force-pushen.
 
+**Nach Thema grupieren, nicht Commit für Commit.** Ein PR pro Commit bedeutet
+20 PRs für 20 Commits, auch wenn fünf davon dieselbe Datei betreffen und nur
+gemeinsam sinnvoll prüfbar sind. Nach dem Anwenden von Phase II ist die
+übliche Grouping-Form:
+
+| Gruppe | Umfang |
+|---|---|
+| Ein logischer Fix | zusammengehörige Commits, die dieselbe Datei/ denselben Codepfad betreffen (z. B. der xkb-Block, ein Xi-Byte-Order-Block, die meson-Konvertierungen) |
+| Ein Commit | alles, was thematisch für sich steht |
+
+Ein PR muss für sich reviewbar sein. Ein Sammel-PR über 20 gemischte Themen
+ist das Gegenteil, auch wenn er weniger Klicks spart.
+
+**Den ersten Lauf als Probe machen.** `xx-make-pr.sh` schreibt auf dem
+Inkubator um und ist damit nicht gefahrlos. Beim ersten Mal in einem
+Workspace deshalb mit **einem** Commit starten, Push und PR prüfen, und erst
+dann fortsetzen. Nicht alle 20 auf einmal — ein Fehler in der Mechanik
+sonst einmal für alle.
+
+**Nach jedem Lauf prüfen, nicht nur am Ende.** Nach jedem `xx-make-pr.sh`:
+steht der neue PR offen, trägt der Incubator-Commit den `[PR #NNNN]`-Marker,
+und ist der Incubator um genau diese Commits kürzer geworden. Der Marker ist
+das Ledger; fehlt er, wird beim nächsten Durchlauf doppelt eingereicht.
+
 **Bricht das Skript mit verrückten Konflikten ab, ist das eine Blockierung durch noch
 ungemergte PRs, keine kaputte Basis.** Nicht auflösen, sondern liegen lassen, bis zum nächsten
 Rebase auf die target-branch neu versuchen — in der Regel ist der blockierende PR dann gemerged.
