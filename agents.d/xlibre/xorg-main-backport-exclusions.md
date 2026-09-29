@@ -46,6 +46,7 @@ nicht im Incubator, damit Rebase/Force-Push es nicht zerstören.
 | `bbe30db5c0` | xf86: bump ABI_EXTENSION_VERSION to 11.0 | DUP | Unser master hat bereits `SET_ABI_VERSION(11,0)`. Der 10→11-Bump ist inhaltlich abgedeckt. |
 | `3660f54fbd` | kdrive/ephyr: Report a dummy refresh rate through RandR to make proton >= 8 happy | DUP | Inhaltlich durch unseren master-Commit `df6b0e97a7` (gleiches Subject) abgedeckt; gemessen über `git log -S 'Dummy refresh rate'`, der ephyr.c enthält den Code bereits. Cherry-Pick war ein Leer-Pick ('nichts zu committen'). |
 | `3c62ee0c78` | modesetting: Fix use-after-free when aborting queued events | DUP | Leer-Pick: unser vblank.c hat bereits `if (!q->aborted && match(...))` (Zeile 551) und das `aborted`-Feld an 4 Stellen — der UAF-Fix ist schon enthalten. |
+| `14981eea44` | Xnest: do not reset pScreen->devPrivate to NULL | DUP | Leer-Pick: unser hw/xnest/Screen.c enthält die `pScreen->devPrivate = NULL`-Zeile bereits nicht (nur `dixSetPrivate(&pScreen->devPrivates, ...)`). |
 
 ## Gegenprüfungshinweis (DUP-Kriterium)
 
