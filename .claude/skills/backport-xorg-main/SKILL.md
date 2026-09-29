@@ -53,6 +53,18 @@ auf den Target-Branch ergeben andere Hashes. Das ist kein Fehler, sondern zu erw
    Dependency aendert). Entscheidend ist die **Dateimensge**, nicht das Subject: hat der
    Commit neben `.gitlab-ci/` auch echten Quellcode oder Build-Dateien, werden diese Teile
    uebernommen und nur die CI-Dateien fallen weg.
+
+   **Die CI-Dateien sind kein Muell.** Bevor ein `.gitlab-ci/`-Commit verworfen wird,
+   lohnt der Blick auf den Inhalt: CI installiert oft Abhaengigkeiten, und eine
+   Aenderung dort spiegelt eine Anforderung des gleichzeitigen Codes wider. Beispiel:
+   verlangt ein Commit neueres `xorgproto` (z. B. `>= 2025.1` fuer `_X_FALLTHROUGH`),
+   steht das in der CI-Install-Zeile des Upstream. Dann muss auch unsere eigene github-CI
+   das neue `xorgproto` liefern, sonst schlaegt unser Lauf genau dort fehl. Der CI-Block
+   ist also ein **Signal**, das in die Betrachtung gehoert, nicht nur ein Auslass-Kandidat.
+   Faustregel: Wenn der ausgefallene CI-Teil eine Abhaengigkeits-Anforderung nennt, die
+   der uebernommene Code braucht, als eigene Notiz zur CI-Anpassung fassen.
+   (Ob unsere CI das im Lauf sichtbar macht, ist ein Nebenprodukt, keine Garantie: ein
+   fehlendes Paket faehrt erst auf, wenn der Build es wirklich braucht.)
    xorg-Testskripte: `test/pyxtest` ist **nicht** auf master beschränkt, es existiert
    mit identischem Umfang auch auf `release/25.2` (42 Einträge auf beiden, gemessen am
    2026-09-28). Eine pauschale Annahme wie „die Tests nehmen wir nur mit master" ist
