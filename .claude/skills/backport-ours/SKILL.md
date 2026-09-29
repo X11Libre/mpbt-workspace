@@ -60,6 +60,13 @@ Nur ein echter Inhaltskonflikt bricht ab. Ein reiner **Pfad-Unterschied** aus de
 „3749 + der Bugfix dazu" — beide Commits cherry-picken, sonst wandert der Bug in die Releases.
 Das ist der wichtigste Einzelfall: **der Fix muss _vor_ dem Backport existieren, nicht danach.**
 
+Diese Grenze war 2026-09-28 real: der Bugfix gegen den NULL-Deref aus #3749 lag als
+eigener PR auf master, und der Release-PR wäre ohne ihn mit dem Absturz angekommen. Weil
+beide Commits getrennt cherry-picked und **nicht** zusammengefasst wurden, ließ sich einer
+später einzeln entfernen (siehe „Commit aus der Mitte entfernen" im Router-Skill) — ohne die
+übrigen anzurühren. **Ein Commit pro PR, kein Sammel-Commit:** Das macht den Backport
+reparierbar, statt ihn unumkehrbar mit einem Fehler zu verkleben.
+
 ## Schritt 3: Build-Verifikation, pro Zweig
 
 ```sh
@@ -193,7 +200,7 @@ git grep -c '<funktion>' origin/<ziel> -- <pfad>     # Aufrufer im Ziel?
 Konfliktdatei. Ein Helper kann aus drei Dateien aufgerufen werden
 (`drmmode_display.c`, `present.c`, `driver.c`).
 
-Auf 25.0 war der Drop korrekt (dort existierten die async-flip-Heljer nicht),
+Auf 25.0 war der Drop korrekt (dort existierten die async-flip-Helfer nicht),
 auf 25.1/25.2 war er falsch. **Derselbe Commit, verschiedene Zweige, andere
 Entscheidung** — das ist der Normalfall, nicht die Ausnahme.
 
