@@ -180,6 +180,39 @@ Eigene Commits aus unseren master-PRs in den Incubator zu legen war früher übl
 **Auslaufmodell**, weil wir inzwischen PR-Dashboards haben. Für eigene Commits gilt
 `backport-ours` mit einem eigenen Branch pro Task.
 
+## Ein Commit aus der Mitte der Inkubator-Kette entfernen
+
+Kommt vor, wenn ein Commit im Inkubator überholt ist: er ist keine xorg/main-Fassung
+mehr, oder er ist eine eigene Master-PR, die dort liegen geblieben ist. Ein solcher
+Commit bricht bei **jedem** Gesamtbuild identisch und wird dabei leicht als „fremde
+Ursache" fehlattribuiert — 2026-09-28 stand `516b44f3f1` so im Inkubator (unsere PR
+#3364, nicht xorg/main) und erzeugte fünf Build-Fehler in `disconnect.c`.
+
+Zwei saubere Wege, in dieser Reihenfolge:
+
+```sh
+# Standard: rebase onto, der entfernte Commit fällt raus
+git rebase --onto <neuer-parent> <zu-entfernender-sha> <branch>
+
+# Alternative: die Restcommits frisch auf eine saubere Kette setzen
+git cherry-pick <restliche-commits>          # auf origin/<neuer-parent>
+```
+
+**Vorher sichern, danach prüfen.** Vor dem Umbau den alten Tip als
+`refs/rescue/<branch>-pre-drop` festhalten; den Push mit `--force-with-lease`
+gegen genau diesen bekannten Wert. **Nachher verifizieren**, sonst ist der Drop
+der nächste Fehler:
+
+```sh
+git rev-list --count <parent>..<branch>        # Anzahl vorher notiert?
+git log --oneline <parent>..<branch>           # stimmt die Reihenfolge?
+git fsck --no-progress 2>&1 | head             # existieren alle SHAs der Kette noch?
+```
+
+**Niemals** `git filter-branch` und **niemals** ein `update-ref` ohne diese Prüfung.
+Ein Force-Push auf den Inkubator ist Normalbetrieb, nicht schon an sich ein Vorfall —
+aber die Wiederherstellbarkeit kommt vorher, nicht nachher.
+
 ## Ist-Zustand (Stand 2026-09-28, vor dem ersten Lauf messen!)
 
 Nicht ungeprüft übernehmen, das hier ist eine Momentaufnahme und dient nur der Größenordnung:
