@@ -113,6 +113,42 @@ git push origin tracking/xorg/main-on-25.2
 Optimalerweise steht der Tracker danach auf `xorg/main` selbst, also `origin/tracking/…` und
 `xorg/main` sind identisch und das Intervall ist leer.
 
+### III-0. Vor jedem Durchlauf: Inkubator auf den Target holen
+
+Phase III ist **nicht** ein einmaliger Schritt. Zwischen den Durchläufen können
+Tage liegen, es können Commits in `target` landen, und ein Lauf kann an einem
+Fremd-PR scheitern, der noch offen ist — der Commit bleibt dann liegen und wird
+im nächsten Durchlauf erneut versucht.
+
+Deshalb **vor jedem** Durchlauf, nicht nur vor dem ersten:
+
+```sh
+cd <Clone des Targets>
+git fetch origin
+# Inkubator auf den aktuellen target holen
+git checkout rfc/backport-<target>
+gh pr list --repo X11Libre/xserver --head rfc/backport-<target> --state open   # in Gebrauch?
+git rebase make-pr.upstream-branch          # bzw. origin/<target>
+git push --force-with-lease origin rfc/backport-<target>
+```
+
+Und am Anfang jedes Durchlaufs prüfen, wie viel Rückstand `target` hat:
+
+```sh
+git rev-list --count origin/rfc/backport-<target>..origin/master
+```
+
+Ist das **0**, ist der Durchlauf aktuell. Ist es größer, erst den Rebase
+machen, sonst reicht man PRs gegen einen veralteten Target ein.
+
+**Warum das nicht Kosmetik ist.** Am 2026-09-28 lag `rfc/backport-master` nach
+dem Push auf einem Stand, der noch in Sync war, aber der Inkubator trug
+15 **offene** Fremd-PRs. Jeder davon kann einen Durchlauf blockieren — beim
+ersten Versuch hat #3547 genau das getan (`xf86Config.c:735`, Union-Initializer
+gegen `stdbool`), der Build war rot und der Commit musste getauscht werden. Ein
+zweiter Blockadefall ist keine Ausnahme, sondern der Normalfall bei
+Fremd-PRs im Inkubator.
+
 ### III. Commits einzeln als PR einreichen
 
 Schrittweise, nicht alle auf einmal, damit die Review-Last und der Konfliktradius klein bleiben.
