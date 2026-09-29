@@ -180,6 +180,29 @@ Eigene Commits aus unseren master-PRs in den Incubator zu legen war früher übl
 **Auslaufmodell**, weil wir inzwischen PR-Dashboards haben. Für eigene Commits gilt
 `backport-ours` mit einem eigenen Branch pro Task.
 
+## Konflikte klassifizieren, bevor man sie zählt
+
+Ein `cherry-pick`, der abbricht, liefert eine Liste unaufgelöster Pfade. Die Liste
+ist **keine** Konfliktliste — sie mischt drei Dinge, die getrennt behandelt
+gehören:
+
+| Befund | Bedeutung | Behandlung |
+|---|---|---|
+| `UU`/`AA` in einer Datei, die im Ziel existiert | echter Inhaltskonflikt | manuell, mit Semantik prüfen |
+| `DU`/`UD` an einer Datei, die im Ziel existiert | delete/modify | Zielzustand entscheiden |
+| `DU`/`UD` an einer Datei, die im Ziel **nicht existiert** | Datei fehlt im Zielbaum, meist CI-Konfig | **kein Code-Konflikt** — Hunk entfällt ersatzlos |
+
+**Die dritte Klasse wird routinemäßig als Code-Konflikt fehlklassifiziert.** Am
+2026-09-28混 mixed `bd3ca7da06` 12 „Konfliktdateien" darunter, davon drei
+`.gitlab-ci*`, die es in unserem Baum nicht gibt. Erst die Gegenprobe
+`git merge-base --is-ancestor <commit> <inkubator-tip>` trennt die Klassen.
+
+**Reihenfolge bei jedem Konflikt:** erst `git ls-tree <ziel> -- <pfad>` (existiert
+die Datei im Ziel?), dann `merge-base` gegen den Inkubator-Tip (ist der Commit
+überhaupt in der Kette?), dann erst über Inhaltskonflikt urteilen. Erst drei
+solcher Fehlklassifikationen fielen auf — eine davon führte dazu, dass ein Backport
+als „Fremd-PR" gemeldet wurde, obwohl es die eigene PR #3364 war.
+
 ## Ein Commit aus der Mitte der Inkubator-Kette entfernen
 
 Kommt vor, wenn ein Commit im Inkubator überholt ist: er ist keine xorg/main-Fassung
