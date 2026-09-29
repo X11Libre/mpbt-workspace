@@ -193,7 +193,7 @@ gehören:
 | `DU`/`UD` an einer Datei, die im Ziel **nicht existiert** | Datei fehlt im Zielbaum, meist CI-Konfig | **kein Code-Konflikt** — Hunk entfällt ersatzlos |
 
 **Die dritte Klasse wird routinemäßig als Code-Konflikt fehlklassifiziert.** Am
-2026-09-28混 mixed `bd3ca7da06` 12 „Konfliktdateien" darunter, davon drei
+2026-09-28 meldete `bd3ca7da06` 12 „Konfliktdateien", darunter drei
 `.gitlab-ci*`, die es in unserem Baum nicht gibt. Erst die Gegenprobe
 `git merge-base --is-ancestor <commit> <inkubator-tip>` trennt die Klassen.
 
