@@ -199,6 +199,22 @@ Eigene Commits aus unseren master-PRs in den Incubator zu legen war früher übl
 **Auslaufmodell**, weil wir inzwischen PR-Dashboards haben. Für eigene Commits gilt
 `backport-ours` mit einem eigenen Branch pro Task.
 
+### Weggeworfene CI-Dateien sind ein Frühwarnsystem
+
+Wenn `.gitlab-ci/*`-Dateien ausfallen, ist das **kein Informationsverlust**, solange man
+bewusst wegschaut — es ist eine verpasste Warnung. Der Upstream-CI-Block ist oft die
+**einzige** Stelle, an der eine neue Abhängigkeitsanforderung früh und maschinenlesbar
+steht. Beispiel: `xorg/main:.gitlab-ci/debian-install.sh:139` sagt
+„xserver requires xorgproto >= 2025.1 for _X_FALLTHROUGH" — genau die Anforderung, an der
+unser `wip/fallthrough`-Branch hängenbleibt. Verwerft man den CI-Teil ersatzlos, fällt
+das erst auf, wenn der Code die Abhängigkeit wirklich braucht, also mitten im Lauf.
+
+**Faustregel:** bei jeder Auslassung von `.gitlab-ci/*` den CI-Inhalt auf
+Abhängigkeitsanforderungen ansehen. Braucht der übernommene Code eine solche Anforderung,
+dann als **eigene Notiz** festhalten — nicht in der Auslassungszeile verstecken, sondern
+als offene CI-Aufgabe mit Bezug auf den Commit. Der Nicht-CI-Teil des Commits wird
+trotzdem übernommen (siehe Kriterium GHC).
+
 ## Konflikte klassifizieren, bevor man sie zählt
 
 Ein `cherry-pick`, der abbricht, liefert eine Liste unaufgelöster Pfade. Die Liste
