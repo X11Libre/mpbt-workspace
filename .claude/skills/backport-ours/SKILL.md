@@ -145,6 +145,70 @@ git ls-tree origin/release/<rel> -- <pfad>
 gh pr list --repo X11Libre/xserver --head "rfc/backport-<rel>-<task>" --state open
 ```
 
+## Cherry-pick-Konflikte im Backport: vier Typen, vier Behandlungen
+
+Ein Konflikt beim Cherry-Pick sagt nichts über die Art. Am 2026-09-28 kam
+`modesetting: use single sized hw cursor buffer` (#3749) auf 25.2/25.1 nicht
+sauber durch, und die vier Konfliktarten verlangten vier verschiedene
+Entscheidungen.
+
+| Befund | Beispiel aus #3749 | Behandlung |
+|---|---|---|
+| **Pfad umbenannt** (Reorg) | `Xi/chgdctl.c` → `Xext/xinput/chgdctl.c` | Pfad umschreiben, Inhalt unverändert übernehmen |
+| **Zusätzlicher Konflikt am selben Ort** | `drmmode_display.h`: `fixed_size_cursor` gegen `drmmode_legacy_cursor_probe_allowed()` | **Union bilden.** Beide Semantiken erhalten — 25.2/25.1 haben den Legacy-Guard, master nicht. „Merge-Resolution aus master übernehmen" ist falsch |
+| **Gegensatz in einer Codezeile** | `dix/events.c`: `GRAB_STATE_FROZEN_WITH_EVENT` gegen `FROZEN_WITH_EVENT` | **Nicht** auf einer Seite entscheiden. Der Zielzweig hat die neuere Benennung, xorg die ältere. Erst klären, welcher Name in diesem Baum gilt, dann beide Seiten konsistent ziehen |
+| **Datei fehlt im Ziel** | `dri3/meson.build` (wir haben `Xext/dri3/`) | Wenn die Datei umgezogen ist: Hunk auf den neuen Pfad anwenden und **prüfen, ob die Aussage dort noch gilt** — nicht blind |
+
+**Vor jeder Konfliktauflösung zwei Fragen stellen**, in dieser Reihenfolge:
+
+1. *Existiert die Datei im Zielzweig überhaupt?* `git ls-tree origin/<ziel> -- <pfad>`.
+   Fehlt sie, ist es kein Code-Konflikt, sondern ein Pfad- oder Reorg-Fall.
+2. *Ist der Konflikt nur Kosmetik oder verändert er Bedeutung?* Zwei Seiten
+   vergleichen, die dasselbe tun, sind harmlos. Zwei Seiten, die **andere
+   Bezeichner** nehmen, sind eine Entscheidung, keine Auflösung.
+
+## Der teuerste Fehler: Definitionen entfernen, ohne die Aufrufer zu prüfen
+
+Bei #3749 kam `ms_is_running_virtual_gpu()` als Überschuss aus dem
+Konflikt-Hunk mit, ohne Aufrufer auf dem Zweig, also
+`-Werror=-Wunused-function` auf FreeBSD/DragonFly. Entfernt — und damit
+gleich `ms_window_has_async_flip()` mit, denn beide standen im selben Block.
+
+Die async-flip-Helfer waren aber **vorbestehend und benutzt**: aufgerufen aus
+`drmmode_display.c` und `present.c`. Ihr Entfernen erzeugte
+`undefined symbol: ms_window_update_async_flip` im CI-`xorg_symbol_test`.
+Der zweite Fehler war schlimmer als der erste, weil er nicht als
+Compiler-Warnung auftritt sondern erst als Linkfehler des gebauten Moduls.
+
+**Regel:** Eine Definition wird nur entfernt, wenn **der Aufrufer im Zielzweig
+fehlt** — nicht, wenn der Aufrufer *anderswo* steht. Vor dem Entfernen immer
+im Zielzweig prüfen:
+
+```sh
+git grep -c '<funktion>' origin/<ziel> -- <pfad>     # Aufrufer im Ziel?
+```
+
+**Und die Konsequenz, die ich gezogen habe:** Nach einem Drop-Commit
+`grep` **über den ganzen Zielzweig** laufen lassen, nicht nur über die
+Konfliktdatei. Ein Helper kann aus drei Dateien aufgerufen werden
+(`drmmode_display.c`, `present.c`, `driver.c`).
+
+Auf 25.0 war der Drop korrekt (dort existierten die async-flip-Heljer nicht),
+auf 25.1/25.2 war er falsch. **Derselbe Commit, verschiedene Zweige, andere
+Entscheidung** — das ist der Normalfall, nicht die Ausnahme.
+
+## Wenn ein fremder Commit sich nicht 1:1 übernehmen lässt
+
+`e19e86c29f` (modesetting, save cursor in master) rief `IsFloating()`, das
+in unserem dix-Layer nicht existiert — dort heißt diePredicate
+`InputDevIsFloating()` (`dix/input_priv.h`). Ein Cherry-pick hätte nicht
+gebaut.
+
+Das ist keine Blockade, das ist eine **Anpassung an die lokale API**, und sie
+gehört in denselben Commit mit einer Zeile Begründung, die den Aufruf
+benennt. Kein stilles Umbenennen, sonst sucht der nächste Lauf nach dem
+Fehler.
+
 ## Bekannte Stolpersteine
 
 - **Vor jedem Force-Push prüfen, ob der Branch einen offenen PR eines anderen Schiffs trägt.**
