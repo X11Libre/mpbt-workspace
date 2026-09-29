@@ -125,6 +125,13 @@ strings <build>/<modul>.p/<datei>.c.o | grep -c '<der neue String>'
 | **ja** | Security-Lücke, client-auslösbarer Memory-Disclosure / OOB read-write / NULL-Deref / Use-after-free, Auth- oder Access-Control-Bypass, Crash & DoS, Datenkorruption, Regression |
 | **nein** | Refactoring, Cleanup, Stil, neue Features, Build-System-Churn (außer es bricht ein Release-Build) |
 
+**Dieselbe Prüfung gilt für beide Workflows.** Ob ein Commit aus einem
+eigenen master-PR oder aus `xorg/main` stammt: auf einem Release-Zweig
+gehören **Bugfixes** hinüber, **keine Features**. Ein Commit, der ein
+Verhalten hinzufügt statt es zu reparieren, wird nicht übernommen — und wenn
+deshalb das Intervall nicht leer wird, bleibt der Tracker **stehen**. Ein
+nicht leeres Intervall ist hier das richtige Ergebnis.
+
 Ein Merge auf `master` beweist **nicht**, dass der Fix backport-würdig ist. Der Master-PR kann
 ein Refactoring sein, während derselbe Codepfad auf einem Release-Zweig einen NULL-Deref
 trägt. **Deshalb immer gegen den Release-Zweig messen**, statt aus dem master-PR zu

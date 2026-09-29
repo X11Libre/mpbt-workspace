@@ -157,6 +157,18 @@ Ein toter Verweis zwischen den Skills ist kein Kosmetikum: am 2026-09-28 hat
 `backport-xorg-main` verweist auf „Auslassungen festhalten", das im Router
 existiert. Beides beim Ergänzen prüfen, in beide Richtungen.
 
+## Release-Zweige bekommen Bugfixes, keine Features
+
+Gilt für **beide** Workflows: eigene master-Commits und `xorg/main`-Commits.
+Korrektheits-, Absturz-, Sicherheits- und Build-Fixes ja; Refactoring, Umbau,
+neue Optionen, neue Funktionen, neue Struct-Felder nein.
+
+Steht in beiden Workflow-Dateien ausführlich (`backport-ours`,
+`backport-xorg-main`). Hier nur die Konsequenz, weil sie überrascht: Bleibt das
+Intervall wegen nicht-bugfixender Commits **nicht leer**, bleibt der Tracker
+**stehen**. Das ist richtig. Ein leeres Intervall, das man durch
+Feature-Aufnahme in einen Release-Zweig erreicht, wäre falsch.
+
 ## Merge-Grenze
 
 **Ein Target-Branch wird ausschließlich über gemergte GitHub-PRs weitergeschrieben.** Kein
