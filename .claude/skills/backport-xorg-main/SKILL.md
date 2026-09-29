@@ -271,6 +271,68 @@ git fsck --no-progress 2>&1 | head             # existieren alle SHAs der Kette 
 Ein Force-Push auf den Inkubator ist Normalbetrieb, nicht schon an sich ein Vorfall —
 aber die Wiederherstellbarkeit kommt vorher, nicht nachher.
 
+## Der Inkubator-Mechanismus, der Phase III entscheidet
+
+Vier Dinge, die beim Einreichen und beim Rebase zusammenwirken. Alle am
+2026-09-28 gemessen.
+
+### Ein bereits gemergter Commit fällt nur bei Patch-Identität heraus
+
+`git rebase` droppt einen Commit als „zuvor angewendet", wenn der **Patch
+identisch** im neuen Ziel liegt — nicht wenn er inhaltlich dasselbe tut.
+
+```
+git show <commit> | git patch-id --stable | cut -d' ' -f1
+```
+
+Gleiche Patch-ID → Git droppt beim nächsten Rebase von selbst, kein Hand-Edit.
+**Verschiedene Patch-ID → bleibt liegen**, auch wenn der Commit inhaltlich
+bereits erledigt ist, und bricht jeden Build identisch. Am 2026-09-28 war das
+PR #3547: der Queue-Commit war patch-verschieden vom inzwischen auf master
+gereihten PR-Head (9 Dateien, 65/117), also wäre er **nicht** automatisch
+gefallen. Wer das annimmt, wartet vergeblich auf einen Merge.
+
+Umgekehrt gilt das für den **eingereichten** Commit: nimmt man einen
+reparierten PR-Head in den Inkubator auf, ist er patch-identisch zum
+PR-Head und fällt später automatisch heraus. Genau das ist der Grund, einen
+Tausch sauber zu machen statt ihn zu verschieben.
+
+### Der `[PR #NNNN]`-Marker gehört in den Commit-Subject
+
+Beim Einsetzen eines fremden PR-Commits in den Inkubator den Marker
+**wieder setzen**. Er entsteht sonst nur auf dem Submission-Branch und geht
+beim Übernehmen verloren, und der Inkubator zeigt nicht mehr, dass etwas schon
+eingereicht war. Im Body zusätzlich festhalten, **welchen** Queue-Commit er
+ersetzt und warum (nicht baubar, inzwischen upstream).
+
+### Position prüfen, nicht annehmen
+
+Ein `cherry-pick` legt **immer auf HEAD**. Wer einen Commit an einer
+bestimmten Position der Kette einsetzen will, darf nicht auf HEAD picken und
+danach hoffen, dass er richtig landet. Zwei Weile, die funktionieren:
+
+- alles bis zur Einfügeposition als Basis setzen, dort picken, den Rest in
+  **alter Reihenfolge** wieder anhaengen (`git rev-list --reverse` vom alten Tip)
+  — so wird die Position konstruktiv erhalten;
+- oder die vollständige geordnete Liste der Commits einmal abnehmen und
+  neu aufbauen, Position für Position.
+
+Immer danach messen: Commit-Anzahl, ob der neue Commit an der erwarteten
+Position sitzt, ob der ersetzte wirklich raus ist.
+
+### `checkout --detach` auf einen Punkt außerhalb des Ziels zerlegt die Kette
+
+`git checkout --detach <sha>` setzt den Zeiger auf **diesen** Commit, nicht auf
+das Ziel. Ist `<sha>` nicht auf `origin/master`, zeigt `rev-list --count
+origin/master..HEAD` plötzlich weit weniger Commits — die unterhalb liegenden
+gehören dann nicht mehr zur Kette. Man hat nicht „nichts angefasst", man hat
+die Kette zerschnitten.
+
+Vor jedem Umbau: Ausgangspunkt notieren, und wenn die eigene Zählung
+plötzlich einstellig ist, **die Ausgabe lesen, nicht den Exitcode**. Genau das
+ist am 2026-09-28 zweimal schiefgegangen, mit Auswirkung auf Position, nicht
+auf den Inhalt.
+
 ## Ist-Zustand (Stand 2026-09-28, vor dem ersten Lauf messen!)
 
 Nicht ungeprüft übernehmen, das hier ist eine Momentaufnahme und dient nur der Größenordnung:
