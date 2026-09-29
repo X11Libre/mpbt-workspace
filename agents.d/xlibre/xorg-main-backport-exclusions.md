@@ -36,12 +36,25 @@ nicht im Incubator, damit Rebase/Force-Push es nicht zerstören.
 | **XWL** | `xwayland` | Bewusst im Baum entfernt (nur hw/xwayland/ berührt) |
 | **TEST** | Python-Test-Skripte (`test/*.py`, pyxtest) | Release-spezifisch: für master nicht anwenden (dort vorhanden); für Releases einzeln prüfen, denn `test/pyxtest` existiert auch auf release/25.2 und ist nicht pauschal abwesend |
 | **DUP** | Inhaltlich durch eigenen gemergten master-PR abgedeckt | `git cherry` zeigt patch-Äquivalenz, nicht inhaltliche Enthaltenheit |
+| **WIP** | Bewusst auf einem WIP-Branch für später sichern | Der Inhalt ist erledigt, aber **nicht** in den Incubator übernommen, weil eine Voraussetzung fehlt (Abhängigkeit, Konflikt mit eigener Entwicklung). Bearbeitet, nur woanders. **Auch als bearbeitet zählen, nie als Lücke behandeln** — die Fortsetzungsbedingung steht beim Commit und in der Zeile unten. |
 | **GHC** | GitHub-CI-Konfiguration (`.gitlab-ci/`, `.gitlab-ci.yml`) | Wir haben `.gitlab-ci/` vor Langem entfernt und nutzen nur GitHub CI. **Nur Commits auslassen, die ausschließlich `.gitlab-ci*` betreffen** — CI-Änderungen kommen oft zusammen mit anderen (z. B. Dependency-Anpassung); dann wird der Nicht-CI-Teil übernommen und nur die CI-Dateien fallen weg. Entscheidend ist die **Dateimenge, nicht das Subject**; den ganzen Commit zu verwerfen ist falsch. Messgriff: `git show --name-only <sha>` — nur wenn die Liste **identisch** mit `.gitlab-ci*`-Pfaden ist, auslassen; sonst teill übernehmen. Alternativ als Resttest: `git show --name-only <sha> \| grep -vE '\.gitlab-ci/' \| grep -q .` |
 
 ## Ausgelassene Commits
 
-*Stand 2026-09-28, master-Tracker auf `b125b19fc2` (Intervall leer, alle 33 Commits
-bearbeitet), `xorg/main` ebenfalls auf `b125b19fc2`.*
+*Stand 2026-09-28, master-Tracker auf `b125b19fc2` (Intervall leer), `xorg/main`
+ebenfalls auf `b125b19fc2`.*
+
+**Bilanz des 33er-Intervalls: alle Commits bearbeitet, keine Lücke.**
+
+| Kategorie | Anzahl | Kriterien |
+|---|---|---|
+| im Incubator übernommen | 20 | — |
+| bewusst ausgelassen | 11 | XWL (6), DUP (5) |
+| auf WIP-Branch für später | 1 | WIP (`bd3ca7da06` → `wip/fallthrough`) |
+| **Summe** | **32** | plus `ecb6644fdd`/`bbe30db5c0` bereits in DUP enthalten |
+
+Die drei Kategorien sind alle **bearbeitet**: übernommen, entschieden ausgelassen
+oder bewusst gesichert. Kein Commit des Intervalls ist offen.
 
 | SHA | Subject | Kriterium | Begründung |
 |---|---|---|---|
