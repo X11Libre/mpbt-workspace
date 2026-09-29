@@ -49,6 +49,26 @@ dashboard tasks in the starfleet section.
 - **add/add test-file conflicts:** resolve as a UNION — take my file, append the other side's content minus its header/import block; keep the import block ONCE. Run `gofmt -l` afterwards (unions leave duplicate blank lines).
 - **`cp` FROM `/tmp/opencode/...` is BLOCKED** even though `/tmp/opencode/*` is allow-listed: the later `external_directory "**": deny` rule wins (last match wins). Write outputs into a workspace-relative path instead.
 
+### Vor jeder neuen Phase: Skills gegen die eigenen Erkenntnisse prüfen
+
+Am Ende eines langen Arbeitsstrangs (hier nach dem xorg/main-Backport) die
+gesammelten Erkenntnisse gegen die Skills halten, **bevor** die nächste Phase
+beginnt. Nicht nur lesen — messen, welche Erkenntnis in keiner Datei steht.
+Am 2026-09-28 waren vier von acht geprüften Stichpunkten **nirgends**
+dokumentiert (Patch-ID-Automatik, `[PR #NNNN]`-Marker beim Übernehmen,
+`cherry-pick` legt immer auf HEAD, `checkout --detach` auf einen Punkt außerhalb
+des Ziels zerlegt die Kette).
+
+Zusätzlich: **Querverweise zwischen Skills prüfen.** `backport-ours` verwies
+auf einen Abschnitt, den es im referenzierten Router gar nicht gab. Ein toter
+Verweis entsteht beim Editieren einer Datei, ohne die andere zu prüfen, und
+fällt nur auf, wenn man bewusst in beide Richtungen sucht.
+
+Und: **Tippfehler vor dem Commit suchen, nicht danach.** In einem Commit-Text
+landete zweimal ein fremdes Zeichen, im Skill-Text einmal ein verunglücktes
+Wort („geregasten"). Beides per `grep` nach dem Schreiben und noch einmal vor
+`ws-commit` auffindbar.
+
 ### starfleetctl deploy / daemons
 - **Deploying a starfleetctl change:** build (`make all`) → commit+push (`master`) → `./starfleet-bootstrap` → `timer worker restart` + `web restart` → HTTP 200 → dashboard topic `done` + comms report.
 - **Direct-binary deploy fallback** when `./starfleet-bootstrap` can't run cleanly: build in your OWN clean worktree at the rebased master, `rm -f` + `cp` the binary over `.starfleet-ai/src/starfleetctl/starfleetctl` (rm avoids text-file-busy), then `bootstrap --fix` + `sop reindex` with the NEW binary, then `web restart` + `timer worker restart` (both daemons keep OLD binary until restarted). Flag the dirty SRC tree to its owner.
