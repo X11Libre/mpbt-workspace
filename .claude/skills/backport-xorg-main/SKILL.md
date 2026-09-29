@@ -113,6 +113,38 @@ git push origin tracking/xorg/main-on-25.2
 Optimalerweise steht der Tracker danach auf `xorg/main` selbst, also `origin/tracking/…` und
 `xorg/main` sind identisch und das Intervall ist leer.
 
+### Release-Zweige: nur Bugfixes, keine Features
+
+Auf `master` wird portiert, was im xorg/main-Intervall liegt. Auf einem
+**Release-Zweig** gilt dieselbe Prüfung wie bei eigenen Commits in
+`backport-ours`, und sie ist strenger: **ein Release-Zweig bekommt Bugfixes,
+keine neuen Features.** Ein Commit, der ein Verhalten hinzufügt statt es zu
+reparieren, gehört dort nicht hin.
+
+| Auf master | Auf `release/*` |
+|---|---|
+| Korrektheitsfix (UAF, NULL-Deref, Bounds) | **ja** — höchste Priorität |
+| Absturz, Datenkorruption, Hänger | **ja** |
+| Sicherheitslücke | **ja** |
+| Build-Fix, der einen Release-Build bricht | **ja** |
+| Refactoring, Umbau, Aufräumen | nein |
+| Neue Option, neue Funktion, neues Feld | nein — das ist ein Feature |
+| Kommentar-/Format-/Stil-Änderung | nein |
+
+**Der Aufwand ist dabei nicht das Argument, sondern die Frage, ob der
+Release-Zweig den Zustand überhaupt kennt.** Eine neue Funktion auf einem
+Release-Zweig setzt Code voraus, den es dort nicht gibt, und erzeugt genau
+die Konflikte, die ein Release-Zweig nicht mehr auflösen soll. Deshalb steht
+diese Prüfung **vor** dem Aufnehmen, nicht als Fußnote beim Einreichen.
+
+**Und die Konsequenz, die man akzeptieren muss:** Wenn das Intervall
+ausschließlich aus nicht-bugfixenden Commits besteht, bleibt der Tracker auf
+dem alten Stand **stehen** — auch wenn damit die Queue formal nie leer wird.
+Ein nicht leeres Intervall ist das richtige Ergebnis, ein leeres durch
+Feature-Aufnahme in einen Release-Zweig wäre das falsche. Die Auslassung wird
+in der Liste mit Kriterium vermerkt, damit sie beim nächsten Lauf nicht wieder
+als offen erscheint.
+
 ### Alles hängt am Target — drei Namen, pro Ziel
 
 Für jedes Ziel ist **alles eigene** und läuft ohne Bezug zu den anderen:
