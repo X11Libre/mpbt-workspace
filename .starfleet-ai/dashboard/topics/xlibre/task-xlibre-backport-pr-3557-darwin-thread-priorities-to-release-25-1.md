@@ -14,3 +14,5 @@ Backport branch: rfc/backport-25.1-pr-3557-darwin-thread-priorities
 PR created: https://github.com/X11Libre/xserver/pull/3767
 
 - 2026-09-30T09:55:00Z Enterprise: Backport created and pushed to rfc/backport-25.1-pr-3557-darwin-thread-priorities. PR #3767 opened against release/25.1. Awaiting CI verification.
+- 2026-09-30T12:15:00Z Enterprise: CI in progress - 4/17 checks passed, 13 pending, no failures yet. Waiting for ubuntu, macos, freebsd, netbsd, cygwin builds to complete.
+- 2026-09-30T12:30:00Z Enterprise: CI nearly complete - 15/18 checks passed, 2 pending (macos, cygwin), 0 failures, 1 skipped. Ready for merge pending final checks.

@@ -1,6 +1,7 @@
 ---
+slug: starfleet-instructions/mckinley-decisions-propagation
 title: "McKinley Decisions Propagation"
-tags: [starfleet, fleet, decisions, comms, praetor]
+order: 0
 ---
 
 # McKinley Decisions — Automatic Fleet Propagation
