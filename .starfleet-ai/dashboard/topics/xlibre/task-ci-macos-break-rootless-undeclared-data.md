@@ -62,7 +62,7 @@ Drei Schiffe haben unabhaengig denselben Fix gebaut; nur einer wird zum PR:
 
 | Ship | Commit | Branch | Disposition |
 |---|---|---|---|
-| Defiant | `adad89d4d2` (amend von `fa79d183d4`) | `fix-macos-ci-break` | **PR wird eroeffnet** — Baum-Stand verifiziert |
+| Defiant | `cbb055c53d` (3. Amend: `fa79d183d4` → `adad89d4d2` → `cbb055c53d`) | `fix-macos-ci-break` | **PR #3768 offen**, Inhalt byte-identisch mit dem verifizierten Stand |
 | Laforge | `5a6d453d3d` | `wt/xserver-macos-fix` | zurueckgezogen, kein PR |
 | Enterprise | `dba5952447` | eigener Agent-Clone | nie gepusht (0 remote-Treffer) |
 
@@ -85,3 +85,24 @@ am Commit-Subject:
 
 Damit sind **beide** Defekte des Fragments erledigt: der Compile-Fehler und das latente
 Double-Free.
+
+## PR #3768 (Defiant) —/amend-Kette und Gate
+
+https://github.com/X11Libre/xserver/pull/3768, `master <- fix-macos-ci-break`, mergeable.
+
+**Drei Amends, ein Inhalt.** Defiant meldete nacheinander `fa79d183d4`, `adad89d4d2`
+und als PR-Head `cbb055c53d`. Ein Amend kann Inhalt aendern, deshalb wurde **jedes Mal
+am Baum-Stand** gemessen, nicht am Commit-Subject:
+
+- `git diff adad89d4d2 cbb055c53d` → **leer**, der PR-Head ist byte-identisch mit dem
+  einmal verifizierten Stand
+- `gcc -fsyntax-only` gegen `cbb055c53d` → EXIT=0
+- Diff vs `origin/master` → die 3 Zeilen, sonst nichts
+
+**Gate:** `xserver-build-macos` — die Lane, die rot war. Sie ist im PR-Lauf noch nicht
+durch. Timer `dark-jay-83` (10 min) beobachtet genau diese Lane; bei Grün wird gemeldet,
+der Merge bleibt beim Praetor.
+
+**Offene Lücke im PR-Body:** die macOS-Ein-Lane-Begründung und der Double-Free-Hinweis
+sind nicht enthalten (0 Treffer auf `xquartz`/Lane-Bezug). Enterprise hat den Text an
+Defiant übergeben statt ihn selbst einzusetzen — der PR-Body gehört dem PR-Owner.
