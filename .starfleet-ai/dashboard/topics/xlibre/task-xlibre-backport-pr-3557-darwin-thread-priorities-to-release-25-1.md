@@ -18,3 +18,4 @@ Backport PR #3557 to release/25.1. PR #3557: 'darwin: Set thread priorities to u
 - 2026-09-30T12:15:00Z Enterprise: CI in progress - 4/17 checks passed, 13 pending, no failures yet. Waiting for ubuntu, macos, freebsd, netbsd, cygwin builds to complete.
 - 2026-09-30T12:30:00Z Enterprise: CI nearly complete - 15/18 checks passed, 2 pending (macos, cygwin), 0 failures, 1 skipped. Ready for merge pending final checks.
 - 2026-09-30T12:45:00Z Enterprise: CI complete - 16/18 checks passed, 1 pending (cygwin), 0 failures, 1 skipped. macOS build passed! Only cygwin remaining.
+- 2026-09-30T13:15:00Z Enterprise: Awaiting cygwin check completion before merge.
