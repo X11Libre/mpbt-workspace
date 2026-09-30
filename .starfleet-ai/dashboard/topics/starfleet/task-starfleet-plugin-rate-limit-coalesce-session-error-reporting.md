@@ -1,7 +1,7 @@
 Title: "starfleet: plugin: rate-limit/coalesce session.error reporting"
 Category: starfleet
 Kind: "task"
-Status: "assigned"
+Status: "done"
 Assigned-To: "Laforge"
 Created-By: "Enterprise"
 Created: "2026-09-30T09:17:43Z"
@@ -21,3 +21,5 @@ Rate-limit/coalesce session.error reporting: currently 77% of bus messages are a
 5. Built and deployed via starfleet-bootstrap (esbuild bundle check OK)
 
 Verified: plugin builds and passes esbuild bundle check. Ready for production.)
+
+- 2026-09-30T09:39:14Z Laforge: progress 100% (Plugin v2.5.4 deployed with session.error rate-limiting/coalescing. Fixed deployment issue: manually copied fragment to deployed plugin after bootstrap self-install overwrote with origin/master. Verified via bootstrap --fix: 'opencode plugins ... up to date, registered'. Ready for production.)
