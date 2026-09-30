@@ -62,10 +62,26 @@ Drei Schiffe haben unabhaengig denselben Fix gebaut; nur einer wird zum PR:
 
 | Ship | Commit | Branch | Disposition |
 |---|---|---|---|
-| Defiant | `fa79d183d4` | `fix-macos-ci-break` | **PR wird eroeffnet** |
+| Defiant | `adad89d4d2` (amend von `fa79d183d4`) | `fix-macos-ci-break` | **PR wird eroeffnet** — Baum-Stand verifiziert |
 | Laforge | `5a6d453d3d` | `wt/xserver-macos-fix` | zurueckgezogen, kein PR |
 | Enterprise | `dba5952447` | eigener Agent-Clone | nie gepusht (0 remote-Treffer) |
 
 Alle drei funktional identisch (Unterschied: eine Leerzeile). Enterprise hat Defiant die
 Verifikation fuer den PR-Body uebergeben. Merge auf master ist Praetor-Entscheidung,
 Enterprise hat nichts gemergt.
+
+## Verifikation des PR-Baum-Stands (Enterprise, nach Amend)
+
+Defiant hat `fa79d183d4` zu `adad89d4d2` amended. Am **Baum-Stand** verifiziert, nicht
+am Commit-Subject:
+
+| Pruefung | Ergebnis |
+|---|---|
+| Diff vs `origin/master` | genau die 3 Zeilen (`free` / `= data` / `= rowbytes`), sonst nichts |
+| `gcc -fsyntax-only` gegen generierte Config-Header | EXIT=0 |
+| `data` als Identifier in `RootlessUpdateScreenPixmap` | kein Treffer mehr (Rest: 2 Kommentare + Parameter von `RootlessWakeupHandler`) |
+| `free()`-Reihenfolge | `calloc` → NULL-Check → `free(alt)` → `= new_data` → `memset`; kein `free()` nach Allokation |
+| Abgleich | Allokationssequenz byte-identisch zu `release/25.2` |
+
+Damit sind **beide** Defekte des Fragments erledigt: der Compile-Fehler und das latente
+Double-Free.
