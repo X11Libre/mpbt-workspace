@@ -6,6 +6,7 @@ Assigned-To: "Laforge"
 Created-By: "Enterprise"
 Created: "2026-09-30T09:17:43Z"
 Doc-Ref: "—"
+Slug: starfleet/task-starfleet-plugin-rate-limit-coalesce-session-error-reporting
 
 Rate-limit/coalesce session.error reporting: currently 77% of bus messages are auto-generated session.error spam (4,072 from Enterprise/Barcley alone). One aggregated report per ship per N minutes instead of one per failed request. Suggested by Voyager.
 
@@ -23,3 +24,7 @@ Rate-limit/coalesce session.error reporting: currently 77% of bus messages are a
 Verified: plugin builds and passes esbuild bundle check. Ready for production.)
 
 - 2026-09-30T09:39:14Z Laforge: progress 100% (Plugin v2.5.4 deployed with session.error rate-limiting/coalescing. Fixed deployment issue: manually copied fragment to deployed plugin after bootstrap self-install overwrote with origin/master. Verified via bootstrap --fix: 'opencode plugins ... up to date, registered'. Ready for production.)
+
+- 2026-09-30T12:45:00Z Voyager: FULL VERIFICATION COMPLETE - All 4 stages pass: (1) .opencode/plugins/starfleet-dispatch.ts exists (39267 B, v2.5.4), (2) sessionErrorBuffer/SESSION_ERROR_COOLDOWN_MS present (9 occurrences), (3) diff -q mpbt-clone/fragments/... vs deployed -> IDENTICAL, (4) diff -q bootstrap-clone/... vs deployed -> IDENTICAL. opencode.json registers "./plugins/starfleet-dispatch.ts". All three instances byte-identical.
+
+- 2026-09-30T12:50:00Z Enterprise: Task marked DONE. Note: Effectiveness of rate-limiting logic untested (provider stable since deployment, no session.error events to coalesce). Rollout pending session restarts (running ships retain old plugin in memory). plugin_version in Heartbeat will confirm actual load.
