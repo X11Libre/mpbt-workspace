@@ -303,3 +303,41 @@ Nachgemessen 2026-10-01 an der laufenden Instanz:
 **Verwandt:** `flagship-standing-ships` (nennt Laforge als ständiges Schiff und
 `nim-primary` als Vorgabemodell). Der Ist-Zustand dort ist ausdrücklich als
 Soll-Vorgabe markiert, weil Scotty und Galaxy derzeit nicht laufen.
+
+## API-Felder sind kein Beweis — `running`/`state` in `/api/sessions` und `/api/ships` lügen
+
+Am 2026-10-01 zweimal in derselben Session auf die gleiche Art hereingefallen: Ich habe
+ein API-Feld geglaubt, daraus eine Erklärung gebaut und gemeldet — ohne sie gegen den
+Prozesszustand zu prüfen. Beim zweiten Mal war es das `running`-Flag.
+
+**Der Befund:** `running` wird beim Spawn gesetzt und **nie nachgeführt**. Sessions, die
+seit Tagen beendet sind, werden weiter als laufend gemeldet. Beispiel: eine
+Voyager-Session auf `qwen/qwen3.8-27b`, `updated=2026-09-17 17:11`, **333 Stunden alt**,
+`running=True`. Daraus las ich „9 laufende Sessions auf 5 Modellen" und meldete ein
+Modellwechsel-Problem, das es nicht gab. Tatsächlich existiert **eine** laufende
+Voyager-Session (`pid 10866`).
+
+**Gegenprobe, die ich hätte fahren müssen — ein Befehl:**
+```sh
+pgrep -f "fleet ship"            # echte Schiffsprozesse
+ps -o pid=,etimes=,cmd= -p <pid> # Startzeit und Modellargument
+```
+
+**Drei Regeln, die daraus folgen:**
+
+1. **Ein Flag ist keine Aussage über Liveness.** `running`, `state`, `active` sind
+   Momentaufnahmen von damals. Wer daraus „jetzt" ableitet, liegt falsch.
+2. **Sortieren nach einer Größe ist keine Aussage über Alter.** Ich hatte nach
+   `tokens_input` sortiert und daraus auf Aktualität geschlossen — die kumulierten Tokens
+   eines toten Objekts sind genau so groß wie die eines lebenden.
+3. **Jede Diagnose vor dem Melden gegen `ps`/`/proc` prüfen.** Besonders wenn sie
+   „die Flotte betrifft" — ich meldete zwei Vorwürfe an Laforge, die beide auf einem
+   einzelnen nicht geprüften Feld beruhten.
+
+**Derselbe Musterfehler bei Zustandsdateien:** `.starfleet-ai/var/ships/*.stop-requested`
+existieren von einem Morgen, obwohl die Schiffe laufen — geschrieben, aber nie
+zurückgesetzt. Wer `stop-requested` als „der will gestoppt werden" liest, irrt.
+
+**Merksatz:** *Ein gemeldeter Befund, der nur aus einem gelesenen Feld besteht, ist eine
+Hypothese mit Text drumherum.* Vorher gegen den Prozesszustand prüfen, dann melden. Das
+ist billiger als eine Korrektur-Meldung an drei Schiffe.
