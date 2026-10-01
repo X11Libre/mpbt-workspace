@@ -203,14 +203,56 @@ fatal: cannot lock ref 'refs/heads/tmp-pr/master-foo_x': 'refs/heads/tmp-pr' exi
 Nachgemessen, nicht vermutet. Die Fehlermeldung nennt den Auslöser nicht, sie sieht nach
 einem Git-Problem aus — ist aber ein Namensraumproblem.
 
-Der Präfix `tmp-` gehört der make-pr-Mechanik. Eigene Staging-Branches brauchen einen
-anderen Präfix (`wip/`). Ein auftauchendes `tmp-pr` sofort löschen, lokal und auf origin.
+Der Präfix `tmp-` gehört der make-pr-Mechanik. Ein Branch **exakt** namens `tmp-pr`
+oder `tmp-starfleet` sofort löschen, lokal und auf origin.
 
-**`tmp-pr-1` blockiert nicht**, ist aber fast immer die Spur eines abgebrochenen Laufs:
-`xx-make-pr` räumt auf **keinem** seiner sechs Fehlerpfade auf (kein `defer`, kein
-`branch -D`). Vor einem make-pr-Lauf also `git branch --list 'tmp-*'` prüfen.
-Am 2026-10-01 lag `tmp-pr-1` in mehreren Clones und im Worktree `xorg-main-master`
-ausgecheckt — was zwischen zwei Schiffen kollidierte.
+**Korrektur 2026-10-01: „alles `tmp-*` / `wt/*` ist temporär" ist FALSCH.**
+Gemessen an den sechs `wt/*`-Branches im xserver-Klon:
+
+| Branch | Worktree | ahead | PR |
+|---|---|---|---|
+| `wt/bools-local-vars` | nein | **32** | keiner |
+| `wt/ci-arch-lanes` | nein | **10** | keiner |
+| `wt/xlibre-vnc-extension` | ja | 8 | keiner |
+| `wt/xserver-macos-fix` | ja | 1 | keiner |
+| `wt/ci-dfly-marker` | ja | 1 | #3771 offen |
+| `wt/ci-dragonfly-vmbump` | ja | 1 | #3770 merged |
+
+`wt/` heißt **„von einem Worktree verwaltet"**, nicht „wegwerfbar". Die beiden mit
+`Worktree=nein` sind verwaist und tragen Arbeit, die **nirgends sonst liegt** — 32 und
+10 Commits ohne PR. Sie sehen nach Altlast aus und sind es nicht: `bools-local-vars`
+passt zu `xlibre/bool-bool-phase-out` („ongoing, opportunistic"), `ci-arch-lanes` zu den
+gelaufenen QEMU-Lanes.
+
+**Löschregel, die trägt — zwei Bedingungen, beide ein Befehl, kein Muster:**
+
+```sh
+# 1) kein registrierter Worktree mehr?
+starfleetctl worktree list | awk -F'\t' '$NF=="'"<branch>"'"'   # leer = verwaister Zweig
+# 2) liegt die Arbeit anderswo?
+gh pr list --repo <repo> --state all --head <branch>
+git cherry origin/master <branch> | grep '^+'                    # leer = nichts Eigenes mehr
+```
+
+Nur wenn **beides** zutrifft, ist der Zweig wegwerfbar. `git cherry` prüft auf
+Commit-Inhalt, nicht auf Ähnlichkeit — dieselbe Fehlerklasse wie beim
+`patch-id`-Vergleich in den Backport-Skills.
+
+**Wichtig beim Prüfen:** `worktree list` ist **tab**getrennt. Ein Muster mit Leerzeichen
+(`grep " $branch$"`) trifft ins Leere und meldet fälschlich „kein Worktree". Am
+2026-10-01 genau so passiert — erst nach Korrektur auf `-F'\t'` war das Ergebnis
+verwendbar.
+
+**Merksatz fürs Aufräumen:** Ein Branch ist nicht wegwerfbar, weil sein Name es sagt,
+sondern weil zwei Messungen es sagen. Der Name ist ein Hinweis, auf dem Worktree zu
+schauen — nicht mehr.
+
+**`tmp-pr-1` blockiert nicht**, ist aber fast immer die Spur eines abgebrochenen Laufs.
+Seit dem PR-Laforge-Fix (2026-10-01, `defer cleanup` in `internal/ghpr/xxmakepr.go`)
+räumt `xx-make-pr` auf allen Fehlerpfaden auf. Die sechs Altlast-Branches auf origin
+(`tmp-pr/release/25.0|25.1|25.2` + je eine `os-fix-…`-Variante) stammen NICHT aus dem
+Go-Tool — sie haben keinen `_2006-01-02_15-04-05`-Zeitstempel im Namen und räumen
+sich folglich nicht von selbst.
 
 **Merksatz für Fehlermeldungen:** "cannot lock ref" plus `exists` ist fast immer ein
 D/F-Konflikt in den Refs, kein Platten- oder Rechteproblem. Erst die Ref-Namespace
