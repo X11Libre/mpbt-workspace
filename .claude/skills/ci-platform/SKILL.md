@@ -37,12 +37,93 @@ Run commands from the workspace root (`/home/nekrad/src/xorg/mpbt-workspace`).
 
 ## When debugging a red lane
 
+0. **Before trusting a lane's verdict, prove the lane can lie.** A lane status is the
+   conclusion of a wrapper, not a measurement of the thing you care about. Verify in the
+   *log content* — see "VM lanes: the action does not report the guest's exit code" below.
 1. Identify the lane + failure class (build/link, configure/meson, test-phase/XTS).
 2. For a WIP branch that "shouldn't have rebuilt deps": check whether the change actually altered the
    deps-image inputs (else the cached content-hashed image is reused — a few-second check).
 3. For Hurd: confirm the QEMU attach flags and serial console before assuming a silent hang.
 4. For NetBSD: confirm the mirror release is populated (one `workflow_dispatch`) before trusting the
    mirror-first path.
+
+## ccache hides the very output you would count
+
+With ccache in the lane, a **successful** compile prints **no per-file lines**. On a green
+run of `xserver-build-dragonflybsd` (run 36763250919):
+
+```
+meson install  -> intro-install_plan.json, meson-private/install.dat
+compile        -> ccache "total size is 237,948,165  speedup is 1.14"
+objects        -> _build/test/tests.p/*.c.o
+```
+
+…and `grep -c 'Compiling C'` returns **0**. ninja says nothing because ccache answers every
+translation from cache. So **`Compiling C` is not a build marker.** Reading its absence as
+"the build never ran" inverts the truth and will make you debug a healthy lane. Count
+instead what ccache and meson do emit: `meson install`, `install.dat`, ccache's
+`speedup is`, `Build targets in project`, or the `.c.o` paths.
+
+Corollary for any green-check count: **a criterion that is zero on the healthy case is not
+a criterion.** Pick it by checking it against a run that is known-good, not against the one
+that failed.
+
+## VM lanes: the action does not report the guest's exit code
+
+`vmactions/<os>-vm` runs the step's `run:` over SSH and **loses its exit code**. Observed
+2026-10-01 on `xserver-build-dragonflybsd`: the guest shell was killed and the action still
+emitted
+
+```
+##[end-action ... outcome=success;conclusion=success]
+```
+
+A `Killed` line next to an `end-action … success` is the signature. Consequences:
+
+- `conclusion=success` on such a lane does **not** mean the build ran.
+- A retry chain keyed on `if: steps.<id>.outcome == 'failure'` ends early on that false
+  success, so the retries that would have recovered never run.
+- A `Killed` seen right after `tearing down stale VM` / `Domain destroyed` is the
+  **teardown** being killed, not the build. Check the two lines before the `Killed` before
+  concluding anything about the build.
+
+Affected lanes use `vmactions/*-vm`: dragonflybsd, freebsd, netbsd, openbsd, solaris.
+Verified only for dragonflybsd; the others are unexamined and should be assumed broken
+until someone counts their logs. `alpine`, `gentoo`, `rhel` run natively and are unaffected.
+
+### `envs:` is a whitelist — an unset variable silently becomes empty
+
+The action forwards **only** the variables listed in `envs:`. `$GITHUB_SHA` is not a default
+in the guest. A marker written as `echo "$GITHUB_SHA" > /tmp/marker` from inside such a step
+produces an **empty file**, and a later `"" != "$GITHUB_SHA"` comparison then fails the
+job — a check that reports failure for a lane that built fine. Any variable the guest must
+know has to be named in `envs:` for that step.
+
+### An `if:` without a status function inherits `success()`
+
+`if: steps.x.outcome == 'failure'` is evaluated **and** ANDed with an implicit `success()`.
+So a preceding step that fails the job makes every later `if:` false. This silently kills
+retry chains: the check that drives the retries must therefore carry `continue-on-error:
+true`, and only the final decisive step must not.
+
+## Rollup counts lie twice over
+
+- A release-branch PR whose base lacks the "de-duplicate pipeline runs" condition
+  (`123446d11d`) runs the **same matrix twice**, push and pull_request. 78 pending checks
+  on such a PR are ~39 real ones. The skip condition keys off the **merge commit**, not the
+  branch: `build-xserver.yml` gates `ubuntu-fetch-pkg`, `xserver-build-macos`,
+  `xserver-build-cygwin` and `xserver-build-arch` on
+  `github.event.pull_request.head.repo.full_name != github.repository`. A PR based on
+  `release/*` therefore builds macOS; one based on `master` skips it.
+- A matrix job appears once in the rollup per **leg**: the `drivers-build-ubuntu` job
+  contributes ~53 check names and is one job.
+- Cancellations are not failures. Count `failure` separately from `cancelled`.
+
+## Only `--rebase` is allowed on this repo
+
+`gh pr merge --squash` and `--merge` fail with a GraphQL error
+("Squash/Merge commits are not allowed on this repository"). Use `--rebase`. A rebased PR
+keeps the commit subject, which is how a rebase-merge is recognised in the log.
 
 ## go-xts (go-x11proto) test suite on Xephyr — display-race & byte-order gotchas
 

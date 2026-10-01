@@ -54,3 +54,24 @@ fleet:
       health_interval: "5m"
       health_timeout: "10s"
       health_endpoint: "/api/version"
+
+  # Declarative standing ships that should always be running.
+  # Each ship will be (re)spawned automatically with the specified configuration.
+  # Only launch_type "background" is supported (no console ships).
+  # Respawn: if true (default for standing ships), the ship will be restarted on crash.
+  # Ships with launch_type "terminal" or "console" are rejected.
+  ships:
+    - name: "Laforge"
+      model: "nim-primary"
+      client: "opencode"
+      class: "worker"
+      launch_type: "background"
+      respawn: true
+      # tier: worker
+      # supervisor: Enterprise
+    - name: "Voyager"
+      model: "nim-primary"
+      client: "opencode"
+      class: "worker"
+      launch_type: "background"
+      respawn: true
