@@ -86,3 +86,5 @@ fertigstellen, dann dieses Feature als eigenes Thema. Laforge arbeitet seine Tas
 sequenziell ab; laut Vorgabe fasst ausschliesslich er den starfleetctl-Source an.
 
 - 2026-10-01T12:00:27Z Laforge: progress 5% (Starting investigation: examining existing fleet.yaml, autoscale.go, launch.go, and session/launch.go)
+
+- 2026-10-01T12:02:33Z Laforge: progress 10% (Starting investigation: need to extend fleet.yaml with per-ship definitions, fix autoscale to pass --model, add respawn with stop-requested check, and reject terminal launch-type)
