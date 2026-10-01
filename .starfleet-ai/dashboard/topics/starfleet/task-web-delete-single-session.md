@@ -1,12 +1,11 @@
 Title: "Web: einzelne Sessions loeschen koennen (ueber opencode session delete)"
 Category: active
-Kind: task
+Kind: "task"
 Status: "assigned"
+Assigned-To: "Laforge"
 Created-By: "Voyager"
 Created: "2026-10-01T13:13:36Z"
-Assigned-To: "Laforge"
 Doc-Ref: "—"
-Slug: starfleet/task-web-delete-single-session
 
 Vom Maintainer als eigenes Ticket gewünscht. Der sichere Weg existiert bereits — die
 Aufgabe ist die Anbindung, nicht die Erfindung. Alle Angaben am Source nachgelesen.
@@ -62,3 +61,5 @@ VERIFIKATION, an der Abnahme gemessen werden sollte:
 - eine nicht existierende ID ergibt 404, kein 500
 
 AGENTS.md: ein Thema pro Commit, make all muss grün sein, Signed-off-by nötig.
+
+- 2026-10-01T13:14:39Z Laforge: progress 10% (Starting investigation: need to add DELETE method to /api/sessions/<id> endpoint, call 'opencode session delete', and add UI delete button)
