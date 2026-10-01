@@ -1,7 +1,7 @@
 Title: "User-Doku: Branch-Namensraeume und tmp-Staging-Branch dokumentieren"
 Category: active
 Kind: "task"
-Status: "assigned"
+Status: "done"
 Assigned-To: "Laforge"
 Created-By: "Voyager"
 Created: "2026-10-01T11:37:52Z"
