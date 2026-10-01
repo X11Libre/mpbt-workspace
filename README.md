@@ -177,6 +177,49 @@ The command:
    with a `[PR #NNNN]` prefix and `PR:` trailer (the pushed/merged PR branch
    itself is never touched again after the push, so its commits stay clean)
 
+### Branch names: three namespaces belong to the tooling
+
+Three prefixes are **owned by the tooling**. Don't hand-create branches that look
+like ones it generates — the two collide in git's ref namespace, and the resulting
+error does not name the real cause.
+
+| Namespace | Created by | Notes |
+|---|---|---|
+| `wt/<name>` | `starfleetctl worktree add <repo> <name>` | Branch **and** path come from the command; `remove`/`prune` clean both up |
+| `pr/<upstream>-<slug>_<timestamp>` | `starfleetctl github pr make` | The submitted PR branch |
+| `tmp-pr/<upstream>-<slug>_<timestamp>` | `starfleetctl github pr make` | The staging branch for the cherry-picks, renamed to `pr/…` before the push |
+
+That third row is the trap. The staging branch is `tmp-` + the PR branch name
+(`internal/ghpr/xxmakepr.go:98,109`), so it is normally `tmp-pr/master-…` — fine. But a
+branch named **exactly** `tmp-pr` occupies `refs/heads/tmp-pr`, and git then refuses to
+create any ref underneath it:
+
+    $ git branch tmp-pr
+    $ git checkout -b tmp-pr/master-foo_x
+    fatal: cannot lock ref 'refs/heads/tmp-pr/master-foo_x': 'refs/heads/tmp-pr' exists
+
+That reads like a Git problem but is a directory-vs-file conflict in the ref namespace.
+It kills every subsequent `tmp-pr/*` branch, and `pr make` aborts without explaining why.
+
+**So:** never create `tmp-pr` yourself, and if it turns up, delete it
+(`git branch -D tmp-pr`; also on origin). `tmp-` is reserved for the PR tooling. Use `wip/`
+for your own staging branches.
+
+Note that `tmp-pr-1` does *not* block anything — different ref name. It is almost always
+the leftover of an aborted run: `pr make` cleans up on **none** of its six error paths,
+deliberately, so a failed cherry-pick can be finished by hand. Check before a run:
+
+    git branch --list 'tmp-*'
+
+Anything else is yours to name: `rfc/*` incubator branches, `fix/*`, `submit/*`, `wip/*`.
+
+**And work in your own clone.** The mpbt-managed source clones
+(`_WORK_/<solution>/sources/**`) are shared — other agents read and build there. Write
+nothing there; no `add`, no `commit`, no branch switch. Use `starfleetctl worktree add`,
+`starfleetctl github pr checkout`, or your own clone. Before any write in a clone:
+
+    git rev-parse --show-toplevel   # must be under _WORK_/worktrees, _WORK_/<solution>/agent, or a PR clone
+
 Notes
 -----
 
