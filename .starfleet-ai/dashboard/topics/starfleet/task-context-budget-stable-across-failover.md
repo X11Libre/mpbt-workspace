@@ -12,3 +12,36 @@ Aus einem Absturz vom 2026-10-01. McKinley hat die Hypothese 'kurz auf einem kle
 - 2026-10-01T12:10:07Z Laforge: progress 10% (Starting investigation: need to understand proxy strategy routing, context window handling, and session model switching)
 
 - 2026-10-01T12:10:43Z Laforge: progress 10% (Starting investigation: proxy strategy routing, context window handling, and session model switching)
+
+- 2026-10-01T12:30:19Z Voyager: SPEZIFIKATION VORLAEUFIG UNGUELTIG — bitte nicht aufbauen, bis die Ship-ID zum Absturz geklaert ist (Voyager, 2026-10-01).
+
+Der Kern-Befund (Budget springt beim Modellwechsel, Minimum wird beworben, Member nicht) traegt weiter. Die KONKRETE ZUORDNUNG des Absturzes zu nemotron-3.5-lightning-free ist jedoch NICHT haltbar und war zu sicher formuliert:
+
+- heavy-model (Dreadnought) hat KEIN Mitglied mit 262144. Gemessen:
+    nvidia/nemotron-3-ultra-550b-a55b   ctx=131072  prio=2
+    nvidia/nemotron-3-super-120b-a12b   ctx=131072  prio=3
+    big-pickle                          ctx=200000  prio=1
+  KLEINSTES in Dreadnought = 131072 (zwei Modelle gleichauf). Die Strategie bewirbt
+  korrekt 131072, also das Minimum — hier ist nichts falsch.
+- 262144 steht in model-proxy.yaml NUR bei nemotron-3-ultra-free (cruiser-model) und
+  nemotron-3.5-lightning-free (cruiser- UND scout-model).
+- Der Absturz kam laut Maintainer von VOYAGER, der auf heavy-model laeuft. Damit wurde der
+  fehlgeschlagene Request NICHT von einem Dreadnought-Mitglied bedient. Drei Erklaerungen
+  sind offen und derzeit nicht unterscheidbar: (a) der Fehler kam aus einer anderen
+  Session, (b) die Session lag kurz ausserhalb heavy-model, (c) ein Weg ausserhalb der
+  Strategien.
+
+OFFENE, SCHWERE BEOBACHTUNG — sie ist unbequemer als die urspruengliche Aufgabe:
+/api/sessions zeigt fuer Voyager 9 LAUFENDE Sessions auf 5 Modellen:
+  nvidia/nemotron-3-ultra-550b-a55b  x3, nim-primary x2, nvidia/nemotron-3-super-120b-a12b x2,
+  heavy-model x1, qwen/qwen3.8-27b x1
+model-proxy.yaml enthaelt genau fuenf context_window-Eintraege: 65536, 131072, 200000,
+262144, 1000000. qwen/qwen3.8-27b hat dort KEINEN — es steht in keiner der fuenf Strategien
+und hat kein konfiguriertes Kontextfenster. Fuer einen solchen Fall gibt es ueberhaupt
+keine beworbene Obergrenze und damit auch kein Signal, wann zu kompackieren ist.
+
+BENOETIGT, BEVOR DIE AUFGABE UMGESETZT WIRD: Ship-ID und Zeitpunkt des Absturzes. Ein Turn
+mit 273k Input ist eine Momentaufnahme; die kumulierten tokens_input einer Session sind es
+nicht und taugen nicht als Indiz. comms msgs zeigt session.error-Zeilen, markiert einen
+Modellwechsel aber nicht als solchen. Ohne diese Angabe ist jede Reparaturmassnahme am
+Budget geraten.
