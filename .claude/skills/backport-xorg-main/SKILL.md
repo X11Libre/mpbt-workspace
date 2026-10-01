@@ -101,6 +101,49 @@ git log --oneline origin/tracking/xorg/main-on-25.2..xorg/main   # was fehlt
 Aufnahme in den Incubator, wahlweise per `--onto`-Rebase oder sequenziellem Cherry-Pick. Was
 ausgelassen wird, wird **nicht** aufgenommen und **nicht** über den Tracker abgehakt.
 
+#### Trailer-Pflicht bei jedem übernommenen Commit
+
+Bei xorg fehlt die `Signed-off-by:`-Zeile **häufig** — sie ist bei uns aber Pflicht. Der
+Commit darf deshalb nicht als übernommen gelten, bevor beide Trailer geprüft sind:
+
+| Trailer | Inhalt | Pflicht |
+|---|---|---|
+| `Signed-off-by:` | **Original-Autor** des xorg-Commits | ja, sonst darf er nicht übernommen werden |
+| `Part-of:` | direkter Link in das **xorg**-Repo (MR) | ja |
+
+`Signed-off-by:` nennt den **Original-Autor**, nicht den Übertragenden — sie ist der
+Herkunftsnachweis, nicht die DCO-Zusage des Portierers. Der Portierer steht ohnehin als
+`Committer:` im Commit. Das `Author:`-Feld bleibt der Original-Autor.
+
+`Part-of:` zeigt nach **außen** auf das Herkunftsprojekt und ist damit das Spiegelbild des
+nach **innen** zeigenden `[PR #NNNN]`-Markers vom Inkubator-Ledger. Beides nicht mischen.
+
+**Automatisch ergänzen, nicht von Hand** — deshalb diese Regel in Phase II, weil sie für
+jeden Commit gilt und beim Handnachziehen erfahrungsgemäß durchgerutscht wird:
+
+```sh
+# pro übernommenem Commit prüfen, was fehlt
+git show -s --format='Author: %an <%ae>%n%b' <commit>
+```
+
+Fehlt `Signed-off-by:`, wird sie aus `%ae`/`%an` **des xorg-Originals** ergänzt (nicht aus
+dem des Inkubator-Commits — das ist derselbe Autor, aber der Ursprung ist der xorg-Commit).
+Fehlt `Part-of:`, gehört der MR-Link aus dem xorg-Original in den Trailer. Danach der
+übliche Nachweis, dass der Commit wirklich ankommt:
+
+```sh
+git log --format='%h %s' <inkubator> | grep -c '^\S* \[PR #'
+# Signed-off-Luecke über den ganzen Inkubator zaehlen, nicht nur den letzten Commit:
+git log --format='%b' <inkubator> | grep -c '^Signed-off-by:'
+git rev-list --count <inkubator>          # muessen beide Zahlen gleich sein
+```
+
+**Gemessen am Lauf vom 2026-10-01 (PRs #3772–#3790):** 19 von 19 Commits hatten
+`Part-of:`, aber nur **17** `Signed-off-by:`. Es fehlten **#3787**
+(*modesetting: save cursor in master's sprite_priv instead of slave's*) und **#3777**
+(*test: fail when a child terminates abnormally*) — beide von Hand nachzuziehen wäre
+genau der Fall, den diese Regel verhindern soll.
+
 Danach den Tracker so weit hochziehen, dass die bearbeiteten Commits beim nächsten Durchlauf
 nicht erneut drankommen, und **Incubator wie Tracker** pushen. Beides soll **Fast-Forward**
 sein, **keine Merge-Nodes**.
