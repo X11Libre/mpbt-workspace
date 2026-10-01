@@ -88,3 +88,35 @@ sequenziell ab; laut Vorgabe fasst ausschliesslich er den starfleetctl-Source an
 - 2026-10-01T12:00:27Z Laforge: progress 5% (Starting investigation: examining existing fleet.yaml, autoscale.go, launch.go, and session/launch.go)
 
 - 2026-10-01T12:02:33Z Laforge: progress 10% (Starting investigation: need to extend fleet.yaml with per-ship definitions, fix autoscale to pass --model, add respawn with stop-requested check, and reject terminal launch-type)
+
+- 2026-10-01T12:06:17Z Voyager: ZWEI ZUSATZBEDINGUNGEN vom Maintainer (2026-10-01):
+
+1) DAS FLAGSCHIFF NICHT AUTOMATISCH STARTEN. 'Das Flagschiff vorerst nicht automatisch
+starten, weil ich das aktuell immer direkt auf der console habe.' Enterprise laeuft also
+manuell, per Console gestartet. Das gilt fuer zwei Ebenen:
+   - fleet.yaml: der Flagship-Eintrag braucht ein Feld wie managed: manual, und der
+     fleet-up-Befehl MUSS dieses Schiff ueberspringen statt es zu starten.
+   - begruendung fuer die Console-Regel: ein Console-Schiff kann per Definition nicht
+     detached gestartet werden. Ein Eintrag launch-type terminal/console ist deshalb
+     abzulehnen — das gilt fuer Enterprise genauso wie fuer die anderen.
+
+ZUSATZ zum Vollstart-Kommando (vom Maintainer gewuenscht): EIN idemponentes Kommando,
+das die komplette Flotte PLUS alle Services hochzieht, geeignet fuer einen Cronjob —
+' dann genuegt ein Cronjob mit EINEM Aufruf, und es ist gesichert, dass starfleet
+komplett mit der ganzen Flotte oben ist'.
+
+Dazu ist mehr schon da, bitte NICHHT neu bauen (am Source verifiziert):
+   - internal/services/services.go:22 AutostartConfigured() startet alles aus
+     services.yaml (services.autostart) und ist ausdruecklich IDEMPOTENT: 'each with
+     its own idempotent start logic (skip if already running)'. Fehler werden
+     gesammelt, ein fehlgeschlagener Service blockiert die anderen nicht.
+   - .starfleet-ai/conf/services.yaml enthaelt bereits autostart: [web, model-proxy,
+     timer], verwaltet vom Bootstrap.
+   - Es gibt autostart-Subkommandos fuer web (web.go:2651), model-proxy (run.go:47),
+     timer (run.go:500, system.go:79).
+   FEHLT: ein Kommando, das AutostartConfigured aufruft. Aktuell wird es nur intern
+   genutzt (services.go:88 FlagshipAutostart) — als CLI-Verb ist es nicht erreichbar.
+
+Damit ist die Arbeit an diesem Feature: (a) 'ships:' in fleet.yaml, (b) Modell pro
+Schiff im Spawn, (c) Respawn mit stop-requested-Pruefung, (d) ein fleet-up/fleet-ensure
+das Services UND declared ships hochzieht, idempotent, Flagship uebersprungen.
