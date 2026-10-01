@@ -123,3 +123,66 @@ ist am 2026-09-30 mit PR #3768 passiert (Runs nach dem Merge nicht mehr
 abrufbar, `404`). **Vor dem Löschen des Branches den Run-Status kopieren.**
 
 
+
+## `tmp-pr` darf nie als Branchname entstehen — Git-Ref-Kollision
+
+`make-pr` bzw. `xx-make-pr` legt zum Cherry-Picken erst einen ** temporäreren** Branch an
+(`internal/ghpr/xxmakepr.go:98, 109`):
+
+```go
+tmpBranch := "tmp-" + branchName           // branchName ist z.B. "pr/master-<slug>_<zeitstempel>"
+git checkout -b tmpBranch upstreamRef
+```
+
+Bei einem automatisch erzeugten `branchName` heißt der temporäre Branch also
+**`tmp-pr/master-<slug>_<zeitstempel>`**.
+
+**Die Falle:** existiert zusätzlich ein Branch, der exakt `tmp-pr` heißt, ist
+`refs/heads/tmp-pr` bereits als Ref belegt. Git kann dann **keinen** Ref unter
+`refs/heads/tmp-pr/...` anlegen — Verzeichnis-vs-Datei-Konflikt in den Refs.
+Nachgemessen:
+
+```console
+$ git branch tmp-pr
+$ git checkout -b tmp-pr/master-foo_x
+fatal: cannot lock ref 'refs/heads/tmp-pr/master-foo_x': 'refs/heads/tmp-pr' exists;
+       cannot create 'refs/heads/tmp-pr/master-foo_x'
+```
+
+Das sieht nach einem Git-Problem aus, ist aber ein **Namensraumproblem**, und die Fehlermeldung
+nennt den Auslöser nicht. `make-pr` bricht dann kommentarlos ab und alle weiteren
+`tmp-pr/*`-Branches fallen ebenfalls aus.
+
+**Regel:** niemals einen Branch namens `tmp-pr` anlegen, und wenn er auftaucht, sofort
+löschen — er ist reine Altlast und blockiert das gesamte make-pr-Verfahren:
+
+```bash
+git branch -D tmp-pr          # lokal
+git push origin --delete tmp-pr   # falls er auf origin liegt
+```
+
+Der Präfix `tmp-` ist für die make-pr-Mechanik reserviert. Eigene Staging-Branches
+brauchen einen anderen Präfix, z. B. `wip/`.
+
+### Altlast `tmp-pr-1` — das ist kein `tmp-pr`, aber ein Symptom
+
+`tmp-pr-1` blockiert `tmp-pr/*` **nicht** (anderer Refname), ist aber fast immer das
+Ergebnis eines abgebrochenen make-pr-Laufs. Stand 2026-09-30 existiert `tmp-pr-1` in
+mehreren Clones und war im Worktree `xorg-main-master` sogar **ausgecheckt** (`*tmp-pr-1`),
+was zwischen zwei Schiffen zu Kollisionen führte.
+
+**Warum die Branches überhaupt liegen bleiben:** `xx-make-pr` räumt auf **keinem** seiner
+sechs Fehlerpfade auf (kein `defer`, kein `branch -D`) — bricht der Cherry-Pick ab, bleibt
+der `tmp-`-Branch im Clone liegen. Gepusht wird er zwar nie (nur `branchName`, Zeile 133),
+die Altlast auf `origin` stammt also aus einer älteren Tool-Version oder von Hand.
+
+Vor einem make-pr-Lauf also prüfen und aufräumen:
+
+```bash
+git branch --list 'tmp-*'        # lokale Reste
+git branch -r --list 'origin/tmp-*'   # Altlast auf origin
+```
+
+**Ein abgebrochener make-pr-Lauf darf nie im Agenten-Schiff liegen bleiben.** `xx-make-pr`
+lässt im Fehlerfall einen halben Cherry-Pick im Clone zurück, und jeder weitere Aufruf
+arbeitet dann auf diesem Zustand weiter.

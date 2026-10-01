@@ -159,3 +159,59 @@ Wort („geregasten"). Beides per `grep` nach dem Schreiben und noch einmal vor
 
 ### Comms / Dashboard
 - **`comms tell <ship> -F - <<EOF` ist KEINE Syntax** — es gibt kein `-F`-Flag; `-F`/`-` werden als literaltext versendet, stdin heredoc wird ignoriert (`comms msgs --json` zeigt dann `text: "-F -"`). Mehrzeilige Bodies IMMER mit `comms tell <ship> --stdin <<'EOF' ... EOF` (oder `--attach <f>`). Gleiches für `broadcast --stdin`.
+
+## Agents arbeiten praktisch NIE in main-Worktrees (Praetor 2026-10-01)
+
+Nach einem Incident am 2026-10-01, bei dem im geteilten Clone
+`_WORK_/xserver-master/sources/xlibre/xserver` 33 Dateien staged und der Working Tree
+auf `origin/master` lag, während HEAD der Inkubator `rfc/backport-master` war.
+
+**Die Regel:** Agents arbeiten ausschließlich in einem eigenen Clone/Worktree/PR-Clone.
+Im mpbt-managed Hauptclone wird **nichts** geschrieben — kein `add`, kein `commit`, kein
+`checkout`, kein Rebase. Nur lesen und bauen.
+
+**Warum das schlimmer ist als ein Branch-Fehler:** der Zustand ist nicht durch
+sichtbaren Müll erkennbar. HEAD sah korrekt aus, der Branch auch, `git status` zeigte
+"nur" staged Änderungen. Wer blind committet, committet `master`-Content auf den
+Inkubator-Branch und hebt 38 Backports auf — und der Fehler sieht bis dahin harmlos aus.
+
+**Die bestehende Regel deckt das nicht ab.** `starfleet-sessions` sagt nur: *"branch
+switching / rebase / amend / force-push prep happen only in your own worktree"*. `git add`
+und `git commit` sind nicht genannt. Das ist die Lücke, die das Incident ausgenutzt hat.
+Regel-Erweiterung an Laforge zuruekgemeldet (starfleetctl-Repo, generiertes Fragment).
+
+**Prüf-Satz vor jeder Git-Schreiboperation in einem Clone:**
+`git rev-parse --show-toplevel` — steht dort nicht ein Pfad unter
+`_WORK_/worktrees/`, `_WORK_/<solution>/agent/`, oder `github pr checkout`, dann **Halt**.
+
+**Und wenn man es trotzdem getan hat:** nicht committen, nicht resetten. Erst den
+Besitzer fragen, ob der Zustand zuordenbar ist, und den Inkubator-Branch gegen `origin`
+prüfen, bevor irgendetwas überschrieben wird.
+
+## `tmp-pr` als Branchname blockiert `make-pr` — Git-Ref-Kollision
+
+`xx-make-pr` legt erst `tmp-` + branchName an, also `tmp-pr/master-<slug>_<zeitstempel>`
+(`internal/ghpr/xxmakepr.go:98,109`). Existiert ein Branch **exakt** namens `tmp-pr`, ist
+`refs/heads/tmp-pr` belegt und Git kann **keinen** Ref darunter anlegen:
+
+```console
+$ git branch tmp-pr
+$ git checkout -b tmp-pr/master-foo_x
+fatal: cannot lock ref 'refs/heads/tmp-pr/master-foo_x': 'refs/heads/tmp-pr' exists
+```
+
+Nachgemessen, nicht vermutet. Die Fehlermeldung nennt den Auslöser nicht, sie sieht nach
+einem Git-Problem aus — ist aber ein Namensraumproblem.
+
+Der Präfix `tmp-` gehört der make-pr-Mechanik. Eigene Staging-Branches brauchen einen
+anderen Präfix (`wip/`). Ein auftauchendes `tmp-pr` sofort löschen, lokal und auf origin.
+
+**`tmp-pr-1` blockiert nicht**, ist aber fast immer die Spur eines abgebrochenen Laufs:
+`xx-make-pr` räumt auf **keinem** seiner sechs Fehlerpfade auf (kein `defer`, kein
+`branch -D`). Vor einem make-pr-Lauf also `git branch --list 'tmp-*'` prüfen.
+Am 2026-10-01 lag `tmp-pr-1` in mehreren Clones und im Worktree `xorg-main-master`
+ausgecheckt — was zwischen zwei Schiffen kollidierte.
+
+**Merksatz für Fehlermeldungen:** "cannot lock ref" plus `exists` ist fast immer ein
+D/F-Konflikt in den Refs, kein Platten- oder Rechteproblem. Erst die Ref-Namespace
+prüfen, dann `fsck`, dann Permissions.
