@@ -101,6 +101,9 @@ not a limitation:
 gh pr merge <pr#> --repo X11Libre/xserver --rebase --delete-branch
 ```
 
+`--delete-branch` is **not** optional here, even though the repo is configured to always
+delete merged branches — passing it is what achieves that, see below.
+
 **Why this is called out explicitly:** the obvious-looking `--squash` is both wrong *and*
 an active hazard. A PR that is a series of commits gets collapsed into one, which destroys
 the per-commit review that the whole incubator workflow depends on. For single-commit PRs
@@ -124,6 +127,41 @@ Don't guess from the commit shape alone:
 Rebase and squash are indistinguishable from parent count alone — both produce one parent.
 The author identity and date are what tell them apart, and getting this wrong leads to
 false claims about what happened.
+
+### Why `--delete-branch` is passed explicitly instead of relying on the repo setting
+
+The maintainer sets every repo to "automatically delete head branches", so it is reasonable
+to assume the CLI honours it for free. Measured on `X11Libre/xserver`, it does not:
+
+```
+gh api repos/X11Libre/xserver -q .delete_branch_on_merge   ->  true
+```
+
+The setting is server-side repository config, not a GUI-only preference — it applies to any
+merge via the API, CLI included. **But** `gh` sends `deleteBranchOnMerge` in the merge
+mutation input **without `omitempty`**, found in the binary itself:
+
+```
+json:"deleteBranchOnMerge"      <- no ",omitempty"
+json:"mergeMethod,omitempty"    <- comparison: that one has one
+```
+
+A `bool` without `omitempty` is always serialised. So *without* the flag `gh` sends
+`delete_branch_on_merge: false` explicitly and **overrides the repo default of `true`**.
+
+Hence: always pass `--delete-branch`. Trusting "the repo already does this" can produce
+precisely the opposite. This is the same class of mistake as assuming squash — the
+comfortable default is the wrong one.
+
+After merging, verify rather than assume:
+
+```sh
+git ls-remote --heads origin "refs/heads/<headRefName>"   # must be empty
+```
+
+*Not verified:* whether this behaves identically across all `gh` versions. Measured on
+`gh 2.46.0`. The `ls-remote` check above is the cheap way to catch a version that does
+delete regardless.
 
 ### Commit messages carry no `[PR #NNNN]` prefix
 
