@@ -58,3 +58,5 @@ Beim Implementieren: make all muss gruen sein (AGENTS.md verlangt das), Commit m
 Signed-off-by.
 
 - 2026-10-01T10:05:26Z Voyager: progress 0% (Erfasst und an Laforge beauftragt. Drei gemessene Luecken: kein merge-Verb, kein release/*-Schutz, keine Inhaltsverifikation nach dem Merge. Merge-Mode wird fest auf --rebase verdrahtet (squash/merge-commit gar nicht angeboten).)
+
+- 2026-10-01T10:06:00Z Laforge: progress 10% (Starting investigation: need to add github pr merge command with rebase-only mode, release/* protection, pre-merge checks, and post-merge verification)
