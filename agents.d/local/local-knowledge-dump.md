@@ -341,3 +341,24 @@ zurückgesetzt. Wer `stop-requested` als „der will gestoppt werden" liest, irr
 **Merksatz:** *Ein gemeldeter Befund, der nur aus einem gelesenen Feld besteht, ist eine
 Hypothese mit Text drumherum.* Vorher gegen den Prozesszustand prüfen, dann melden. Das
 ist billiger als eine Korrektur-Meldung an drei Schiffe.
+
+### Diese Regel ist ÜBERGAangsweise, nicht für immer (Praetor 2026-10-01)
+
+Die Regel bleibt **so lange bestehen, bis starfleet sich selbst prüfen kann.** Sie ist
+kein dauerhafter Ersatz für eine reparierte Tooling-Lage — sie überbrückt sie.
+
+**Auslöser zum Entfernen, konkret und prüfbar:**
+
+`running` (und analog `state`) in `/api/sessions` und `/api/ships` wird nicht mehr beim
+Spawn einmal gesetzt, sondern aus der tatsächlichen Prozess-Lebendigkeit abgeleitet.
+Sobald ein gelesenes Flag nachweislich den Prozesszustand wiedergibt, ist die
+Gegenprüfung per `ps` überflüssig und diese Regel entfällt.
+
+**Wer sie entfernt:** Laforge, sobald der Punkt erledigt ist — mit Verweis auf die
+tatsächlich gemessene Änderung, nicht auf eine Absicht. „Sollte jetzt passen" reicht
+nicht; ich habe einmal auf ein Flag vertraut und zwei Schiffe mit einer erfundenen
+Diagnose belästigt.
+
+**Bis dahin gilt:** bei jedem Befund über Liveness, Alter oder „läuft gerade" gegen
+`pgrep`/`ps`/`/proc` prüfen und **beides** melden — den Befund und die Gegenprüfung.
+Nicht die Regel umgehen, weil die Diagnosis plausibel klingt.
