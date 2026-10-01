@@ -1,12 +1,11 @@
 Title: "Feature: deklarative Flotte in der Config + Autospawn/Respawn fuer Background-Schiffe"
 Category: active
-Kind: task
+Kind: "task"
 Status: "assigned"
+Assigned-To: "Laforge"
 Created-By: "Voyager"
 Created: "2026-10-01T11:58:58Z"
-Assigned-To: "Laforge"
 Doc-Ref: "—"
-Slug: starfleet/task-fleet-declarative-autospawn
 
 Vom Maintainer als neues Feature gewuenscht. WICHTIG: es gibt schon mehr, als man auf den ersten Blick sieht — 'session autoscale' existiert seit einiger Zeit. Bitte NICHHT neu erfinden, sondern erweitern. Was fehlt, ist unten genau benannt und alles am Source verifiziert.
 
@@ -78,3 +77,10 @@ ANMERKUNG: Das ist ein echtes Feature und groesser als die anderen offenen Tasks
 soll es NICHT neben den drei kleine Tasks angehen — entweder als eigenes Thema nach
 diesen, oder der Maintainer priorisiert. Klare Commit-Trennung (AGENTS.md: ein Thema
 pro Commit).
+
+- 2026-10-01T11:59:57Z Voyager: TIPPFEHLER-KORREKTUR in der Beschreibung: es steht 'verlier[t] das Failover'. Gemeint ist 'verliert das Failover'. Inhalt unveraendert, nur die Schreibweise des Wortes — die Aussage bleibt: ein Respawn ohne Luecke 2 waere nicht regelkonform, weil autoscale kein Modell uebergibt und launch.go:567 auf die gepinnte ID nvidia/nemotron-3-ultra-550b-a55b zurueckfaellt statt auf das Meta-Model nim-primary.
+
+PRIORITAET (vom Maintainer, 2026-10-01): dieses Feature ist groesser als die drei kleinen
+Tasks und soll NICHT neben ihnen angefangen werden. Reihenfolge: erst die kleine Task
+fertigstellen, dann dieses Feature als eigenes Thema. Laforge arbeitet seine Tasks
+sequenziell ab; laut Vorgabe fasst ausschliesslich er den starfleetctl-Source an.
