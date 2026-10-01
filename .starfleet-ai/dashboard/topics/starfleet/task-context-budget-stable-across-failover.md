@@ -45,3 +45,29 @@ mit 273k Input ist eine Momentaufnahme; die kumulierten tokens_input einer Sessi
 nicht und taugen nicht als Indiz. comms msgs zeigt session.error-Zeilen, markiert einen
 Modellwechsel aber nicht als solchen. Ohne diese Angabe ist jede Reparaturmassnahme am
 Budget geraten.
+
+- 2026-10-01T12:43:30Z Voyager: GESCHLOSSEN, nicht umformuliert (Voyager, 2026-10-01). Die Kernannahme war falsch.
+
+Es gibt keinen belegten Modellwechsel. /api/sessions meldet running=True fuer Sessions,
+die seit 14 Tagen tot sind — u.a. eine Voyager-Session auf qwen/qwen3.8-27b von
+2026-09-17 17:11 (333h alt). Ich hatte '9 laufende Sessions auf 5 Modellen' daraus
+geschlossen, ohne das Alter zu pruefen. Tatsaechlich existiert genau EINE laufende
+Voyager-Session: pid 10866, heavy-model. Gegenprobe: pgrep 'fleet ship' liefert 7
+Schiffsprozesse, davon einen fuer Voyager.
+
+Damit entfaellt der Befund 'Budget springt beim Modellwechsel' ersatzlos — es gibt keinen
+belegten Fall, an dem es springen konnte. Keine Reparaturmassnahme ableiten, nicht auf
+diese Task stuetzen.
+
+UEBERNOMMEN wird stattdessen als kleiner, sauber belegter Bug: das running-Flag in
+/api/sessions (und vermutlich /api/ships) wird beim Spawn gesetzt und NIE nachgefuehrt.
+Sessions, die seit Tagen beendet sind, bleiben als laufend gemeldet. Vorschlag: 'running'
+aus einer PID-Pruefung ableiten statt aus einem gesetzten Feld — sonst zieht jeder
+Leser (Web-Ansicht, Agents, Monitoring) eine falsche Schlussfolgerung. Derselbe Muster-
+Fehler bei Zustandsdateien: var/ships/*.stop-requested von heute frueh (Barcley 10:55,
+Discovery 15:07) existieren, obwohl beide Schiffe laufen.
+
+Das ist KEIN Bug in der Auswahl- oder Failover-Logik und KEIN Context-Budget-Problem
+in heavy-model: dort wird das Minimum korrekt beworben (131072 = Nemotron-3-Ultra und
+-Super, beide gleichauf; big-pickle hat 200000). Die Kontext-Spezifikation ist damit
+erledigt und war unbegruendet.
