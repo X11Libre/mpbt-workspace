@@ -1,7 +1,7 @@
 Title: "make-pr: tmp branch cleanup on error + tmp-pr collision detection"
 Category: active
 Kind: "task"
-Status: "open"
+Status: "done"
 Assigned-To: "—"
 Created-By: "Laforge"
 Created: "2026-10-01T10:42:26Z"
@@ -18,4 +18,16 @@ Fix two gaps in xx-make-pr: (1) No cleanup of tmp branch on error - 6 return pat
 Both verified:
 - tmp branch cleaned up after cherry-pick failure (switched back to incubatorBranch, deleted tmpBranch)
 - Collision detection works: clear error 'cannot create temporary branch... due to git D/F conflict' instead of cryptic 'cannot lock ref'
+)
+
+- 2026-10-01T11:37:50Z Laforge: progress 100% (Collision detection implemented and verified (cleanup removed per maintainer intent):
+
+1. tmp-pr collision detection: Added hasBranchPrefixCollision() that detects git D/F conflicts (exact match + prefix collisions like foo vs foo/bar) before git checkout, providing clear error message instead of cryptic 'cannot lock ref'
+
+2. Cleanup behavior: Kept as intentional - no cleanup on error paths (per maintainer: failed run leaves tmp branch for manual recovery). Added comment explaining intentional behavior.
+
+Verified:
+- Collision detection works: clear error 'cannot create temporary branch... due to git D/F conflict' when conflicting branch exists (e.g., tmp-pr/existing-conflict)
+- No cleanup on error: tmp branch left behind after cherry-pick failure for manual recovery
+- No cleanup on success: tmp branch renamed to PR branch name (git branch -M)
 )
