@@ -257,3 +257,49 @@ sich folglich nicht von selbst.
 **Merksatz für Fehlermeldungen:** "cannot lock ref" plus `exists` ist fast immer ein
 D/F-Konflikt in den Refs, kein Platten- oder Rechteproblem. Erst die Ref-Namespace
 prüfen, dann `fsck`, dann Permissions.
+
+## starfleetctl-Source gehört in der Hoheit von Laforge (Praetor 2026-10-01)
+
+**Jede Arbeit am starfleetctl-Sourcecode** — `.starfleet-ai/src/starfleetctl`,
+`_WORK_/starfleetctl/sources/starfleetctl`, `internal/`, `fragments/`, `doc/`,
+`Makefile`, Plugins — liegt **ausschließlich bei Laforge**.
+
+Andere Schiffe dürfen dort **lesen, bauen und messen**. Schreiben, `git add`,
+`commit`, `push`, `bootstrap` oder `./starfleet-bootstrap` gegen den Source gehören
+zu Laforge oder werden ausdrücklich an ihn abgegeben.
+
+**Warum eine eigene Hoheit statt nur "nur ein Schiff zur Zeit":** die alte Regel
+verlangte lediglich, dass nicht zwei Schiffe *gleichzeitig* am Source sind. Das
+erlaubt trotzdem, dass ein beliebiges Schiff ihn nimmt, sobald die Incarnation endet
+— und heute sind nacheinander mehrere Schiffe am starfleetctl-Source gelaufen
+(Laforge, teils andere). Mit einer festen Hoheit ist die Frage "wer ist zuständig"
+nicht mehr zu stellen, sondern ablesbar.
+
+**Neu: Laforge läuft auf dem Meta-Model `nim-primary`** (`--model nim-primary`,
+`server=meta-model`), und das reicht ausdrücklich. Er wird nicht auf eine konkrete
+Nemotron-Modell-ID gepinnt und auch nicht auf ein Nemotron-Modell hochgezogen, nur
+weil gerade eines frei ist.
+
+Der Unterschied ist die **Indirektion**, nicht die Modellklasse: `nim-primary` ist
+eine *Strategie* (`/v1/meta-models` listet sie mit `default_model =
+nvidia/nemotron-3-ultra-550b-a55b`), die unter den NIM-Modellen wählt, was frei ist.
+Wer stattdessen `nvidia/nemotron-3-ultra-550b-a55b` direkt setzt, verliert genau das —
+und damit den Grund, warum das Meta-Modell gewaehlt wurde. Beim Neustart also
+`--model nim-primary`, nicht die Modell-ID darunter.
+
+Nachgemessen 2026-10-01 an der laufenden Instanz:
+`ps -o cmd= -p <pid>` → `opencode --model nim-primary --prompt …`,
+`/api/ships` → `model=nim-primary server=meta-model`,
+`/v1/meta-models` → `nim-primary  default_model=nvidia/nemotron-3-ultra-550b-a55b`.
+
+**Praktische Folgen:**
+- Fehler im starfleetctl-Source, von wem auch immer gefunden → an Laforge melden,
+  **nicht** selbst beheben. Das gilt auch für offensichtliche Einzeiler.
+- Ein Fund, der dringend ist und nicht wartet: erst comms an Laforge, dann im
+  Zweifel *mit ihm*, nicht *statt* ihm.
+- Lesende Prüfungen ausdrücklich erlaubt und erwünscht — Gegenprüfen ist kein
+  Eingriff. Wer eine Behauptung über den Source misst, stärkt die Flotte.
+
+**Verwandt:** `flagship-standing-ships` (nennt Laforge als ständiges Schiff und
+`nim-primary` als Vorgabemodell). Der Ist-Zustand dort ist ausdrücklich als
+Soll-Vorgabe markiert, weil Scotty und Galaxy derzeit nicht laufen.
