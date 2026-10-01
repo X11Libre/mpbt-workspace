@@ -1,6 +1,6 @@
 ---
 name: flagship-standing-ships
-description: "Flagship (Enterprise) requirements for the standing ships in this workspace — ONLY the flagship needs these; other ships must not load or follow this skill. Use when respawning, monitoring, or delegating to Scotty/Barcley/Galaxy. Not for the starfleetctl repo."
+description: "Flagship (Enterprise) requirements for the standing ships in this workspace — ONLY the flagship needs these; other ships must not load or follow this skill. Use when respawning, monitoring, or delegating to Laforge/Barcley/Galaxy. Laforge owns the starfleetctl source and runs on the nim-primary meta-model. Not for doing starfleetctl work yourself — that is Laforge's domain."
 ---
 
 # Standing Ships (Flagship-Anweisungen)
@@ -12,23 +12,47 @@ starfleetctl-Repo übernehmen.
 
 ## Ständige Schiffe
 
-Folgende drei Schiffe müssen **stets vorhanden** sein (laufend, falls nötig
+Folgende Schiffe müssen **stets vorhanden** sein (laufend, falls nötig
 automatisch wieder hochgezogen):
 
-- **Scotty** — einzuständig für **alle Arbeiten am starfleetctl** (und nur
-  dafür; keine xlibre/X11/os.h/desqview/Kernel-Tasks).
+- **Laforge** — einzuständig für **alle Arbeiten am starfleetctl-Source** (und nur
+  dafür; keine xlibre/X11/os.h/desqview/Kernel-Tasks). Steht hier seit 2026-10-01;
+  vorher war Scotty benannt, der nicht mehr Teil der Flotte ist.
 - **Barcley** — zuständig für den **Volla-Kernel** (und nur dafür).
 - **Galaxy** — für **verschiedene andere größere Aufgaben (on-demand)**.
 
-Alle drei laufen wahlweise mit **Nemotron Ultra** oder **Nemotron 3**
-(`nvidia/nemotron-3-ultra-550b-a55b` bzw. das jeweils verfügbare Nemotron-3
-Modell), je nachdem was gerade am besten geht (Auslastung/Rate-Limits).
+**Ist-Zustand (2026-10-01, gemessen):** laufend sind Barcley, Defiant, Enterprise,
+Interpid, Laforge, McKinley, Voyager. **Scotty und Galaxy laufen nicht.** Der
+Abschnitt ist eine Soll-Vorgabe, kein Ist-Bericht — ohne den Wiedereinsatz von
+Scotty/Galaxy ist er für diese beiden nicht erfüllt.
+
+Laforge läuft auf dem **Meta-Model `nim-primary`** (`opencode --model nim-primary`,
+`server=meta-model`). Das reicht für den starfleetctl-Source ausdrücklich aus.
+
+`nim-primary` ist eine **Strategie, kein gepinntes Modell** — sie wählt unter den
+NIM-Modellen, was frei ist (`default_model` aktuell
+`nvidia/nemotron-3-ultra-550b-a55b`). Genau die Indirektion ist gemeint: nicht auf
+eine konkrete Modell-ID festlegen, damit Rate-Limits und Auslastung den
+starfleetctl-Source nicht blockieren. Deshalb **kein** Hochziehen auf ein Nemotron
+Modell, nur weil gerade eines frei ist — das verliert die Failover-Eigenschaft und
+kostet Kapazität, die woanders fehlt.
+
+Beim Neustart also `--model nim-primary` angeben, nicht
+`nvidia/nemotron-3-ultra-550b-a55b`.
+
+**Neustart bei Absturz:** siehe unten. Aktuell gibt es **keinen** automatischen
+Wiederbelebungs-Mechanismus in starfleetctl (kein keepalive, kein respawn, kein
+Health-Timer) — „immer da" ist eine organisatorische Auflage, keine technisch
+erzwungene Eigenschaft. Ohne Timer oder Handeingriff bleibt ein abgestürztes
+Schiff weg, bis jemand es bemerkt.
 
 ## Neustart bei Absturz / Stop
 
 Wenn eines der drei Schiffe abstürzt oder gestoppt werden muss:
 
 1. Automatisch wieder neu starten (`session ship-run --name <ship> --model <modell> --class worker --launch-type background`).
+   Für **Laforge** ist `--model nim-primary` (das Meta-Model) das Vorgabemodell —
+   nicht die darunterliegende Modell-ID.
 2. Continuation-Direktive senden, damit es **an seiner Aufgabe weiterarbeitet**.
 3. Vorher gestopptes zuständigkeitsfremdes Zuweisungen ggf. korrigieren (siehe
    "Task-Zuständigkeit" oben).
