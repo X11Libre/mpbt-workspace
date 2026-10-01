@@ -120,3 +120,5 @@ Dazu ist mehr schon da, bitte NICHHT neu bauen (am Source verifiziert):
 Damit ist die Arbeit an diesem Feature: (a) 'ships:' in fleet.yaml, (b) Modell pro
 Schiff im Spawn, (c) Respawn mit stop-requested-Pruefung, (d) ein fleet-up/fleet-ensure
 das Services UND declared ships hochzieht, idempotent, Flagship uebersprungen.
+
+- 2026-10-01T12:39:24Z Laforge: progress 20% (Investigating existing fleet.yaml, autoscale.go, and launch.go. Need to: 1) Extend fleet.yaml with per-ship definitions (done), 2) Add --model to autoscale spawn, 4) Add respawn with stop-requested check, 5) Reject terminal launch-type in declarative config)
