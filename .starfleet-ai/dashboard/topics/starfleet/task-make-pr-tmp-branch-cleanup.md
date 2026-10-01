@@ -1,11 +1,16 @@
 Title: "make-pr: tmp-Branch bei Fehler aufraeumen + tmp-pr-Kollision vorab erkennen"
 Category: active
-Kind: task
+Kind: "task"
 Status: "assigned"
+Assigned-To: "Laforge"
 Created-By: "Voyager"
 Created: "2026-10-01T10:41:15Z"
-Assigned-To: "Laforge"
 Doc-Ref: "—"
-Slug: starfleet/task-make-pr-tmp-branch-cleanup
 
 Aus dem Incident vom 2026-10-01 (tmp-pr blockiert make-pr). Zwei Tooling-Luecken, beide gemessen.\n\nLÜCKE 1 — kein Cleanup bei Fehler.\ninternal/ghpr/xxmakepr.go hat sechs 'return 1'-Pfade (fetch, checkout -b, cherry-pick,\nbranch -M, rebase, push) und KEINEN defer und KEIN branch -D. Bricht der Cherry-Pick ab,\nbleibt der tmp-Branch im Clone liegen. Nachgemessen: 'tmp-pr-1' lag in mehreren Clones und\nwar im Worktree xorg-main-master AUSGECHECKT, was zwischen zwei Schiffen kollidierte.\nFix: den tmp-Branch in einem defer aufraeumen, oder zumindest den Namen im Fehlertext\nnennen, damit der Rest von Hand entfernt werden kann.\n\nLÜCKE 2 — die Namenskollision kommt unangekuendigt.\nxx-make-pr legt 'tmp-' + branchName an (Zeile 98, 109), bei auto-generiertem branchName\nalso 'tmp-pr/master-<slug>_<zeitstempel>'. Existiert ein Branch EXAKT namens tmp-pr, ist\nrefs/heads/tmp-pr belegt und Git kann darunter keinen Ref anlegen. Reproduziert:\n  git branch tmp-pr\n  git checkout -b tmp-pr/master-foo_x\n  fatal: cannot lock ref 'refs/heads/tmp-pr/master-foo_x': 'refs/heads/tmp-pr' exists\nDie Meldung sieht nach einem Git-Problem aus, nennt aber den Ausloeser nicht, und alle\nweiteren tmp-pr/*-Branches fallen ebenfalls aus.\nFix-Vorschlag: vor 'checkout -b' pruefen, ob ein Ref 'tmp-<präfix>' als exakter Branch\nexistiert, und dann mit klarer Meldung abbrechen statt Git's Ref-Fehler durchreichen.\n\nZUSATZ (klein, aber billig): die Altlaege 'origin/tmp-pr/*' sind im Weg. Gepusht wird\neigentlich nur branchName (Zeile 133), die Reste auf origin stammen aus einer aelteren\nVersion oder von Hand. Ein 'starfleetctl github pr prune-tmp-branches' waere nice-to-have,\nkein Muss — 'git push origin --delete' reicht.\n\nREFERENZ-FARBE: xlibre-pr-workflow dokumentiert die Falle bereits (workspace-lokal),\nsiehe Abschnitt 'tmp-pr darf nie als Branchname entstehen'.\n\nWICHTIG: das hier ist NICHT dasselbe wie der offene Task github-pr-merge-tooling. Hier geht\nes um make-pr/xx-make-pr, dort um 'github pr merge'. Beide sind im ghpr-Paket, aber\ngetrennte Verben. Wenn beide offen sind, bitte getrennt committen (AGENTS.md: ein Commit\npro Thema).
+
+- 2026-10-01T11:22:48Z Voyager: SCOPE-KORREKTUR (Maintainer-Auskunft, 2026-10-01): Punkt 'kein Cleanup bei Fehler' ist KEIN Defekt und wird NICHT gebaut. Das fehlende Cleanup war urspruenglich beabsichtigt — ein abgebrochener Lauf soll einen tmp-Branch hinterlassen, damit man noch haendisch nachkorrigieren kann. Der heutige Zustand ist unnoetig (reine Altlast), aber das Verhalten zu aendern waere eine Entscheidung des Maintainers, keine technische Notwendigkeit.
+
+UEBRIG bleibt die Ref-Kollisions-Vorabpruefung: vor 'git checkout -b tmpBranch' pruefen, ob 'tmp-<praefix>' als exakter Branch existiert, und dann mit klarer Meldung abbrechen statt Gits kryptischen Ref-Fehler durchzureichen. Optional: Erklaerung als Code-Kommentar, WARUM es kein Cleanup gibt, damit es nicht wieder abgebaut wird.
+
+URSACHENFINDUNG abgeschlossen: scripts/xx-make-pr.sh und seine Historie (erste Fassung a8df6d31b9, 2026-04-15) hatten TMP_BRANCH nie fest auf 'tmp-pr'; es war immer 'tmp-${BRANCH_NAME}' mit BRANCH_NAME='pr/...'. Das Script kann kein exaktes tmp-pr erzeugen, ausser bei explizitem '--branch pr'. Der Maintainer hat ein vorhandenes tmp-pr selbst umbenannt. Damit ist die Ursache geklaert und es geht nur noch um Robustheit.
