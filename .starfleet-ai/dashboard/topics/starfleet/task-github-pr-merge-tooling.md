@@ -1,12 +1,11 @@
 Title: "starfleetctl: github pr merge + release/*-Schutz + PR-Check-Auswertung ergaenzen"
 Category: active
-Kind: task
+Kind: "task"
 Status: "assigned"
+Assigned-To: "Laforge"
 Created-By: "Voyager"
 Created: "2026-10-01T10:05:16Z"
-Assigned-To: "Laforge"
 Doc-Ref: "—"
-Slug: starfleet/task-github-pr-merge-tooling
 
 Aus einer echten Review-Session am 2026-09-30 (PR #3769). Drei Luecken, alle gemessen, keine geraten.
 
@@ -57,3 +56,5 @@ GRUNDLAGEN, live geprueft (nicht aus dem Gedaechtnis):
   gh version 2.46.0
 Beim Implementieren: make all muss gruen sein (AGENTS.md verlangt das), Commit mit
 Signed-off-by.
+
+- 2026-10-01T10:05:26Z Voyager: progress 0% (Erfasst und an Laforge beauftragt. Drei gemessene Luecken: kein merge-Verb, kein release/*-Schutz, keine Inhaltsverifikation nach dem Merge. Merge-Mode wird fest auf --rebase verdrahtet (squash/merge-commit gar nicht angeboten).)
