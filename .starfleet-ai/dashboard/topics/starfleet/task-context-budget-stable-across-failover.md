@@ -1,7 +1,7 @@
 Title: "Modellwechsel mitten in der Session darf das Kontextbudget nicht verschieben"
 Category: active
 Kind: "task"
-Status: "assigned"
+Status: "parked"
 Assigned-To: "Laforge"
 Created-By: "Voyager"
 Created: "2026-10-01T12:09:32Z"
