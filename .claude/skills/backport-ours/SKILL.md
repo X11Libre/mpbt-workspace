@@ -53,6 +53,27 @@ git show origin/release/25.2:<pfad> | wc -l         # Inhalt?
 Das nimmt `cherry-pick -x` (Original-Subject und `Signed-off-by` bleiben, `(cherry picked from
 commit <sha>)` wird angehängt) und legt den PR gegen `release/<rel>` an.
 
+## Der Origin-Header gehört in jeden Backport-Commit
+
+Ein auf den Release-Branch getragener Commit muss im Header erkennbar machen, woher er
+kommt — sonst kann ein Reviewer auf dem Release-Zweig die ursprüngliche Diskussion nicht
+finden.
+
+- **eigene Commits** (von unserem master) — die Commit-ID genügt. `cherry-pick -x` liefert
+  sie als `(cherry picked from commit <sha>)`, das ist bereits der passende Header.
+- **externe Commits** (z.B. aus `xorg`) — ein **direkter Link in deren Repo**, nicht in unser
+  eigenes. Die bestehende Form im Baum ist ein `Part-of:`-Trailer:
+  `Part-of: <https://gitlab.freedesktop.org/xorg/xserver/-/merge_requests/2265>`
+
+Zwei Dinge, die dabei leicht verwechselt werden:
+
+- `Part-of:` zeigt nach **außen** (auf das Herkunftsprojekt). Das ist das Gegenteil des
+  `[PR #NNNN]`-Markers, der nach **innen** auf unseren eigenen PR zeigt. Nicht mischen.
+- Commits, die aus `xorg/main` kommen, tragen **keinen** `[PR #NNNN]`-Marker. Der Marker
+  gehört zu unserem Inkubator-Ledger; ein Port eines xorg-Commits bleibt ein xorg-Commit.
+
+Commit-Subjects bleiben ohne Präfix — siehe `bot-review` (Merge-Mode und Commit-Konventionen).
+
 Nur ein echter Inhaltskonflikt bricht ab. Ein reiner **Pfad-Unterschied** aus dem
 `Xext/<ext>/` ↔ `<ext>/`-Reorg wird automatisch umgeschrieben.
 

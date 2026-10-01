@@ -90,3 +90,63 @@ are manual-only, by the maintainer** — fixes for existing releases must always
 independently and manually, regardless of CI status. Review, comment, and label a release PR;
 then **stop**. (Auto-merge is only ever acceptable on a `master` PR, and only when the user
 explicitly asks for it.) See AGENTS.md → Backport workflow (top box).
+
+## Merge mode: always `--rebase`. Never squash, never merge-commit.
+
+Enforced in the GitHub repo settings (`allow_rebase_merge: true`,
+`allow_squash_merge: false`, `allow_merge_commit: false`), and it is a deliberate policy,
+not a limitation:
+
+```sh
+gh pr merge <pr#> --repo X11Libre/xserver --rebase --delete-branch
+```
+
+**Why this is called out explicitly:** the obvious-looking `--squash` is both wrong *and*
+an active hazard. A PR that is a series of commits gets collapsed into one, which destroys
+the per-commit review that the whole incubator workflow depends on. For single-commit PRs
+the result looks identical, so nothing fails and the mistake stays invisible until a
+multi-commit PR is squashed by accident.
+
+Do not reason "squash is on by default on GitHub, so it's fine" — check
+`gh api repos/X11Libre/xserver -q '.allow_rebase_merge'` if unsure, and never let the
+default of a tool stand in for the project's policy.
+
+### Identifying what a past merge actually was
+
+Don't guess from the commit shape alone:
+
+| Signal | Rebase | Squash | Merge commit |
+|---|---|---|---|
+| number of parents | 1 | 1 | 2 |
+| author + author date | **preserved** | rewritten to merger | preserved |
+| committer date | rewritten | rewritten | preserved |
+
+Rebase and squash are indistinguishable from parent count alone — both produce one parent.
+The author identity and date are what tell them apart, and getting this wrong leads to
+false claims about what happened.
+
+### Commit messages carry no `[PR #NNNN]` prefix
+
+The incubator writes a `[PR #NNNN] ` marker into commit subjects on the **local incubator
+branch** — that marker is the *ledger* which tracks which commits were already submitted
+(`xx-make-pr`). It is bookkeeping for the workflow, never part of the upstream history.
+
+Merged commits must have the bare subject. A `[PR #NNNN]` prefix reaching `master` is a
+defect: there was a real incident where an earlier version of the make-PR tooling rewrote
+the pushed branch and leaked the marker onto all 4 commits of merged PR #3162. If you see
+the prefix on something that is already on `master`, do not treat it as intentional —
+say so rather than normalising it.
+
+### Backport commits get a link to their original
+
+A commit ported from another branch carries an extra header pointing at where it came from,
+so a reviewer on the release branch can find the original discussion:
+
+- **our own commits** — the commit ID is enough (an `Abbrev:`/full SHA reference)
+- **external commits** (e.g. `xorg`) — a direct link into **their** repo, not a link into ours
+
+Existing example of the external form, in the tree already:
+`Part-of: <https://gitlab.freedesktop.org/xorg/xserver/-/merge_requests/2265>`
+
+Note this is a `Part-of:` trailer to the *upstream* project — the mirror image of the
+`[PR #N]` marker, which points back at our own PR. Keep the two distinct.
