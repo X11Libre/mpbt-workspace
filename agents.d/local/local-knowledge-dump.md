@@ -213,6 +213,53 @@ Pruefung, die **beide** Faelle faengt:
 
 **Und der Ableseort ist der Trailer in der COMMIT-NACHRICHT, nicht der PR-Body.** Am 2026-10-02 war die Suche nach `Signed-off-by` im PR-Body bei allen drei Backports leer, obwohl der Trailer existierte. Wer im Body sucht, meldet faelschlich einen fehlenden Sign-off.
 
+### Generierter Text, der wie gemessen aussieht
+
+Beim Erzeugen von Kommentar- oder Topic-Vorlagen per `sed` aus einer Vorlage:
+
+> **Das erzeugte Feld gegen den gemessenen Wert pruefen, nicht gegen die
+> Vorlage.**
+
+Am 2026-10-02 an den Verifikations-Kommentaren fuer #3794/#3799/#3805. Eine
+Vorlage, eine `sed`-Kette, drei Dateien. Ergebnis: in beiden generierten Dateien
+stand die **Base-SHA in der `local origin/master`-Zeile**, und
+`commits over base` zeigte noch die Commit-SHA des anderen Branchs. Also genau
+die Feldverwechslung, die ein Verifikationsblock nicht haben darf — und beide
+Dateien waren **in sich konsistent** und sahen gemessen aus.
+
+Zwei aehnlich benannte Felder (`local origin/master` und `PR base`) sind fuer eine
+Ersetzung genau die Falle: der Ersetzung ist das egal, dem Leser nicht.
+
+**Zwei Kontrollen, die beide erst beim Vergleich auffielen, nicht beim Lesen:**
+
+```bash
+# 1) strukturell statt semantisch: Laenge, Zeichen, Abgleich gegen den Messwert
+grep -oE '\b[0-9a-f]{40}\b' datei.md          # 40 Zeichen, alles hex
+# 2) Vorlage gegen Ergebnis, Feld fuer Feld
+sed -n '5,13p' vorlage.md
+sed -n '5,13p' ergebnis.md
+```
+
+Der Tippfehler in derselben Datei (`e84f90995bfc…` statt `e84a8065c4…`, genau in
+der Zeile, deren Zweck Nachpruefbarkeit ist) wurde von Kontrolle 1 gefunden, nicht
+durch Lesen. **Gelesen und geprueft ist nicht dasselbe wie strukturell geprueft.**
+
+**Wenn die Ersetzung mehrfach danebenliegt, ist die Ersetzung das Problem, nicht
+das Muster.** Nach dem zweiten Fehlschlag die drei Dateien einzeln geschrieben
+statt die `sed`-Kette zu reparieren — dieselbe Entscheidung wie bei `sed -i … > f`.
+
+**Damit ist das die dritte Fehlerklasse des Tages**, und die anderen beiden kannten
+wir schon:
+
+| Klasse | Was sie ist |
+|---|---|
+| stale Ref | Zustand, den man nicht kontrolliert hat (Zustand) |
+| Filter | Ein Filter, der nichts findet, ist noch kein Befund (Werkzeug) |
+| **generierter Text** | **Sieht aus wie gemessen, ist aber kopiert** (Ausgabe) |
+
+Die dritte ist die gefaehrlichste, weil sie die Form des Beweises hat, ohne sein
+Inhalt zu sein.
+
 ### Board-Integrität: ein 0-Byte-Topic ist kein gültiges Topic
 
 Ein leeres Topic-Dokument ist im Transcript nicht von einem gueltigen unterscheidbar — gleiche Zeilen, kein Fehlerhinweis. Ursache war `sed -i … > f` (siehe Git-Abschnitt oben), der Schadensmechanismus aber ist allgemein: **`topic write` nimmt allem, was nicht parsebarer Frontmatter ist**, und das Board zeigt es danach wie ein legitimes Topic. Wenn `topic list` einen leeren Body als solchen kennzeichnen koennte, waere der Fehler in Sekunden auffaellig statt in einer Debug-Sitzung.
