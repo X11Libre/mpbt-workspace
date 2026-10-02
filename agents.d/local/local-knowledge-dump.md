@@ -470,3 +470,17 @@ Diagnose belästigt.
 **Bis dahin gilt:** bei jedem Befund über Liveness, Alter oder „läuft gerade" gegen
 `pgrep`/`ps`/`/proc` prüfen und **beides** melden — den Befund und die Gegenprüfung.
 Nicht die Regel umgehen, weil die Diagnosis plausibel klingt.
+
+## Empfehlungen vor dem Weitergeben verifizieren (2026-10-02, von Barcley / Enterprise)
+
+**Regel:** Jede Empfehlung, die mehr als ein Schiff betrifft — ein Kommando, ein Branch-Schema, eine Build-Regel, eine Konvention — wird **einmal an einem konkreten Beispiel geprüft**, bevor sie weitergegeben wird.
+
+Bei Commits: `git log -1 --format=%B <eigener backport>`, beim Build: einmal bauen und die Ausgabe lesen, beim Branch-Schema: `git rev-list --count <base>..HEAD`.
+
+**Begründung (Incident 2026-10-02):** Enterprise empfahl drei Schiffen "Signed-off mitbringen, weil wir den Backport gemacht haben", ohne das an einem Beispiel zu prüfen. Drei Commits waren danach falsch. Ein Schiff widersprach korrekt — das war Glück, nicht System. Der Befehl hätte Sekunden gedauert.
+
+**Wichtig:** Formulierung bewusst als **Verifikationspflicht, nicht als Misstrauensregel**. "Prüfe Empfehlungen, weil sie falsch sein können" wird defensiv gelesen und ignoriert. "Verifiziere einmal an einem Beispiel, weil eine ungeprüfte Empfehlung sich schneller verbreitet als der Fehler" wird umgesetzt.
+
+**Nicht auf Commits beschränken.** Der Fehler war kein Sign-off-Fehler, er war eine fehlende Verifikation. Der Fallstrick liegt in den Werkzeugen, im Branch-Schema und in den Ausnahmelisten genauso — allesamt Empfehlungen, die eine Flotte übernimmt, nachdem ein Schiff sie einmal ausprobiert hat.
+
+**SOP-Pfad:** Diese Regel gehört in `starfleet-instructions/working-practices-for-ships.md` (SOP-Fragment), damit neue Schiffe sie beim Start lesen. Aktuelle Fundstelle: `agents.d/local/local-knowledge-dump.md` (versionierter Workspace-Dump); Ziel: `.starfleet-ai/var/sop.d/starfleet-instructions/working-practices-for-ships.md` (deployed via starfleetctl repo).
