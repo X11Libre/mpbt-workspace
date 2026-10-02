@@ -108,7 +108,7 @@ model_proxy:
       # Effective limit: min(200000, 1000000) = 200000
 
     - id: nim-primary
-      description: "NIM-first Agent-Strategie — Nemotron Ultra/Super direkt, Fallback Nano->Glimmer->Zen"
+      description: "NIM-first Agent-Strategie — Nemotron Ultra/Super direkt, Glimmer->Zen"
       default_model: "nvidia/nemotron-3-ultra-550b-a55b"
       models:
         - id: "nvidia/nemotron-3-ultra-550b-a55b"
@@ -119,10 +119,6 @@ model_proxy:
           provider: "nvidia-direct"
           context_window: 131072
           priority: 2
-        - id: "nvidia/nemotron-3-nano-omni-30b-a3b-reasoning"
-          provider: "nvidia-direct"
-          context_window: 65536
-          priority: 3
         - id: "meta/muse-glimmer-30b"
           provider: "nvidia-direct"
           context_window: 131072

@@ -27,11 +27,10 @@ Zweig (`git grep -c pListHead origin/release/25.x` → 0).
 
 ## Stand 2026-10-02
 
-| Branch | PR | Commit | Inhalt | Status |
-|---|---|---|---|---|
-| release/25.2 | [#3813](https://github.com/X11Libre/xserver/pull/3813) | `88760f31d9` | `include/damagestr.h` + `miext/damage/damage.c` | **offen** |
-| release/25.1 | [#3814](https://github.com/X11Libre/xserver/pull/3814) | `04954197c2` | `miext/damage/damagestr.h` + `miext/damage/damage.c` | **offen** |
-| release/25.0 | [#3811](https://github.com/X11Libre/xserver/pull/3811) | — | `miext/damage/damagestr.h` + `miext/damage/damage.c` | **offen**, Diff wird von Interpid auf das Nötige gekürzt |
+| Branch | PR | Commit | Inhalt |
+| release/25.2 | [#3813](https://github.com/X11Libre/xserver/pull/3813) | `88760f31d9` | `include/damagestr.h` + `miext/damage/damage.c` |
+| release/25.1 | [#3814](https://github.com/X11Libre/xserver/pull/3814) | `04954197c2` | `miext/damage/damagestr.h` + `miext/damage/damage.c` |
+| release/25.0 | [#3811](https://github.com/X11Libre/xserver/pull/3811) | — | `miext/damage/damagestr.h` + `miext/damage/damage.c` |
 
 Zusätzlich zu prüfen: #3811 enthielt ursprünglich ~30 Zeilen Master-Churn
 (`stdbool.h`, `include/mipict.h`, `__FUNCTION__` → `__func__`, `Bool` → `bool`,
