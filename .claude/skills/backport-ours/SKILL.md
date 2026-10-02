@@ -138,26 +138,41 @@ strings <build>/<modul>.p/<datei>.c.o | grep -c '<der neue String>'
 - **Release-Merges sind manuell, durch den Maintainer.** Ein `bot-review-passed` und grüne CI
   autorisieren keinen Merge in `release/*`. Auf `master` ist Auto-Merge nur bei expliziter
 
-### Die Referenzform: `GH-<nr>`, nicht `#<nr>`
+### Die Referenzform: Liste, **keine** Tabelle, **keine** Links
 
-In der Übersicht **keine** `bot-review-passed`-Klammern und **keine Status-Spalte
-selbst pflegen**. Stattdessen die reine Full-Reference-Form:
+In der Übersicht **keine** `bot-review-passed`-Klammern und **keinen** Status selbst
+pflegen. Die Form ist eine **Task-Liste** mit bloßen Referenzen:
 
 ```
-GH-3801
-GH-3802
-GH-3803
+- [ ] GH-3801
+- [ ] GH-3802
+- [ ] GH-3803
 ```
 
-`GH-<nr>` (und `owner/repo#<nr>`) ist eine **Full Reference**: GitHub löst sie beim
-Rendern auf und zeigt **Titel, Nummer, Status und Autor** — aktuell. `#<nr>` ist nur
-eine **Cross-Reference** und zeigt das nicht.
+**Gemessen am 2026-10-02** auf #3776, alle drei Formen nebeneinander:
+
+| Form | Referenz | Ergebnis |
+|---|---|---|
+| Task-Liste | `GH-3801` | **klappt auf**, Titel + Status |
+| Tabelle | `#3801` | nur die ID |
+| Tabelle | `GH-3801` | nur die ID |
+
+Es liegt am **Container**, nicht am Präfix. Die GitHub-Doku („Autolinked references
+and URLs") nennt nur „in a list" — und sie hat damit recht, das Bild ist vollständig.
+**Also: niemals eine Tabelle für die Backport-Übersicht.** Branch-Kontext kommt in
+eine Zeile darüber oder in die Überschrift, nicht in Tabellenspalten.
+
+Das Hover-Popup mit mehr Information ist davon **unabhängig**, war auch vorher schon
+da und ist schwächer — es ist kein Ersatz.
 
 **Warum ausdrücklich ohne Status-Spalte:** eine selbst gepflegte Spalte altert per
-Definition. Am 2026-10-02 stand in einer solchen Tabelle „offen" bei #3802/#3803,
-die seit Stunden gemergt waren — der Zustand war falsch, weil ihn niemand
-nachpflegte. Die Full-Reference kann nicht veralten, weil GitHub sie beim Rendern
-auflöst.
+Definition. Am 2026-10-02 stand in einer solchen Tabelle „offen" bei #3802/#3803, die
+seit Stunden gemergt waren — der Zustand war falsch, weil ihn niemand nachpflegte.
+Der Listen-Eintrag kann nicht veralten, weil GitHub ihn beim Rendern auflöst.
+
+**Und keine expliziten Markdown-Links** (`[#3813](https://…)`) auf PRs in der
+Übersicht: die umgehen den Autolink-Mechanismus und damit den Live-Status. Genau
+das war der Fehler vom 2026-10-02.
 
 **Gleiches im Dashboard-Topic:** die Tabelle dort verlinkt die PRs, führt aber
 **keine** eigene Status-Spalte. Merge-Status steht am PR selbst.
