@@ -53,6 +53,82 @@ git show origin/release/25.2:<pfad> | wc -l         # Inhalt?
 Das nimmt `cherry-pick -x` (Original-Subject und `Signed-off-by` bleiben, `(cherry picked from
 commit <sha>)` wird angehängt) und legt den PR gegen `release/<rel>` an.
 
+### `rerere` ausschalten — es spielt Auflösungen still ein
+
+```sh
+git -c rerere.enabled=false cherry-pick -x <quelle>
+```
+
+**Das ist die gefährlichste Form, die ein Cherry-Pick annehmen kann** (gemessen am
+2026-10-02 auf `release/25.0`):
+
+    git config --get rerere.enabled          -> true
+    $(git rev-parse --git-common-dir)/rr-cache   -> Eintraege
+
+Der rr-Cache liegt im **gemeinsamen** git-dir des Clones und kann eine Auflösung
+enthalten, die bei einem **früheren** Versuch auf diesem Zweig aufgezeichnet wurde.
+Git spielt sie beim nächsten Cherry-Pick ein, **bevor eine Konfliktmarke entsteht**.
+
+Damit gibt es **kein** `<<<<<<<`, keinen Hinweis auf rerere und keinen auffälligen
+Zustand:
+
+    grep -c '^<<<<<<<' <datei>        -> 0
+    git status                        -> sauber
+    Branch, Quelle, Header-Pfad       -> alles korrekt
+
+**Jedes einzelne prüfbare Kriterium war erfüllt, und das Ergebnis war trotzdem
+falsch** — der Churn aus master kam mit durch. Ein Rebuild **nach Vorschrift**
+bringt denselben Churn wieder. Deshalb gehört `-c rerere.enabled=false` in **jeden**
+Cherry-Pick auf einem Zweig, dessen geteiltes git-dir einen rr-Cache hat.
+
+Prüfe das einmal, wenn du einen Backport-Zweig zum ersten Mal anfasst:
+
+```sh
+git config --get rerere.enabled || echo "nicht gesetzt (Default: aus)"
+ls "$(git rev-parse --git-common-dir)/rr-cache" 2>/dev/null | wc -l
+```
+
+Den rr-Cache selbst **nicht** löschen — er gehört dem Ship, der den Zweig nutzt.
+
+### `git diff --stat` ist kein Qualitätsbeweis
+
+**Die Zeilenzahl erkennt keinen Einrückungsverlust.** `git diff --stat` zeigt
+`+17/-9` auch dann, wenn eine dieser Zeilen nur ihre Einrückung verloren hat.
+
+Das ist am 2026-10-02 zweimal passiert: der Edit-Anker begann an einer Zeile **ohne**
+führende Leerzeichen, die `+` statt der erwarteten Leerzeichen bekam. Beim ersten Mal
+verriet es die **abweichende Diff-Größe** (+19/−11 statt +17/−9) — beim zweiten Mal
+nicht mehr, weil die Größe wieder passte.
+
+Auf einem **Release-Zweig** ist ein Einrückungsverlust eine echte Stiländerung, und
+ein Filter auf `<< EOF` lässt sie durch. Darum:
+
+```sh
+git diff <ziel>..HEAD          # die GESAMTE Aenderung lesen
+git diff --check                # whitespace-Fehler wie trailing whitespace
+```
+
+**Die Warnungen sind nicht die Kontrolle.** Eine Zeile, die von 8 auf 4 Leerzeichen
+rückt, erzeugt keine Warnung.
+
+### Löschungen prüfen — ein Plus-Muster ist blind dafür
+
+Im Cherry-Pick von #3793 waren **zwei** der fünf Konfliktzonen **Löschungen auf der
+HEAD-Seite** — und genau die sind der stille Fehler:
+
+- `damageRemoveDamage(getDrawableDamageRef(pDrawable), pDamage);` stehen lassen
+  → nach dem neuen `pListDrawable`-Unlink wird **ein zweites Mal** geunlinked.
+  Stille Korruption, **kein** Compilerfehler.
+
+Ein `git diff | grep '^+'` sieht davon nichts. Beide Seiten prüfen:
+
+```sh
+git diff <ziel>..HEAD | grep -E '^-[^-]'   # die Loeschungen
+```
+
+Die Regel bleibt: **eine Definition oder ein Aufruf wird nur entfernt, wenn der
+Grund im Zielzweig belegt ist** — siehe „Der teuerste Fehler: Definitionen entfernen".
+
 ## Der Origin-Header gehört in jeden Backport-Commit
 
 Ein auf den Release-Branch getragener Commit muss im Header erkennbar machen, woher er
