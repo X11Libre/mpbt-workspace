@@ -18,13 +18,33 @@ automatisch wieder hochgezogen):
 - **Laforge** — einzuständig für **alle Arbeiten am starfleetctl-Source** (und nur
   dafür; keine xlibre/X11/os.h/desqview/Kernel-Tasks). Steht hier seit 2026-10-01;
   vorher war Scotty benannt, der nicht mehr Teil der Flotte ist.
+
+  **Laforge gehört zur stehenden Flotte und ist IMMER da** (Entscheidung des
+  Maintainers, 2026-10-02). Zwei Festlegungen daraus, die beim Neustart gelten:
+  - **Immer `--launch-type background`.** Er gehört zur Flotte, nicht an eine
+    Konsole. Ein Console-Launch heißt: da sitzt ein Mensch, und `session stop`
+    reißt ihm die Sitzung weg. Heute liefen kurzzeitig **zwei** Laforge-Instanzen
+    (eine termctl-gekapselte console, eine background) — Ursache war, dass er als
+    Console-Schiff gestartet worden war und deshalb von `session stop` nicht
+    erfasst wurde. Beim Neustart **vorher `ps -eo pid,cmd | grep "fleet ship
+    Laforge"` prüfen** und bei mehr als einer Instanz erst aufräumen.
+  - **Immer `--model nim-primary`.** Auch wenn die anderen Schiffe wegen
+    NIM-Überlastung gerade auf `heavy-model` laufen: für Laforge ist
+    `nim-primary` fest vorgeschrieben (unten begründet). Er wird **nicht** auf ein
+    konkretes Nemotron-Modell gepinnt, auch nicht, wenn gerade eines frei ist.
 - **Barcley** — zuständig für den **Volla-Kernel** (und nur dafür).
 - **Galaxy** — für **verschiedene andere größere Aufgaben (on-demand)**.
 
-**Ist-Zustand (2026-10-01, gemessen):** laufend sind Barcley, Defiant, Enterprise,
-Interpid, Laforge, McKinley, Voyager. **Scotty und Galaxy laufen nicht.** Der
-Abschnitt ist eine Soll-Vorgabe, kein Ist-Bericht — ohne den Wiedereinsatz von
-Scotty/Galaxy ist er für diese beiden nicht erfüllt.
+**Ist-Zustand (2026-10-02, gemessen):** Laforge läuft wieder, **eine** Instanz,
+`--launch-type background`, `--model nim-primary` (pids 541/551 nach dem
+Neustart). Vorher stand er als **verwaistes Heartbeat** im Board, während kein
+Prozess lebte — dieselbe Klasse wie der Barcley-Eintrag am Anfang dieser Sitzung:
+Board-Eintrag und Prozesszustand widersprechen sich, und nur `ps` sagt, was lebt.
+
+Achtung bei der Zustandsprüfung: **beide Prozesse eines termctl-gekapselten Schiffs
+tragen den Ship-Namen in der Kommandozeile** — der Wrapper *und* sein opencode-Kind.
+`grep -c` zählt damit **Zeilen, keine Instanzen**. Ein Wrapper mit einem Kind ist
+*eine* Session. Instanzen zählt man anhand der Elternbeziehung.
 
 Laforge läuft auf dem **Meta-Model `nim-primary`** (`opencode --model nim-primary`,
 `server=meta-model`). Das reicht für den starfleetctl-Source ausdrücklich aus.
