@@ -327,6 +327,58 @@ den Fehlerpfad offen — der naechste macht denselben Befehl, scheitert an einer
 anderen Stelle (`baseRefOid` existiert im `gh pr view --json` nicht) und haelt die
 Zahl fuer unbestaetigt.
 
+### Form ist der Traeger der Glaubwuerdigkeit
+
+> Eine Behauptung ueber **Laufzeit- oder Compilerverhalten** wird ausgefuehrt,
+> bevor sie weitergegeben wird. Eine Behauptung ueber **gelesenen Code** darf zuerst
+> weitergegeben werden, wenn sie als **zu pruefen** markiert ist.
+
+Diese Zeile ist nicht die dritte Regel, sondern die **Ursache** der beiden anderen
+(Plus-Muster ist fuer Loeschungen blind; Loeschungen brauchen eigene Pruefung). Sie
+erklaert sie, sie folgt ihnen nicht.
+
+**Die Herleitung, gemessen am Backport von #3793 am 2026-10-02.** Sieben
+Behauptungen, die ich weitergegeben habe, sechs gemessen, eine widerlegt:
+
+| Behauptung | Ergebnis |
+|---|---|
+| Bug auf allen drei Release-Zweigen | gehalten |
+| `pListHead` fehlt auf allen Zweigen | gehalten |
+| Quelle `ccfc4797cf` liegt auf `origin/master` | gehalten |
+| lokale `origin/release/<ziel>` == GitHub-Branch-Tip | gehalten |
+| toter `pPrev` bricht den Build (`-Werror`) | gehalten |
+| 12 statt 16 verschiedene `origin/master`-Staende | gehalten |
+| **Doppel-Unlink = stille Korruption** | **widerlegt** |
+
+Die sechs Treffer waren alle **an einem Objekt** und sofort ausfuehrbar: SHA auf
+master, Header-Pfad, Dateiliste, Fehlergrenze. Die eine Ausnahme war die **einzige
+ohne Objekt** — sie handelte von der *semantischen* Folge einer Zeile, die man nicht
+laeuft, sondern liest. Und ich hatte sie zuerst in einer **fremden Diagnose**
+verwendet, bevor ich sie selbst geprueft hatte; das Flagschiff hat sie zitiert,
+wodurch sie in drei weitere Documents wanderte.
+
+Die Frage ist damit nicht Begabung, sondern:
+
+> **Kann ich die Aussage pruefen, indem ich etwas ausfuehre, oder nur, indem ich
+> sie lese?**
+
+**Warum die Markierung der entscheidende Teil ist.** Ich habe „stille Korruption"
+nicht als *vermutet*, sondern als *behauptet* markiert — beide Male klang es gleich.
+Der Empfaenger hat es als Befund gelesen, weil es **in derselben Form** stand wie
+die sechs gemessenen. Eine Vermutung und eine Messung, die gleich aussehen, werden
+gleich behandelt, bis eine nachgemessen wird und die andere nicht.
+
+Also: Nicht "mehr messen", sondern **die Form dem Beweisgrad anpassen**. Ein
+unbelegter Satz, der neben gemessenen steht, erbt deren Glaubwuerdigkeit — das ist
+der eigentliche Uebertragungsweg, und er ist billiger zu verhindern als zu korrigieren.
+
+**Und die positive Fassung, die sich daraus ergab:** dieser Commit ist gegen genau
+diese Fehlerklasse **selbst sichernd**, weil der Signaturwechsel
+`DamagePtr *` -> `DrawablePtr` jeden alten Aufruf zum Typfehler macht. Vier
+Konstruktionen gebaut, alle vier scheitern am Compiler. Der Typcompiler bewacht die
+Stelle — das verlangt keine Disziplin, sondern macht sie unmoeglich. Die beste Form
+einer Verifikationsregel ist die, die eine Loesung ueberfluessig macht.
+
 ### Board-Integrität: ein 0-Byte-Topic ist kein gültiges Topic
 
 Ein leeres Topic-Dokument ist im Transcript nicht von einem gueltigen unterscheidbar — gleiche Zeilen, kein Fehlerhinweis. Ursache war `sed -i … > f` (siehe Git-Abschnitt oben), der Schadensmechanismus aber ist allgemein: **`topic write` nimmt allem, was nicht parsebarer Frontmatter ist**, und das Board zeigt es danach wie ein legitimes Topic. Wenn `topic list` einen leeren Body als solchen kennzeichnen koennte, waere der Fehler in Sekunden auffaellig statt in einer Debug-Sitzung.
