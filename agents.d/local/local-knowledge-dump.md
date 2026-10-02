@@ -51,6 +51,88 @@ dashboard tasks in the starfleet section.
 - **`sed -i 's/x/y/' f > f` leert die Datei auf 0 Byte.** `-i` schreibt direkt, `> f` leert vorher — und weil beides auf dieselbe Datei zielt, gewinnt der Redirect. Benutzt habe ich es beim Erzeugen eines Topic-Dokuments; danach war es 0 Byte und im Board-Transcript nicht mehr von einem gültigen Topic zu unterscheiden. Entweder `sed … f > g` (ohne `-i`) oder `sed -i … f` (ohne Redirect). Merksatz: **`> f` neben `-i` auf derselben Datei ist kein Edit, sondern ein Löschen.**
 - **`ninja` ist für die Ausnahmelisten-Prüfung falsch, `ninja -k 0` richtig.** Mit `ninja` bricht der erste Fehler ab; man sieht eine Warnung, schliesst "nur die bekannte Ausnahme" und weiss nicht, dass es weitere gab. `-k 0` baut alle Targets und liefert die **vollständige** Fehlermenge. Genau dieser Unterschied entschied am 2026-10-02 auf 25.0 zwischen "eine Ausnahme" und "vier".
 
+### Stale Refs: `origin/master` ist pro Clone ein anderer Snapshot
+
+Bei einem Backport auf xserver gemessen, dieselbe Frage in vier Clones
+**gleichzeitig**, ohne etwas zu aendern: liegt `e84a8065c4` auf `origin/master`?
+
+    origin/master=482f7b326d  ->  NEIN   <- FALSCH
+    origin/master=d7e1c7e5c9  ->  NEIN   <- FALSCH
+    origin/master=71bf6fcdc6  ->  NEIN   <- FALSCH
+    origin/master=4c537f6d82  ->  JA     <- korrekt
+
+Nach **einem** `git fetch origin master:refs/remotes/origin/master` korrigiert sich
+der erste. **Die richtige Quell-SHA wird in drei von vier Clones stillschweigend
+verworfen** — kein Fehler, keine Warnung — und die falsche Ableitung ist genau die,
+die zum `bad object` fuehrt.
+
+Pflicht vor jeder Ref-Messung, im jeweiligen Clone:
+
+```bash
+git fetch origin master:refs/remotes/origin/master
+gh pr view <pr> --json mergeCommit -q '.mergeCommit.oid'
+git merge-base --is-ancestor <quelle> origin/master \
+  || { echo "Quelle verwerfen — Ref war stale"; exit 1; }
+```
+
+**Das `||` mit Abbruch ist der Punkt.** Ein `&& echo "liegt auf master"` laeuft bei
+`NEIN` weiter, und dann macht man den Backport mit einer falsch verworfenen Quelle.
+
+**Das Commit-Datum taugt nicht als Sichtpruefung.** Das ist der Teil, der die
+naheliegende Notloesung aushebelt:
+
+    71bf6fcdc6  2026-10-01   ci: bump dragonflybsd-vm
+    4c537f6d82  2026-09-06   meson: convert remaining ...
+    git merge-base --is-ancestor 71bf6fcdc6 4c537f6d82  ->  JA
+
+Das **juengere** Datum ist ein **Vorfahr** des **aelteren**. Nach Verzeichnis-Datum
+sortieren liefert die umgekehrte Reihenfolge, weil master rebased wird und
+Autor-Datum und Historienposition auseinanderlaufen. **Ein Ref kann drei Wochen alt
+sein und von heute datieren.**
+
+**Ueber Repo-Identitaet filtern, nicht ueber Verzeichnisnamen.** Ein Verzeichnis
+kann `xserver-9f1a06d0b…/agent/default/xserver` heissen und zu einem beliebigen
+Clone gehoeren. `_WORK_/xserver-*`-Glob trifft 12 Werte; `git config --get
+remote.origin.url` je Repo ist die verlaessliche Grenze.
+
+**`mergeCommit` hat bei xserver genau EINEN Parent** (`allow_merge_commit=false`,
+rebase-Merge ist der einzige Modus). Das ist keine Besonderheit, sondern eine
+Konstante — die Elternzahl kann **nichts** trennen, egal wie sie ausgeht. Wer
+darueber "ist es ein Merge-Commit?" prueft, verwirft die richtige SHA.
+
+Vollstaendige Backport-Sequenz (in dieser Reihenfolge):
+
+    git fetch origin master:refs/remotes/origin/master
+    gh pr view <pr> --json mergeCommit -q '.mergeCommit.oid'
+    git merge-base --is-ancestor <quelle> origin/master || exit 1
+    git cherry-pick -x <quelle>                          # OHNE -s
+    git log --format=%B -1 | grep -ci '^signed-off-by'   # muss 1 sein
+    git rev-list --count origin/release/<ziel>..HEAD     # muss 0 sein
+
+### Eine Zahl in einer Regel traegt nie das Argument
+
+Beide today's Zahlenfallen bei den Backport-Regeln, und sie fallen in
+**entgegengesetzte** Richtungen:
+
+| Zahl | Art | Warum sie nichts traegt |
+|---|---|---|
+| `parents == 1` | **Konstante** | `allow_merge_commit=false` → jeder Commit hat einen Parent. Kann weder bestaetigen noch widerlegen. |
+| "N verschiedene `origin/master`-Staende" | **Snapshot** | Die Zahl waechst mit der Last des Tages (gemessen 21 → 66 → 96 Klone zwischen zwei Messungen). Altert schneller als die Regel. |
+
+In beiden Faellen gilt derselbe Satz: **die Zahl ist nicht das Argument, das
+Verhalten ist es.** Bei den stale Refs:
+
+> Ein stale Ref verwirft nicht irgendein Ergebnis — er markiert das **RICHTIGE**
+> als falsch.
+
+Das ist der Grund, warum die Regel gilt, und der ist unabhaengig von jeder Zahl.
+Wer die Regel braucht, braucht diese Zeile, nicht eine Statistik.
+
+Als Regel beim Schreiben von Dokumentation: **eine Zahl in einer Regel ist entweder
+eine Konstante, die nichts beweist, oder ein Snapshot, der altert. In beiden
+Faellen traegt sie nicht.** Wenn sie trotzdem rein soll, gehoeren Scope und
+Zeitpunkt mit dazu — sonst liest das naechste Schiff sie als Konstante.
+
 ### Regelkollision: `ws-commit -a` im geteilten Baum nimmt fremde Arbeit mit
 
 Der Auto-Commit-Absatz in `local/user-settings` sagt sinngemaess „commit and push
@@ -483,4 +565,4 @@ Bei Commits: `git log -1 --format=%B <eigener backport>`, beim Build: einmal bau
 
 **Nicht auf Commits beschränken.** Der Fehler war kein Sign-off-Fehler, er war eine fehlende Verifikation. Der Fallstrick liegt in den Werkzeugen, im Branch-Schema und in den Ausnahmelisten genauso — allesamt Empfehlungen, die eine Flotte übernimmt, nachdem ein Schiff sie einmal ausprobiert hat.
 
-**SOP-Pfad:** Diese Regel gehört in `starfleet-instructions/working-practices-for-ships.md` (SOP-Fragment), damit neue Schiffe sie beim Start lesen. Aktuelle Fundstelle: `agents.d/local/local-knowledge-dump.md` (versionierter Workspace-Dump); Ziel: `.starfleet-ai/var/sop.d/starfleet-instructions/working-practices-for-ships.md` (deployed via starfleetctl repo).
+**SOP-Pfad:** Diese Regel gehört in `starfleet-instructions/working-practices-for-ships.md` (SOP-Fragment), damit neue Schiffe sie beim Start lesen. Aktuelle Fundstelle: `agents.d/local/local-knowledge-dump.md` (versionierter Workspace-Dump); Ziel: `_WORK_/starfleetctl/sources/starfleetctl/fragments/starfleet-instructions/working-practices-for-ships.md` (Quell-Fragment im starfleetctl-Repo; deployed via starfleet-bootstrap).
