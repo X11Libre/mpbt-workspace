@@ -11,11 +11,10 @@ Doc-Ref: "—"
 
 ## Kreuzverlinkung — hier zuerst
 
-| Branch | PR | Commit | Zweig-Topic | CI | Review |
-|---|---|---|---|---|---|
-| release/25.2 | [#3800](https://github.com/X11Libre/xserver/pull/3800) | `92c7342d7bbe` | `task-backport-3777-to-release-25-2` | 28 success, 0 fail | passed |
-| release/25.1 | [#3798](https://github.com/X11Libre/xserver/pull/3798) | `adc5f461d085` | `task-backport-3777-to-release-25-1` | **ubuntu fail ×2**, 15 success | passed |
-| release/25.0 | [#3797](https://github.com/X11Libre/xserver/pull/3797) | `98ddb67eb408` | `task-backport-3777-to-release-25-0` | **ubuntu fail ×2**, 4 success | passed |
+| Branch | PR | Commit | Zweig-Topic | CI |
+| release/25.2 | [#3800](https://github.com/X11Libre/xserver/pull/3800) | `92c7342d7bbe` | `task-backport-3777-to-release-25-2` | 28 success, 0 fail |
+| release/25.1 | [#3798](https://github.com/X11Libre/xserver/pull/3798) | `adc5f461d085` | `task-backport-3777-to-release-25-1` | **ubuntu fail ×2**, 15 success |
+| release/25.0 | [#3797](https://github.com/X11Libre/xserver/pull/3797) | `98ddb67eb408` | `task-backport-3777-to-release-25-0` | **ubuntu fail ×2**, 4 success |
 
 **Master-PR:** https://github.com/X11Libre/xserver/pull/3777
 **Review-Kommentare:** [#3800](https://github.com/X11Libre/xserver/pull/3800#issuecomment-5951503818) · [#3798](https://github.com/X11Libre/xserver/pull/3798#issuecomment-5951502498) · [#3797](https://github.com/X11Libre/xserver/pull/3797#issuecomment-5951501149)
