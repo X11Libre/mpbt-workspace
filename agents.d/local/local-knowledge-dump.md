@@ -51,6 +51,44 @@ dashboard tasks in the starfleet section.
 - **`sed -i 's/x/y/' f > f` leert die Datei auf 0 Byte.** `-i` schreibt direkt, `> f` leert vorher — und weil beides auf dieselbe Datei zielt, gewinnt der Redirect. Benutzt habe ich es beim Erzeugen eines Topic-Dokuments; danach war es 0 Byte und im Board-Transcript nicht mehr von einem gültigen Topic zu unterscheiden. Entweder `sed … f > g` (ohne `-i`) oder `sed -i … f` (ohne Redirect). Merksatz: **`> f` neben `-i` auf derselben Datei ist kein Edit, sondern ein Löschen.**
 - **`ninja` ist für die Ausnahmelisten-Prüfung falsch, `ninja -k 0` richtig.** Mit `ninja` bricht der erste Fehler ab; man sieht eine Warnung, schliesst "nur die bekannte Ausnahme" und weiss nicht, dass es weitere gab. `-k 0` baut alle Targets und liefert die **vollständige** Fehlermenge. Genau dieser Unterschied entschied am 2026-10-02 auf 25.0 zwischen "eine Ausnahme" und "vier".
 
+### Regelkollision: `ws-commit -a` im geteilten Baum nimmt fremde Arbeit mit
+
+Der Auto-Commit-Absatz in `local/user-settings` sagt sinngemaess „commit and push
+**ALL** workspace changes automatically, don't stop to ask". Im **gemeinsamen**
+Workspace-Baum heisst `ws-commit -a` aber: `git add -u` plus Commit — also **die
+Aenderungen aller anderen Schiffe**, nicht nur die eigenen.
+
+Die beiden Regeln widersprechen sich nicht absichtlich, sie gelten fuer
+verschiedene Baeume. Der Absatz meint den Ein-Schiff-Fall; im geteilten Baum
+wird er zum Gegenteil des Gewollten.
+
+**Was in einer Session wirklich passiert:** drei fremde, uncommittete Aenderungen
+lagen im Baum (zwei Timer-Configs, ein Topic eines anderen Schiffes). Mit `-a`
+waeren sie in meinen Commit gewandert und haetten die fremde Arbeit mit meinem
+Namen und meiner Commit-Message signiert.
+
+**Regel, bis der Maintainer praezisiert (Enterprise, m126186): im geteilten Baum
+immer mit explizitem Pfad committen.**
+
+```bash
+git add <nur-eigene-pfade>                       # immer explizit, nie -a
+./.starfleet-ai/bin/starfleetctl ws-commit -m "…" <nur-eigene-pfade>
+```
+
+Kontrolle vor dem Commit, damit man es sieht statt es zu vermuten:
+
+```bash
+git diff --cached --name-only      # darf nur den eigenen Pfad enthalten
+```
+
+Belegt am 2026-10-02: `ws-commit -a` waere falsch gewesen, mit Pfad war
+`1 file changed` und die drei fremden Aenderungen blieben `M` im Status.
+
+`ws-commit` macht intern `git add -u` **nur** im `-a`-Fall; mit expliziten Pfaden
+ist die Buehne leer, `git add` davor ist also Pflicht, sonst wird die Datei gar
+nicht erstaged. Neue Dateien fehlen bei `-u` ohnehin — sie wuerden
+stillschweigend nicht mitgenommen, was schlimmer ist als sichtbares Scheitern.
+
 ### Plausibel-statt-offensichtlich-falsch: die teuerste Fehlerklasse
 
 Der Gegenbeweis zu „der Fehler war sichtbar, ich habe ihn nur nicht gesehen."
