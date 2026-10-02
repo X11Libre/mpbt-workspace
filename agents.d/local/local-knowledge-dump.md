@@ -260,6 +260,56 @@ wir schon:
 Die dritte ist die gefaehrlichste, weil sie die Form des Beweises hat, ohne sein
 Inhalt zu sein.
 
+### Groessen, die man fuer eine Entscheidung braucht, ohne Verantwortung dafuer zu tragen
+
+Die Form, in der die Backport-Regeln vom 2026-10-02 gehoeren — ein Satz statt
+fuenf Sonderfaellen.
+
+> **Groesse, die man fuer eine Entscheidung braucht, ohne Verantwortung dafuer zu
+> tragen.**
+
+Zwei Befunde desselben Tages, unterschieden durch die **Sachebene**:
+
+| Groesse | Ebene | Folge |
+|---|---|---|
+| `parents == 1` | **primaer** unbrauchbar | `allow_merge_commit=false` → jeder Commit hat einen Parent. Gehoert niemandem, der sie liest. Kann weder bestaetigen noch widerlegen. |
+| `origin/master` | **nur unbrauchbar, wenn man sie nicht selbst holt** | Gehoert dem, der ihn zuletzt geholt hat. Frisch geholt → verlaesslich. |
+
+Daraus folgt die Reihenfolge der Regel: **Schritt 1 macht Schritt 6 erst
+sinnvoll.** Wer die Fremd-Commit-Pruefung ohne den eigenen Fetch ausfuehrt, misst
+gegen einen Zustand, den jemand anderes verantwortet. Das ist keine
+Ablauffolge, das ist eine **Voraussetzung** — und der Unterschied ist der Grund,
+warum die Regel in dieser Form und nicht als bloesse Schrittfolge geschrieben
+gehoert.
+
+Wer mehrere Clones vergleichen will, filtert **ueber die `origin`-URL**, nicht
+ueber Verzeichnisnamen — siehe Stale-Refs-Abschnitt oben.
+
+### Beschriftung muss bezeichnen, was gemessen wurde
+
+Ein Verifikationsblock hat genau einen Zweck: **nachrechnen statt vertrauen**.
+Damit ist die Beschriftung Teil des Beweises, nicht Beiwerk. Sie muss benennen,
+welche Groesse gemessen wurde — auch dann, wenn beide Kandidaten hier zusammenfallen.
+
+Am 2026-10-02 an den Kommentaren fuer #3794/#3799/#3805: die Zeile hiess
+`PR base (GitHub)`, gemessen wurde aber
+
+```bash
+gh api repos/X11Libre/xserver/git/ref/heads/<branch> -q '.object.sha'
+```
+
+— der **Branch-Tip** auf GitHub, nicht der PR-seitige Base-OID
+(`baseRefOid` existiert im `gh pr view --json` nicht, liefert leer). Bei diesen
+drei PRs sind beide identisch, also kein inhaltlicher Fehler; die Beschriftung
+sagte aber etwas anderes als der Wert.
+
+Der Branch-Tip ist ohnehin die **richtigere** Groesse: er ist das, wogegen GitHub
+real merged, und er aendert sich nicht, wenn jemand die PR-Basis verschiebt.
+
+**Merksatz:** wenn ein Block zum Nachrechnen existiert, ist ein ungenaues Label
+kein Kosmetikfehler, sondern dieselbe Fehlerklasse wie `git add -u` ohne neue
+Dateien — es sieht unauffaellig aus und kostet den Reviewer die Nachrechenbarkeit.
+
 ### Board-Integrität: ein 0-Byte-Topic ist kein gültiges Topic
 
 Ein leeres Topic-Dokument ist im Transcript nicht von einem gueltigen unterscheidbar — gleiche Zeilen, kein Fehlerhinweis. Ursache war `sed -i … > f` (siehe Git-Abschnitt oben), der Schadensmechanismus aber ist allgemein: **`topic write` nimmt allem, was nicht parsebarer Frontmatter ist**, und das Board zeigt es danach wie ein legitimes Topic. Wenn `topic list` einen leeren Body als solchen kennzeichnen koennte, waere der Fehler in Sekunden auffaellig statt in einer Debug-Sitzung.
