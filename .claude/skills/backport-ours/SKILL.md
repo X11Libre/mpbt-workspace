@@ -132,11 +132,54 @@ strings <build>/<modul>.p/<datei>.c.o | grep -c '<der neue String>'
 
 ## Schritt 4: Cross-Link, und **kein** Merge
 
-- Backport-Tabelle an den **Original-master-PR** hängen, eine Zeile pro Zweig mit Backport-PR
-  und Status. PR-Bodies per REST ändern, `gh pr edit` scheitert am *Projects-classic*-Fehler.
+- Backport-Übersicht an den **Original-master-PR** hängen, **eine Zeile pro Zweig**. PR-Bodies
+  per REST ändern, `gh pr edit` scheitert am *Projects-classic*-Fehler.
 - Jeder Backport-PR verlinkt zurück auf den Original-PR.
 - **Release-Merges sind manuell, durch den Maintainer.** Ein `bot-review-passed` und grüne CI
   autorisieren keinen Merge in `release/*`. Auf `master` ist Auto-Merge nur bei expliziter
+
+### Die Referenzform: `GH-<nr>`, nicht `#<nr>`
+
+In der Übersicht **keine** `bot-review-passed`-Klammern und **keine Status-Spalte
+selbst pflegen**. Stattdessen die reine Full-Reference-Form:
+
+```
+GH-3801
+GH-3802
+GH-3803
+```
+
+`GH-<nr>` (und `owner/repo#<nr>`) ist eine **Full Reference**: GitHub löst sie beim
+Rendern auf und zeigt **Titel, Nummer, Status und Autor** — aktuell. `#<nr>` ist nur
+eine **Cross-Reference** und zeigt das nicht.
+
+**Warum ausdrücklich ohne Status-Spalte:** eine selbst gepflegte Spalte altert per
+Definition. Am 2026-10-02 stand in einer solchen Tabelle „offen" bei #3802/#3803,
+die seit Stunden gemergt waren — der Zustand war falsch, weil ihn niemand
+nachpflegte. Die Full-Reference kann nicht veralten, weil GitHub sie beim Rendern
+auflöst.
+
+**Gleiches im Dashboard-Topic:** die Tabelle dort verlinkt die PRs, führt aber
+**keine** eigene Status-Spalte. Merge-Status steht am PR selbst.
+
+### Autor und Sign-off, wenn der Backport vom Original abweicht
+
+Weicht die Auflösung **wesentlich** vom Upstream-Commit ab — Konfliktzonen anders
+aufgelöst, Zeilen entfernt, die der Upstream-Commit nicht enthält —, ist der
+Backport **ein eigener Write**, kein Transport. Dann:
+
+- **Author und `Signed-off-by` sind derjenige, der ihn geschrieben hat**, nicht der
+  Upstream-Autor. Die Fremd-Patch-Regel (Originalautor nehmen) gilt nur für
+  unveränderte Übernahmen.
+- Der `(cherry picked from commit …)`-Trailer **bleibt** als Herkunftsnachweis.
+- Steht im PR-Body oder Commit-Text **ein Satz**, welche Zeile entfernt wurde, die der
+  Upstream-Commit nicht enthält — sonst liest ein Reviewer es als Abweichung vom
+  Original.
+
+Beispiel 2026-10-02: #3793 auf 25.2/25.1. `pListHead` existiert dort nicht, der
+Cherry-Pick konflizierte in fünf Zonen, und zwei tote Zeilen in
+`damageSetWindowPixmap()` mussten entfernt werden, die der Upstream-Commit nicht
+anfasst. Ergebnis: eigener Sign-off, plus die Begründungszeile im PR-Body.
   Bitte des Nutzers zulässig.
 
 ## Backport-Würdigkeit, vorher
