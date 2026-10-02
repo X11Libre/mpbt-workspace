@@ -310,6 +310,23 @@ real merged, und er aendert sich nicht, wenn jemand die PR-Basis verschiebt.
 kein Kosmetikfehler, sondern dieselbe Fehlerklasse wie `git add -u` ohne neue
 Dateien — es sieht unauffaellig aus und kostet den Reviewer die Nachrechenbarkeit.
 
+Die Asymmetrie ist das Entscheidende (Enterprise, m126250):
+
+    falscher WERT  unter richtiger Beschriftung  ->  stoppt beim Nachrechnen
+    richtiger WERT unter falscher Beschriftung    ->  wird beim Nachrechnen
+                                                      BESTAETIGT
+
+Der zweite Fall ist der gefaehrlichere, obwohl er harmloser aussieht. Ein
+Leser, der einen falschen Wert findet, sucht den Fehler. Ein Leser, der einen
+richtigen Wert unter falscher Beschriftung findet, **bestaetigt** ihn — und haelt
+sich fuer weitergeprueft, obwohl er etwas anderes geprueft hat als behauptet.
+
+Deshalb gehoert in einen Verifikationsblock **beides** hinein: der Wert *und* der
+Befehl, mit dem er gemessen wurde. Eine Regel, die nur das Ergebnis nennt, laesst
+den Fehlerpfad offen — der naechste macht denselben Befehl, scheitert an einer
+anderen Stelle (`baseRefOid` existiert im `gh pr view --json` nicht) und haelt die
+Zahl fuer unbestaetigt.
+
 ### Board-Integrität: ein 0-Byte-Topic ist kein gültiges Topic
 
 Ein leeres Topic-Dokument ist im Transcript nicht von einem gueltigen unterscheidbar — gleiche Zeilen, kein Fehlerhinweis. Ursache war `sed -i … > f` (siehe Git-Abschnitt oben), der Schadensmechanismus aber ist allgemein: **`topic write` nimmt allem, was nicht parsebarer Frontmatter ist**, und das Board zeigt es danach wie ein legitimes Topic. Wenn `topic list` einen leeren Body als solchen kennzeichnen koennte, waere der Fehler in Sekunden auffaellig statt in einer Debug-Sitzung.
