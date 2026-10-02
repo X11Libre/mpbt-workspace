@@ -48,6 +48,76 @@ dashboard tasks in the starfleet section.
 - **`origin/master` can advance WHILE you work even mid-session.** Always re-fetch and rebase onto the CURRENT origin/master right before integrating; don't trust a ref read earlier in the session. Rebase conflicts then often involve another ship's adjacent feature — resolve by keeping BOTH lines.
 - **add/add test-file conflicts:** resolve as a UNION — take my file, append the other side's content minus its header/import block; keep the import block ONCE. Run `gofmt -l` afterwards (unions leave duplicate blank lines).
 - **`cp` FROM `/tmp/opencode/...` is BLOCKED** even though `/tmp/opencode/*` is allow-listed: the later `external_directory "**": deny` rule wins (last match wins). Write outputs into a workspace-relative path instead.
+- **`sed -i 's/x/y/' f > f` leert die Datei auf 0 Byte.** `-i` schreibt direkt, `> f` leert vorher — und weil beides auf dieselbe Datei zielt, gewinnt der Redirect. Benutzt habe ich es beim Erzeugen eines Topic-Dokuments; danach war es 0 Byte und im Board-Transcript nicht mehr von einem gültigen Topic zu unterscheiden. Entweder `sed … f > g` (ohne `-i`) oder `sed -i … f` (ohne Redirect). Merksatz: **`> f` neben `-i` auf derselben Datei ist kein Edit, sondern ein Löschen.**
+- **`ninja` ist für die Ausnahmelisten-Prüfung falsch, `ninja -k 0` richtig.** Mit `ninja` bricht der erste Fehler ab; man sieht eine Warnung, schliesst "nur die bekannte Ausnahme" und weiss nicht, dass es weitere gab. `-k 0` baut alle Targets und liefert die **vollständige** Fehlermenge. Genau dieser Unterschied entschied am 2026-10-02 auf 25.0 zwischen "eine Ausnahme" und "vier".
+
+### Plausibel-statt-offensichtlich-falsch: die teuerste Fehlerklasse
+
+Der Gegenbeweis zu „der Fehler war sichtbar, ich habe ihn nur nicht gesehen."
+
+**Beispiel 1 — `starfleetctl github pr mk-agent-clone <rel> <name>` legt den Agent-Clone auf dem geteilten xorg/main-Inkubator** (`rfc/backport-<rel>`), nicht auf dem Task-Branch. Der Zustand danach ist *korrekt aussehend*: Branch existiert, `git status` sauber, `cherry-pick` laeuft, der PR wird MERGEABLE. Kein Befehl signalisiert etwas. Wer dort pusht, schleppt 6-32 fremde Commits in einen Release-PR.
+
+Die **Zahl variiert pro Release** — gemessen 25.2 `9 32`, 25.1 `2 6`, 25.0 `4 6`. Das ist der Teil, der einen zur falschen Schlussfolgerung bringt: wer auf 25.1 nach den 32 Commits sucht, findet nichts und haelt die Falle fuer harmlos. **Also nie eine gemessene Zahl aus einem anderen Branch als Beleg weiterverwenden — neu messen.**
+
+Kontrolle, die es **vor** dem Cherry-Pick faengt:
+
+    git rev-list --count origin/release/<branch>..HEAD    # muss 0 sein
+
+Ein Backport-PR mit >1 Commit hat Fremdinhalt.
+
+**Beispiel 2 — Board-Sichtbarkeit haengt am Arbeitsbaum-Branch, nicht an origin.** Ein Topic, das committet und auf `origin/mtx/agent-config` gepusht ist, ist **unsichtbar**, sobald der gemeinsame Workspace-Baum auf einem anderen Branch steht: das Board liest den Arbeitsbaum. Umgekehrt gilt: wer den Branch wechselt, kann einem anderen Schiff einen **lokal-only** Commit nehmen, der auf keinem Remote liegt. Vor einem Branch-Wechsel im geteilten Baum:
+
+    git branch -r --contains <letzter-commit>     # ist er auf einem Remote?
+
+Wenn nicht: `git update-ref refs/rescue/<schiff>-<kurz> <commit>` **vor** dem Wechsel, und dem Schiff Bescheid geben, wo der Ref liegt. Nicht selbst auf seinen Branch cherry-picken — das ist seine Entscheidung.
+
+**Merksatz fuer Werkzeuge:** die beste Verteidigung gegen diese Klasse ist nicht ein Fehler, sondern **der Exit-Text, der den benutzten Base-Tip und den Fremd-Commit-Count ausgibt**. Ein falscher Zustand, der im Log falsch aussieht, wird in Sekunden bemerkt; einer, der erst im PR auffaellt, wird gemergt.
+
+### Zwei Fehlerklassen, die man nicht zusammenfassen darf
+
+Am 2026-10-02 fiel beim Backport auf: „falsche SHA" und „falscher Sign-off" sind **zwei** Fehler, kein Sammelbild. Wer nur die SHA prueft, repariert Fall 1 und laeuft in Fall 2 hinein — genau das ist in dieser Runde passiert.
+
+| | Falsche SHA | Falscher Sign-off |
+|---|---|---|
+| Ursache | Branch-Tip statt Merge-Commit | SHA richtig, Option falsch (`-s` gesetzt) |
+| Symptom | `git cherry-pick` sagt `bad object` | zwei Sign-offs, oder der falsche Autor |
+| Fix | `.mergeCommit` statt `.commits[0]` | `cherry-pick -x` **ohne** `-s` |
+
+**Satz, der die Ursache benennt statt das Symptom:** *Die richtige SHA und die richtige Option gehoeren an derselben Stelle zusammen.* `-x` nimmt den Sign-off des Ursprungsautomaten mit und erzeugt genau einen; `-x -s` erzeugt einen zweiten; die Branch-SHA hat man auch dann falsch, wenn die Option stimmt.
+
+Pruefung, die **beide** Faelle faengt:
+
+    gh api repos/X11Libre/xserver/commits/<backport>  -q '.commit.message' | grep -ci '^signed-off-by'   # muss 1
+    gh api repos/X11Libre/xserver/commits/<backport>  -q '.commit.author.email'
+    gh api repos/X11Libre/xserver/commits/<mergeCmt>   -q '.commit.author.email'
+
+**Und der Ableseort ist der Trailer in der COMMIT-NACHRICHT, nicht der PR-Body.** Am 2026-10-02 war die Suche nach `Signed-off-by` im PR-Body bei allen drei Backports leer, obwohl der Trailer existierte. Wer im Body sucht, meldet faelschlich einen fehlenden Sign-off.
+
+### Board-Integrität: ein 0-Byte-Topic ist kein gültiges Topic
+
+Ein leeres Topic-Dokument ist im Transcript nicht von einem gueltigen unterscheidbar — gleiche Zeilen, kein Fehlerhinweis. Ursache war `sed -i … > f` (siehe Git-Abschnitt oben), der Schadensmechanismus aber ist allgemein: **`topic write` nimmt allem, was nicht parsebarer Frontmatter ist**, und das Board zeigt es danach wie ein legitimes Topic. Wenn `topic list` einen leeren Body als solchen kennzeichnen koennte, waere der Fehler in Sekunden auffaellig statt in einer Debug-Sitzung.
+
+### Dokumentierte Ausnahmelisten sind pro Branch, nicht global
+
+Der `backport-ours`-Skill und `xorg-main-backport-exclusions` sagen: bei `-Dwerror=true` ist **genau eine** vorbestehende Warnung erlaubt, `os/Xtranssock.c:631 -Werror=format-truncation`. Gemessen am 2026-10-02:
+
+| Branch | vorbestehende `-Werror`-Fehler | `os/Xtranssock.c:631`? |
+|---|---|---|
+| 25.2 | 1 (`os/Xtranssock.c:631`) | ja |
+| 25.1 | 1 (`os/Xtranssock.c:631`) | ja |
+| **25.0** | **4** (`glx/glxcmds.c`, `glx/unpack.h:126+127`, `os/connection.c`, `os/xstrans.c`) | **nein — die Datei existiert dort nicht** |
+
+    git ls-files | grep -E 'transport\.c$|Xtranssock'    # auf 25.0: leer
+
+Wer auf 25.0 eine Einzelausnahme sucht, findet keine — und schliesst daraus
+"der Backport hat die Fehler verursacht", das exakte Gegenteil. **Die Ausnahme
+gehoert in die PR-Beschreibung und ins Topic dieses Branches**, nicht in eine
+globale Regel.
+
+Gegenprobe immer, aber sie ist ein Argument und nicht die Fehlerzahl: lokale
+`-Werror`-Fehler muessen nicht die der CI sein (gcc 14 vs. clang in den Lanes).
+Was beweist, ist „gepatcht und ungepatcht haben **dieselbe** Fehlermenge" — nicht
+„der Backport baut gruen".
 
 ### Vor jeder neuen Phase: Skills gegen die eigenen Erkenntnisse prüfen
 
