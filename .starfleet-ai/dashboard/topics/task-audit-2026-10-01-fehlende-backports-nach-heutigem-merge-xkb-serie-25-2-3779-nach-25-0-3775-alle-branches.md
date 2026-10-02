@@ -121,7 +121,41 @@ veraltete Messung mit Zeitstempel. Vor jeder Zuteilung neu messen.
 
 5. **`github pr merge` scheitert mit GraphQL-Fehler** ("failed to get PR info").
 
-## 4. Offen
+## 4. NICHT in die Backport-Queue — #3790
+
+**#3790** `(master) xf86: mark wasset unused in xf86UnblockSIGIO() compatibility wrapper`
+ist reviewed und **bewusst KEIN Backport-Kandidat**. Vom Maintainer am 2026-10-02
+bestaetigt: aus der Queue der ausstehenden xorg-Backports **auslassen**.
+
+Gemessen, nicht geschlossen:
+
+- Der Diff ist eine Zeile: `_X_UNUSED` auf einen **bereits unbenutzten** Parameter
+  eines `static inline`-Kompatibilitaerswrappers. `input_unlock()` nimmt kein Argument,
+  die Aufruffolge ist identisch. **Kein Verhaltenswechsel.**
+- Die Warnung, die der PR stumm schaltet, ist im Projektbuild **nicht aktiviert**:
+  `-Wunused-parameter` kommt **null Mal** im CI-Compile vor, bei 46 verschiedenen
+  `-W`-Flags. Es gehoert zu `-Wextra`, nicht zu `-Wall`, und `meson.build` setzt kein
+  `-Wextra`. Sie feuert also nicht auf master und kann keinen Release-Build brechen.
+- Keine Sicherheits- oder Korrektheitsdimension: nicht speicherunsicher, kein Crash,
+  keine Datenkorruption.
+- Die Funktion ist `_X_DEPRECATED`, sie **ist** der Kompatibilitaetsschirm fuer
+  Pre-Input-Thread-Treiber. Nutzen hat ein Downstream-Consumer mit `-Wextra`/`-Werror`,
+  der seine Flags selbst mitbringt.
+
+**Rule 3 ist hier aus konstruktiven Gruenden beantwortet** und nicht ueber
+Blob-Analyse: `static inline` in einem Header erzeugt **kein exportiertes Symbol** —
+jede Translation Unit bekommt ihre eigene Kopie, es gibt nichts aufloesbares fuer die
+NVIDIA-Blobs. `_X_UNUSED` ist `__attribute__((__unused__))` bzw. `/* */`
+(`X11/Xfuncproto.h:169/171`), eine reine Diagnose-Attribut ohne ABI-Bedeutung. Damit
+gibt es kein Symbol fuer `nvidia-abi-check` — das ist eine begruendete Aussage, kein
+uebersprungener Schritt.
+
+**Anwendbarkeit ehrlich begrenzt:** `xf86UnblockSIGIO` ist auf `release/25.2` in
+identischer Form verifiziert. Auf `release/25.1` und `release/25.0` konnte ich
+`include/xf86.h` ueber den API-Weg nicht lesen — ungeprueft. Das Votum aendert sich
+dadurch nicht, weil es an den Build-Flags haengt, nicht an der Branch-Anwendbarkeit.
+
+## 5. Offen
 
 - `-Dwerror`-Doku um die 25.0-Sonderregel ergaenzen (gehoert in die Backport-Skills).
 - Reviews der neun Backport-PRs stehen aus; auf `release/*` findet regulaer kein
