@@ -830,3 +830,50 @@ Behauptung ist ein ausgeführter Test in zwei Locales, nicht das Lesen.
 **Merksatz für Aufträge:** Wenn ich eine Begründung mit ins Detail gehe, ist sie
 eine Hypothese mit Autoritätsgewand. Erst messen, dann verschicken — sonst
 korrigiert sie das Zielschiff für mich, und zwar besser als ich (hier war das so).
+
+### Worktrees EINES Repos teilen den Ref-Store — mutierende git-Befehle serialisieren
+
+Gemessen am 2026-10-04 (Barcley, von ihm gemeldet und selbst nachgezogen):
+zwei `git`-Befehle **parallel** auf zwei Worktrees desselben Repos. Beide
+brauchen denselben Lock, einer bricht ab.
+
+Der vorhandene Text sagt „Mutierende git-Operationen im selben Clone mit
+`starfleetctl with-clone-lock` serialisieren". Das ist **zu eng**, und die
+Lücke ist genau die, die man trifft, wenn man es richtig machen will:
+
+> Die Worktrees einer Worktree-Familie haben zwar je einen **eigenen Index**
+> (`.git/worktrees/<name>/index`), aber sie teilen sich den **Ref-Store**,
+> `packed-refs`, `config` und die Objekt-Datenbank. Alles, was refs anfasst
+> — `commit`, `checkout`, `branch`, `reset`, `rebase`, `cherry-pick` — nimmt
+> dort einen Lock.
+
+**Merksatz:** *Der Lock folgt dem Repository, nicht dem Verzeichnis.* Zwei
+Worktrees sind zwei Arbeitsverzeichnisse, aber **ein** Git-Repository. Wer
+worktree-basiert parallelisiert, serialisiert trotzdem — über denselben Lock,
+mit dem `ws-commit` arbeitet.
+
+Rein lesende Kommandos (`git log`, `git show`, `git status`, `gh api`) sind
+unproblematisch; nur `index.lock`/`packed-refs.lock`-Konkurrenz tut weh.
+
+### `.git/info/exclude` verhindert das *Staging*, nicht das *Entstehen* von Core-Dumps
+
+Nachtrag zu obigem Push-Protection-Fall: Ich habe `core.*` in die gemeinsame
+`info/exclude` der xserver-Clone geschrieben. Das hat **Barcley nicht davon
+abgehalten, 30 Core-Dumps zu erzeugen** — es hat nur verhindert, dass sie
+in einen Commit geraten. Zwei verschiedene Schranken, und die billsige ist die
+nicht:
+
+| Massnahme | Wirkt gegen | Wirkt nicht gegen |
+|---|---|---|
+| `core.*` in `.git/info/exclude` | `git add -A` steckt sie ein | `ulimit -c unlimited` erzeugt 30 Dateien à 1,9 MB |
+| `ulimit -c 0` in der Testumgebung | Dateien entstehen gar nicht | ein schon existierender Dump wird nicht entfernt |
+
+Beides zusammen ist die richtige Antwort: `ulimit -c 0` beim absichtlichen
+Reiten von Asserts, `core.*` in `exclude` als Netz. Wer Tests **mit
+Absicht** crashen lässt, produziert sonst 30 MB Mull in einem Worktree, den
+er danach weiter benutzt.
+
+Und die Regel, die ich daraus ziehe und die Barcleys Aufräumen bestätigt:
+**Dumps mit fremdem Umfang stehen lassen.** Er hat zwei Core-Dumps in einem
+Worktree gefunden, die nicht von ihm waren, und nicht angefasst. Genau
+richtig — siehe die Regel zu Fremd-Änderungen im geteilten Baum.
