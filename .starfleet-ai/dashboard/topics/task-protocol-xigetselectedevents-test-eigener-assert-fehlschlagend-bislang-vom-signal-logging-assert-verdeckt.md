@@ -1,73 +1,73 @@
 ---
-title: "protocol_xigetselectedevents_test: Test war nie korrekt - Fake-Devices statt echter, Fremd-Override leakt"
+title: "protocol_xigetselectedevents_test: Test war nie korrekt - Markierung erledigt (#3842), Rewrite offen"
 category: active
 kind: task
-status: assigned
-assigned-to: "Galaxy"
+status: open
+assigned-to: "—"
 tags: "starfleet,xserver,test,xi2"
 ---
 
-## Diagnose (Galaxy, 2026-10-04) — der Assert ist das Symptom
+## Stand 2026-10-04: Teil 1 erledigt, Teil 2 NICHT
 
-Gemeldete Fehlstelle: `test/xi2/protocol-xigetselectedevents.c:95`
+**PR #3842** (https://github.com/X11Libre/xserver/pull/3842) ist die
+*ehrliche Markierung* — **nicht** der Fix.
 
-```
-reply_XIGetSelectedEvents: Assertion `reply.num_masks == test_data.num_masks_expected' failed
-```
+| Commit | Inhalt |
+|---|---|
+| `de2ad82ea8` | XI2-Test deaktiviert, Diagnose im Commit und im Quelltext |
+| `5430160c31` | Harness: leere Testliste meldet `Skipped` statt `Pass` |
 
-Gemessene Ursache — vier Punkte, alle im Test, nicht im Server:
+base `master` @ `9d03c0a6e2`, 2 Commits, 2 Dateien, +41/−75, je ein
+Signed-off-by.
 
-1. Der Test benutzt **gefälschte `DeviceIntRec`-Strukturen** mit hartkodierten
-   IDs. Die echten IDs aus `init_simple()` sind **vcp=2, vck=3, mouse=4,
-   kbd=5** — der Test nimmt 0, 1, 4, 5 …
-2. Er erwartet **6 Masken** (`num_devices + 2`), es existieren aber nur **4
-   echte Geräte**.
-3. Er setzt Masken auf die gefälschten Devices, aber
-   `ProcXIGetSelectedEvents()` liefert Masken **nur für echte Devices**
-   zurück — der Zähler kann nie stimmen.
-4. `wrapped_XISetEventMask` wird nicht korrekt benutzt: der Override aus
-   `protocol-xiselectevents_test` **leakt** in diesen Test hinein.
+**Was #3842 leistet:** CI meldet den Test als `Skipped` statt als `Pass`. Die
+Lücke ist sichtbar, der Build laeuft weiter.
 
-**Konsequenz:** Der Test prüft den XI2-Select-Events-Pfad mit erfundenem
-Device-Zustand, während der Serverpfad aus der globalen Device-Liste liest. In
-dieser Form kann er nicht bestehen. Galaxy empfiehlt einen Rewrite mit echten
-Device-Pointern.
+**Was #3842 ausdruecklich NICHT leistet:** der Test ist unveraendert falsch.
+`ProcXIGetSelectedEvents()` wird weiterhin nicht geprueft. Wer #3842 als
+"XI2-Problem geloest" fuehrt, fuehrt die falsche Buchung — die Coverage-Luecke
+besteht danach genauso wie vorher, nur ehrlich benannt.
 
-## Warum das auf ALEN Zweigen liegt — nicht nur auf master
+## Der Rewrite bleibt offen und ist nicht zugewiesen
 
-Das ist die Folge, die beim Aufgaben nicht sichtbar war:
+Vier Punkte, alle im Test, keiner im Server:
 
-- Auf `master` bricht `signal_logging_test` ab, also laeuft dieser Test nie.
-- Auf 25.0/25.2 meldet der Harness `FAIL` und beendet sich mit 0, also
-  laeuft er ebenfalls nie.
-- Sobald **beides** behoben ist — Harness-Haertung (`#3834`/`#3835`) **und**
-  der `signal_logging`-Assert (`#3833` + Backports) — laeuft der Test auf allen
-  vier Zweigen **zum ersten Mal** und schlaegt dort zu.
+1. gefaelschte `DeviceIntRec` mit IDs 0/1/4/5, echte Geraete aus
+   `init_simple()` liegen auf 2/3/4/5
+2. erwartet 6 Masken bei 4 echten Geraeten
+3. Masken werden auf die falschen Devices gesetzt;
+   `ProcXIGetSelectedEvents()` liefert nur fuer echte
+4. `wrapped_XISetEventMask` aus `protocol_xiselectevents_test` leakt hinein
 
-Er ist also **nicht** ein master-Thema, das man parallel erledigen kann,
-sondern eine Bedingung fuer gruenes CI auf allen Zweigen.
+Sobald `signal_logging` repariert ist (PR **#3833**, weiter offen), laeuft die
+Suite weiter und **alle** Tests nach diesem hier werden sichtbar. Bis dahin ist
+das der naechste Kandidat.
 
-## Zwei Wege, und sie sind nicht gleichwertig
+## Abhaengigkeit, die man nicht uebersehen darf
 
-| | Inhalt | Wirkung |
-|---|---|---|
-| **(i)** | Test mit echten Devices neu schreiben | schliesst die IX2-Luecke, teuer |
-| **(ii)** | Test als "nicht implementiert" markieren, mit Diagnose im Quelltext | CI ehrlich, Luecke sichtbar, billig |
+`#3842` und der `signal_logging`-Assert sind unabhaengige Fehler. `#3842`
+macht den XI2-Test sichtbar-unimplementiert; **#3833** behebt einen echten
+Assert. Sie duerfen nicht gegeneinander verrechnet werden: "der XI2-Test ist
+ja deaktiviert" ist kein Argument gegen #3833, und "der Assert ist ja schon
+per setlocale behoben" war ebenfalls falsch.
 
-Nicht richtig waere, den Test so umzuschreiben, dass er *gruen* wird, ohne zu
-pruefen, ob er damit ueberhaupt noch etwas testet. Ein Rewrite, der die
-Assertion anpasst statt die Ursache, ist derselbe Fehler wie der
-urspruengliche Assert: unerfuellbar behauptet, scheinbar gruen.
+## Reihenfolge fuer den Rewrite
 
-## Aufteilung, wie entschieden
+1. **#3833** auf master mergen (behebt den Assert, haelt die Suite am Laufen)
+2. Rewrite des XI2-Tests mit echten Devices, Basis master, **ein** Commit
+3. **#3842** zuruecknehmen bzw. die Markierung entfernen, sobald der Rewrite
+   steht — sonst bleiben zwei Aussagen über denselben Test im Baum, und die
+   `Skipped`-Zeile im Harness ist dann eine tote Zeile
 
-1. **Galaxy, sofort, klein:** Variante (ii) als **einen** Commit auf master —
-   der Test wird explizit als nicht implementiert markiert, mit der Diagnose
-   und einem Verweis auf diese Zeilen im Quelltext. Damit ist CI ehrlich und
-   der Bau laeuft weiter. Ein Kommentar im Test, kein stilles Weglassen.
-2. **Variante (i), eigener Task:** Rewrite mit echten Devices. Gehoert zu
-   jemandem mit XI2- und Testharness-Kontext, und **nicht** als Nebenschritt.
+Schritt 3 ist der Teil, den man gern vergisst: wer nur 1 und 2 macht, laesst
+eine deaktivierte Testsuite und eine Harness-Sonderbehandlung zurueck, die
+niemand mehr braucht.
 
-Die Langzeitentscheidung (Luecke schliessen oder Luecke als Luecke
-markiert lassen) ist eine Abwaegungsfrage des Maintainers und liegt bei
-McKinley — die Task hier behaelt beide Wege sichtbar.
+## Abnahme-Bedingung fuer den Rewrite (aus Fehlern von heute)
+
+- `XLIBRE_TEST=protocol_xigetselectedevents_test ./tests` **vor** und **nach**
+  dem Fix laufen lassen und beide Exit-Codes **messen** (nicht aus der
+  Verdict-Zeile ablesen — die Says `FAIL` und liefert trotzdem 0)
+- nicht die Assertion anpassen, damit sie gruen wird: pruefen, ob der Test
+  danach noch etwas testet
+- Messweg in den PR-Text, nicht nur ins Commit-Feld
