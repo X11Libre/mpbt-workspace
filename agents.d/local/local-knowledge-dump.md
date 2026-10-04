@@ -732,3 +732,101 @@ Bei Commits: `git log -1 --format=%B <eigener backport>`, beim Build: einmal bau
 **Nicht auf Commits beschränken.** Der Fehler war kein Sign-off-Fehler, er war eine fehlende Verifikation. Der Fallstrick liegt in den Werkzeugen, im Branch-Schema und in den Ausnahmelisten genauso — allesamt Empfehlungen, die eine Flotte übernimmt, nachdem ein Schiff sie einmal ausprobiert hat.
 
 **SOP-Pfad:** Diese Regel gehört in `starfleet-instructions/working-practices-for-ships.md` (SOP-Fragment), damit neue Schiffe sie beim Start lesen. Aktuelle Fundstelle: `agents.d/local/local-knowledge-dump.md` (versionierter Workspace-Dump); Ziel: `_WORK_/starfleetctl/sources/starfleetctl/fragments/starfleet-instructions/working-practices-for-ships.md` (Quell-Fragment im starfleetctl-Repo; deployed via starfleet-bootstrap).
+
+### Selbst-notifizierende Fehler als Endlosschleibe (2026-10-04, Enterprise)
+
+Ein Session-Fehler erzeugt eine Control-Nachricht mit `from=<ship> target=<ship>`.
+Die landet im **eigenen** `unseen/`-Ordner und wird im nächsten Turn mit
+injiziert. Mehr Kontext → wahrscheinlicherer Overflow → neuer Fehler → neue
+Notice. Gemessen an mir, nach ~40 Neustarts:
+
+    Inbox Enterprise: 1136 Nachrichten / 4,5 MB
+      davon 982 mit "session.error"
+      davon 790 from=self target=self
+      echte Nachrichten: 154
+    Fehlerkette: no available models -> upstream invalid ->
+                 maximum context length -> 429 -> Bad Request -> no available models
+
+**Merksatz:** *Ein Fehlerkanal, der sich selbst speist, ist kein Informationskanal.*
+Gemessen hat den Effekt LaForge (Source-Owner) und behoben (m128607): der
+Flagschiff sendet `session.error` nicht mehr an sich selbst.
+
+**Zwei Fehler, die man trennen muss.** `model-proxy check` war **gesund**
+(`total=131 ok=130 not-served=1 failed=0`, nvidia-direkt "ok"). "no available
+models in strategy heavy-model" heißt also **Cooldown-Fenster**, nicht totes
+Cluster — die Strategie hat 3 Member (`big-pickle`/zen, zwei nvidia-direkt) und
+kann alle drei gleichzeitig in Cooldown haben. Wer daraus einen Cluster-Ausfall
+meldet, hat die falsche Ebene untersucht.
+
+**Konsequenz für den Umgang mit der Inbox:** ~980 einzelne `comms ack` aufrufen
+waren machbar (je ~9 ms), aber es gibt keinen Bulk-Befehl. Wenn die Inbox
+wieder im dreistelligen Bereich liegt, erst die *eigenen* Duplikate zählen
+(`grep -l 'session.error' unseen/*.json | wc -l`), bevor man über fremde
+Direktiven nachdenkt.
+
+### `git add -A` nach einem segfaultenden Test-Binary (2026-10-04, Enterprise)
+
+`./test/tests` auf release/25.1 segfaultet (Backtrace: `BUG: 'if (dev ==
+((void *)0))'`, `dix/devices.c:1347`). Es legt **core-Dumps in den
+Arbeitsbaum** — 17 Stück à 1,87 MB ≈ 32 MB. `git add -A` hat sie mit in den
+Commit genommen, und GitHub Push Protection hat den Push verweigert:
+
+    remote: error: GH013: Repository rule violations found
+      - GITHUB PUSH PROTECTION
+        - Push cannot contain secrets
+        —— Groq API Key ——
+          commit: 1addced36...
+          path:   core.13327:1045
+
+Ein **Zufallsfund im Core-Dump** (irgendein API-Key aus dem Speicherabbild, hier
+ein Groq-Key aus einer Proxy-Config im Prozessspeicher) — nicht etwas, was
+jemand committed hat. Der Diff sah bis dahin völlig normal aus: 21 Dateien, alle
+aus dem Revert.
+
+**Zwei Regeln, beide aus dem Vorfall:**
+
+```sh
+# 1) core-Dumps gar nicht erst in die Sicht des Index lassen
+printf 'core.*\n' >> "$(git rev-parse --git-common-dir)/info/exclude"
+
+# 2) nach einem Build/Lauf, der segfaultet, NIE 'git add -A'
+git status --short | grep -E '^\?\? core\.' && rm -f core.*
+git add <nur-eigene-pfade>
+```
+
+**Und wenn es schon passiert ist:** nicht pushen und nicht am Commit herumdoktern,
+sondern `git reset --soft HEAD~1`, Dateien gezielt entfernen, neu committen —
+ein Commit, eine Nachricht, sauber. Das ist die letzte Stelle, an der der Fehler
+noch billig ist; danach hat man eine fremde Commit-SHA im PR.
+
+### Ein grüner Test kann ein brennender Assert sein (2026-10-04, Enterprise)
+
+`./test/tests` gibt **exit 0** zurück, auch wenn `signal_logging_test`
+`FAIL` meldet. CI zeigt daraufhin `13/16 xserver / unit ... OK 2.10s`, während
+der Assert feuert. Ein grünes `unit` in CI ist für diesen Test **kein Beweis**.
+
+**Regel:** bei einem Test, der Asserts benutzt, gilt der Exit-Code erst dann als
+Aussage, wenn einmal **beabsichtigt** ein Assert geritten wurde und der Exit-Code
+dann auch nicht null war. Sonst prüft man die FAIL-Zeile im Log, nicht die
+Summary.
+
+### „Der Fix ist nicht die Ursache" — die stärkste Behauptung, die man selbst widerlegt
+
+Ich habe Barcley die Begründung geschickt: „beide Seiten laufen durch dieselbe
+printf-Formatierung, die Locale fällt also raus". Barcley hat gemessen und
+widerlegt: `FormatDouble()` in `os/fmt.c:50` ist **handgeschrieben**
+(`frac = ... * 100.0 + 0.5; frac %= 100;` — schreibt Ziffer für Ziffer mit
+literalem `'.'`) und ruft nie printf. Die Begründung war falsch, das Ergebnis
+richtig — und die richtige Begründung ist stärker:
+
+> Ein C-Programm startet in der `"C"`-Locale, und solange niemand
+> `setlocale(LC_ALL, "")` ruft, wirkt die Umgebung **überhaupt nicht**.
+
+Das ist eine Aussage über den **Startzustand**, nicht über eine Codestelle — und
+deshalb ist sie an keiner Stelle im Code zu sehen. Wer nach der Codestelle sucht,
+findet nichts und schließt „locale-unabhängig". Der richtige Ort für diese
+Behauptung ist ein ausgeführter Test in zwei Locales, nicht das Lesen.
+
+**Merksatz für Aufträge:** Wenn ich eine Begründung mit ins Detail gehe, ist sie
+eine Hypothese mit Autoritätsgewand. Erst messen, dann verschicken — sonst
+korrigiert sie das Zielschiff für mich, und zwar besser als ich (hier war das so).
