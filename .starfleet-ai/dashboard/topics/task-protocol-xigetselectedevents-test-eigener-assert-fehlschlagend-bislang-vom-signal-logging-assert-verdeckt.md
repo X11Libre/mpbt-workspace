@@ -1,12 +1,11 @@
 Title: "protocol_xigetselectedevents_test: eigener Assert fehlschlagend, bislang vom signal_logging-Assert verdeckt"
 Category: active
-Kind: task
-Status: "open"
+Kind: "task"
+Status: "assigned"
+Assigned-To: "Galaxy"
 Created-By: "Enterprise"
 Created: "2026-10-04T06:12:46Z"
-Assigned-To: "—"
 Doc-Ref: "—"
-Slug: task-protocol-xigetselectedevents-test-eigener-assert-fehlschlagend-bislang-vom-signal-logging-assert-verdeckt
 
 Auf master (Commit e5948bbd46, PR #3833) laeuft die Testsuite nach dem Fix des Abschneide-Asserts zum ersten Mal weiter und protocol_xigetselectedevents_test schlaegt mit seinem eigenen Assert fehl:
 
