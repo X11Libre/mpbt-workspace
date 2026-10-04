@@ -7,65 +7,68 @@ assigned-to: "Barcley"
 tags: "starfleet,xserver,test"
 ---
 
-## KORREKTUR 2026-10-04 (Enterprise): die urspruengliche Praemisse war falsch
+## Stand 2026-10-04: PRs #3834 (25.0) und #3835 (25.2) stehen, Merge offen
 
-Dieser Task wurde zuerst mit der Begruendung erfasst, `./test/tests` gebe
-exit 0 zurueck, obwohl ein Test `FAIL` meldet, und die Reihenfolge der
-PRs haenge daran. **Beides war falsch.** Die Messung hinter der Behauptung
-war ein Messfehler (eine Ausgabe zwischen Lauf und `$?`), und die daraus
-abgeleitete Reihenfolge ist mit dem PR #3832 erledigt.
+| PR | Zweig | Commit | Quelle | Diff |
+|---|---|---|---|---|
+| #3834 | `release/25.0` | `2e0335e7e8` | `b799d88a78` (master) | +1/−1 |
+| #3835 | `release/25.2` | `a2c7e82b33` | `b799d88a78` (master) | +1/−1 |
 
-Gemessen, alle vier Zweige:
+Beide MERGEABLE, 1 Commit, 1 Datei, genau **ein** Sign-off (Originalautor).
+Herkunft ist bewusst der **Master-Original-Commit** `b799d88a78`, nicht der
+25.1-Backport: so zeigen alle drei Zustaende auf **einen** kanonischen
+Ursprung statt rueckwaerts. Commit-Nachricht unveraendert uebernommen, weil
+es keine Abweichung vom Original zu dokumentieren gibt.
 
-| Zweig | `child_failed:` | Exit bei Signaltod |
+## Der Befund, der groesser ist als der Auftrag
+
+Die Messung, mit der die Haertung belegt wurde, sagt mehr als "die Haertung
+tut, was sie soll":
+
+    XLIBRE_TEST=signal_logging_test ./tests
+
+| Zweig | vorher | nachher |
 |---|---|---|
-| `master` | `exit(EXIT_FAILURE)` (Z. 57) | 1 — korrekt |
-| `release/25.1` | `exit(EXIT_FAILURE)` (Z. 30) | 1 — korrekt |
-| `release/25.0` | `exit(exit_code)` (Z. 30) | **stale — latent** |
-| `release/25.2` | `exit(exit_code)` (Z. 30) | **stale — latent** |
+| `release/25.0` | exit 0 | exit **1** |
+| `release/25.2` | exit 0 | exit **1** |
 
-Der Mechanismus auf den betroffenen Zweigen:
+jeweils mit ` FAIL` im Verdict. Auf 25.0 und 25.2 hat der Harness den
+fehlschlagenden Assert also **gemeldet** und sich trotzdem mit 0 beendet.
 
-```c
-            if (!WIFEXITED(csts))
-                goto child_failed;        // springt ueber die Zuweisung
-            exit_code = WEXITSTATUS(csts);
-            if (exit_code != 0) {
-    child_failed:
-                printf(" FAIL\n");
-                exit(exit_code);          // Wert des VORHERIGEN Kindes
-            }
-```
+**Folge:** der `signal_logging`-Assert ist auf **allen drei** Release-Zweigen
+defekt. Auf 25.0/25.2 war er unsichtbar; auf 25.1 wurde er nur deshalb
+sichtbar, weil #3827 die `exit(EXIT_FAILURE)`-Haertung mitgebracht hat.
 
-Ein Kind, das von `assert()` per SIGABRT stirbt, erfuellt `WIFEXITED` nicht,
-also wird `exit_code` nicht zugewiesen. Beim ersten Kind steht dort noch `-1`
-(Exit 255), ab dem zweiten der Status des vorherigen — nach einem erfolgreichen
-Vorgaenger also 0. **Dann geht ein brennender Assert als Erfolg durch.**
+**Damit machen #3834 und #3835 die Zweige, die heute gruen sind, rot** — an
+einem Assert, der nicht von ihnen stammt. Deshalb braucht PR #3833 Backports
+auf **alle drei** Release-Zweige, und die Reihenfolge lautet:
 
-## Warum das praktisch relevant war
+1. #3833 auf master mergen
+2. Backport #3833 auf 25.0, 25.1, 25.2
+3. #3831 mergen (gruen, bleibt gruen)
+4. #3834, #3835, #3832 mergen (jetzt gruen)
 
-`master` hat es bereits behoben: `0bba12d19f` *"test: fail when a child
-terminates abnormally"* hat `exit(exit_code)` auf `exit(EXIT_FAILURE)` umgestellt.
-Dieser Commit kam ueber PR #3827 in die Release-Zweige. Ein wholesale-Revert
-der 15 Fremd-Commits von #3827 haette die Haertung wieder entfernt — genau das
-ist in der ersten Fassung von #3832 passiert und im Review aufgefallen.
-Deshalb revertiert #3832 jetzt nur noch den Buildbrecher `82da0c6c45`.
+## Zustand je Zweig (`child_failed:`)
 
-**Merksatz:** Ein Revert ueber einen Bereich hinweg nimmt auch die *Fixes*
-mit, die in diesem Bereich gelandet sind. „Alles zuruecknehmen, was nicht
-zum Thema gehoert" ist keine guetige Regel, sobald der Bereich gemergt ist —
-danach ist der Bereich Teil des Zweigs, mit Gutem und Schlechtem.
+| Zweig | Variante | Verhalten |
+|---|---|---|
+| `master` | `exit(EXIT_FAILURE)` | exit 1 — korrekt |
+| `release/25.1` | `exit(EXIT_FAILURE)` | exit 1 — korrekt |
+| `release/25.0` | `exit(exit_code)` | stale — latent, wird durch #3834 behoben |
+| `release/25.2` | `exit(exit_code)` | stale — latent, wird durch #3835 behoben |
 
-## Auftrag
+## Merksaetze, die dabei entstanden sind
 
-1. `release/25.0` und `release/25.2`, je **ein** Commit, nichts weiter.
-2. **Variante 2 bevorzugt:** die tote Zuweisung `exit_code = WEXITSTATUS(csts)`
-   bzw. `int exit_code` ersatzlos streichen und immer `exit(EXIT_FAILURE)`
-   nehmen — das macht den Fehler **unmoeglich** statt nur unbeachtet. Variante 1
-   (`exit_code` im Signalpfad selbst setzen, `128 + WTERMSIG(csts)`) ist
-   korrekt, laesst aber die Falle fuer den naechsten stehen.
-3. Nachkontrolle, weil es hier der eigentliche Zweck ist: eine Suite, in der
-   ein Test per Signal stirbt, muss **nicht null** liefern. Einmal mit
-   absichtlich gerittenem Assert pruefen, dann melden — nicht nur bauen.
-4. Fix-Richtung ist Release-Fix, kein master-Thema: auf `master` ist es bereits
-   richtig.
+- **Ein wholesale-Revert ueber einen gemergten Bereich nimmt die Fixes mit.**
+  `0bba12d19f` / `b799d88a78` waren selbst Haertungen und landen mit unter
+  den 15 "Fremd-Commits". Nach dem Merge ist ein Bereich Teil des Zweigs —
+  mit Gutem und Schlechtem.
+- **Der Testlauf, der eine Aenderung beweisen soll, muss gegen den Zustand
+  laufen, in dem der Defekt sichtbar ist.** Ein gruener Lauf beweist fuer
+  einen zurueckgenommenen Haertungsfix gar nichts — er beweist, dass die
+  Haertung fehlt. Genau so ist die erste Fassung von PR #3832 gruen
+  geworden.
+- **Eine Einzelmessung ist keine allgemeine Aussage.** "exit 1 bei FAIL" auf
+  master gemessen und als allgemeine Regel formuliert war auf 25.0/25.2 genau
+  verkehrt herum.
+- **`rc=$?` als naechstes Kommando, nie nach einer Ausgabe.**
