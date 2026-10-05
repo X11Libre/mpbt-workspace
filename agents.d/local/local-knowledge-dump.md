@@ -877,3 +877,88 @@ Und die Regel, die ich daraus ziehe und die Barcleys Aufräumen bestätigt:
 **Dumps mit fremdem Umfang stehen lassen.** Er hat zwei Core-Dumps in einem
 Worktree gefunden, die nicht von ihm waren, und nicht angefasst. Genau
 richtig — siehe die Regel zu Fremd-Änderungen im geteilten Baum.
+
+### Worktrees: Verzeichnis löschen ist nicht abmelden (2026-10-04, Enterprise)
+
+**Die Regel, vom Praetor gegeben und bestaetigt:**
+
+> Ein Verzeichnis zu loeschen ist nicht dasselbe wie einen Worktree abzumulden.
+> Beides muss getan werden - und die Abmeldung in **jedem** Clone, in dem der
+> Worktree registriert ist.
+
+Gemessen, warum sie noetig ist: es gibt **zwei Clones** von X11Libre/xserver,
+jeder mit eigener Registry.
+
+```
+_WORK_/xserver-master/sources/xlibre/xserver   14 Eintraege
+_WORK_/xserver-25.0/sources/xlibre/xserver       4 Eintraege
+```
+
+Ich hatte den ganzen Tag mit dem `xserver-master`-Clone gearbeitet und dort
+auch geloescht. `git worktree list` aus dem 25.0-Clone zeigte die zwei
+Verzeichnisse weiterhin, mit dem Marker `prunable`. Der Nutzer bemerkte es,
+nachdem ich die Loeschung dreimal als vollzogen gemeldet hatte.
+
+**Das Werkzeug ist dabei unzuverlaessig.** `starfleetctl worktree remove`
+lieferte `exit status 128`, liess das Verzeichnis als Waise liegen und
+verlor in vier von sechs Faellen den Branch - **obwohl `--keep-branch`
+gesetzt war**. Zuverlaessig war nur der zweite Schritt:
+
+```sh
+# 1) entfernen (Verzeichnis UND Branch koennen trotz --keep-branch weg)
+starfleetctl worktree remove <repo> <name> --keep-branch || \
+    git -C <worktree> worktree remove --force <worktree>
+
+# 2) in JEDEM betroffenen Clone nachziehen - das ist der Schritt, der fehlt
+for r in $(find . -name .git -maxdepth 6 \( -type f -o -type d \) | sed 's|/\.git$||'); do
+    git -C "$r" worktree prune 2>/dev/null
+done
+
+# 3) Endkontrolle: in keinem Clone darf noch "prunable" stehen
+grep -c prunable <(git -C <repo> worktree list)
+```
+
+**Und die Pruefung geht pro Repository, nicht pro Verzeichnis.** Ich hatte
+ueber jeden Worktree `git worktree list` laufen lassen und elf Treffer fuer
+`ci-dfly-marker` bekommen - es war **ein** Registry, elfmal gezaehlt, weil
+alle Worktrees eines Repos sie teilen.
+
+### Fuenf Messfehler an einem Nachmittag, alle mit derselben Ursache
+
+Die Ursache war jedes Mal: **ein Filter, der "nichts gefunden" und "Fehler"
+als "nichts vorhanden" liest.**
+
+| # | Fehler | Folge |
+|---|---|---|
+| 1 | `git cherry origin/master <branch>` statt gegen den **eigenen Release-Zweig** | 96 bzw. 2901 "eigene Commits" - das war masters Historie, nicht der Branch |
+| 2 | `git cherry` mit **nicht existierendem** Ref, `grep -c '^+'` auf stderr+stdout | `Schwerwiegend: Unbekannter Commit` wurde zu "0 eigene Commits"; haette 186 MB ohne Begruendung geloescht |
+| 3 | `gh pr list --head ""` bei **detached** Worktree | 30 "offene PRs" - leerer Branch matcht alles |
+| 4 | `ahead` als Inhaltsmass | 0 -> 28, 0 -> 15, 0 -> 13, 0 -> 9 nach Rebase auf einen **aelteren** Tip |
+| 5 | Registry-Pruefung pro Verzeichnis statt pro Repository | ein Registry-Eintrag elfmal gezaehlt |
+
+**Faustregel fuer Messungen in Loeschentscheidungen:** `ahead` ist eine
+Zaehlung, kein Inhalt. Der Inhalt ist
+
+```sh
+git rev-parse --verify -q "$branch" || echo "REF FEHLT - nicht fragen"
+git cherry <basis-des-branches> "$branch" | grep -c '^+'
+```
+
+und `basis-des-branches` ist der Release-Zweig, den der Zweig zurueckportiert,
+nicht master. Vor `rm -rf` gehoert der **`git rev-parse --verify` in dieselbe
+Bedingung** wie die Messung, sonst misst man ins Leere.
+
+### Was funktioniert hat, fuer den naechsten Durchgang
+
+1. **Rettungsref vor dem Entfernen** - `git update-ref refs/rescue/removed-<name> <HEAD>`.
+   Kostet nichts und macht den Zustand nachvollziehbar. Heute acht gesetzt.
+2. **Unmittelbar vor dem Eingriff neu messen, nicht die Tabelle abarbeiten.**
+   Zwischen Tabelle und Aktion war `backport-3775-25.0` von `ahead=1` auf 0
+   gegangen, und `ci-dfly-marker` war von einem PR-Stand auf `ununsed` bei
+   master-Tip umgehaengt worden. Beide Male haette die alte Zahl die
+   Entscheidung verdreht.
+3. **Ausgabe und Behauptung trennen.** Ein Skript, das `echo "entfernt"` nach
+   einem fehlgeschlagenen Aufruf druckt, meldet Erfolg, den es nicht gab -
+   passiert mir bei den ersten drei Entfernungen, weil das `echo` ausserhalb
+   der Klammer stand. **Exit-Code pruefen, nicht Exit-Text lesen** - dieselbe
+   Regel wie bei `rc=$?`.
