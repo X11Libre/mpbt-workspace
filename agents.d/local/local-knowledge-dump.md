@@ -962,3 +962,58 @@ Bedingung** wie die Messung, sonst misst man ins Leere.
    passiert mir bei den ersten drei Entfernungen, weil das `echo` ausserhalb
    der Klammer stand. **Exit-Code pruefen, nicht Exit-Text lesen** - dieselbe
    Regel wie bei `rc=$?`.
+
+### Endpunkt existiert != Client benutzt ihn (2026-10-05, Enterprise/Galaxy)
+
+**Die Regel:**
+
+> EIN ENDPUNKT LIEFERT 200 != EIN CLIENT RUFT IHN AUF.
+
+Gemessen, warum sie noetig ist. Ich habe mit `curl` geprueft: `/api/ships`
+liefert live JSON mit Schiffsnamen. Daraus geschlossen: "unsere Schiffsliste
+kommt clientseitig ueber `/api/ships`". **Falsch.** Die ausgelieferte Shell
+referenziert `/api/ships` mit **0** Treffern, `/api/board` mit **4**.
+
+Und der Teil, der die Regel traegt, ist nicht die Zahl:
+
+> Ich hatte meine EIGENE Messung ("0 Referenzen") gelesen und die Behauptung
+> trotzdem behalten - weil die Behauptung interessanter war als die Messung.
+
+Das ist eine neue Fehlerklasse in der Reihe stale Ref / Filter / generierter
+Text: **gemessen wurde ein Objekt, behauptet wurde ein anderer Gegenstand.**
+Verfuegbarkeit von A sagt nichts ueber Verwendung durch B.
+
+**Warum das eine Massnahme falsch weitergetragen haette:** Wer serverseitig
+rendern will, nimmt `/api/board` (liefert `agent`/`state`/`note`/`model`/
+`age_seconds`/`inbox_count` pro Schiff). Wer `/api/ships` nimmt, aendert
+**nichts** - der Client ruft es nie auf. Zusaetzlich: `/api/ship` (singular)
+gibt `405 Method Not Allowed`, das ist eine Schreib-Route. Ein toter Endpunkt
+mit verlockendem Namen ist schlimmer als keiner, weil man ihn benutzt.
+
+**Der Beleg ist die Referenzliste, nicht die Verfuegbarkeit:**
+
+```sh
+grep -oE '/api/[A-Za-z0-9_-]+' shell.html | sort -u    # was der Client ruft
+```
+
+Und die Form, die Galaxy beigesteuert hat - **ein Filter, der weniger findet,
+ist noch kein Befund:**
+
+| Muster | Treffer | was durchfiel |
+|---|---|---|
+| `/api/[a-z]+` **in Anfuehrungszeichen** | 14 | Subpfade (`/api/web/restart`, `/api/topic/<slug>`) und Erwaehnungen in Kommentaren, weil kleingeschriebene Buchstaben + direkter Anschluss verlangt waren |
+| `/api/[A-Za-z0-9_-]+` ohne Quote-Bedingung | 25 | - |
+
+Beide Messungen haben dieselbe Richtung (`/api/ships` fehlt, `/api/board` ist
+da), und 25 vs. 26 ist eine Randfallfrage ohne Bedeutung. **Die Zahl ist nicht
+das Argument, die Richtung ist es.**
+
+Galleys Randnotiz trifft dieselbe Sache von der anderen Seite: er hatte 14
+gemeldet, ohne die Luecke zu bemerken - genau wie ich heute frueh
+"erwartet bleibt konstant" aus einem `MIN()`-Ausdruck gelesen habe. **Ein
+Filter, der weniger findet als vermutet, ist kein Befund, sondern eine offene
+Frage an das Muster.**
+
+Und die Merkform fuer den naechsten Fall: **bevor man eine Behauptung ueber
+Verwendung aufstellt, zaehlt man die Referenzen im Artefakt, das sie
+verwendet.** Ein `curl` gegen den Server beweist Verfuegbarkeit, nie Nutzung.
