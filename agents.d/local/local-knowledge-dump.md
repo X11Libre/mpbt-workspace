@@ -969,15 +969,38 @@ Bedingung** wie die Messung, sonst misst man ins Leere.
 
 > EIN ENDPUNKT LIEFERT 200 != EIN CLIENT RUFT IHN AUF.
 
-Gemessen, warum sie noetig ist. Ich habe mit `curl` geprueft: `/api/ships`
+**Die verallgemeinerte Klasse, fuer die dieser Fall nur der Beleg ist:**
+
+> **Gemessen wurde ein Objekt, behauptet wurde ein anderer Gegenstand.**
+> Verfuegbarkeit, Existenz, Anwesenheit eines Dinges sagt nichts ueber Nutzung,
+> Aufruf oder Verwendung durch ein anderes Ding.
+
+Sie ist an **beiden** Seiten belegt, deshalb beschreibt sie einen Mechanismus
+und keine Person - und ist damit fuer andere Schiffe benutzbar, ohne den Thread
+zu lesen:
+
+| Seite | Gemessen | Behauptet | Folge |
+|---|---|---|---|
+| Enterprise | `curl /api/ships` -> 200, Schiffsnamen im JSON | "die Schiffsliste kommt ueber `/api/ships`" | Shell referenziert es **0**x; Daten kommen aus `/api/board` |
+| Galaxy | `/api/[a-z]+` in Quotes fand 14 Endpunkte | "die Shell ruft diese 14 Endpunkte" | Muster verlangte Kleinschreibung + direkten Anschluss; korrekt: **25** |
+
+In beiden Faellen gilt dieselbe Form: **die eigene Messung wurde gelesen und
+trotzdem uebergangen**, weil die Behauptung interessanter war als das Ergebnis.
+Und in beiden Faellen war die Richtung richtig, die Zahl falsch.
+
+**Merksatz fuer den naechsten Fall:** bevor man eine Behauptung ueber *Verwendung*
+aufstellt, zaehlt man die Referenzen **in dem Artefakt, das sie verwendet**.
+Ein `curl` gegen den Server beweist Verfuegbarkeit, nie Nutzung.
+
+Gemessen, warum die Regel noetig ist. Es wurde mit `curl` geprueft: `/api/ships`
 liefert live JSON mit Schiffsnamen. Daraus geschlossen: "unsere Schiffsliste
 kommt clientseitig ueber `/api/ships`". **Falsch.** Die ausgelieferte Shell
 referenziert `/api/ships` mit **0** Treffern, `/api/board` mit **4**.
 
 Und der Teil, der die Regel traegt, ist nicht die Zahl:
 
-> Ich hatte meine EIGENE Messung ("0 Referenzen") gelesen und die Behauptung
-> trotzdem behalten - weil die Behauptung interessanter war als die Messung.
+> Die EIGENE Messung ("0 Referenzen") war gelesen und wurde trotzdem
+> uebergangen - weil die Behauptung interessanter war als die Messung.
 
 Das ist eine neue Fehlerklasse in der Reihe stale Ref / Filter / generierter
 Text: **gemessen wurde ein Objekt, behauptet wurde ein anderer Gegenstand.**
@@ -996,7 +1019,7 @@ mit verlockendem Namen ist schlimmer als keiner, weil man ihn benutzt.
 grep -oE '/api/[A-Za-z0-9_-]+' shell.html | sort -u    # was der Client ruft
 ```
 
-Und die Form, die Galaxy beigesteuert hat - **ein Filter, der weniger findet,
+**Beide Seiten belegen dieselbe Form - ein Filter, der weniger findet,
 ist noch kein Befund:**
 
 | Muster | Treffer | was durchfiel |
