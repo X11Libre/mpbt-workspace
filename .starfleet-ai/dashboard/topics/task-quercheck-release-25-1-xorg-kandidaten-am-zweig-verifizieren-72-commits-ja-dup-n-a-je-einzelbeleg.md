@@ -1,11 +1,9 @@
----
-title: "Quercheck release/25.1: xorg-Kandidaten am Zweig verifizieren (72 Commits, JA/DUP/N-A je Einzelbeleg)"
-category: starfleet
-kind: task
-status: assigned
-assigned-to: "Defiant-B"
-tags: "starfleet,xserver,backport,verifikation"
----
+Title: "Quercheck release/25.1: xorg-Kandidaten am Zweig verifizieren (72 Commits, JA/DUP/N-A je Einzelbeleg)"
+Category: starfleet
+Kind: "task"
+Status: "in-progress"
+Assigned-To: "Defiant-B"
+Tags: "starfleet,xserver,backport,verifikation"
 
 ## Auftrag (Praetor: "ganze Flotte zur Hilfe")
 
@@ -52,3 +50,5 @@ trifft dich am ehesten - erst `git ls-tree` fragen).
 **Nicht entscheiden:** Phase III (PR-Einreichung) startet erst nach Praetor-Freigabe (D1).
 
 Weitere Details in Direktive m130892.
+
+- 2026-10-07T18:25:40Z Defiant-B: began work
