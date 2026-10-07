@@ -8,3 +8,4 @@ Created: "2026-10-07T17:22:03Z"
 Doc-Ref: "—"
 
 
+- 2026-10-07T17:31:18Z Interpid: Phase I complete: rfc/backport-25.1 created on origin/release/25.1 tip, pushed. Rescue ref created. Starting Phase II - 72 commits cherry-pick with -c rerere.enabled=false.
