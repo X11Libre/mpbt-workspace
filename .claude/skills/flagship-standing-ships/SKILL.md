@@ -104,6 +104,6 @@ submit`), der **genau beschreibt**:
 
 Diese Reports dienen als **Lektionen für später** — wiederkehrende Muster,
 funktionierende Modelle je Aufgabe, do's/don'ts beim Respawn. Wichtige
-generalisierbare Erkenntnisse zusätzlich in die `agents.d/local/` knowledge
+generalisierbare Erkenntnisse zusätzlich in die `sop.d/local/` knowledge
 dump ablegen bzw. als SOP-Fragment promoten, wenn sie sich als stabil
 erweisen.

@@ -6,7 +6,7 @@ order: 10
 
 ## Local knowledge dump
 
-This directory (`agents.d/local/`) is a **local dumping ground** for
+This directory (`sop.d/local/`) is a **local dumping ground** for
 insights, discoveries, quirks, and conventions learned during agent
 sessions — anything that doesn't yet belong in the structured
 `project/`, `starfleet/`, or eventual `xlibre/` taxonomies.
@@ -24,9 +24,15 @@ sessions — anything that doesn't yet belong in the structured
 3. **Promotion path.** When a local insight proves itself stable
    (survived multiple sessions, referenced from other fragments), it
    should be moved to the appropriate taxonomy directory:
-   - `agents.d/starfleet-instructions/` — fleet coordination, comms, workflow
-   - `agents.d/xlibre/`   — mpbt-workspace, build system, project rules
-   - `agents.d/xlibre/`    — X server, drivers, protocol (future)
+   - `sop.d/xlibre/`   — mpbt-workspace, build system, project rules
+   - `sop.d/xlibre/`    — X server, drivers, protocol (future)
+   - fleet-wide rules → starfleetctl source fragments
+     (`_WORK_/starfleetctl/sources/starfleetctl/fragments/starfleet-instructions/`,
+     owner: LaForge, deployed via `starfleet-bootstrap`)
+   
+   Note: `sop.d/starfleet-instructions/` is **tool-owned** (slug prefix
+   `starfleet-instructions/` resolves into `.starfleet-ai/var/sop.d/`,
+   overwritten by `sop install-starfleet`) — never put user fragments there.
 
 4. **On `mtx/agent-config`, auto-commit applies** — changes here are
    committed and pushed automatically per the auto-commit policy.
@@ -34,7 +40,7 @@ sessions — anything that doesn't yet belong in the structured
 ## Automatic feedback loop
 
 After each (non-trivial) task, check your session for lessons learned and
-add new entries here in the agents.d/local/ directory.
+add new entries here in the sop.d/local/ directory.
 
 If you needed extra code (scripts, etc) for driving existing starfleet commands
 (eg. github functions), analyze whether starfleetctl could use new commands
@@ -508,10 +514,10 @@ Wort („geregasten"). Beides per `grep` nach dem Schreiben und noch einmal vor
      `sudo connmanctl technologies` — rein lesend, braucht das sudo-Passwort des Praetors.
 - **Detail bleibt gültig:** Docker-Bridges/Routen (172.17/16, 172.18/16, 172.66/16) bleiben auch
   nach Daemon-Stopp im Kernel (linkdown).
-- **Fundort-Hinweis:** diese Datei liegt unter `agents.d/` im Workspace und ist versioniert; die
-  gleichnamige Kopie unter `.starfleet-ai/var/agents.d/` ist **ephemeral** (`.starfleet-ai/.gitignore`
-  enthält `/var/`) und überlebt kein `starfleet-bootstrap`. Wissen, das dauerhaft sein soll,
-  gehört hierher, nicht dorthin.
+- **Fundort-Hinweis:** diese Datei liegt unter `sop.d/local/` im Workspace und ist versioniert
+  (nur `sop.d/` und `CLAUDE.md`/`index.md` sind die SOP-Dateien; `.starfleet-ai/var/` ist
+  per `.starfleet-ai/.gitignore` (`/var/`) ephemeral und überlebt kein `starfleet-bootstrap`).
+  Wissen, das dauerhaft sein soll, gehört nach `sop.d/`, nicht nach `.starfleet-ai/var/`.
 
 ### Comms / Dashboard
 - **`comms tell <ship> -F - <<EOF` ist KEINE Syntax** — es gibt kein `-F`-Flag; `-F`/`-` werden als literaltext versendet, stdin heredoc wird ignoriert (`comms msgs --json` zeigt dann `text: "-F -"`). Mehrzeilige Bodies IMMER mit `comms tell <ship> --stdin <<'EOF' ... EOF` (oder `--attach <f>`). Gleiches für `broadcast --stdin`.
@@ -731,7 +737,7 @@ Bei Commits: `git log -1 --format=%B <eigener backport>`, beim Build: einmal bau
 
 **Nicht auf Commits beschränken.** Der Fehler war kein Sign-off-Fehler, er war eine fehlende Verifikation. Der Fallstrick liegt in den Werkzeugen, im Branch-Schema und in den Ausnahmelisten genauso — allesamt Empfehlungen, die eine Flotte übernimmt, nachdem ein Schiff sie einmal ausprobiert hat.
 
-**SOP-Pfad:** Diese Regel gehört in `starfleet-instructions/working-practices-for-ships.md` (SOP-Fragment), damit neue Schiffe sie beim Start lesen. Aktuelle Fundstelle: `agents.d/local/local-knowledge-dump.md` (versionierter Workspace-Dump); Ziel: `_WORK_/starfleetctl/sources/starfleetctl/fragments/starfleet-instructions/working-practices-for-ships.md` (Quell-Fragment im starfleetctl-Repo; deployed via starfleet-bootstrap).
+**SOP-Pfad:** Diese Regel gehört in `starfleet-instructions/working-practices-for-ships.md` (SOP-Fragment), damit neue Schiffe sie beim Start lesen. Aktuelle Fundstelle: `sop.d/local/local-knowledge-dump.md` (versionierter Workspace-Dump); Ziel: `_WORK_/starfleetctl/sources/starfleetctl/fragments/starfleet-instructions/working-practices-for-ships.md` (Quell-Fragment im starfleetctl-Repo; deployed via starfleet-bootstrap).
 
 ### Selbst-notifizierende Fehler als Endlosschleibe (2026-10-04, Enterprise)
 

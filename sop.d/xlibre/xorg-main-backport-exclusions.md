@@ -1,3 +1,9 @@
+---
+slug: xlibre/xorg-main-backport-exclusions
+title: "xorg/main Backport — Auslassungs-Konvention"
+order: 0
+---
+
 # xorg/main Backport — Auslassungs-Konvention
 
 Versioniertes Verzeichnis der **bewusst ausgelassenen** `xorg/main`-Commits im
@@ -6,7 +12,7 @@ xorg/main-Backport-Workflow (siehe Skill `backport-xorg-main`).
 Dieses File ist der dauerhafte, versionierte Anker für den Zustand "bewusst
 ausgelassen" — der im Branch-Modell keine eigene Spur hat (gemergt faellt via
 Rebase aus der Queue, offener PR trägt `[PR #NNNN]`, Auslassung ist sonst
-unsichtbar). Es lebt im Workspace-Repo (`agents.d/`), nicht in einem Clone und
+unsichtbar). Es lebt im Workspace-Repo (`sop.d/`), nicht in einem Clone und
 nicht im Incubator, damit Rebase/Force-Push es nicht zerstören.
 
 ## Regeln

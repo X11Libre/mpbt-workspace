@@ -118,7 +118,7 @@ Commit-Message, es bleibt technisch kein Platz für einen Verweis.
 
 **Kanonische Ablage ist eine versionierte Datei im Workspace:**
 
-    agents.d/xlibre/xorg-main-backport-exclusions.md
+    sop.d/xlibre/xorg-main-backport-exclusions.md
 
 Format: eine Zeile pro ausgelassenem Commit, `<sha>  <subject>  — <begründung>`, angehängt pro
 Lauf, nie überschrieben. Pro Target ein eigener Abschnitt.

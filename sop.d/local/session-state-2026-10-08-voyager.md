@@ -1,6 +1,7 @@
 ---
 slug: local/session-state-2026-10-08-voyager
 title: "Session-State Voyager — 2026-10-08 (Web-Frontend-Reparatur)"
+order: 0
 ---
 
 # Session-State Voyager — 2026-10-08
@@ -78,5 +79,5 @@ parst (`node --check`); 0x `'''`; headless Chromium: render + click(Overlay) +
 - Repo-Source (LaForge-Hoheit, nur lesen): `_WORK_/starfleetctl/sources/starfleetctl`
 - Deployter Clone: `.starfleet-ai/src/starfleetctl` (Bootstrap: git pull origin/master)
 - Web-Frontend: `internal/web/index.html` (go:embed, EIN `<script>`-Block)
-- Lessons dieses Vorfalls: `agents.d/local/local-knowledge-dump.md` (drei neue Abschnitte)
-- State-Fragment fuer Enterprise: `agents.d/local/session-state-2026-09-16-1930.md` (Vorgaenger)
+- Lessons dieses Vorfalls: `sop.d/local/local-knowledge-dump.md` (drei neue Abschnitte)
+- State-Fragment fuer Enterprise: `sop.d/local/session-state-2026-09-16-1930.md` (Vorgaenger)

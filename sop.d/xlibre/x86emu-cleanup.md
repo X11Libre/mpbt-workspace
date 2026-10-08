@@ -1,6 +1,7 @@
 ---
 slug: xlibre/x86emu-cleanup
 title: "x86emu incremental cleanup — safety reference"
+order: 0
 ---
 
 # x86emu incremental cleanup — Safety Reference

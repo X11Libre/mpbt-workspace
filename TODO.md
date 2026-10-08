@@ -55,7 +55,7 @@ starfleet 2o:
 mpbt workspace:
 ---------------
 
-[ ] agents.d: dopplungen mit starfleet skills
-[ ] agents.d: dort liegen noch files from starfleet
+[ ] agents.d: dopplungen mit starfleet skills (offen — beim Migrations-Cleanups gezielt pruefen)
+[x] agents.d: vollstaendig nach sop.d/ migriert (2026-10-08) — agents.d/ ist leer; neue Fragmente gehoeren nach sop.d/
 [x] bug 2026-07-29: ordentlich beendetes schiff (lokaler agent mit /quit beendet) bleibt weiter auf dem board (Phoenix) → fixed in starfleetctl master 0425454: RunTermctl OnExit cleanup heartbeat + name + pipe
 

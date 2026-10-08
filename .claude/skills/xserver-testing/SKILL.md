@@ -141,4 +141,4 @@ pkill -f "simple-xinit :99"
 
 ## Reference
 
-See also: `agents.d/xlibre/simple-xinit-for-testing.md` in the workspace.
+See also: `sop.d/xlibre/simple-xinit-for-testing.md` in the workspace.

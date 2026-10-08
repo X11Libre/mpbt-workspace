@@ -333,7 +333,7 @@ heraus.
 
 ## Wo die Auslassungen dokumentiert sind
 
-Kanonisch ist **`agents.d/xlibre/xorg-main-backport-exclusions.md`** im Workspace,
+Kanonisch ist **`sop.d/xlibre/xorg-main-backport-exclusions.md`** im Workspace,
 versioniert auf `mtx/agent-config`. Nicht in `_WORK_/` — das ist nicht versioniert und
 überlebt keinen Reset. Nicht im Inkubator — `.backport-skips` wurde verworfen, weil eine
 Datei auf einem geteilten, gepushten und gelegentlich neu aufgesetzten Branch
@@ -361,7 +361,7 @@ Patch-Äquivalenz ist nicht inhaltliche Enthaltenheit. Beispiel aus dem aktuelle
 Upstream-Gegenstück zu unserem gemergten PR #3750 (`482f7b326d`). `git cherry` meldet es als
 fehlend, weil unser Fix ein eigener Patch ist und kein Cherry-Pick. Inhaltlich deckt unser Fix
 das ab und ist der vollständigere, weil er den `calloc`-Guard mitbringt. Solche Commits gehören
-ausgelassen und **in `agents.d/xlibre/xorg-main-backport-exclusions.md` begründet** —
+ausgelassen und **in `sop.d/xlibre/xorg-main-backport-exclusions.md` begründet** —
 nicht eingereicht und später bereinigt. Dateiformat und die Begründung, warum die
 Ablage versioniert und nicht im Inkubator liegt, stehen im Router unter
 „Auslassungen festhalten“. Die Auslassungsentscheidung gehört **vor** den Lauf.

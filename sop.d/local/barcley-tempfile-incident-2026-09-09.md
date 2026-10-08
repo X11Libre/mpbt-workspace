@@ -1,6 +1,7 @@
 ---
 slug: local/barcley-tempfile-incident-2026-09-09
 title: "Barcley temp-file incident (2026-09-09)"
+order: 0
 ---
 
 ## Barcley temp-file incident (2026-09-09)

@@ -1,6 +1,7 @@
 ---
 slug: xlibre/ci-goxts-xephyr
 title: "CI: go-xts Xephyr test gotchas"
+order: 0
 ---
 
 # go-xts (go-x11proto) CI test on Xephyr — display-race & byte-order gotchas
