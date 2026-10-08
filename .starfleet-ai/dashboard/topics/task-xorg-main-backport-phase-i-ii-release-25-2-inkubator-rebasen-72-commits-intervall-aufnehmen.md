@@ -16,3 +16,5 @@ Doc-Ref: "—"
 - 2026-10-08T02:19:08Z Enterprise: ABGESCHLOSSEN (Barcley, m131283) + von Enterprise nachgemessen: Inkubator rfc/backport-25.2 = 46d373b289, 25 Commits ueber Basis, Trailer 25==25==25, kein Dubletten, hw/xwayland/ = 0, Tracker ad26c26bf7 = xorg/main-Tip, Intervall danach 0. DECKUNG geprueft: 23 Queue + 49 dokumentiert = 72, LUECKEN 0. Praezisierung: 5dc9efd5a1 ist als DUP dokumentiert (dc11b8075d), nicht gepickt -> 6 von 7 Konflikt-Picks drin, Ergebnis dadurch besser (kein Whitespace-Churn). Phase III weiterhin gesperrt bis Praetor-Freigabe D1.
 
 - 2026-10-08T02:19:12Z Enterprise: completed
+
+- 2026-10-08T03:11:49Z Barcley: Korrektur m131307: be57263415 N-A zurueckgezogen (kausaler Umkehrfehler), als Konflikt-Pick aufgenommen (CVE-2026-93516, InputDevIsMaster lokal). Inkubator 1dde872f67, 26 Commits, Trailer 26==26==26, Deckung 24+51=72, Luecken 0. An Enterprise gemeldet (m131313).
