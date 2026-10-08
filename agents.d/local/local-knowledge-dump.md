@@ -1040,3 +1040,105 @@ Frage an das Muster.**
 Und die Merkform fuer den naechsten Fall: **bevor man eine Behauptung ueber
 Verwendung aufstellt, zaehlt man die Referenzen im Artefakt, das sie
 verwendet.** Ein `curl` gegen den Server beweist Verfuegbarkeit, nie Nutzung.
+
+## Web-Frontend escAttr-Vorfall (2026-10-08) — ein 200 beweist kein lauffaehiges JS
+
+Vom Praetor gemeldet: "webfrontend zeigt keine schiffe mehr an und es laesst sich
+nix anclicken." Gemessen: HTTP 200 auf `/`, `/api/board` liefert volles JSON —
+trotzdem bleibt das Board leer.
+
+**Ursache 1 (kritisch) — HTML-Entity-Decoding zerstoerte ein JS-String-Literal.**
+`internal/web/index.html` ist EIN inline `<script>`-Block. Commit `1a23e4b`
+(2026-10-06, "add URL linkification") hat die Zeile
+
+    function escAttr(s){ return esc(s).replace(/"/g,'&quot;').replace(/'/g,'&#39;'); }
+
+zu
+
+    function escAttr(s){ return esc(s).replace(/"/g,'"').replace(/'/g,'''); }
+
+gemacht — `&quot;`/`&#39;` wurden zu ihren dekodierten Zeichen. Der Editor/Filter,
+der den Code in HTML-Kontext gelesen hat, hat ihn dabei zerstoert. Drei
+Hochkommata -> SyntaxError -> **der ganze Script-Block parst nicht** -> kein
+`refresh()`, keine Click-Handler, keine Daten. HTML+CSS rendern weiter, die Seite
+ist eine Leiche. Deshalb sagt jede HTTP-Pruefung "gesund".
+
+**Detektion, die es faengt** (im Repo als Script, siehe unten):
+
+    curl -s http://127.0.0.1:8080/ | grep -c "'''"        # muss 0 sein
+    # Script-Block extrahieren und parsen:
+    node --check <(python3 -c "import re,sys; \
+      print(re.findall(r'<script[^>]*>(.*?)</script>', open('index.html').read(), re.S)[0])")
+
+`node --check` ist der eigentliche Test; die `'''`-Suche ist nur der schnelle
+Vorwarn-Indikator fuer genau diesen Fehler.
+
+**Ursache 2 (Folgfehler derselben Aenderung) — Doppelt-Escaping.**
+`linkifyURLs()` bekam das bereits `esc()`te HTML-Markup und escaped erneut, also
+wurde jedes `&` in einer URL doppelt escaped:
+
+    Eingabe: http://ex.com/?a=1&b=2
+    vorher : href="http://ex.com/?a=1&amp;amp;b=2"   -> Browser zeigt "&amp;"
+    nachher: href="http://ex.com/?a=1&amp;b=2"       -> korrekt
+
+Fix: `linkifyURLs()` arbeitet auf ROHEText und escaped jedes Stueck genau einmal
+(`esc` fuer Text, `escAttr` fuer den href); `linkifyAttach()` uebergibt die rohen
+Slices zwischen den Attach-Markern. Der Kommentar ueber `linkifyAttach` beschreibt
+diesen Vertrag bereits ("escapes every piece it emits itself ... exactly once") —
+`linkifyURLs` folgt ihm jetzt auch.
+
+Commits: `5f0bdfc` (escAttr) und `a781d43` (linkify-Doppelt-Escaping), beide
+signiert, auf origin/master, deployed.
+
+**Wiederverwendbare Pruefung.** `scripts/web-frontend-check.sh [base-url]`
+prueft in drei Schichten: (1) HTTP 200 auf `/` + JSON-APIs, (2) der AUSGELIEFERTE
+Stand parst als JS und traegt die bekannten Fixes, (3) ein echter headless
+Chromium rendert, klickt ein Schiff an, schliesst es per `history.back()` und
+wechselt einen Tab. `scripts/web-frontend-browser-check.mjs` ist Teil 3 allein
+(CDP ueber das node-Modul `ws`, kein Puppeteer noetig). Exit 0 = gesund.
+
+Die Lektion steht in derselben Reihe wie "ein gruener Test kann ein brennender
+Assert sein": **ein 200 ist das Symptom eines lebenden Servers, nicht eines
+lauffaehigen Clients.** Wer nur den Statuscode prueft, verpasst die
+Leichen-Klasse komplett.
+
+## `.starfleet-ai/var/` ist ephemeral — die termctl-FIFOs leben dort
+
+Nach einem versehentlichen Wipe von `.starfleet-ai` (2026-10-08) waren die
+Terminals ALLER weiterlaufenden Schiffe unerreichbar: `/api/ship/<name>/screen`,
+`/dimensions` und `/x11term` gaben 404 `no running terminal for <name>`.
+
+**Warum:** Der Terminalleser ist `session.resolvePipe()` und sucht
+`.starfleet-ai/var/ships/<ship>.pipe` (`session.PipePath`). Das ist ein
+**FIFO** (`syscall.Mkfifo`), das der termctl-Server des jeweiligen Schiffs beim
+Start selbst anlegt (`control.go: fifoCtrl.open` -> `os.Remove(path)` +
+`mkfifo`). `.starfleet-ai/var/` ist per `.gitignore` nicht versioniert, ein
+Restore aus Git holt also **conf/dashboard/topics** zurueck, aber **nicht** die
+Pipes/Logs.
+
+**Die Falle:** ein FIFO extern neu anzulegen hilft NICHT. Der laufende Server
+haelt seinen eigenen Inode offen; ein neu erzeugtes FIFO am selben Pfad ist ein
+ANDERER Inode — ein neuer Writer landet bei ENXIO ("no reader"). Der Server
+besitzt das FIFO fuer seine Lebensdauer (`lifecycle` raeumt es beim Exit weg).
+Es gibt keinen Reconnect.
+
+**Konsequenz:** Verlorene Pipes sind nur durch **Neustart der Schiffssession**
+zu reparieren (`session stop` + `ship-run`) — das kostet den Agent-Kontext.
+`var/` also wie ein fluechtiges Laufzeitverzeichnis behandeln: nicht loeschen,
+nicht "aufraeumen", und bei einem `.starfleet-ai`-Wipe wissen, dass die
+Terminals danach tot sind, bis die Schiffe neu starten.
+
+**Zwei getrennte Schranken — wieder dieselbe Unterscheidung wie bei core-Dumps:**
+eine Massnahme gegen das *Entstehen* (hier: var/ nicht loeschen) und eine gegen
+das *Verlieren* (Backup). Ein Restore aus Git deckt nur die versionierten Teile
+(`conf/`, `dashboard/topics/`, SOPs) — nicht `var/`.
+
+## Modell-Liste im Formular leer = `/api/models` 503 = conf/model-proxy.yaml weg
+
+Beim selben Wipe war das Modell-Dropdown im "neues Schiff starten"-Formular leer.
+`loadModels()` ruft `/api/models`; der Handler ruft
+`modelproxy.ProxyModelInfos(root)` -> `modelproxy.Load(root)` und liest
+`.starfleet-ai/conf/model-proxy.yaml` (via `config.go`). Fehlt die Datei,
+liefert `ProxyModelInfos` nil -> `503 no model proxy configuration`. Das ist
+KEIN Frontend-Fehler, sondern fehlende Konfiguration. Nach Restore von `conf/`
+sofort wieder 200 — ohne Deploy, ohne Restart (der Handler liest pro Request).
