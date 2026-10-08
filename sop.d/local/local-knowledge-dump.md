@@ -519,6 +519,24 @@ Wort („geregasten"). Beides per `grep` nach dem Schreiben und noch einmal vor
   per `.starfleet-ai/.gitignore` (`/var/`) ephemeral und überlebt kein `starfleet-bootstrap`).
   Wissen, das dauerhaft sein soll, gehört nach `sop.d/`, nicht nach `.starfleet-ai/var/`.
 
+### Allow-listed ≠ erlaubt — /tmp bleibt verboten (Praetor, 2026-10-08)
+
+`/tmp/opencode/*` steht in der opencode-Permission-Liste als allow-listed — **das ist ein
+Tool-Allowlist-Eintrag, keine Projekterlaubnis.** Die Workspace-Regel (`xlibre/architecture`)
+gilt weiter: nie `/tmp` oder andere Temp-Verzeichnisse außerhalb des Workspaces, eigene unter
+`_WORK_/` (Vergleichs-Dumps sogar `_WORK_/<projekt>/tmp/`, siehe Barcley-Incident).
+
+Belegt: ich schrieb ein `sop show`-Output nach `/tmp/opencode/excl.md`. Gefunden wurden 344 MB
+Altlasten aus zwei Wochen Arbeit mehrerer Schiffe in genau diesem Verzeichnis. Aufgefäumt:
+21 heutige Dateien nach `_WORK_/tmp/opencode-rescue-20261008/` gerettet (einschließlich
+`job-3859-ubuntu.log`, `taken.txt`, `meson-setup.log` — potenziell fremde laufende Arbeit,
+also retten VOR dem Löschen), Rest gelöscht. `/tmp/opencode/` ist jetzt leer.
+
+**Merksatz:** Was die Permission-Liste *darf*, ist nicht das, was die Projektregel *will*.
+Zweite Ebene: `/tmp`-Inhalte können fremder, aktiver Zustand sein — vor `rm` nach heutigen
+mtimes filtern und retten, nicht blind löschen. Und `/tmp/attachment_*.txt` (Comms-Cache,
+Tool-erzeugt) gehört NICHT angefasst.
+
 ### Comms / Dashboard
 - **`comms tell <ship> -F - <<EOF` ist KEINE Syntax** — es gibt kein `-F`-Flag; `-F`/`-` werden als literaltext versendet, stdin heredoc wird ignoriert (`comms msgs --json` zeigt dann `text: "-F -"`). Mehrzeilige Bodies IMMER mit `comms tell <ship> --stdin <<'EOF' ... EOF` (oder `--attach <f>`). Gleiches für `broadcast --stdin`.
 
