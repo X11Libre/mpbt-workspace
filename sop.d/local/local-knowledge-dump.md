@@ -1167,3 +1167,55 @@ laden. Die Kosten des Ladens sind Sekunden; die Kosten des Fehlversuchs sind
 ein Run-Turn plus eine Korrekturmeldung ans Flagschiff. Nicht "das Nächstliegende
 ausprobieren und dann nachschlagen" — die Skills sind genau fuer diesen Moment
 geschrieben. Dasselbe gilt fuer `backport-*`, `pr-repair` und `starfleet-github`.
+
+### Geschlossener PR ist nicht verloren — Close-Grund lesen; Cherry-Pick braucht Prerequisite-Messung (2026-10-08, XL-0)
+
+Zwei Fehler an einem einzigen Backport, beide mit derselben Wurzel: **ein
+Zustand wurde gelesen und trotzdem falsch weitergegeben.**
+
+**Fehler 1: "closed unmerged" = "verloren, nachholen".** Enterprise's Spawn-Liste
+nannte misyncfd als offenen Einzel-Backport; ich mass `git log --grep` (Fix fehlt
+auf 25.0), eröffnete PR #3866 — und erst die **NACHRICHT AUF DEM ORIGINAL-PR** gab
+den Grund: metux hatte #3675 am 15.09. bewusst geschlossen: *"the consensus seems
+this isn't needed / relevant for release branches."* Der Close war eine
+**Entscheidung**, kein Unfall. Ein geschlossener PR ist kein verlorener PR, bevor
+man seinen Close-Kommentar gelesen hat:
+
+```sh
+gh pr view <nr> --json comments,state -q '.comments[] | "\(.author.login): \(.body)"'
+```
+
+**Fehler 2: Cherry-Pick ohne Prerequisite-Messung.** Der Fix 950ed3f56c baut auf
+`852128f18` ("Don't leak the screen private" — registriert den Key mit
+`sizeof(SyncFdScreenPrivateRec)`, also Preallocation). Auf release/25.0 NICHT
+vorhanden (gemessen: `git merge-base --is-ancestor 852128f18 origin/release/25.0`
+-> exit 1). Folge: Key-Size 0, `dixLookupPrivate()` liefert NULL, der gecherry-pickte
+`if (priv->funcs.version <= 0)` dereferenziert NULL -> SIGSEGV. Der Bug selbst
+**existiert auf 25.0 nicht** (ohne Preallocation liefern uninitialisierte Screens
+NULL, die `if (!priv)`-Guards greifen) — das ist genau der "N-A"-Fall des
+backport-ours-Skills: **Voraussetzung fehlt im Zielbaum**.
+
+**Was den Fehler sichtbar gemacht hat (in dieser Reihenfolge):**
+1. Geschwister-PR #3858 auf demselben Base: `xserver-build-ubuntu` = **PASS** —
+   die rote Lane war also NICHT Infra (und NICHT XL-2's apt-404-Fall).
+2. A/B-Messung lokal: mit Patch -> FAIL mit `Segmentation fault at address 0x10`
+   (byte-identische Signatur zu CI); `git checkout origin/release/25.0 -- <file>`
+   + ninja -> **OK**. Der Vergleich mit dem Zielzweig statt mit dem eigenen
+   Glauben war der eigentliche Beweis.
+3. Close-Kommentar des Original-PRs als dritter, unabhängiger Beleg.
+
+**Merksatz 1:** *Ein Close-Grund ist Teil des Stands, nicht Beiwerk.* Er wird in
+einer Vermessung als "closed" abgekürzt — und genau die Abkürzung erzeugt den
+Fehlschluss "verloren".
+
+**Merksatz 2:** *Ein Cherry-Pick misst zwei Baumhöhen: den Patch UND seine
+Voraussetzung.* `git log --grep` beweist nur, dass der Patch fehlt — nicht, dass
+er fehlen darf. Vor dem Pick: `git log -1 --format=%B <quelle>` lesen (die
+Commit-Message nennt oft die Abhängigkeit wörtlich: "852128f18 made the screen
+private preallocated") und die Abhängigkeit gegen `origin/<ziel>` messen.
+
+**Und die positive Seite:** die rote CI war in diesem Fall **richtig rot** — sie
+hat genau das gefangen, was die lokale `-Dwerror`-Prüfung nicht sehen konnte
+(krasher erst zur Laufzeit). "Nicht retryen, nicht am Code herumsuchen" (XL-2's
+Hinweis) gilt nur, wenn man den eigenen Patch als Ursache ausgeschlossen hat;
+das geht am schnellsten mit dem Geschwister-PR als Kontrollmessung.
