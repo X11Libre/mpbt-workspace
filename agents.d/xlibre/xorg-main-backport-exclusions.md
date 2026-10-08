@@ -133,3 +133,13 @@ den Releases (war es doch, Messung: 42 Einträge auf 25.2).
 | `da72833185` | damage: Unlink a damage from the list it was actually inserted on | DUP | Lauf 2026-10-07, Ziel 25.2. `pListDrawable` existiert auf 25.2 in `miext/damage/damagestr.h` und `miext/damage/damage.c` (8 Vorkommen); `DamagePtr *pListHead` existiert mit 0 Treffern. Unser Fix #3813 ist bereits gemergt. Aufnehmen wuerde ein Duplikat erzeugen. |
 | `cf91b97d6c` | Xi: byte-swap DeviceChanged valuator and scroll data | DUP | Lauf 2026-10-07, Ziel 25.2. `SDeviceChangedEvent()` in `Xext/xinput/extinit.c` enthaelt den `XIScrollClass`-Case identisch mit den swapl/swaps aus diesem Commit (`scroll_type`, `flags`, `increment.integral`, `increment.frac`). Die Byte-Swap-Umschaltung fuer ScrollClass existiert also bereits auf 25.2. |
 
+
+| `bdb14dce4b` | xkb: Guard XkbAdjustGroup() against a keymap with no groups | DUP | xkb-Serie (`Guard XkbAdjustGroup` = `ef301a19b5`), bereits auf `release/25.2`. |
+| `8e11715024` | xkb: Default to one group whenever a keymap reports none | DUP | `Default to one group` = `ae9edc74fd`, bereits auf `release/25.2`. |
+| `aa0bc93d27` | xkb: Never recompute a keymap's group count down to zero | DUP | `Never recompute a keymap's group count down to zero` = `43573b91ad`, bereits auf `release/25.2`. |
+| `0c764d98ee` | xkb: Keep the group counts of a loaded keymap in range | DUP | `Keep the group counts of a loaded keymap in range` = `3c7e4e3cf3`, bereits auf `release/25.2`. |
+| `8033c4d93e` | Xi: byte-swap XIQueryDevice ScrollClass flags | DUP | ScrollClass-Byte-Swap-Fix ist auf `release/25.2` bereits enthalten. |
+| `e19e86c29f` | modesetting: save cursor in master's sprite_priv instead of slave's | DUP | `msGetSpritePriv()` ist auf `release/25.2` bereits als Funktion vorhanden, nicht mehr als Makro — der Commit wandelt das Makro in eine Funktion mit GetMaster()/IsFloating-Umschreibung um, und die Funktion + drei Aufrufe existieren dort (`drmmode_display.c:5011`, `:5047`, `:5060`). |
+| `d307f3b4ec` | glx: Allow disabling DRI glx backends | DUP | Die Option existiert auf `release/25.2` bereits: `meson_options.txt:41` `option('glx_dri', ...)` **und** `:44` `option('glx', type: 'boolean', value: true)`. Der Commit fuehrt genau diese Option ein, die hier schon steht. |
+| `b522485155` | glamor/glamor_egl: Add a fallback path to `glamor_gbm_bo_from_pixmap` | DUP | Der Fallback-Block existiert auf `release/25.2` vollstaendig: `eglExportDMABUFImageQueryMESA`/`eglExportDMABUFImageMESA` (4 Treffer in `glamor/glamor_egl.c`), `GBM_MAX_PLANES` (20 Treffer), und der Branch `if (ret || !glamor_egl->has_image_dma_buf_export)` (Zeile 863). `glamor_gbm_bo_from_pixmap_internal` existiert als Funktion (Zeile 841). |
+
