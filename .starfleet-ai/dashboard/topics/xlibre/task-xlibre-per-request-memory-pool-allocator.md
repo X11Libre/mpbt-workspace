@@ -1,12 +1,11 @@
 Title: "xlibre: per-request memory pool allocator"
 Category: xlibre
-Kind: task
+Kind: "task"
 Status: "open"
+Assigned-To: "—"
 Created-By: "McKinley"
 Created: "2026-10-08T16:03:28Z"
-Assigned-To: "—"
 Doc-Ref: "—"
-Slug: xlibre/task-xlibre-per-request-memory-pool-allocator
 
 1. add a generic pool allocator:
 --> put it into os/ subdir -> new source and header files
@@ -17,7 +16,7 @@ Slug: xlibre/task-xlibre-per-request-memory-pool-allocator
   * void xlibre_pool_destroy(x_mempool_t *pool)
     --> destroy the whole pool, along with all allocated chunks
     --> clear out the struct, so it's unitialized again (zero-init approach)
-
+  * also a version of alloc allows passing an additional destructor proc, which is called before actual deletion.
 2. add an x_mempool_t to ClientRec (at the end, mark it as private)  
 --> serves as per-request pool
 --> clear it again when finished processing a request (and before going to the next one)
