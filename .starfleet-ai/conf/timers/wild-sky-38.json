@@ -1,0 +1,19 @@
+{
+  "id": "wild-sky-38",
+  "description": "Web-Frontend-Waechter: HTTP + JS-Parse (escAttr-Regression)",
+  "owner": "Enterprise",
+  "target": {
+    "type": "ship",
+    "value": "Enterprise"
+  },
+  "type": "ship",
+  "text": "Web-Frontend-Check (Voyager/LaForge-Regression-Waechter nach dem escAttr-Bug vom 07.10.): (1) Listener: ss -ltnp | grep 8080. (2) HTTP: curl -m3 -o /dev/null -w '%{http_code}' http://127.0.0.1:8080/ und http://192.168.1.132:8080/ (beide muessen 200 sein). (3) JS-FUNKTIONSTEST, weil 200 NICHTS ueber lauffaehiges JS sagt: curl -s http://127.0.0.1:8080/ | grep -c \"'''\" -\u003e muss 0 ergeben (der escAttr-Bug vom Commit 1a23e4b erzeugte dort 3 Treffer und laesst die Seite als Leiche stehen: HTML rendert, keine Buttons klickbar); zusaetzlich falls node da: extrahierten \u003cscript\u003e-Block ueber node --check. MELDEN nur bei FEHLER (Listener weg, Code != 200, '''-Treffer != 0, node-Fehler) an comms tell McKinley UND comms tell Voyager mit Messwerten + Vorschlag 'starfleetctl web restart'. Bei allem gruen: still bleiben.",
+  "schedule": {
+    "type": "interval",
+    "interval_sec": 1800
+  },
+  "persistent": true,
+  "enabled": true,
+  "created_at": 1791396222,
+  "next_fire": 1791432223
+}
