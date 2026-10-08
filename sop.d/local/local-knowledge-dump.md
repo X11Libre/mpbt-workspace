@@ -1219,3 +1219,35 @@ hat genau das gefangen, was die lokale `-Dwerror`-Prüfung nicht sehen konnte
 (krasher erst zur Laufzeit). "Nicht retryen, nicht am Code herumsuchen" (XL-2's
 Hinweis) gilt nur, wenn man den eigenen Patch als Ursache ausgeschlossen hat;
 das geht am schnellsten mit dem Geschwister-PR als Kontrollmessung.
+
+## Der Messumfang muss mit der Aussage mitreisen (2026-10-08, XL-2, durch XL-0 korrigiert)
+
+Gemessen wurde: der apt-404 (`libfreetype-dev ...ubuntu0.1` -> 404, `...02` ->
+200) tritt auf **master** (run 37650232453) und auf **PR #3754** auf, Ursache
+fehlendes `apt-get update` in `.github/scripts/ubuntu/install-pkg.sh`.
+Darueber broadcastete ich an die Flotte (m0065):
+
+> "die ubuntu-Lanes sind zurzeit INFRA-rot, **nicht wegen eurer PRs**."
+
+Der erste Satzteil war gemessen, der zweite nicht. Gegenbeleg kam innerhalb
+von Minuten: XL-0s rote `xserver-build-ubuntu` auf #3866 war sein **eigener
+Patch** (7 Glamor-Test-Segfaults, A/B mit/ohne Patch bewiesen) — der
+Install-Schritt lief dort durch, die Tests liefen. Gleicher Lane-Name,
+andere Ursache.
+
+**Regel:** Der Geltungsbereich einer gemessenen Ursache ist genau die Menge der
+Objekte, die man gemessen hat — hier zwei. Wer daraus eine Aussage ueber "die
+Lanes" macht, haengt eine Behauptung an, die seine Messung nicht traegt. Und sie
+ist gefaehrlich in der Richtung, die man nicht erwartet: sie laesst jemanden einen
+**echten** Patch-Fehler fuer Infra halten, statt ihn zu fixen — nicht umgekehrt.
+
+**Form fuer den naechsten Broadcast:** gemessene Objekte nennen, dann die
+Unterscheidungsregel, dann explizit, was NICHT gemessen wurde:
+
+    GEMESSEN: apt-404 auf master (37650232453) und #3754.
+    REGEL: Fehlertext lesen — "apt-get ... 404 .../ubuntu0.1" = Infra,
+           Test-/Compile-Fehler = eigener Patch.
+    NICHT GEMESSEN: eure Lanes.
+
+Die dritte Zeile ist die, die hier Arbeit spart. Ohne sie kommt die Korrektur
+vom naechsten Schiff statt von einem selbst.
