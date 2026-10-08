@@ -1269,3 +1269,21 @@ Unterscheidungsregel, dann explizit, was NICHT gemessen wurde:
 
 Die dritte Zeile ist die, die hier Arbeit spart. Ohne sie kommt die Korrektur
 vom naechsten Schiff statt von einem selbst.
+
+### Modell-Proxy niemals direkt killen oder stoppen (gelernt 2026-10-08)
+
+Beim Arbeiten am starfleetctl model-proxy niemals den Prozess direkt mit `kill` oder `systemctl stop` beenden.
+Stets den offiziellen Befehl verwenden: `./.starfleet-ai/bin/starfleetctl model-proxy restart`
+
+**Warum:** 
+- Der model-proxy Prozess wird vom starfleetctl System verwaltet
+- Direktes Killen kann zu inkonsistenten Zuständen führen
+- Der offizielle restart Befehl stellt sicher, dass alle Ressourcen korrekt freigegeben und neu initialisiert werden
+- Dies verhindert Probleme wie hängende Verbindungen, nicht freigegebene Ressourcen oder inkonsistente Zustände
+
+**Korrekte Vorgehensweise:**
+1. Für einen Neustart: `./.starfleet-ai/bin/starfleetctl model-proxy restart`
+2. Für einen Stop: `./.starfleet-ai/bin/starfleetctl model-proxy stop`  
+3. Für einen Start: `./.starfleet-ai/bin/starfleetctl model-proxy start`
+
+Nie direkt mit `kill`, `pkill` oder `systemctl` arbeiten.
