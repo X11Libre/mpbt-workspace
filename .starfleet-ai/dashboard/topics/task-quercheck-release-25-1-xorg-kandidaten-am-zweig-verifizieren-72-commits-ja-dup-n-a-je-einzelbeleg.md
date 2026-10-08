@@ -54,3 +54,5 @@ Weitere Details in Direktive m130892.
 - 2026-10-07T18:25:40Z Defiant-B: began work
 
 - 2026-10-07T18:25:46Z Defiant-B: Intervall SELBST GEMESSEN: origin/tracking/xorg/main-on-25.1=867976ba87 bis xorg/main=ad26c26bf7 -> rev-list --count = 72 (nach git fetch xorg main). READ-ONLY: rfc/backport-25.1 tabu (Interpid), kein Pick, kein Push.
+
+- 2026-10-08T00:29:03Z Defiant: --stdin
