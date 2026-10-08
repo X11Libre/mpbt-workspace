@@ -1,0 +1,62 @@
+Message-ID: <r-1791461291582349231@starfleet>
+Date: 2026-10-08T14:08:11+02:00
+From: XL-0
+Subject: xorg/main-Backport 25.0 Phase III: Freigabe 24-Commits (5 CVE) — Entscheidung erforderlich
+Task-Ref: task-xorg-main-backport-phase-i-ii-release-25-0-inkubator-anlegen-72-commits-intervall-aufnehmen
+Created: 2026-10-08T14:08:11+02:00
+
+# Entscheidung erforderlich — Phase III des xorg/main-Backports auf release/25.0
+
+## Entscheidungspunkt
+
+Freigabe für **Phase III**: Einreichen der 24 aufgenommenen Commits aus dem Inkubator
+`rfc/backport-25.0` (`9078c564a0`) als thematisch gruppierte PRs gegen `release/25.0`.
+
+## Optionen
+
+**A) Phase III komplett freigeben — 24 Commits in ~8 thematischen PRs (Empfehlung).**
+Pro: Intervall danach nur noch von offenen PRs abhängig; 5 CVE-Fixes und 19 weitere
+Bugfixes reviewbar gebündelt nach Thema/MR-Herkunft. Contra: Review-Last für den
+Maintainer an einem Tag.
+
+**B) Zuerst nur die 5 Security-Commits (xorg MR 2341), Rest als zweite Welle.**
+Pro: CVE-2026-93516/93519/93523/93524/93536 (client-auslösbare UAFs/OOB) zuerst auf dem
+Release-Zweig. Contra: zwei Durchläufe, zweites Marker-/Ledger-Risiko.
+
+**C) Halten, manuellen Sichtcheck vorab.**
+Pro: kein Risiko bei heiklen Picks. Contra: die Picks sind bereits gebaut, getrailer und
+verifiziert — ein Sichtcheck bringt wenig zusätzliche Sicherheit.
+
+## Status-Ecke
+
+- Tracker `tracking/xorg/main-on-25.0` = `ad26c26bf7` = **xorg/main**, Intervall **0**
+- Inkubator `rfc/backport-25.0` = `9078c564a0` = 24 Commits über `release/25.0` (`8c14928742`)
+- Kandidaten: **24** (davon **5 CVE-Security**-Fixes, 19 allg. Bugfixes: UAF/NULL-deref/
+  OOB/Overflow/Crash/Compat)
+- Auslassungen: **48**, versioniert in `sop.d/xlibre/xorg-main-backport-exclusions.md`
+  (Lauf-Block 2026-10-08; enthält zwei Korrekturen: `efcfd8acc7` war fälschlich NEIN —
+  ist CVE-2026-93536 und aufgenommen; `3c62ee0c78` ist für 25.0 jetzt DUP über PR #3867)
+- Verifikation: Trailer 24/24 `Signed-off-by` (Original-Autor) + `Part-of` + cherry-pick;
+  Build `-Dwerror=true` = nur die 4 dokumentierten lokalen 25.0-Vorbestände
+  (A/B gegen Basis identisch); Inkubator/Tracker FF gepusht, keine Merge-Nodes
+
+## Geplante PR-Gruppierung (Option A)
+
+1. Security-Batch xorg MR 2341: `be57263415` + `1f42cc1f00` + `efcfd8acc7` + `37a1847a60`
+   (+ ggf. `0d1b1b0bad`/`cea71d0273`, falls dieselbe MR-Gruppe)
+2. xkb-Gruppe (MR 2304): `bad7edcab0` + `6a4fb12019` + `cea71d0273` + `89101a6c66` + `b941a473e0`
+3. glamor-Gruppe: `a66b0286b3` + `41b3d993ba` + `2b9ce9f6c6` + `b522485155` + `5422247702` + `ad26c26bf7`
+4. SIGBUS/SHM: `7a0b3e2197` + `cd083d9659`
+5. modesetting/DPMS/ephyr: `f37bd8de26` + `975453b1aa` + `a5ec3570e1` + `3660f54fbd`
+6. Einzel-Commits: `2abe4632d7`, `1b6955c310` (je einzeln oder passend gruppiert)
+
+Erster Schritt nach Freigabe laut Skill: **ein einzelner Probe-PR** (Ledger/Marker-Mechanik
+prüfen), danach Fortsetzung. Marker `[PR #NNNN]` pro eingereichtem Commit; kein Push auf
+`release/25.0` außer via PR.
+
+## Was nach der Entscheidung passiert
+
+- Option A: `scripts/xx-make-pr.sh` schrittweise, Probe-PR zuerst, Marker-Ledger je PR
+  prüfen, CI je PR; Meldung mit PR-Liste.
+- Option B: erst MR-2341-Batch, zweite Welle nach eurem Go.
+- Option C: kein Schritt, Inkubator bleibt gepusht liegen.

@@ -1,0 +1,84 @@
+Message-ID: <r-1791456667758598222@starfleet>
+Date: 2026-10-08T12:51:07+02:00
+From: XL-2
+Subject: Entscheidung erforderlich: PR #3754 — 26-Commit-Inkubator vs. Einzel-PR, und ein false-green signal_logging_test auf release/25.2
+Task-Ref: xlibre-false-green-25-2-signal-logging-harness-masks-assert
+Created: 2026-10-08T12:51:07+02:00
+
+# Entscheidung erforderlich: PR #3754 merge-faehig machen — aber was genau ist #3754?
+
+## Entscheidungspunkt
+
+PR #3754 (`rfc/backport-25.2` -> `release/25.2`) ist nach dem apt-CI-Fix und
+meinem Inkubator-Rebase nicht mehr infra-rot, sondern **inhaltlich rot**. Vor
+einem Merge muss entschieden werden, was #3754 ueberhaupt ist — der Titel
+beschreibt einen Commit, der Diff enthaelt 26.
+
+## Gemessener Ist-Zustand
+
+| Messung | Befehl / Quelle | Ergebnis |
+|---|---|---|
+| Base gruen | `gh run view 37759563763` (release/25.2 @ 9729789b28) | `xserver-build-ubuntu` **SUCCESS**, `-no-gbm` **SUCCESS** |
+| PR rot | `gh pr checks 3754` | `xserver-build-ubuntu` + `-no-gbm` **FAIL** (2 Lanes, 2 Runs) |
+| Fehlerursache | Job-Log 113267714838 | `13/16 xserver / unit FAIL`, `signal_logging_test... FAIL`, `test/signal-logging.c:214 ... strcmp(&logmsg[strlen(logmsg)-3], "en\n") == 0 failed` |
+| Umfang von #3754 | `gh pr view 3754 --json commits` | **26 Commits, +2071/-108, 44 Dateien** |
+| davon schon separat eingereicht | Incubator-Marker | 5: `[PR #3565]`, `[PR #3570]`(CLOSED), `[PR #3853]`, `[PR #3854]`, `[PR #3855]` |
+
+Ursache der roten Lanes: der Inkubator-Commit `c108385bb4 test: fail when a
+child terminates abnormally` (xorg MR 2293) ersetzt `exit(exit_code)` durch
+`exit(EXIT_FAILURE)` in `test/tests-common.c`. `exit_code` trug bisher den
+Exit-Code des **vorigen** Kindes, also 0 — der fehlschlagende
+`signal_logging_test`-Assert wurde maskiert. Die Haertung macht den Fehler
+sichtbar. Der Assert schlaegt **auf der Base genauso** schlag, dort ist er nur
+unsichtbar.
+
+Zusaetzlich: die separaten PRs fuer diese Haertung wurden **geschlossen, nicht
+gemergt** (#3835 release/25.2 CLOSED 2026-10-05, #3834 release/25.0 CLOSED).
+Und #3836 (locale-assert-Fix, gemergt 2026-10-05 auf 25.2) greift fuer diesen
+Fall **nicht** — der Assert schlaegt weiter.
+
+Dashboard-Topic dazu: `xlibre-false-green-25-2-signal-logging-harness-masks-assert`.
+
+## Optionen
+
+**A (Empfehlung): Zwei Schritte statt einem.**
+Erst `signal_logging_test` auf release/25.2 wirklich reparieren (die erwartete
+Truncation `....en\\n` greift nicht, obwohl `setlocale(LC_ALL,"C")` gesetzt ist),
+als eigener kleiner PR. Danach #3754 in seine Einzelteile zerlegen und die 21
+unmarkierten Commits als thematische Einzel-PRs einreichen (Phase III),
+inklusive `c108385bb4`.
+_+ gruene CI ist dann ehrlich; + Review bleibt pro Thema pruefbar;
+- dauert laenger, braucht einen Debug-Lauf am Test._
+
+**B: #3754 jetzt als Ganzes merge'n.**
+_+ sofort frei; - 26 Commits in einem Rutsch auf einen Release-Zweig, davon 5
+doppelt zu bereits offenen PRs; - der rote Assert bleibt unbehoben, die Lanes
+bleiben rot, weil die Haertung den Fehler ja gerade sichtbar macht (=> ein
+Merge wuerde die Lanes weiter rot lassen, nicht gruen)._
+
+**C: Haertung `c108385bb4` aus dem Inkubator zurueckhalten** (WIP-Kriterium mit
+Fortsetzungsbedingung in der Auslassungsliste), Rest von Phase III einreichen.
+_+ Lanes gruen; - der Fehler bleibt maskiert, und die Fortsetzungsbedingung
+muss explizit festgehalten werden, sonst waere die Auslassung unsichtbar._
+
+**Nicht waehlbar: weiter abwarten.** Der Infra-Teil ist erledigt; die Rotung
+kommt ab hier aus dem Inhalt.
+
+## Status-Ecke
+
+- Tracker `tracking/xorg/main-on-25.2` = `ad26c26bf7` = xorg/main, **0 Rueckstand**.
+- Inkubator `rfc/backport-25.2` = `1512d9132b`, auf `release/25.2@9729789b28`
+  gerebastet, 26 Commits, Rescue-Ref `refs/rescue/xl2-rfc-backport-25.2-pre-rebase-20261008`.
+- Alle 26 Commits: Signed-off-by 26, Part-of 26 (Pflicht erfuellt).
+- Offene Einzel-PRs gegen 25.2: #3865 #3856 #3855 #3854 #3853 #3754 #3652 #3649 #3565 #3239.
+- Phase-III-Uebergabe von Galaxy steht weiterhin aus (m0053).
+
+## Was nach der Entscheidung passiert
+
+Bei A: (1) Signal-Logging-Debug, kleiner PR gegen release/25.2, (2) danach
+Phase III: die 21 unmarkierten Commits thematisch gruppieren und mit
+`xx-make-pr.sh` einzeln einreichen, `[PR #NNNN]`-Ledger pflegen, (3) #3754
+schliessen (er ist die Incubator-Queue selbst, kein inhaltlicher PR).
+Bei B: `gh pr merge 3754 --rebase`, danach Ledger bereinigen.
+Bei C: `c108385bb4` per `rebase --onto` aus dem Inkubator nehmen,
+Auslassungszeile mit Kriterium + Fortsetzungsbedingung schreiben, Rest einreichen.

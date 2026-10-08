@@ -1,8 +1,19 @@
 # Ephemeral runtime directories (not persisted to git)
 /comms/
 /logs/
-/var/
-/term-pipes/
+/var/comms/
+/var/logs/
+/var/term-pipes/
+/var/ships/
+/var/log/
+/var/files/
+/var/sop.d/
+/var/timers/
+/var/tmp/
+/var/model-health.json
+/var/model-proxy.pid
+/var/web.pid
+/var/model-proxy.pid
 
 # Runtime state files
 /DASHBOARD.md
