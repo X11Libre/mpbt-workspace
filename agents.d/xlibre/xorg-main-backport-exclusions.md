@@ -129,3 +129,7 @@ Auslass-Kriterien, `.backport-skips`-Vorschlag), ist keine Evidenz, sie ist
 eine Hypothese. Gegen eine Messung halten, nie übernehmen. Das galt beim
 `-Dwerror=false`-Fehler und bei der Annahme, `test/pyxtest` sei nicht auf
 den Releases (war es doch, Messung: 42 Einträge auf 25.2).
+| `4ef1b4cd26` | RegionValidate: Fix double free of badreg->data on the error path | DUP | Lauf 2026-10-07, Ziel 25.2. Der Fix `badreg->data = NULL` steht auf 25.2 bereits in `dix/region.c:1318` (eingefuehrt durch Backport #3805 / unser #3794). Der Commit ist auf 25.2 **patch-identisch** anwendbar, aber der Inhalt ist bereits vorhanden. |
+| `da72833185` | damage: Unlink a damage from the list it was actually inserted on | DUP | Lauf 2026-10-07, Ziel 25.2. `pListDrawable` existiert auf 25.2 in `miext/damage/damagestr.h` und `miext/damage/damage.c` (8 Vorkommen); `DamagePtr *pListHead` existiert mit 0 Treffern. Unser Fix #3813 ist bereits gemergt. Aufnehmen wuerde ein Duplikat erzeugen. |
+| `cf91b97d6c` | Xi: byte-swap DeviceChanged valuator and scroll data | DUP | Lauf 2026-10-07, Ziel 25.2. `SDeviceChangedEvent()` in `Xext/xinput/extinit.c` enthaelt den `XIScrollClass`-Case identisch mit den swapl/swaps aus diesem Commit (`scroll_type`, `flags`, `increment.integral`, `increment.frac`). Die Byte-Swap-Umschaltung fuer ScrollClass existiert also bereits auf 25.2. |
+
