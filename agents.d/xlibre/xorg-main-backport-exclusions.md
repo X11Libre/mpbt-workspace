@@ -149,3 +149,17 @@ den Releases (war es doch, Messung: 42 Einträge auf 25.2).
 | `5422247702` | Fix incorrect uses of GLAMOR_HAS_GBM | N-A | Lauf 2026-10-07, Ziel 25.2. Der Commit tauscht `#ifdef GLAMOR_HAS_GBM` gegen `#ifdef DRI2` in `hw/xfree86/drivers/modesetting/{dri2.c,driver.c}` (upstream-Pfade). Bei uns auf 25.2: `GLAMOR_HAS_GBM` = **0 Treffer** in `video/modesetting/dri2.c` UND `driver.c` (wir haben dort `#ifdef GLAMOR`); die drei Dateien mit `GLAMOR_HAS_GBM` bei uns sind `glamor/glamor_egl.c`, `glamor/glamor_egl_priv.h`, `include/meson.build` — die faellt der Commit NICHT an. Entscheidung: N/A. **Hinweis fuer 25.1:** dort stehen `GLAMOR_HAS_GBM` 2x in dri2.c und 12x in driver.c — Commit dort anwendbar. Zwei Zweige, zwei Antworten. |
 
 | `5dc9efd5a1` | randr: fix size and offset in RRChangeProviderProperty PrependMode | DUP | Lauf 2026-10-07, Ziel 25.2. Auf `Xext/randr/rrproviderproperty.c` steht der Fix bereits: `new_value.size = total_len` (Zeile 186) und `memcpy((char *) new_data, (char *) value, len * size_in_bytes)` (Zeile 207) — die beiden Lebensadern des Commits. Der Cherry-Pick scheitert nur noch am Whitespace einer Zeile; die Wirkung ist da. |
+
+| `ddf3edc368` | test/pyxtest: cover unbounded DEVICE_RESOLUTION SwapLongs | NEIN | Nur Test-Coverage zu einem bereits enthaltenen Fix (d509580d02). Release-Regel: Test-Churn nicht auf Release. |
+| `18dbde8971` | Xi: test XIQueryDevice values for relative scroll valuators | NEIN | Nur Test-Zusatz, kein Bugfix. Release-Regel: nur Bugfixes. |
+| `3983c7408c` | meson: convert remaining `foo == a or foo == b` to `foo in [a, b]` style | NEIN | Stil/Refactoring. Release-Regel: kein Stil/Refactoring. |
+| `350ef434af` | xfree86: fix modesetting symbols leak test | NEIN | Test-Fix, kein Produktiv-Bugfix. |
+| `cd79f876b1` | pyxtest: abstract the present xclients | NEIN | Test-Refactoring. |
+| `f8af92cac4` | config: remove the fdi2iclass.py script | NEIN | Skript-Entfernung/Cleanup. |
+| `5b22bb635b` | Generalize glamor dependencies | NEIN | Refactoring (Feature-Test-Verallgemeinerung). |
+| `a0eec5417c` | Remove redundant define | NEIN | Cleanup/Refactoring. |
+| `61e546b113` | Generalize GBM feature tests | NEIN | Test-Refactoring. |
+| `797221a3a9` | Generalize epoxy feature tests | NEIN | Test-Refactoring. |
+| `1fcee9582d` | Expose libxcvt availability to compiled code | NEIN | Build-Plumbing, kein Bugfix. |
+| `effe0ba3cd` | test: cover an incomplete keymap in XkbGetKbdByName | NEIN | Test-Zusatz zum aufgenommenen Fix 6a4fb12019, kein eigener Bugfix. |
+| `efcfd8acc7` | Xi: clean up gesture sprite traces in WindowGone | NEIN | Cleanup, kein Befehl auf Release-Zweig. |
