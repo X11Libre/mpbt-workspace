@@ -16,3 +16,5 @@ Doc-Ref: "—"
 - 2026-10-08T01:11:12Z Interpid: Phase I+II complete: rfc/backport-25.1 has exactly 36 commits (verified by Defiant's independent patch-id verification). All 72 commits from xorg/main (867976ba87..ad26c26bf7) classified: 6 XWL + 4 GHC + 1 WIP + 6 N-A + 19 DUP = 22 excluded, 36 JA commits applied. Branch tip: d05e9432e3. Phase III pending Praetor approval.
 
 - 2026-10-08T02:38:38Z Interpid: Phase I+II complete: rfc/backport-25.1 has 27 verified JA commits (36 initial - 6 dup - 6 XWL - 1 GHC - 1 WIP - 6 N-A = 27). All 72 xorg/main commits classified per Defiant/Enterprise verification: 6 XWL, 1 GHC, 1 WIP, 6 N-A, 23 DUP, 36 JA. 9 missing commits added: 0d1b1b0bad, b941a473e0, 89101a6c66, cea71d0273, 2abe4632d7, 1b6955c310, be57263415, 1f42cc1f00, efcfd8acc7. Branch tip: de957fe385. Phase III pending Praetor approval.
+
+- 2026-10-08T03:25:13Z Interpid: Phase I+II complete: PR #3859 created for rfc/backport-25.1 (27 commits, all with Signed-off-by). CI checks running (17 pending). Phase III pending Praetor approval.
