@@ -312,3 +312,54 @@ im Source.
 Report mit `starfleetctl reports submit ... --task-ref <slug>`, Body mit den Messwerten
 statt Behauptungen. Antwort auf comms an den Absender **und** an McKinley (die
 web-console), wenn die Web-Oberfläche betroffen ist.
+
+## 5. Modell-Proxy niemals direkt killen — immer starfleetctl model-proxy restart
+
+Der **model-proxy** ist ein eigener Daemon (Port 8443), der vom starfleetctl verwaltet wird.
+Er läuft unabhängig vom Web-Daemon und dem Timer-Daemon.
+
+**Niemals den model-proxy-Prozess direkt mit `kill`, `pkill` oder `systemctl stop` beenden.**
+Immer den offiziellen Befehl verwenden:
+
+```sh
+./.starfleet-ai/bin/starfleetctl model-proxy restart   # Neustart
+./.starfleet-ai/bin/starfleetctl model-proxy stop      # Stop
+./.starfleet-ai/bin/starfleetctl model-proxy start     # Start
+```
+
+**Warum:**
+- Der model-proxy wird vom starfleetctl System verwaltet (gleiche Mechanik wie web/timer Daemons)
+- Direktes Killen kann zu inkonsistenten Zuständen führen (verbliebene Sockets, nicht freigegebene Ressourcen, hängende Verbindungen)
+- Der offizielle restart Befehl stellt sicher, dass alle Ressourcen korrekt freigegeben und neu initialisiert werden
+- Er lädt die aktuelle Config (`.starfleet-ai/conf/model-proxy.yaml`) und wendet sie sauber an
+
+**Wann model-proxy restart nötig ist:**
+- Nach Änderungen an `.starfleet-ai/conf/model-proxy.yaml` (Timeouts, Provider, Strategies, etc.)
+- Nach Änderungen am model-proxy Go-Code, die einen Neustart erfordern
+- Wenn der Proxy unansprechbar wird (selten, aber möglich)
+
+**Reihenfolge bei Änderungen am model-proxy:**
+```sh
+cd _WORK_/starfleetctl/sources/starfleetctl
+make all                    # baut Binary neu
+./starfleet-bootstrap       # deployed Binary + installiert Fragmente
+./.starfleet-ai/bin/starfleetctl model-proxy restart  # startet Proxy mit neuer Config/Code neu
+```
+
+**Wichtig:** Ein reines `model-proxy restart` ohne `make all` + `bootstrap` reicht **nur** für reine Config-Änderungen (yaml). Bei Go-Code-Änderungen muss das Binary neu gebaut und deployed werden.
+
+**Falsch:** `kill -9 <pid>`, `pkill -f model-proxy`, `systemctl stop model-proxy` — diese Umgehungen führen zu inkonsistenten Zuständen und werden vom System nicht als ordentlicher Restart registriert.
+
+**Verifikation nach model-proxy restart:**
+```sh
+# 1. Läuft der Daemon mit dem neuen Binary?
+ps -eo pid,etimes,cmd | grep 'model-proxy' | grep -v grep
+
+# 2. Ist die Config geladen?
+curl -s http://127.0.0.1:8443/v1/health
+
+# 3. Sind die Modelle verfügbar?
+./.starfleet-ai/bin/starfleetctl model-proxy check
+```
+
+Die Ausgabe muss `served: true` und `status: ok` für alle Provider zeigen.
