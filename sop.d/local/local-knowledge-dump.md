@@ -1148,3 +1148,22 @@ Beim selben Wipe war das Modell-Dropdown im "neues Schiff starten"-Formular leer
 liefert `ProxyModelInfos` nil -> `503 no model proxy configuration`. Das ist
 KEIN Frontend-Fehler, sondern fehlende Konfiguration. Nach Restore von `conf/`
 sofort wieder 200 — ohne Deploy, ohne Restart (der Handler liest pro Request).
+
+## Skill VOR dem ersten Versuch laden, nicht nach dem Fehlschlag (2026-10-08, XL-2)
+
+Ein rotes Lane-Problem bei PR #3754 (release/25.2): ich habe zuerst
+`gh run rerun --failed` angestossen und **danach** den `ci-platform`-Skill
+geladen, der exakt diesen Fall dokumentiert: *"`gh run rerun --failed` CANNOT
+recover a cache eviction (skips fetch-pkg). Use a FULL `gh run rerun <id>`."*
+
+Der Fehlschlag war programmiert: `--failed` skippt `ubuntu-fetch-pkg`, also den
+einzigen Job, der den aus evictionierten Cache bei einem Miss neu speichert.
+Symptom im Log: `Failed to restore cache entry. Exiting as fail-on-cache-miss
+is set. Input key: Linux-apt-cache-v4` — also kein Code-Fehler, sondern genau
+der Eviction-Fall.
+
+**Regel:** Bevor eine rote CI-Lane angefasst wird, den `ci-platform`-Skill
+laden. Die Kosten des Ladens sind Sekunden; die Kosten des Fehlversuchs sind
+ein Run-Turn plus eine Korrekturmeldung ans Flagschiff. Nicht "das Nächstliegende
+ausprobieren und dann nachschlagen" — die Skills sind genau fuer diesen Moment
+geschrieben. Dasselbe gilt fuer `backport-*`, `pr-repair` und `starfleet-github`.
