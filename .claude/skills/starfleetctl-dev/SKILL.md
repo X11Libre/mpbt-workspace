@@ -549,3 +549,4 @@ Wenn du die Daemons nicht neu startest, läuft das alte Binary weiter trotz neu 
 Wenn du nicht verifizierst, kannst du fälschlicherweise denken alles würde funktionieren, obwohl es das alte Binary ausführt.
 
 Dieser Workflow stellt sicher, dass deine Änderungen korrekt an die Flotte gelangen und dass du immer weißt, welcher Stand gerade aktiv ist.
+
