@@ -1,12 +1,11 @@
 Title: "model-proxy Refactoring: Multi-Layer Provider-Architektur (Pipes & Filters)"
 Category: planning
-Kind: task
+Kind: "task"
 Status: "open"
+Assigned-To: "—"
 Created-By: "Enterprise"
 Created: "2026-10-09T07:50:01Z"
-Assigned-To: "—"
 Doc-Ref: "—"
-Slug: planning/task-model-proxy-refactoring-multi-layer-provider-architektur-pipes-filters
 
 Design/Planung fuer die Neustrukturierung des starfleetctl model-proxy in eine mehrstufige Pipeline.
 
@@ -20,3 +19,5 @@ Bereits diskutierte Design-Entscheidungen:
 - Modell-Rewrite (m["model"]=model) wird eigene Pipeline-Stufe statt Closure in forwardChat.
 
 Naechster Schritt: weitere Design-Details + Implementierung (Phasen 1-7 im Report). LaForges Hoheit (starfleetctl-Source).
+
+- 2026-10-09T07:52:14Z Enterprise: Design-Korrektur: Turn ist REIN transport-agnostische Parameter-Struktur zum Starten eines Turns — kennt weder HTTP noch andere Transports. Start(cancel, turn) liefert ein EIGENES State/Connection-Objekt, aus dem gelesen wird (Status/Reader/Chunks/Meta). Transport-Meta (path/method/remoteAddr/Header/Request-ID/SSE-Framing) bleibt im jeweiligen Frontend. Identitaet (ShipID/SessionID) ist semantisch im Turn erlaubt (Frontend extrahiert aus seinem Transport). Laufzeit-State (provider/model/attempt/metrics) lebt im zurueckgegebenen State-Objekt, NICHT im Turn; Pipeline-Stufen mutieren das State-Objekt. Cancellation als generischer Handle, kein HTTP-context. Ziel: Pipeline fuer kuenftige Transports (gRPC/CLI/Batch) wiederverwendbar.
