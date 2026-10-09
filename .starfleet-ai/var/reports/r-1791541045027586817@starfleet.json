@@ -1,0 +1,325 @@
+Message-ID: <r-1791541045027586817@starfleet>
+Date: 2026-10-09T12:17:25+02:00
+From: Enterprise
+Subject: model-proxy Refactoring: Multi-Layer Provider-Architektur (Pipes & Filters) — Design-Plan (Living Document) [RESUBMIT nach var-Reset]
+Tags: design,model-proxy,refactoring,planung
+Created: 2026-10-09T12:17:25+02:00
+
+Begriff ModelQuery; Turn-Objekt verworfen; Pipeline runter=LLMQuery-Transformation, hoch=Reader
+
+## 7. Planung: Multi-Layer Provider Architecture (Pipes & Filters)
+
+### Ziel: Generische Pipeline-Architektur für den Model-Proxy
+
+**Ausgangslage:** Aktueller Proxy ist monolithisch - HTTP-Handling, Provider-Logik, Retries, Logging, Strategies, Ship-State-Tracking alles in wenigen Funktionen vermischt. Keine saubere Trennung, schwer testbar, schwer erweiterbar.
+
+**Ziel-Architektur: Pipes & Filters Pipeline**
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                    HTTP FRONTEND (httpd)                        │
+│  - Sammelt Request → baut TURN OBJECT                          │
+└─────────────────────────────────────────────────────────────────┘
+                              │
+                              ▼
+┌─────────────────────────────────────────────────────────────────┐
+│                      PIPELINE ORCHESTRATOR                      │
+│  - Turn Object durch Pipeline-Stufen führen                     │
+│  - Fehlerbehandlung, Timeouts, Cancellation                     │
+└─────────────────────────────────────────────────────────────────┘
+                              │
+        ┌─────────────────────┼─────────────────────┐
+        ▼                     ▼                     ▼
+┌───────────────┐     ┌───────────────┐     ┌───────────────┐
+│  PROVIDER     │     │  RETRY/       │     │  LOGGING/     │
+│  ADAPTER      │     │  FALLBACK     │     │  METRICS      │
+│  (NIM, ZEN,   │     │  LAYER        │     │  LAYER        │
+│   NVIDIA, ...)│     │               │     │               │
+└───────────────┘     └───────────────┘     └───────────────┘
+        │                     │                     │
+        └─────────────────────┼─────────────────────┘
+                              ▼
+┌─────────────────────────────────────────────────────────────────┐
+│                    STRATEGY / ROUTING LAYER                     │
+│  - Heavy/Cruiser/Scout/NIM-Primary Strategies                  │
+│  - Ship-State-Tracking (Model-Affinität, Load-Balancing)       │
+│  - Fallback-Entscheidungen basierend auf Ship-State            │
+└─────────────────────────────────────────────────────────────────┘
+                              │
+                              ▼
+┌─────────────────────────────────────────────────────────────────┐
+│              UPSTREAM PROVIDER ADAPTERS (Bottom Layer)          │
+│  ┌─────────┐  ┌─────────┐  ┌─────────┐  ┌─────────┐            │
+│  │ NIM     │  │ ZEN     │  │ NVIDIA  │  │ OTHER   │            │
+│  │ Adapter │  │ Adapter │  │ Adapter │  │ ...     │            │
+│  └─────────┘  └─────────┘  └─────────┘  └─────────┘            │
+│  - Provider-spezifische Quirks                                 │
+│  - NIM: Error-Handling, Rate-Limits                           │
+│  - ZEN: Header-Mitführung, Client-Locking-Vermeidung          │
+│  - NVIDIA: Direct-API, Token-Handling                         │
+└─────────────────────────────────────────────────────────────────┘
+                              │
+                              ▼
+┌─────────────────────────────────────────────────────────────────┐
+│                    RESPONSE ASSEMBLY                            │
+│  - Reader-Pipeline Assembly (einzelne Stream-Reader)           │
+│  - HTTP-Status, Header, Streaming-Chunks                       │
+│  - Finaler Response an HTTP-Frontend                           │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+---
+
+### Kernkonzepte
+
+#### 1. TURN OBJECT (zentrales Datenobjekt)
+```go
+type Turn struct {
+    // Request-Info
+    RequestID     string
+    ShipID        string
+    Model         string
+    Strategy      string
+    Messages      []Message
+    Tools         []Tool
+    Temperature   float32
+    MaxTokens     int
+    Stream        bool
+    
+    // Pipeline-State (wird während Pipeline modifiziert)
+    Provider      string           // Gewählter Provider
+    Attempt       int              // Aktueller Versuch
+    StartTime     time.Time
+    Metrics       *TurnMetrics
+    Context       context.Context
+    
+    // Response-Assembly
+    StatusCode    int
+    Headers       http.Header
+    BodyReader    io.Reader        // Finaler Reader für HTTP-Response
+    StreamChunks  chan StreamChunk // Für Streaming
+    Error         error
+}
+```
+
+#### 2. PIPELINE STAGE INTERFACE
+```go
+type PipelineStage interface {
+    Name() string
+    Process(ctx context.Context, turn *Turn) error
+    CanHandle(turn *Turn) bool  // Optional: Stage nur für bestimmte Turns
+}
+
+type Pipeline struct {
+    stages []PipelineStage
+}
+
+func (p *Pipeline) Execute(ctx context.Context, turn *Turn) error {
+    for _, stage := range p.stages {
+        if !stage.CanHandle(turn) {
+            continue
+        }
+        if err := stage.Process(ctx, turn); err != nil {
+            return turn.HandleError(err)  // Kann Fallback triggern
+        }
+    }
+    return nil
+}
+```
+
+#### 3. PROVIDER ADAPTER INTERFACE (Bottom Layer)
+```go
+type ProviderAdapter interface {
+    Name() string                    // "nim", "zen", "nvidia-direct", ...
+    Capabilities() ProviderCapabilities
+    
+    // Request-Vorbereitung
+    PrepareRequest(turn *Turn) (*http.Request, error)
+    
+    // Response-Handling
+    HandleResponse(resp *http.Response, turn *Turn) (io.Reader, error)
+    
+    // Streaming-spezifisch
+    HandleStreamChunk(chunk []byte, turn *Turn) (StreamChunk, error)
+    
+    // Error-Classification (für Retry/Fallback-Entscheidungen)
+    ClassifyError(err error, resp *http.Response) ErrorClass
+    
+    // Health-Check
+    HealthCheck(ctx context.Context) HealthStatus
+}
+
+type ErrorClass int
+const (
+    ErrorClassRetryable    ErrorClass = iota  // Netzwerk, Timeout, 5xx
+    ErrorClassRateLimit                        // 429, Quota
+    ErrorClassAuthFailed                       // 401, 403
+    ErrorClassInvalidRequest                   // 400, Validation
+    ErrorClassUpstreamUnavailable              // 503, Connection refused
+    ErrorClassFatal                            // Bug, nicht retrybar
+)
+```
+
+#### 4. RETRY/FALLBACK LAYER (Middleware)
+```go
+type RetryPolicy struct {
+    MaxRetries      int
+    BaseDelay       time.Duration
+    MaxDelay        time.Duration
+    BackoffFactor   float64
+    RetryableErrors []ErrorClass
+}
+
+func (r *RetryPolicy) Execute(ctx context.Context, turn *Turn, fn func() error) error {
+    for attempt := 0; attempt <= r.MaxRetries; attempt++ {
+        err := fn()
+        if err == nil {
+            return nil
+        }
+        if !r.IsRetryable(err, turn) {
+            return err
+        }
+        if attempt == r.MaxRetries {
+            return err
+        }
+        delay := r.CalculateDelay(attempt)
+        select {
+        case <-ctx.Done():
+            return ctx.Err()
+        case <-time.After(delay):
+        }
+    }
+    return nil
+}
+```
+
+#### 5. STRATEGY LAYER (Routing & Ship-State)
+```go
+type RoutingStrategy interface {
+    Name() string
+    SelectProvider(turn *Turn, available []ProviderAdapter) (ProviderAdapter, error)
+    OnFailure(turn *Turn, failed ProviderAdapter, err error) (ProviderAdapter, bool)
+    UpdateShipState(shipID string, result TurnResult)
+}
+
+type ShipState struct {
+    ShipID           string
+    PreferredModel   string
+    LastUsedProvider string
+    FailureCount     map[string]int
+    LastSuccess      time.Time
+    LoadFactor       float64
+}
+```
+
+#### 6. RESPONSE ASSEMBLY (Pipeline für Streaming)
+```go
+type ResponseAssembler interface {
+    Assemble(turn *Turn) (Response, error)
+}
+
+type Response struct {
+    StatusCode int
+    Headers    http.Header
+    Body       io.Reader
+    Streaming  bool
+    StreamChan chan StreamChunk
+}
+
+type StreamChunk struct {
+    Type      ChunkType  // Content, Delta, Done, Error
+    Data      []byte
+    Metadata  map[string]string
+}
+```
+
+---
+
+### Implementierungs-Phasen
+
+#### Phase 1: Core Pipeline Infrastructure
+- [ ] `Turn` struct + Builder
+- [ ] `PipelineStage` Interface + `Pipeline` Orchestrator
+- [ ] `PipelineStage` Registry (Namen → Instanzen)
+- [ ] Basis `Turn` Builder aus HTTP-Request
+
+#### Phase 2: Provider Adapter Framework
+- [ ] `ProviderAdapter` Interface definieren
+- [ ] Base Adapter (gemeinsame Logik: HTTP-Client, Headers, etc.)
+- [ ] NIM Adapter implementieren
+- [ ] ZEN Adapter implementieren (Header-Forwarding, Client-Locking)
+- [ ] NVIDIA Direct Adapter implementieren
+- [ ] Provider Registry (Name → Adapter)
+
+#### Phase 3: Middleware Layers
+- [ ] Retry/Fallback Layer mit konfigurierbaren Policies
+- [ ] Logging/Metrics Layer (Request/Response Logging, Latency, Tokens)
+- [ ] Error Classification System (für Retry/Fallback-Entscheidungen)
+
+#### Phase 4: Strategy & Routing Layer
+- [ ] `RoutingStrategy` Interface
+- [ ] Heavy/Cruiser/Scout/NIM-Primary Strategies
+- [ ] Ship-State-Tracking (Model-Affinität, Load, Failure-History)
+- [ ] Fallback-Entscheidungen basierend auf Ship-State
+
+#### Phase 5: Response Assembly & Streaming
+- [ ] `ResponseAssembler` Interface
+- [ ] Streaming-Pipeline (Reader-Chaining für Chunks)
+- [ ] HTTP-Response-Assembly (Status, Header, Body/Stream)
+
+#### Phase 6: HTTP Frontend Integration
+- [ ] Turn-Object Builder aus HTTP-Request
+- [ ] Pipeline-Execution im HTTP-Handler
+- [ ] Response-Assembly → HTTP-Response Writer
+- [ ] Graceful Degradation / Error-Handling
+
+#### Phase 7: Testing & Migration
+- [ ] Unit-Tests für jede Pipeline-Stage
+- [ ] Integration-Tests für komplette Pipeline
+- [ ] Migration der bestehenden Provider (NIM, ZEN, NVIDIA)
+- [ ] Shadow-Testing gegen alten Proxy
+- [ ] Feature-Flag für schrittweise Migration
+
+---
+
+### Wichtige Design-Entscheidungen
+
+1. **Turn Object ist immutable-ish**: Pipeline-Stages geben neuen Turn zurück (funktional), oder mutieren kontrolliert (Performance). Entscheidung: Mutable mit Copy-on-Write für Metrics.
+
+2. **Error Handling**: Fehler werden als `ErrorClass` klassifiziert, nicht als generische Errors. Erlaubt typ-sichere Retry/Fallback-Logik.
+
+3. **Provider Adapters sind stateless**: State wird im Turn gehalten, nicht im Adapter. Erlaubt einfache Pooling/Reuse.
+
+4. **Pipeline ist konfigurierbar**: Stages können per Config aktiviert/deaktiviert/umgeordnet werden (Feature-Flags).
+
+5. **Ship-State ist extern**: Strategy Layer fragt Ship-State-Store ab (kann In-Memory, Redis, etc. sein).
+
+5. **Streaming ist First-Class**: Pipeline arbeitet mit `io.Reader`/`chan StreamChunk`, nicht mit gepufferten Bodies.
+
+---
+
+### Migration-Strategie
+
+1. **Parallelbetrieb**: Neuer Proxy parallel zum alten auf Port 8444 starten
+2. **Shadow-Traffic**: Prozentualer Traffic an neuen Proxy leiten, Responses vergleichen
+3. **Feature-Flags**: Einzelne Provider/Strategies per Flag aktivieren
+4. **Rollback-Plan**: Bei Problemen sofort auf alten Proxy umschalten (Port-Switch)
+6. **Metriken vergleichen**: Latency, Error-Rate, Token-Usage, Fallback-Rate
+
+---
+
+### Nächste Schritte
+
+1. **Skeleton implementieren**: Interfaces + Pipeline-Skeleton in `internal/modelproxy/pipeline/`
+2. **Provider-Adapter-Skeleton**: `internal/modelproxy/providers/`
+3. **Bestehenden Code schrittweise migrieren** (nicht Big Bang)
+
+---
+
+**Priorität:** HIGH - Architektur-Schulden abbauen, Testbarkeit/Erweiterbarkeit massiv verbessern
+**Owner:** Enterprise (Koordination), Umsetzung durch Dev-Schiffe (LaForge, etc.)
+**Zeithorizont:** 4-6 Wochen für Phasen 1-3, dann inkrementell
+
+---
+
+*Diese Planung ist ein Living Document - wird während der Umsetzung aktualisiert.*
