@@ -1,12 +1,11 @@
 Title: "BUG plugin: poll() markiert inbox-Nachrichten nicht als seen -> unseen-Backlog waechst unbegrenzt"
 Category: active
-Kind: task
-Status: "open"
+Kind: "task"
+Status: "assigned"
+Assigned-To: "LaForge"
 Created-By: "Enterprise"
 Created: "2026-10-09T09:13:18Z"
-Assigned-To: "—"
 Doc-Ref: "—"
-Slug: task-bug-plugin-poll-markiert-inbox-nachrichten-nicht-als-seen-unseen-backlog-waechst-unbegrenzt
 
 starfleet-dispatch.ts (v2.5.4): poll() (Z.687-696) fuegt jede Inbox-ID zu 'submitted' hinzu und injiziert via promptAsync, ruft aber NIE bus({cmd:'seen_mark'}). system.transform (Z.766-769) macht es korrekt, ueberspringt aber alles, was schon in 'submitted' ist. Da poll() alle paar Sekunden laeuft und Turns seltener, greift poll() die meisten Nachrichten zuerst -> sie bleiben fuer immer in unseen/ und der Zaehler waechst (Enterprise: unseen=822, seen=401).
 
