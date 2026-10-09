@@ -1,12 +1,11 @@
 Title: "starfleetctl: Skill-Fragmente saeubern + .starfleet-ai/.gitignore nur initial ausrollen"
 Category: active
-Kind: task
-Status: "open"
+Kind: "task"
+Status: "assigned"
+Assigned-To: "LaForge"
 Created-By: "Enterprise"
 Created: "2026-10-09T10:13:09Z"
-Assigned-To: "—"
 Doc-Ref: "—"
-Slug: task-starfleetctl-skill-fragmente-saeubern-starfleet-ai-gitignore-nur-initial-ausrollen
 
 Zwei Nacharbeiten aus der Skill-Rettung durch LaForge (Bootstrap hat Fehler eingespielt):
 
