@@ -1,14 +1,11 @@
----
 Title: "Backport #3779: RegionValidate double free of badreg->data auf release/25.0"
 Category: active
-Kind: task
+Kind: "task"
 Status: "open"
+Assigned-To: "Barcley"
 Created-By: "Barcley"
 Created: "2026-10-01T17:20:00Z"
-Assigned-To: "Barcley"
 Doc-Ref: "https://github.com/X11Libre/xserver/pull/3805"
-Slug: task-backport-3779-regionvalidate-double-free-to-release-25-0
----
 
 Backport **#3779** auf **release/25.0**. Ein PR, ein Branch, ein Topic — Teil des
 Batches `task-backport-batch-2026-10-01-3776-3777-3779-auf-release-25-2-25-1-25-0`.
@@ -160,3 +157,5 @@ Kein `[PR #NNNN]`-Marker im Commit, weil es ein Port eines xorg-Commits ist.
 
 **Nicht** gemergt. `release/*` wird vom Maintainer von Hand gemergt, Merge-Mode
 `rebase`. Dieser PR steht auf Review, kein `bot-review-passed` angefordert.
+
+- 2026-10-09T00:00:41Z XL-0: XL-0 verifiziert 2026-10: DUP auf origin/release/25.0 — Fix bereits enthalten via 74e8a35363 (dix/region.c:1319 'badreg->data = NULL'). Kein Cherry-Pick noetig.
