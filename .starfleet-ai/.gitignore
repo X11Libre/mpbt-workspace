@@ -7,16 +7,16 @@
 /var/ships/
 /var/log/
 /var/files/
-/var/sop.d/
 /var/timers/
 /var/tmp/
 /var/model-health.json
 /var/model-proxy.pid
 /var/web.pid
-/var/model-proxy.pid
+/term-pipes/
 
 # Runtime state files
 /DASHBOARD.md
+/var/DASHBOARD.md
 
 # Built binary (built from src/starfleetctl/)
 /bin/starfleetctl
