@@ -145,7 +145,7 @@ model_proxy:
   # agent-capability (tool-call) probe, persisted to
   # .starfleet-ai/var/model-health.json and served at /v1/model-health.
   health:
-    interval: "30m"
+    interval: "0s"  # temporaer deaktiviert bis upstream stabil
     timeout: "20s"
     parallel: 4
     capability_probe: true

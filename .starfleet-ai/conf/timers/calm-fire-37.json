@@ -1,0 +1,19 @@
+{
+  "id": "calm-fire-37",
+  "description": "Health-Loop war wegen upstream-overload deaktiviert. Pruefen und wieder aktivieren.",
+  "owner": "Enterprise",
+  "target": {
+    "type": "ship",
+    "value": "Enterprise"
+  },
+  "type": "ship",
+  "text": "Live model-proxy health loop wieder aktivieren (health.interval: 30m in model-proxy.yaml)",
+  "schedule": {
+    "type": "interval",
+    "interval_sec": 3600
+  },
+  "persistent": true,
+  "enabled": true,
+  "created_at": 1791634102,
+  "next_fire": 1791637702
+}

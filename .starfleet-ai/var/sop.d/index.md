@@ -388,6 +388,48 @@ Ergaenzend fuer diesen Lauf (Kriterien gelten ueber die Ziel-Zeilen hinaus):
 - **Nebenjobs-Grenze:** `3c62ee0c78` = DUP ueber PR #3867 (offen), `495ea74203` liegt
   im eigenen Task #3777 — der xorg-Lauf entscheidet ueber beide nicht.
 
+## Lauf 2026-10-09 — Ziel `master` (Defiant, Praetor-Freigabe Option b)
+
+Stand: Intervall `b125b19fc2..ad26c26bf7` = **39 Commits**. xorg/main = `ad26c26bf7`.
+Tracker `tracking/xorg/main-on-master` stand auf `b125b19fc2` (39 Rueckstand).
+Inkubator `rfc/backport-master` **lokal aufgebaut, NICHT gepusht** (Freigabe ausstehend).
+Build `-Dwerror=true` **gruen** (meson/ninja, `_WORK_/xserver-master/target` als Prefix).
+Trailer: 22/22 aufgenommene xorg-Commits mit `Signed-off-by` (Original-Autor) + `Part-of`.
+
+**Aufgenommen (22):** `f37bd8de26`, `cd79f876b1`, `cd083d9659`, `2b9ce9f6c6`,
+`0d1b1b0bad`, `b941a473e0`, `89101a6c66`, `cea71d0273`, `2abe4632d7`, `1b6955c310`,
+`ad26c26bf7`, `7a0b3e2197`, `bad7edcab0`, `6a4fb12019`, `37a1847a60`, `be57263415`,
+`1f42cc1f00`, `efcfd8acc7` (alle Security/Bugfix), ruff-Block `6aa23cf642`,
+`2c53e65004`, `eb9292efdb` (nur `hw/xwin/glx/gen_gl_wrappers.py`; `.gitlab-ci*`-Teile
+verworfen, Dateien existieren bei uns nicht), `f8af92cac4` (fdi2iclass.py entfernt;
+`COPYING` = ours, unsere Lizenzliste divergiert).
+
+**Ausgelassen (17):**
+
+| SHA | Subject | Kriterium | Begruendung |
+|---|---|---|---|
+| `b9f65a275d` | ci: Run ruff check against the whole tree | GHC | Dateiliste ist genau `.gitlab-ci.yml`, existiert bei uns nicht. Ruff-Lauf bleibt offene CI-Aufgabe. |
+| `9d068f0efb` | meson: option to disable tests | DUP | `option('tests')` + `and build_xserver` bereits auf master (`6851e17816`). |
+| `d307f3b4ec` | glx: option to disable DRI glx backends | DUP | `option('glx_dri')` bereits auf master. |
+| `5dc9efd5a1` | randr: PrependMode size/offset | DUP | `new_value.size = total_len` bereits (`rrproviderproperty.c:189`). |
+| `b522485155` | glamor_egl: GBM fallback path | DUP | Fallback-Branch + `has_image_dma_buf_export` bereits auf master (`glamor_egl.c:860`). |
+| `84908e8db5` | Fix fragile glamor_egl build check | DUP | master steht bereits auf `if build_glamor`. |
+| `a66b0286b3` | glamor: Restore `GetImage` proc | DUP (Leer-Pick) | Inhalt auf master vorhanden. |
+| `41b3d993ba` | glamor: Set `need_free_region` … | DUP (Leer-Pick) | Inhalt auf master vorhanden. |
+| `5422247702` | Fix incorrect uses of GLAMOR_HAS_GBM | N-A | `GLAMOR_HAS_GBM` 0 Treffer in modesetting auf master; unsere Fassung nutzt `#ifdef GLAMOR`. |
+| `309e4d35d8` | modesetting: Restrict hw cursor size | N-A | `min_cursor_width` 0 Treffer auf master; durch `drmmode_probe_cursor_size` abgeloest. |
+| `350ef434af` | xfree86: fix modesetting symbols leak test | N-A | meson-Struktur divergiert (unsere `hw/xfree86/meson.build` nutzt `subdir('drivers')`); Symboltest arbeitet mit `join_paths`. |
+| `5b22bb635b` | Generalize glamor dependencies | N-A | Build-System divergiert; Refactoring, kein Bugfix. |
+| `a0eec5417c` | Remove redundant define | N-A | Build/Cleanup, Konflikt mit unserer Struktur. |
+| `61e546b113` | Generalize GBM feature tests | N-A | Build-Refactoring. |
+| `797221a3a9` | Generalize epoxy feature tests | N-A | Build-Refactoring. |
+| `1fcee9582d` | Expose libxcvt availability | N-A | Build-Plumbing; kein Nutzer auf master. |
+| `effe0ba3cd` | test: cover incomplete keymap in XkbGetKbdByName | N-A | Test fuer xorg-Verzeichnislayout (`../../xkb/`); unser `xkb/`→`Xext/xkeyboard/`. Fix `6a4fb12019` ist aufgenommen; Test braucht eigene Portierung. |
+
+**Konsequenz:** Tracker `tracking/xorg/main-on-master` kann auf `ad26c26bf7` gezogen
+werden (alle 39 bearbeitet). **Push von `rfc/backport-master` und Tracker erst nach
+expliziter Praetor-Freigabe** (Option b: kein Push ohne Freigabe).
+
 <!-- end inlined fragment: xlibre/xorg-main-backport-exclusions -->
 
 <!-- begin inlined fragment: local/local-knowledge-dump -->
