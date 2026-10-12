@@ -1287,3 +1287,57 @@ Stets den offiziellen Befehl verwenden: `./.starfleet-ai/bin/starfleetctl model-
 3. Für einen Start: `./.starfleet-ai/bin/starfleetctl model-proxy start`
 
 Nie direkt mit `kill`, `pkill` oder `systemctl` arbeiten.
+
+### Ein lokaler Test-FAIL ist kein Regressions-Beweis — die CI-Lane ist die dritte Messung (2026-10-12, Defiant)
+
+Bei der Backport-Validierung von `rfc/backport-master`: `protocol_xigetselectedevents_test`
+(Teil des einen Binaries `test/tests`) **FAILTE lokal 5/5** — auf dem Backport **und**
+identisch auf der Baseline `79dee7378e`. Der naheliegende Schluss „also vom Backport
+verursacht" ist falsch; der A/B allein reicht **nicht**, weil beide Seiten dieselbe
+**lokale Umgebung** teilen. Die fehlende dritte Messung ist die CI:
+
+    master run 38228084801: "xserver / unit OK 2.74s", Ok: 35, Fail: 0
+
+Der Test **passiert** in CI ⇒ die lokale Umgebung (xkbcomp/xkb-config/locale) ist die
+Differenz, nicht der Code. Instrumentiert (`reply.num_masks=0 expected=1 len=32`, erste
+j=0-Iteration) zeigt nur *was* abweicht, nicht *warum lokal*, und „warum lokal" ist für
+die Release-Entscheidung irrelevant, solange die CI-Lane grün ist.
+
+**Zwei Regeln:**
+
+1. **Test-Lanes sind nicht gleich — die Workflow-Datei lesen, nicht raten.**
+   `.github/workflows/build-xserver.yml`: die **macOS**-Lane toleriert Tests
+   (`meson test … || true` + `continue-on-error: true`, Zeile ~547); **ubuntu**
+   (`.github/scripts/ubuntu/run-xserver-build-and-test.sh`, erzwungen, nur Timeouts
+   retried) und **cygwin** (`ninja -C build test`, Zeile ~987) erzwingen. „CI ist grün"
+   ist je nach Lane **kein** Beweis — bei der ubuntu-Lane ist es einer, bei macOS nicht.
+   Die ubuntu-Lane baut die XI2-Tests (`MESON_ARGS` mit `-Dxorg=true`, Zeile ~44).
+
+2. **Vor „das ist eine Regression": prüfen, ob CI die Lane erzwingt und grün ist.**
+   Ein lokaler FAIL auf Backport *und* Baseline in einer Umgebung, deren CI-Lane den
+   Test grün und erzwungen fährt, ist ein **Umgebungsartefakt**. Der A/B lokaler
+   Zustände kann das nicht entscheiden, weil er die Umgebung konstant hält.
+
+**Merksatz:** *Der A/B misst zwei Baumhöhen in EINER Umgebung; die CI misst die
+Umgebung mit. Erst die Kombination trennt Code-Regression von Umgebungsartefakt.*
+
+### `http.Client.Timeout` deckt die GANZE Transaktion inkl. Body-Read — nicht nur den Aufbau (2026-10-12, Defiant)
+
+Fleet-weite Stream-Abbrüche (`model-proxy: upstream stream interrupted before [DONE]`)
+hatten diese Ursache: der SSE-Forwarding-Pfad erbte `&http.Client{Timeout: prov.Timeout}`
+(default 30s, zen-proxy 15s). In Go deckt `Client.Timeout` — im Gegensatz zu
+`Transport.ResponseHeaderTimeout` — **die gesamte Transaktion inklusive Lesen des
+Response-Bodys** ab. Jeder Stream, der insgesamt länger als 15/30 s lief, brach beim
+Body-Read ab. Gilt für **jeden** langlebigen Streaming-Client im Go-Code, nicht nur
+den model-proxy.
+
+**Regel für Streaming-Clients:** Streams bekommen einen `http.Client` **ohne**
+`Timeout`; die Lebensdauer regeln `Transport`-Timeouts (`DialContext`,
+`ResponseHeaderTimeout`, `TLSHandshakeTimeout`, `IdleConnTimeout`) plus
+`r.Context()`/Idle-Watchdog auf der Leseseite. Fix deployed: `origin/master = 7ce4c6f`.
+
+**Zweite Lektion (Nebenläufigkeit):** eine Keepalive-Goroutine, die parallel zum
+Haupt-Loop auf denselben `http.ResponseWriter` schreibt, ist ein Datenrennen
+(`ResponseWriter`/`Flusher` sind nicht nebenläufig-sicher) und kann den **Upstream**
+ohnehin nicht am Leben halten. Der Keepalive gehört als `case <-keepaliveC:` in den
+**einen** Loop, der `w` besitzt.
