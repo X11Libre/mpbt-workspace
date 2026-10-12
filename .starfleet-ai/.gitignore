@@ -40,3 +40,4 @@
 # (clone starfleetctl repo separately to build)
 /src/starfleetctl/
 /src/bin/
+/var/sop.d/
