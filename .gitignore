@@ -9,3 +9,4 @@
 # Coredumps von Testlaeufen (z. B. Xvfb aus _WORK_/…/prefix-*)
 core
 core.*
+/.starfleet-ai/var/prclaims/
