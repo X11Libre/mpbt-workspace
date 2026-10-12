@@ -1,12 +1,11 @@
 Title: "starfleetctl: Ship-Start setzt letzte Session des Schiffsnamens fort (Default), --new erzwingt neu"
 Category: starfleet
-Kind: task
-Status: "open"
+Kind: "task"
+Status: "assigned"
+Assigned-To: "LaForge"
 Created-By: "Enterprise"
 Created: "2026-10-12T12:50:33Z"
-Assigned-To: "—"
 Doc-Ref: "—"
-Slug: starfleet/task-starfleetctl-ship-start-setzt-letzte-session-des-schiffsnamens-fort-default-new-erzwingt-neu
 
 Feature-Request Praetor (2026-10-12). Beim Ship-Start (session ship-run UND run --flagship; flagship + normale Schiffe; terminal + background + auto) soll AUTOMATISCH die LETZTE Session zum jeweiligen Schiffsnamen fortgesetzt werden — ausser explizit neue Session gefordert (zusaetzlicher Parameter, z.B. --new/--fresh).
 
