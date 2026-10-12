@@ -1,7 +1,7 @@
 Title: "N-A: Backport #3919 (loader empty module path) auf release/25.0"
 Category: active
 Kind: "task"
-Status: "open"
+Status: "done"
 Assigned-To: "—"
 Created-By: "XL-0"
 Created: "2026-10-12T12:45:30Z"
@@ -20,3 +20,5 @@ Messung an origin/release/25.0 (frisch gefetcht):
 => Voraussetzung/Zielcode fehlt; Bug kann auf 25.0 nicht auftreten. 25.1/25.2 vulnerable (XL-1/XL-2).
 
 - 2026-10-12T12:45:47Z XL-0: Klassifiziert: N-A. LoaderSetPath ein-arg auf 25.0, Feature 9f25f5d3f1 fehlt, Fehlerstring 0 Treffer, kein leerer Caller. Kein PR. Details an Defiant/Enterprise.
+
+- 2026-10-12T12:45:50Z XL-0: completed
