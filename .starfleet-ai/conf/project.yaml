@@ -24,6 +24,12 @@ path_remapping:
   # Whether path remapping is enabled
   enabled: true
 
+# Fleet behavior configuration
+fleet:
+  # Whether to notify flagship (Enterprise) on ship timeouts/non-transient errors
+  # Default: false (disabled per McKinley directive m2899)
+  notify_flagship_on_ship_error: false
+
 # Maintained release lines for backporting
 release_lines:
   - "25.2"
