@@ -27,3 +27,5 @@ Naechster Schritt: weitere Design-Details + Implementierung (Phasen 1-7 im Repor
 - 2026-10-09T09:04:00Z Enterprise: Namens-Entscheidung: Das zentrale Eingabe-Objekt heisst NICHT 'Turn', sondern 'LLMQuery'. Begruendung: es beschreibt die Anfrage (transport-agnostische Parameter zum Starten), nicht eine Turn-/Rundenstruktur. Ueberall im Design 'Turn' durch 'LLMQuery' ersetzen. Start(cancel, query LLMQuery) -> LLMQueryState/Reader; Pipeline-Stufen transformieren LLMQuery funktional nach unten und liefern Reader-Objekte zurueck.
 
 - 2026-10-09T10:17:38Z Enterprise: Korrektur: Report r-1791532131293803489 war beim var/-Reset verloren gegangen; neu eingestellt als r-1791541045027586817@starfleet (Reports sind jetzt versioniert, Commit 83e8a08659).
+
+- 2026-10-13T16:31:11Z TestE2ERestart: progress 10% (Starting investigation of model proxy refactoring for multi-layer provider architecture)
