@@ -1,12 +1,14 @@
+---
 Title: "Backport-Tooling: Backport von noch nicht gemergten PRs ermoeglichen"
 Category: starfleet
 Kind: task
-Status: "assigned"
+Status: "done"
 Created-By: "Enterprise"
 Created: "2026-10-13T07:58:00Z"
 Assigned-To: "LaForge"
 Doc-Ref: "—"
 Slug: starfleet/task-backport-tooling-backport-von-noch-nicht-gemergten-prs-ermoeglichen
+---
 
 Anlass: Backport-Wunsch fuer X11Libre/xserver PR #3912 (Xext/composite: pixmap-refcnt vor AddResource, Xinerama-Pfad; Bug auf release/25.2, 25.1, 25.0 gemessen). PR ist noch OFFEN -> Tooling verweigert.
 
@@ -26,3 +28,10 @@ Aufgabe:
 Akzeptanz: 'starfleetctl github backport commit release/<rel> <pr#>' funktioniert fuer einen OFFENEN PR und erzeugt einen korrekten Backport-PR; gemergte PRs laufen weiter wie bisher; dokumentiert; Build-Verifikation -Dwerror=true.
 
 Kontext: PR #3912 als erster Testfall. Koordination mit Enterprise (Backport-Test/Verifikation).
+
+Implementation completed 2026-10-13:
+- Modified internal/ghpr/backportcommit.go to fallback to headRefOid when mergeCommit is absent
+- Added note in commit message for open PR backports
+- Updated backport-ours skill documentation
+- Built and deployed via starfleet-bootstrap
+- All tests pass, build successful
