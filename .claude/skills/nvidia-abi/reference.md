@@ -78,6 +78,7 @@ These are the dangerous, easy-to-miss ones. **Must stay `_X_EXPORT`.**
 | `xf86CursorScreenKeyRec` | keep `_X_EXPORT` — **runtime-looked-up by all 4** | #2070 |
 | `monitorResolution` | keep `_X_EXPORT` — **runtime-looked-up by all 4** | (still exported in `include/globals.h`; watch it) |
 | `ClientStateCallback` | keep `_X_EXPORT` — **link-imported by ALL of 390/470/550/570** (`nvidia_drv.so`/`libglxserver_nvidia.so`) | `include/dixstruct.h:44` (`extern _X_EXPORT CallbackListPtr ClientStateCallback`; defined `dix/globals.c`); also used by internal modules (GLX, RandR, Record, Security, SELinux, DGA) + amdgpu/radeon/intel-source drivers. Do NOT unexport (Defiant, 2026-09-24) |
+| `QueueWorkProc` | keep `_X_EXPORT` — **link-imported by all of 390/470/550/570** (no runtime lookup) | measured 2026-10-13 via `nvidia-abi-check`; `include/dix.h:162` (`extern _X_EXPORT Bool QueueWorkProc(Bool (*)(ClientPtr, void*), ClientPtr, void*)`, defined `dix/dixutils.c`). Signature + export must stay — don't unexport/rename (Voyager) |
 | `PictureMatchVisual`, `PictureFindFilter`, `PictureMatchFilter`, `SetPictureFilter` | keep exported | #1469 keeps them; drivers use them |
 | `ScreenRec` / `ScrnInfoRec` etc. | append new fields only at the **tail** (past the PRIVATE marker) | #2662 (tail-append) was safe |
 
