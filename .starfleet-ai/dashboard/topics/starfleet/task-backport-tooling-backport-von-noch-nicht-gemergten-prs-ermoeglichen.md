@@ -33,5 +33,6 @@ Implementation completed 2026-10-13:
 - Modified internal/ghpr/backportcommit.go to fallback to headRefOid when mergeCommit is absent
 - Added note in commit message for open PR backports
 - Updated backport-ours skill documentation
-- Built and deployed via starfleet-bootstrap
+- Built and deployed via starfleet-bootstrap (commit 3b9ce5c pushed to origin/master)
 - All tests pass, build successful
+- Working-tree cleaned up (.bak files removed)
