@@ -1,7 +1,7 @@
 Title: "session-restart: Fertigstellung ueberwachen + Praetor melden"
 Category: active
 Kind: "task"
-Status: "in-progress"
+Status: "done"
 Assigned-To: "—"
 Created-By: "Defiant"
 Created: "2026-10-13T09:11:55Z"
