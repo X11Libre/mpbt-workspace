@@ -14,3 +14,5 @@ Doc-Ref: "—"
 - 2026-10-13T13:56:53Z TestSupervisorIntegration2: progress 30% (Started implementing provider adapters)
 
 - 2026-10-13T13:58:16Z TestSupervisorIntegration2: progress 40% (Created provider adapters for NIM, Zen, and NVIDIA direct)
+
+- 2026-10-13T13:59:48Z TestSupervisorIntegration2: progress 50% (Added pipeline and provider registry fields to Proxy struct)
