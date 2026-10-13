@@ -12,3 +12,5 @@ Doc-Ref: "—"
 - 2026-10-13T13:56:20Z TestSupervisorIntegration2: progress 20% (Committed initial pipeline interfaces and structs)
 
 - 2026-10-13T13:56:53Z TestSupervisorIntegration2: progress 30% (Started implementing provider adapters)
+
+- 2026-10-13T13:58:16Z TestSupervisorIntegration2: progress 40% (Created provider adapters for NIM, Zen, and NVIDIA direct)
