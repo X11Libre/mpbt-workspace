@@ -10,3 +10,5 @@ Doc-Ref: "—"
 Praetor-Auftrag: Bescheid geben, wenn das Remote-Restart-Feature komplett fertig ist. Owner der Implementierung: LaForge (starfleetctl-Source). Stand: Kern (UDS-Control RESTART/STOP/STATUS, Modellwechsel, Child-Lifecycle) in 2f4b4cf implementiert+deployed; Web-API POST /api/ships/<name>/restart + CLI 'ship restart' noch offen (LaForge next steps). Defiant ueberwacht via Timer mild-moon-44 und meldet bei Fertigstellung.
 
 - 2026-10-13T10:56:10Z Defiant: completed
+
+- 2026-10-13T11:14:26Z Defiant: E2E-Test auf LaForge FEHLGESCHLAGEN: LaForge.soc existiert (12:53) aber kein Listener; Parent pid 11152 = 0 Sockets + deleted Binary. Ursache: stale Socket vom Respawn nicht bereinigt, neuer Parent band nicht neu. LaForge bestaetigt + fixt (robustes Remove+Listen beim Start). Route/Code deployed. Erneutes Warten auf E2E-Bestaetigung (Timer iron-wind-65).
