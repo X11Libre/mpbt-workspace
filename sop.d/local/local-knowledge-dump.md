@@ -1362,3 +1362,13 @@ if: ${{ !cancelled() && steps.x.outcome == 'failure' }}
 
 Damit bestehen die Workflow-Dateien den strikten Check und sind für jedes Tool portabel. Belegt am
 2026-10-13 an den VM-Retry-PRs #3937/#3938/#3939/#3942/#3944 (dfly/freebsd/netbsd).
+
+### Remote-Checks im xserver-Clone laufen lassen, nicht im Workspace-Root
+
+Der Workspace-Root (mpbt-workspace) hat sein eigenes `.git` mit `origin =
+github.com:X11Libre/mpbt-workspace.git`. `git ls-remote origin …` bzw. `git fetch origin …`
+dort prüft also das **Workspace-Repo**, nicht xserver — Ergebnis „nicht gefunden"/leer,
+obwohl der Branch auf xserver existiert. Belegt 2026-10-13 (VM-Retry-PRs): fast zu dem Schluss
+geführt, dass alle `wt/*`-Branches weg wären; sie waren nie weg. Remote-Refs immer aus dem
+xserver-Clone (`_WORK_/xserver-master/sources/xlibre/xserver`) abfragen und vorher
+`git config --get remote.origin.url` prüfen — gleiche Fehlerklasse wie „stale Refs".
