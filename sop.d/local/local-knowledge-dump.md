@@ -1341,3 +1341,24 @@ Haupt-Loop auf denselben `http.ResponseWriter` schreibt, ist ein Datenrennen
 (`ResponseWriter`/`Flusher` sind nicht nebenläufig-sicher) und kann den **Upstream**
 ohnehin nicht am Leben halten. Der Keepalive gehört als `case <-keepaliveC:` in den
 **einen** Loop, der `w` besitzt.
+
+### YAML-Änderungen: immer Syntax-Check; in GH-Actions-`if:` `${{ }}` statt nacktem `!cancelled()`
+
+Bei jeder Anpassung an YAML-Dateien (`.yml`/`.yaml`) danach einen strikten Syntax-Check laufen
+lassen:
+
+```bash
+python3 -c "import yaml; yaml.safe_load(open('<datei>'))"
+```
+
+Besonderheit GitHub-Actions: eine **nackte** Bedingung `if: !cancelled() && steps.x.outcome == 'failure'`
+wird von GitHub's Parser toleriert, aber von strikten YAML-Parsern (PyYAML) als **Tag-Syntax**
+abgelehnt (`ScannerError: while scanning an anchor … found '&'`). Die saubere, 100 % äquivalente
+Form ist das Wrapping in `${{ }}`:
+
+```yaml
+if: ${{ !cancelled() && steps.x.outcome == 'failure' }}
+```
+
+Damit bestehen die Workflow-Dateien den strikten Check und sind für jedes Tool portabel. Belegt am
+2026-10-13 an den VM-Retry-PRs #3937/#3938/#3939/#3942/#3944 (dfly/freebsd/netbsd).
