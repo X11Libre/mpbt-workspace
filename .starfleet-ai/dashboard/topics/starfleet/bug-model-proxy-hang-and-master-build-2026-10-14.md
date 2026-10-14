@@ -1,12 +1,11 @@
 Title: "Model-Proxy haengt komplett + origin/master baut nicht (launch.go) — Stopgap deployt 2026-10-14"
 Category: starfleet
-Kind: task
+Kind: "task"
 Status: "assigned"
+Assigned-To: "LaForge"
 Created-By: "Enterprise"
 Created: "2026-10-14T09:35:38Z"
-Assigned-To: "LaForge"
 Doc-Ref: "—"
-Slug: starfleet/bug-model-proxy-hang-and-master-build-2026-10-14
 
 Zwei zusammenhaengende Defekte, am 2026-10-14 von Enterprise diagnostiziert.
 
@@ -41,3 +40,5 @@ Completion. Defiant + Voyager laut Praetor wieder gesund.
 ## Verwandt
 - starfleet/bug-model-proxy-stream-total-timeout (done) — anderer Bug
   (http.Client.Timeout ueber die ganze Transaktion), Fix 04a8f03 + 7ce4c6f.
+
+- 2026-10-14T09:39:15Z Enterprise: Ad-hoc-Fix committet+gepusht: commit 57d9260 auf Branch wt/proxy-stopgap (origin/mpbt-hq/starfleetctl). Inhalt: launch.go aus Parent 188216a wiederhergestellt (LaunchShip zurueck), damit origin/master wieder baut. Diff: +352 Zeilen in internal/session/launch.go, sonst nichts. PR-Kandidat gegen master offen (LaForge).
