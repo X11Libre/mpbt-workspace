@@ -149,12 +149,39 @@ EOF
     log "wrote conf (web :$WEB_PORT, proxy :$PROXY_PORT, ship $TB_SHIP_ID)"
 }
 
+# init_git_repo makes the testbed its OWN git repository, plus a local bare
+# "origin" so push works. Several starfleetctl operations shell out to git
+# (`dashboard topic commit`, task capture, …); without a repo of its own the
+# testbed — which lives under _WORK_/ INSIDE the live workspace — would resolve
+# git to the LIVE workspace repo and operate on it. This keeps everything
+# contained; the live repo is never touched.
+init_git_repo() {
+    mkdir -p "$TESTBED_ROOT"
+    local origin="${TESTBED_ROOT}-origin.git"
+    if [[ ! -d "$TESTBED_ROOT/.git" ]]; then
+        git -C "$TESTBED_ROOT" init -q
+        git -C "$TESTBED_ROOT" config user.name "testbed"
+        git -C "$TESTBED_ROOT" config user.email "testbed@starfleet"
+        git -C "$TESTBED_ROOT" add -A >/dev/null 2>&1 || true
+        git -C "$TESTBED_ROOT" commit -q --allow-empty -m "testbed: init"
+        log "initialized testbed git repo ($TESTBED_ROOT/.git)"
+    fi
+    if [[ ! -d "$origin" ]]; then
+        git init -q --bare "$origin"
+        log "testbed remote: $origin"
+    fi
+    git -C "$TESTBED_ROOT" remote remove origin >/dev/null 2>&1 || true
+    git -C "$TESTBED_ROOT" remote add origin "$origin"
+    git -C "$TESTBED_ROOT" push -q -u origin HEAD >/dev/null 2>&1 || true
+}
+
 cmd_create() {
     log "creating testbed at $TESTBED_ROOT"
     mkdir -p "$TESTBED_ROOT/scripts"
     [[ -f "$TESTBED_ROOT/scripts/README.txt" ]] || echo "testbed landmark (workspaceRoot discovery)" > "$TESTBED_ROOT/scripts/README.txt"
-    [[ -f "$TESTBED_ROOT/.gitignore" ]] || : > "$TESTBED_ROOT/.gitignore"   # non-git tree; silences bootstrap's gitignore check
+    [[ -f "$TESTBED_ROOT/.gitignore" ]] || : > "$TESTBED_ROOT/.gitignore"   # silences bootstrap's gitignore check
     [[ -f "$TESTBED_ROOT/starfleet-bootstrap" ]] || cp "$LIVE_ROOT/starfleet-bootstrap" "$TESTBED_ROOT/starfleet-bootstrap" 2>/dev/null || true
+    init_git_repo
     install_binary
     write_conf
     tb bootstrap --fix   || true
@@ -164,6 +191,7 @@ cmd_create() {
 
 cmd_sync() {
     log "syncing testbed from dev clone"
+    init_git_repo
     install_binary --build
     write_conf
     tb bootstrap --fix || true
@@ -260,7 +288,7 @@ cmd_smoke() {
 cmd_destroy() {
     log "destroying testbed at $TESTBED_ROOT"
     cmd_stop || true
-    rm -rf "$TESTBED_ROOT"
+    rm -rf "$TESTBED_ROOT" "${TESTBED_ROOT}-origin.git"
     log "removed"
 }
 
