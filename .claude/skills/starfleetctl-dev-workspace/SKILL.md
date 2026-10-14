@@ -35,6 +35,21 @@ beim nächsten Bootstrap. Generisches gehört ins Fragment, Workspace-Spezifisch
 - **Bootstrap:** `./starfleet-bootstrap` (am Workspace-Root).
 - **Ports live:** web `8080`, model-proxy `8443`.
 
+## Skill-Änderungen wirksam machen (laufende Sessions!)
+
+Ein geänderter Skill wirkt **erst in einem neuen opencode-Prozess** — opencode scannt
+Skills einmal pro Prozess; eine **laufende** Session hält den Stand vom Prozessstart
+(auch ein erneuter `skill`-Tool-Aufruf liefert die alte Fassung).
+
+- **Richtig:** Ship neu starten (`session stop` + `ship-run`). Das wirkt **auch**, wenn
+  dabei dieselbe Session wieder aufgenommen wird (`--session <id>`) — der Prozess ist
+  neu, die Konversations-Historie bleibt, der Skill-Registry wird neu gebaut.
+- **Reicht NICHT:** `sop-reload` (in-place `session.clear` im selben Prozess) — lädt nur
+  den SOP-Index neu, **nicht** die Skills.
+
+Jedes Schiff ist ein eigener opencode-Prozess (kein gemeinsamer Server). Belege/Details:
+`starfleetctl-dev`-Skill, Abschnitt „Kopplungskette".
+
 ## Isoliertes Testbed — `scripts/starfleet-testbed.sh`
 
 Eine **separate Workspace** unter `_WORK_/starfleet-testbed` mit eigenem `.starfleet-ai/`,
