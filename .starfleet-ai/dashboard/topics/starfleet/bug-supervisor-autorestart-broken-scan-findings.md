@@ -1,12 +1,11 @@
 Title: "release-blocker-Kandidat: supervisor/auto-restart kaputt + Scan-Befunde"
 Category: starfleet
-Kind: task
+Kind: "task"
 Status: "assigned"
+Assigned-To: "LaForge"
 Created-By: "Enterprise"
 Created: "2026-10-14T12:40:09Z"
-Assigned-To: "LaForge"
 Doc-Ref: "—"
-Slug: starfleet/bug-supervisor-autorestart-broken-scan-findings
 
 Pre-release-Bug-Scan (Stand master 2ea2503), verifizierte + unverifizierte Befunde. Triviale Bugs (#3/#4/#5) bereits gefixt in 2ea2503. Rest offen:
 
@@ -25,3 +24,5 @@ Architektur: cmd/ship-supervisor wird von NICHTS gestartet (toter Daemon; baut+d
 - low cmd/ship-supervisor/main.go: Done() liefert nil (Busy-Loop), Race auf ship.Config.
 
 Siehe auch: /proc/<pid>/exe vcs.revision fuer laufende Versionen; Skill starfleetctl-dev §6 (Branch+Testbed vor master).
+
+- 2026-10-14T13:34:31Z Enterprise: HIGH-Block gefixt in 9c899b4 (master+deployt): #1 LaunchShip schliesst den Control-Socket nicht mehr beim Return (defer entfernt), Accept-Loop beendet sauber bei net.ErrClosed (kein 100%-CPU-Spin mehr), Listener wird nur noch bei STOP genau einmal abgeraeumt + im startChild-Fehlerpfad (kein Leak); #2 STOP-Handler close(shutdownCh) mit sync.Once (kein Doppel-Close-Panic); #3 toter cmd/ship-supervisor entfernt (Makefile + cmd/), SocketPath-Dup damit aufgeloest. Verifikation: make all gruen (vet+tests), Testbed-smoke rc=0. OFFEN/NICHT getestet: voller ship-restart-E2E (spawnt echtes opencode, zu schwer/flaky im Testbed). DESIGN-LUECKE (nicht im Scan): der run-Pfad (spawnSession, stehende Schiffe + autoscale) legt GAR KEINEN Control-Socket an -> session restart kann nur fuer web-gestartete Schiffe funktionieren.
