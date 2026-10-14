@@ -160,6 +160,33 @@ rm -f .starfleet-ai/src/starfleetctl/starfleetctl   # rm umgeht text-file-busy
 ./starfleet-bootstrap
 ```
 
+### NIEMALS `pkill -f starfleetctl` (Incident 2026-10-13)
+
+Für ein manuelles Deployment **niemals** einen breiten `pkill`-Befehl verwenden —
+weder `pkill -f starfleetctl`, `pkill -f ship-supervisor` noch `kill`/`systemctl`
+gegen die laufende Instanz. **Vor dem Kopieren das alte Binary löschen** (`rm -f`),
+das umgeht das text-file-busy und ist die einzige zulässige Methode:
+
+```sh
+rm -f .starfleet-ai/bin/starfleetctl
+cp _WORK_/starfleetctl/sources/starfleetctl/starfleetctl .starfleet-ai/bin/starfleetctl
+```
+
+**Warum das so gefährlich ist — gemessen am 2026-10-13:** `pkill -9 -f "starfleetctl"`
+matcht die **volle** Kommandozeile. Damit trifft es nicht nur die eigene Instanz,
+sondern **jeden** laufenden Wrapper `starfleetctl run --client opencode …` **aller
+Schiffe** gleichzeitig (Enterprise, Voyager, Defiant), den `timer worker` und den
+`web`-Daemon. Der `run`-Wrapper ist der **Vordergrund-Prozessgruppen-Führer auf dem
+pts**; wird er gekillt, überlebt `opencode --session …` (kein „starfleetctl" in der
+Kommandozeile) **verwaist** und hält fd 0/1/2 weiter auf dem pts. Der Kernel gibt
+die Vordergrund-Kontrolle an die shell (session leader) zurück → das Terminal ist
+„total kaputt": opencode schreibt aufs Original-Terminal, bash ist gleichzeitig im
+Vordergrund. Blast radius ist **flottenweit**, nicht lokal.
+
+Merksatz: **Der Prozess, den man treffen will, und der Prozess, den man trifft,
+sind bei `pkill -f` nie garantiert derselbe.** `rm -f` + `cp` hat diesen Nebeneffekt
+nicht und ist deshalb die vorgeschriebene Methode.
+
 ## 3. Daemons neu starten — in dieser Reihenfolge
 
 Nach jedem Binary-Wechsel laufen die Daemons **mit dem alten Binary**, bis man sie

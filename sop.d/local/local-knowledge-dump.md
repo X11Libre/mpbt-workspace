@@ -434,6 +434,7 @@ Wort („geregasten"). Beides per `grep` nach dem Schreiben und noch einmal vor
 ### starfleetctl deploy / daemons
 - **Deploying a starfleetctl change:** build (`make all`) → commit+push (`master`) → `./starfleet-bootstrap` → `timer worker restart` + `web restart` → HTTP 200 → dashboard topic `done` + comms report.
 - **Direct-binary deploy fallback** when `./starfleet-bootstrap` can't run cleanly: build in your OWN clean worktree at the rebased master, `rm -f` + `cp` the binary over `.starfleet-ai/src/starfleetctl/starfleetctl` (rm avoids text-file-busy), then `bootstrap --fix` + `sop reindex` with the NEW binary, then `web restart` + `timer worker restart` (both daemons keep OLD binary until restarted). Flag the dirty SRC tree to its owner.
+- **NEVER `pkill -f starfleetctl` to unlock the binary.** `pkill -f` matches the FULL cmdline → kills the `starfleetctl run` wrapper of EVERY ship (Enterprise/Voyager/Defiant), the timer worker and the web daemon in one shot. The wrapper is the pts foreground process-group leader; killing it orphans `opencode --session …` (no "starfleetctl" in its cmdline, so it survives) which keeps fd 0/1/2 on the pts, and the kernel hands foreground back to bash → broken terminal fleet-wide. The only sanctioned method is `rm -f` the old binary, then copy/deploy. See the dedicated 2026-10-13 incident section below.
 - **Running ships keep OLD config/plugin in memory** after redeploy — only new/restarted sessions load the new version. Bootstrap + daemon restarts is NOT enough.
 - **Plugin-only changes:** bump `PLUGIN_VERSION` so the fleet can verify rollout via dashboard/heartbeat.
 - **Model-proxy pure-Go change deploy:** `make all` in the src tree then `model-proxy restart` alone is sufficient (restart re-execs the freshly built binary; no full bootstrap needed). The daemon never re-execs on its own.
@@ -1287,6 +1288,43 @@ Stets den offiziellen Befehl verwenden: `./.starfleet-ai/bin/starfleetctl model-
 3. Für einen Start: `./.starfleet-ai/bin/starfleetctl model-proxy start`
 
 Nie direkt mit `kill`, `pkill` oder `systemctl` arbeiten.
+
+### NIEMALS `pkill -f starfleetctl` — flottenweiter Terminal-Kill (Incident 2026-10-13)
+
+Ein Schiff (Defiant) hat beim manuellen Binary-Deploy `pkill -9 -f "starfleetctl"`
+verwendet, um das text-file-busy zu umgehen. Ergebnis: **die Terminals aller Schiffe
+waren tot** (Enterprise, Voyager, Defiant), dazu `timer worker` und `web`-Daemon.
+
+**Warum `pkill -f` hier zwingend das Falsche trifft:** `-f` matcht die **volle**
+Kommandozeile. Jedes Schiff läuft unter dem Wrapper
+`starfleetctl run --client opencode --flagship --exec` — der String „starfleetctl"
+steckt darin, also wird der Wrapper **jedes** Schiffs getroffen, nicht nur der eigene.
+
+**Der Schadensmechanismus (gemessen):** Der `run`-Wrapper ist der
+Vordergrund-Prozessgruppen-Führer auf dem pts. Wird er gekillt, überlebt
+`opencode --session …` (kein „starfleetctl" in seiner Kommandozeile) **verwaist** und
+hält fd 0/1/2 weiter auf `/dev/pts/N`. Der Kernel gibt die Vordergrund-Kontrolle an
+die shell (session leader) zurück → Symptom „opencode schreibt aufs Original-Terminal,
+bash ist aber wieder im Vordergrund, Terminal total kaputt".
+
+**Beweis:** `pkill`-Zeile um 18:46:41Z in `opencode.log`, danach läuft dieselbe
+opencode-Session (`run=5fac40b3`) ununterbrochen weiter — der Wrapper, der sie hielt,
+war weg.
+
+**Regel (ersetzt jedes „kill zum Entsperren"):**
+1. **Vor dem Kopieren `rm -f` auf das alte Binary** — das umgeht text-file-busy ohne
+   irgendetwas zu killen:
+   ```sh
+   rm -f .starfleet-ai/bin/starfleetctl
+   cp _WORK_/starfleetctl/sources/starfleetctl/starfleetctl .starfleet-ai/bin/starfleetctl
+   ```
+2. **Oder** `./starfleet-bootstrap` (der vorgeschriebene Weg).
+3. **Nie** `pkill -f starfleetctl`, `pkill -f ship-supervisor`, `pkill -9 starfleetctl`.
+   Auch nicht „nur kurz", auch nicht „nur die eigene" — der Treffer ist nie lokal.
+
+**Merksatz:** *Der Prozess, den man treffen will, und der Prozess, den man trifft, sind
+bei `pkill -f` nie garantiert derselbe.* Ein Werkzeug, das Text matcht statt PID, ist
+im geteilten Prozessbaum der Flotte keine Abkürzung, sondern eine Breitseite.
 
 ### Ein lokaler Test-FAIL ist kein Regressions-Beweis — die CI-Lane ist die dritte Messung (2026-10-12, Defiant)
 

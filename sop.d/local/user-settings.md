@@ -65,6 +65,14 @@ innerhalb der workspace bearbeiten (die änderungen gehen sonst verloren)
 wenn starfleetctl binary nicht deployed werden kann, weil das file locked ist (text file busy), dann
 nicht einfach den webserver killen, sondern das binary löschen und dann neu deployen.
 
+NIEMALS `pkill -f starfleetctl` (oder `pkill -f ship-supervisor`): `pkill -f` matcht die
+volle Kommandozeile und trifft damit die run-Wrapper ALLER Schiffe gleichzeitig samt timer
+worker und web-daemon — Blast radius flottenweit. Incident 2026-10-13: ein solcher pkill
+hat den `starfleetctl run`-Wrapper gekillt, opencode blieb verwaist und hielt das pts,
+bash kam in den Vordergrund zurück -> Terminal total kaputt. Für manuelles Deployment
+**vorher das alte binary löschen** (`rm -f .starfleet-ai/bin/starfleetctl`) und dann
+kopieren/deployen — das umgeht text-file-busy ohne irgendetwas laufen zu killen.
+
 ### regeln für die arbeit am starfleetctl-sourcecode
 
 * der sourcecode liegt unter `_WORK_/starfleetctl/sources/starfleetctl` (mpbt-managed, Branch `master`, make-pr-Config gesetzt)
@@ -73,7 +81,7 @@ nicht einfach den webserver killen, sondern das binary löschen und dann neu dep
 * alle änderungen sauber committen - mit genauer dokumentation
 * immer nur ein thema nach dem anderen, nicht verschiedene dinge gleichzeitig.
 * vor dem commit nochmal sorgfältig prüfen
-* deployment immer erst nach `make` -- wenn das starfleetctl-binary locked ist (text file busy), dann dieses löschen und nochmal deployen
+* deployment immer erst nach `make` -- wenn das starfleetctl-binary locked ist (text file busy), dann dieses löschen (`rm -f`) und nochmal deployen. NIEMALS stattdessen `pkill -f starfleetctl` -- das trifft die Wrapper aller Schiffe (siehe oben, Incident 2026-10-13)
 * deployment immer via ./starfleet-bootstrap
 * es darf immer nur ein schiff gleichzeitig aktiv am starfleet-sourcecode (mit änderungen), sonst gibts konflikte
 * andere können (und sollen, wenn grad nix anderes zu tun) aber parallel auch drauf schauen und evtl. gegenprüfen -- via comms untereinander abstimmen!
