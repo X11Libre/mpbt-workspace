@@ -27,7 +27,13 @@
 #   destroy   stop + remove the testbed root completely (back to zero)
 #   shell     open a shell inside the testbed root with the env set
 #
-# Env overrides: TESTBED_ROOT, DEV_CLONE, WEB_PORT, PROXY_PORT, TB_SHIP_ID
+# Env overrides: TESTBED_ROOT, DEV_CLONE, PRIMARY_CLONE, WEB_PORT, PROXY_PORT, TB_SHIP_ID
+#
+# Source selection (build the binary under test from anywhere):
+#   --dev-clone <path>   use an existing clone/worktree as-is
+#   --branch <name>      build a dedicated worktree off the primary clone for <name>
+#   --ref <ref>          build a detached worktree at <ref> (commit/tag/remote)
+#   --build              force a (re)build even if a binary already exists
 #
 set -euo pipefail
 
@@ -35,8 +41,10 @@ SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 LIVE_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 
 TESTBED_ROOT="${TESTBED_ROOT:-$LIVE_ROOT/_WORK_/starfleet-testbed}"
-DEV_CLONE="${DEV_CLONE:-$LIVE_ROOT/_WORK_/starfleetctl/sources/starfleetctl}"
+PRIMARY_CLONE="${PRIMARY_CLONE:-$LIVE_ROOT/_WORK_/starfleetctl/sources/starfleetctl}"
+DEV_CLONE="${DEV_CLONE:-$PRIMARY_CLONE}"
 LIVE_CONF="${LIVE_CONF:-$LIVE_ROOT/.starfleet-ai/conf}"
+BUILD_FORCE=0
 
 WEB_PORT="${WEB_PORT:-18080}"
 PROXY_PORT="${PROXY_PORT:-18443}"
@@ -68,9 +76,9 @@ tb_bg() {
 }
 
 install_binary() {
-    [[ -d "$DEV_CLONE" ]] || die "dev clone not found: $DEV_CLONE"
-    if [[ "${1:-}" == "--build" || ! -x "$DEV_CLONE/starfleetctl" ]]; then
-        log "building dev clone ($DEV_CLONE)"
+    [[ -d "$DEV_CLONE" ]] || die "dev clone/worktree not found: $DEV_CLONE"
+    if [[ "${1:-}" == "--build" || "$BUILD_FORCE" == "1" || ! -x "$DEV_CLONE/starfleetctl" ]]; then
+        log "building source ($DEV_CLONE) [$(git -C "$DEV_CLONE" rev-parse --abbrev-ref HEAD 2>/dev/null || echo '?') @ $(git -C "$DEV_CLONE" rev-parse --short HEAD 2>/dev/null || echo '?')]"
         ( cd "$DEV_CLONE" && make all )
     fi
     [[ -x "$DEV_CLONE/starfleetctl" ]] || die "binary missing: $DEV_CLONE/starfleetctl"
@@ -182,7 +190,10 @@ start_web() {
 }
 
 cmd_start() {
-    install_binary   # ensure binary present (no rebuild)
+    # Only install if the binary is missing — never clobber an already
+    # installed one, so a source selected at create/sync time (e.g. via
+    # --branch/--ref/--dev-clone) survives a later `start`/`restart`.
+    [[ -x "$TB_BIN" ]] || install_binary
     tb_bg model-proxy autostart
     start_web
     tb_bg timer worker autostart 2>/dev/null || true
@@ -254,8 +265,55 @@ cmd_destroy() {
 }
 
 usage() {
-    sed -n '2,30p' "$0" | sed 's/^# \{0,1\}//'
+    awk 'NR>1 { if ($0 !~ /^#/) exit; sub(/^# ?/, ""); print }' "$0"
 }
+
+# Parse generic options (before the subcommand dispatch). They select WHERE the
+# binary under test is built from: --dev-clone <path> uses an existing
+# clone/worktree as-is; --branch <name> / --ref <ref> materialise a dedicated
+# worktree off the primary clone and build from that — so any branch can be
+# tested without touching the primary checkout.
+opt_args=()
+while [[ $# -gt 0 ]]; do
+    case "$1" in
+        --dev-clone)   [[ -n "${2:-}" ]] || die "--dev-clone needs a value"; DEV_CLONE="$2"; shift 2 ;;
+        --dev-clone=*) DEV_CLONE="${1#*=}"; shift ;;
+        --branch)      [[ -n "${2:-}" ]] || die "--branch needs a value"; TB_SRC_BRANCH="$2"; shift 2 ;;
+        --branch=*)    TB_SRC_BRANCH="${1#*=}"; shift ;;
+        --ref)         [[ -n "${2:-}" ]] || die "--ref needs a value"; TB_SRC_REF="$2"; shift 2 ;;
+        --ref=*)       TB_SRC_REF="${1#*=}"; shift ;;
+        --build)       BUILD_FORCE=1; shift ;;
+        *)             opt_args+=("$1"); shift ;;
+    esac
+done
+set -- "${opt_args[@]}"
+
+if [[ -n "${TB_SRC_BRANCH:-}" || -n "${TB_SRC_REF:-}" ]]; then
+    [[ -d "$PRIMARY_CLONE" ]] || die "primary clone not found: $PRIMARY_CLONE"
+    slug=$(printf '%s' "${TB_SRC_BRANCH:-$TB_SRC_REF}" | tr -c 'A-Za-z0-9._-' '_')
+    TB_SRC="$LIVE_ROOT/_WORK_/worktrees/starfleetctl/testbed-src-$slug"
+    mkdir -p "$(dirname "$TB_SRC")"
+    if [[ -e "$TB_SRC/.git" ]]; then
+        log "reusing source worktree $TB_SRC"
+        if [[ -n "${TB_SRC_BRANCH:-}" ]]; then
+            git -C "$TB_SRC" checkout "$TB_SRC_BRANCH" >/dev/null 2>&1 || die "cannot checkout $TB_SRC_BRANCH in $TB_SRC"
+            git -C "$TB_SRC" pull --ff-only >/dev/null 2>&1 || true
+        else
+            git -C "$TB_SRC" checkout --detach "$TB_SRC_REF" >/dev/null 2>&1 || die "cannot checkout ref $TB_SRC_REF in $TB_SRC"
+        fi
+    else
+        if [[ -n "${TB_SRC_BRANCH:-}" ]]; then
+            log "creating source worktree for branch $TB_SRC_BRANCH at $TB_SRC"
+            git -C "$PRIMARY_CLONE" worktree add "$TB_SRC" "$TB_SRC_BRANCH"
+        else
+            log "creating source worktree for ref $TB_SRC_REF at $TB_SRC"
+            git -C "$PRIMARY_CLONE" worktree add --detach "$TB_SRC" "$TB_SRC_REF"
+        fi
+    fi
+    DEV_CLONE="$TB_SRC"
+    BUILD_FORCE=1
+    log "source = $DEV_CLONE"
+fi
 
 cmd="${1:-}"; shift || true
 case "$cmd" in
