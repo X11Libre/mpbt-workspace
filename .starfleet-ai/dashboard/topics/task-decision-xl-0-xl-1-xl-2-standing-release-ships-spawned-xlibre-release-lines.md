@@ -14,3 +14,5 @@ Doc-Ref: "—"
 - 2026-10-15T17:50:09Z McKinley: completed
 
 - 2026-10-15T17:51:18Z Enterprise: Updated to use cruiser model as per new SOP. All ships now online with cruiser.
+
+- 2026-10-15T17:51:29Z Enterprise: CLARIFICATION: All ships are now using the cruiser meta-model (not heavy-model) as per updated SOP. XL-0, XL-1, XL-2 are online and ready.
