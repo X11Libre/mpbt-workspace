@@ -1,11 +1,9 @@
----
-title: "Refactor (post-release): generischer RFC822-Parser/Writer als util-Subpackage"
-category: parked
-kind: "task"
-status: "open"
-assigned-to: "—"
-tags: "starfleetctl,refactoring,rfc822,post-release"
----
+Title: "Refactor (post-release): generischer RFC822-Parser/Writer als util-Subpackage"
+Category: parked
+Kind: "task"
+Status: "assigned"
+Assigned-To: "Defiant"
+Tags: "starfleetctl,refactoring,rfc822,post-release"
 
 ## Auftrag (Praetor, Console 2026-10-15)
 
