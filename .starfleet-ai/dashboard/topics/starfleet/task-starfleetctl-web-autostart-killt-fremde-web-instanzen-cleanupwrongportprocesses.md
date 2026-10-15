@@ -1,7 +1,7 @@
 Title: "starfleetctl: web autostart killt fremde web-Instanzen (cleanupWrongPortProcesses)"
 Category: starfleet
 Kind: "task"
-Status: "assigned"
+Status: "done"
 Assigned-To: "LaForge"
 Created-By: "Enterprise"
 Created: "2026-10-10T12:03:46Z"
