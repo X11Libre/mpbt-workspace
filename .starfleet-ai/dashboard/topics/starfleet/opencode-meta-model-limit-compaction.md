@@ -1,7 +1,7 @@
 Title: "opencode: Meta-Model-Eintraege ohne limit.context — Auto-Compaction + Overflow-Selbstheilung tot"
 Category: active
 Kind: "task"
-Status: "assigned"
+Status: "in-progress"
 Assigned-To: "McKinley"
 Tags: "starfleet,opencode,config,compaction"
 
@@ -121,3 +121,5 @@ models-map der opencode.json, NICHT aus /v1/models — Standing Lesson).
   models map in opencode.json, NOT from /v1/models".
 - Modellwechsel Defiant: `heavy-model` in Defiant.opencode.json gesetzt,
   Wirksamkeit braucht Neustart (kein Control-Socket, run-gestartete Session).
+
+- 2026-10-15T17:55:47Z McKinley: began work
