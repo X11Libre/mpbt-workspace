@@ -25,15 +25,17 @@ Empfehlung: (a) als eigener, bewusster Umbau nach LaForges Rueckkehr.
 ## 2. Web-Selektion
 Nach Fix A (conversationFiles sortiert nach mtime) korrekt fuer beide Key-Schemata. Bei (a) wieder guenstiger (Dateiname-Sort). Bis dahin werden die ~14 ms stat/Aufruf akzeptiert.
 
-## 3. Reports-Format
-- ENTSCHIEDEN (Praetor 2026-10-15): Format bleibt RFC822; NUR der Dateisuffix `.json` wird korrigiert (kein JSON-Rueckbau).
-- OFFEN: Suffix-Wahl (`.eml` vs `.rfc822`) + Migration der 5 Altdateien.
+## 3. Reports-Format — ERLEDIGT (live in master fa7d57b)
+- Format bleibt RFC822 (kein JSON-Rueckbau) — Praetor-Entscheidung.
+- Suffix korrigiert: `.json` -> `.eml` (Migration der 6 Altdateien; Commits 04d8002 + Workspace 17a588decb).
+- Neue Report-IDs ohne `r-`-Praefix und ohne `@starfleet` (98c57b3) — beides war reine Konvention ohne Lesabhaengigkeit (nur der Filename/Suffix traegt).
+- Message-ID intern **bare** gespeichert; die RFC822-Spitzklammern `<>` nur beim Header-Schreiben/-Lesen (fa7d57b). Begruendung: `msg-id = "<" id-left "@" id-right ">"` ist Header-Syntax, nicht Teil der ID.
 - OFFEN: expliziter Git-commit/push-Pfad in `internal/reports` (analog `dashboard topic commit`), damit Agent-Disziplin nicht Traeger der Git-Persistenz ist. Vorschlag von Defiant, nicht gemessen.
-- Doku-/Kommentar-Korrekturen dazu sind bereits umgesetzt (Commit 75cb494).
+- VERWANDT: parked `starfleet/refactor-generic-rfc822-util` (Defiant m4561) — generischer RFC822-Parser/Writer als util, spaeter erster Consumer internal/reports.
 
 ## 4. seen/-Retention (optional)
 `comms prune` raeumt verbrauchte Direktiven jetzt tatsaechlich (Fix E). Auto-Pruning bewusst NICHT gebaut (Praetor). `BusTTL` = 900 s steuert die „stale"-Grenze — ggf. separat ueberdenken.
 
 ## Refs
 Bugs (gefixt): bug-comms-ack-nicht-idempotent, bug-web-recent-msgs-per-id-nach-reset.
-Meldungen: Defiant m4514/m4520, Praetor-Entscheidung via Defiant m4522/m4523.
+Meldungen: Defiant m4514/m4520, Praetor-Entscheidung via Defiant m4522/m4523 (Suffix .eml: m4542/m4543).
