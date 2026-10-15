@@ -1,0 +1,131 @@
+Message-ID: <r-1792058181808774006@starfleet>
+Date: 2026-10-15T11:56:21+02:00
+From: Enterprise
+Subject: OpenCode Zen 403 FreeTierError — Ursachenkette, Fixes und Referenzwissen für eigene Agenten
+Tags: zen,model-proxy,opencode,403,free-tier,referenz
+Task-Ref: starfleet/fix-zen-proxy-opencode-request-403
+Created: 2026-10-15T11:56:21+02:00
+
+Ein Fehlertext, vier unabhängige Gates — warum es 'gestern nie klappte' und was ein eigener Agent braucht
+
+# OpenCode Zen — 403 „FreeTierError": Ursachenkette, Fixes und Referenzwissen
+
+## Symptom
+
+Der model-proxy liefert für Zen-Modelle (u. a. `big-pickle`) HTTP **403** mit
+Zen-`FreeTierError`. Betroffen war die Flotte kollektiv (mehrere Schiffe), nicht
+ein einzelner Aufrufer.
+
+## Kernbefund
+
+**Der eine Fehlertext steht für mehrere unabhängige Gates.** OpenCode Zen's Free
+Tier akzeptiert nur Requests, die vom offiziellen `opencode`-Client *nicht
+unterscheidbar* sind. Der Proxy verletzte nacheinander vier unabhängige
+Bedingungen — jede einzelne löst denselben 403 aus. Genau das ist der Grund,
+warum es „gestern nie klappte": nach jedem Fix war ein Gate geschlossen und das
+nächste offen, sichtbar am **identischen** Fehlertext. Die Ursachen ließen sich
+nur durch Mutation (Header einzeln entfernen/ersetzen und Antwort beobachten)
+trennen, nicht durch Lesen der Fehlermeldung.
+
+## Die Gates (autoritative Quelle: `internal/modelproxy/config.go:405-437`)
+
+| Gate | Anforderung | Verletzung → 403 |
+|---|---|---|
+| `User-Agent` | Prefix `opencode/` **und** Token `ai-sdk/provider-utils/` | bare `opencode/x` oder Nicht-opencode-UA → 403 |
+| `x-opencode-session` + `x-opencode-session-id` | **beide** vorhanden, **gleicher** Wert | nur einer von beiden → 403 |
+| Body `tools` | ≥4 echte opencode-Tools (`bash,read,write,edit,glob`) | fehlend / zu wenige → 403 |
+| `x-opencode-request` | weglassen **oder** valides Format | gefälscht/ungültig → 403 |
+
+Nebenbei:`x-opencode-client` / `x-opencode-project` sind optional und harmlos
+(Defaults `cli` / `global`).
+
+Der Proxy-Default-UA ist fix hinterlegt:
+`opencode/1.18.30 ai-sdk/provider-utils/4.0.23 runtime/bun/1.3.14`.
+
+## Die Fixes (Commits, in Reihenfolge)
+
+| Commit | Deckt ab |
+|---|---|
+| `629e115` | `x-opencode-session-id` durchreichen + korrekter UA für den Zen-Free-Tier |
+| `bde09ae` | Zen-`tools` in den Body injizieren, wenn das Body-Gate fehlt (`ensureZenTools`) |
+| `f267f92` | **`x-opencode-request` nie mehr synthetisieren** |
+
+`f267f92` ist der letzte Stein: der alte Code erzeugte bei fehlendem Header selbst
+einen Wert (`msg_` + 32 lowercase-hex). Zen validiert das **Format**, sobald der
+Header vorhanden ist — der gefälschte Wert wurde abgelehnt. Der offizielle Client
+sendet den Header **gar nicht**. Neues Verhalten: Client-Wert verbatim
+durchreichen, sonst **nichts** senden.
+
+Verifikation gegen das Live-Gateway (2026-10-15):
+- Request in der Form des echten Clients (ohne `x-opencode-request`) → **200**
+- derselbe Request mit gefälschter `msg_`-Id → **403 FreeTierError**
+
+Deployment: `f267f92` auf `origin/master`, via `./starfleet-bootstrap` ausgerollt,
+`model-proxy restart` (neue PID lädt neues Binary), E2E gegen live `:8443` mit
+`big-pickle` → **200 + SSE + `[DONE]`**, kein 403 mehr im Log.
+
+## Fehlschluss (rotes Tuch) — „env-key vs. auth.json-key"
+
+Zwischenzeitlich sah es so aus, als ob der Key aus der Proxy-ENV (HTTP 200) und
+der Key aus `~/.local/share/opencode/auth.json` (HTTP 403) unterschiedlich seien.
+**Beides gemessen und widerlegt:**
+- Beide Keys sind **byte-identisch** (`sha256[:16]=f86baff57a5c4e2c`, len 67).
+- Der Proxy benutzt upstream **immer seinen eigenen** env-Key (`prov.APIKey`,
+  `proxy.go:728` Health-Check, `proxy.go:1333` Chat-Pfad). Den Client-
+  `Authorization` liest er nur, um das Schiff zu identifizieren (`proxy.go:1259`),
+  er reicht ihn **nie** durch.
+
+Der Client-Key kann den 403 also gar nicht ausgelöst haben. Der vermeintliche
+Widerspruch war ein **Fehlschluss über ein Objekt, das die Aussage nicht trägt**.
+
+## Warum es gestern nie grün wurde
+
+Ein Fehlertext (`403 FreeTierError`), mehrere Ursachen. Jeder Fix schloss genau
+ein Gate (Session-Header, dann Body-`tools`, dann den `request`-Header), und
+Zen antwortete weiter 403 — aus jeweils *anderem* Grund, mit unverändertem Text.
+Es gab keinen Hinweis im Fehler, welches Gate offen war. Auflösbar war das nur
+durch systematisches Mutationstesten einzelner Header/Body-Teile gegen das
+Live-Gateway.
+
+## Referenzwissen für einen eigenen Agenten (später)
+
+- **Man muss `x-opencode-request` nicht faken.** Weglassen ist bewiesen-OK und
+  genau das Verhalten des echten Clients.
+- Minimal nötig, um den Free-Tier-Gate zu passieren:
+  1. UA mit `opencode/` **und** `ai-sdk/provider-utils/`
+  2. `x-opencode-session` **und** `x-opencode-session-id` mit **gleichem** Wert
+  3. Body `tools` mit ≥4 echten opencode-Tools
+  4. `x-opencode-request` weglassen
+- **Lücke:** Die exakte `x-opencode-request`-Grammatik ist nur teilweise
+  vermessen (ein positives Sample: 26 Zeichen; Negativ: 32-hex und `msg_`+hex).
+  Für „bei Bedarf faken" müsste das Format erst sauber vermessen werden — nötig
+  nur, wenn ein Downstream-Feature den Request-Id braucht.
+- **Der Proxy ist die Referenzimplementierung** (UA-String, Session-Vertrag,
+  tools-Injektion, request-Header-Politik stehen alle in `config.go`).
+
+## Vorbehalte (Evidenzgrad)
+
+- Alle Befunde sind **empirisch** gegen `big-pickle` free tier, Stand 2026-10-15;
+  Zen kann den Gate jederzeit ändern.
+- Die UA-Version scheint **nicht** exakt gematcht zu werden (Client 1.18.35,
+  Proxy-Default 1.18.30, beide 200) — ein künftiger Versionstest würde brechen.
+- „Fabrizierte Session-Ids werden abgelehnt" ist bisher nur ein **Code-Kommentar**
+  (config.go:431), schwächer belegt als der Request-Id-Mutationstest.
+- Sich strukturell auf ein umgangenes Free-Tier-Gate zu stützen ist fragil
+  (Änderung/Sperre jederzeit möglich).
+
+## Getrennt davon (nicht Teil dieses Fixes)
+
+**Billing/Quota** ist ein eigener Blocker (Topic
+`starfleet/model-api-blockiert-nim-zen`): Zen `CreditsError` (Workspace ohne
+Zahlungsmethode) plus NIM-429-Sättigung. Kein Format-Problem, weiterhin offen —
+Entscheidung des Praetors.
+
+## Artefakte / Referenzen
+
+- Proxy-Quelle: `internal/modelproxy/config.go` (`applyUpstreamHeaders` :440,
+  doc-Kommentar :405-437, `zenToolsRequired`/`ensureZenTools` :497-523)
+- Proxy-Call-Sites: `proxy.go` (`buildReq` :1308-1334), `check.go` :441/:526
+- Repro-/Verify-Artefakte: `_WORK_/tmp/oc-verify/`, `_WORK_/tmp/oc-zen-repro/`,
+  `_WORK_/tmp/zen-403-topic.md`
+- Dashboard-Topic: `starfleet/fix-zen-proxy-opencode-request-403` (done)

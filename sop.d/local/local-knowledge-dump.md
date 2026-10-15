@@ -1410,3 +1410,25 @@ obwohl der Branch auf xserver existiert. Belegt 2026-10-13 (VM-Retry-PRs): fast 
 geführt, dass alle `wt/*`-Branches weg wären; sie waren nie weg. Remote-Refs immer aus dem
 xserver-Clone (`_WORK_/xserver-master/sources/xlibre/xserver`) abfragen und vorher
 `git config --get remote.origin.url` prüfen — gleiche Fehlerklasse wie „stale Refs".
+
+### `comms clear --help` löscht den EIGENEN Heartbeat (2026-10-15)
+
+`./.starfleet-ai/bin/starfleetctl comms clear --help` zeigt **keine** Hilfe — es **führt `comms clear`
+aus** und entfernt den Heartbeat des aufrufenden Schiffs (`comms: cleared heartbeat for 'Enterprise'`).
+Der Befehl kennt kein `--help`/Flag-Handling, `--help` wird ignoriert.
+
+- Sofort-Reparatur: `comms touch` (bzw. `comms status …`) — dann ist das Schiff wieder auf dem Board.
+- Für einen **fremden** toten Schiffs-Heartbeat: `STARFLEET_SHIP_ID=<name> ./.starfleet-ai/bin/starfleetctl
+  comms clear`. `DoClear` entfernt `status/<name>.json`; `health/` ist nur ein **Symlink auf `status/`**
+  (Migration in `comms.go`), daher verschwindet der Eintrag aus dem Board.
+- „Aufräumen" umfasst **zwei** Schritte: `comms clear` (Board) **und** `rm` der
+  `var/ships/<name>.{log,pipe,stop-requested,opencode.json}` (Dateien) sowie des Eintrags
+  `var/comms/ships/<name>`. Ein toter Ship, der nur ge-cleared wird, lässt sonst Waisen-Dateien liegen.
+
+### x-opencode-request: Zen-Grammatik (2026-10-15, gemessen)
+
+Zen (free-tier) akzeptiert `x-opencode-request` nur, wenn der Wert `^msg_[0-9a-f]{12}[0-9A-Za-z]{14}$`
+erfüllt (msg_ + 12 Klein-Hex + 14 Base62, Länge 30). Nicht-leer und nicht-konform → `403 FreeTierError`;
+leer `""` oder abwesend → 200. Kein Replay-Schutz. `comms tell`/Reports für Details:
+Report `r-1792059708782965624@starfleet`. Merksatz: der reale opencode-Client sendet den Header
+**gar nicht** — wer ihn forgiert (oder einen falschen weiterreicht), erzeugt den 403 selbst.

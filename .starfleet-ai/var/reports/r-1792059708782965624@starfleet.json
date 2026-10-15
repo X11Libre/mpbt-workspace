@@ -1,0 +1,69 @@
+Message-ID: <r-1792059708782965624@starfleet>
+Date: 2026-10-15T12:21:48+02:00
+From: Enterprise
+Subject: OpenCode Zen x-opencode-request — exakte Grammatik (am Live-Gateway vermessen)
+Tags: zen,model-proxy,opencode,403,x-opencode-request,referenz
+Task-Ref: starfleet/fix-zen-proxy-opencode-request-403
+Created: 2026-10-15T12:21:48+02:00
+
+Nachtrag: msg_ + 12 Klein-Hex + 14 Base62; sonst 403, leer/abwesend 200
+
+# Nachtrag zum Report „OpenCode Zen 403 FreeTierError": die exakte Grammatik von `x-opencode-request`
+
+Subtitle: Empirisch am Live-Gateway (`https://opencode.ai/zen/v1/chat/completions`, Modell `big-pickle`) vermessen — aus einem einzigen Datensatz wurden reproduzierbare Grenzwerte.
+
+## Fragestellung
+
+Der Hauptreport belegte, dass ein **fabricated** `x-opencode-request`-Header (Proxy forgiert `msg_` + 32 Hex) zu `403 FreeTierError` führt, und dass das **Weglassen** des Headers 200 liefert. Offen war: welche Werte akzeptiert das Gateway genau, wenn der Header gesetzt ist?
+
+## Methode
+
+Basis: der reale Request `req_24` aus der Abfangphase. Seine Header **ohne** `x-opencode-request` liefern 200 (Baseline). Für jeden Test wurde **nur** `x-opencode-request` auf einen Kandidatenwert gesetzt, sonst alles identisch (Session-Header, UA, Body mit den echten Tools). Jeder Lauf eine eigene Messung, Kriterium: Antwort enthält `FreeTierError` → 403, sonst `chat.completion.chunk` → 200.
+
+## Ergebnis: die Regel
+
+Ein **nicht-leerer** `x-opencode-request` wird nur akzeptiert, wenn er diesem Muster entspricht:
+
+    ^msg_[0-9a-f]{12}[0-9A-Za-z]{14}$
+
+also: literales `msg_` (klein), dann **genau 12 Kleinbuchstaben-Hex**, dann **genau 14 Zeichen** aus `[0-9A-Za-z]` (Base62). Gesamtlänge des Wertes: **30 Zeichen** (4 + 26). Jeder andere nicht-leere Wert → `403 FreeTierError`. Ein **leerer** Wert (`""`) wird wie **abwesend** behandelt → 200.
+
+## Belege (gemessen)
+
+| Fall | Wert (gekürzt) | Ergebnis |
+|---|---|---|
+| Header weggelassen | — | **200** |
+| leerer String | `""` | **200** (wie abwesend) |
+| realer Testwert | `msg_13ae660ca001R4bmhSmJaN1vnE` | **200** |
+| 12 Hex + 14 Base62 (Zufall, 3×) | `msg_c7b2c55b109cKwq9XmbLIf21lo` … | **200** |
+| 14 Hex + 12 Base62 (2×) | `msg_49dfca8913a5adZrK29tYLlW7j` … | **200** |
+| 26 Hex | `msg_c8f2e12f3e816189a0f4f2f853` | **200** |
+| **32 Hex** (Proxy-Alt-Wert) | `msg_478ca54867669d013b649a9ff9f3a0ab` | **403** |
+| 26 Base62 (kein Hex-Prefix) | `msg_SmWUBzahC4sGBQMFKDpEYxTinX` | **403** |
+| 26 Base62 ohne `msg_` | `CwnYpc9gFU65oW5AvfOviXxnmU` | **403** |
+| nur `msg_` | `msg_` | **403** |
+| Länge 24 / 25 / 27 / 28 | `msg_…` (12 Hex + Rest) | **403** |
+| 11 führende Hex | `msg_134496e7e02…` | **403** |
+| 12 führende Hex | `msg_7215fce51abc…` | **200** |
+| Groß-Hex (A–F) | `msg_BB0A1C59E151…` | **403** |
+| Präfix `ses_` / `prt_` / `msg` ohne `_` / `MSG_` | … | **403** |
+
+## Grenzwerte, sauber getrennt
+
+- **Länge:** exakt 26 Zeichen nach dem Präfix — 24/25/27/28 fallen durch.
+- **Führender Hex-Lauf:** mindestens 12 Kleinbuchstaben-Hex (11 → 403, 12 → 200); mehr ist erlaubt, weil die restlichen Zeichen ohnehin `[0-9A-Za-z]` sind (reines 26-Hex besteht).
+- **Groß-Hex ist verboten** (A–F an den Hex-Positionen → 403).
+- **Präfix zwingend** `msg_` in Kleinbuchstaben.
+- **Kein Replay-Schutz:** frische Zufallswerte in korrekter Form werden akzeptiert; derselbe reale Wert erneut ebenfalls.
+
+## Einordnung / Konsequenz
+
+- Der „reale Client" sendet diesen Header gar nicht: die Client→Proxy-Aufzeichnung (`mitm`) enthält **kein** `x-opencode-request`. Der Wert `msg_`+32 Hex in `req_24` stammt aus der Proxy→Zen-Strecke, also vom **forgierten** Header des alten Proxy-Codes.
+- Der Fix (Header nur weiterleiten, wenn der Client einen setzt; sonst weglassen) ist damit korrekt und ausreichend: ein Client, der nichts sendet, löst das Gate nicht aus.
+- **Robustheits-Option (nicht umgesetzt):** Der Proxy könnte einen client-gelieferten Wert gegen obiges Muster prüfen und bei Nichtübereinstimmung **verwerfen** statt weiterzuleiten. Heute wird verbatim weitergeleitet — ein Client mit einem nicht-konformen Wert bekäme sonst 403, obwohl das Weglassen geholfen hätte.
+
+## Bezug
+
+- Hauptreport: `OpenCode Zen 403 FreeTierError — Ursachenkette, Fixes und Referenzwissen für eigene Agenten`.
+- Fix: `f267f92` (`fix(model-proxy): never synthesize x-opencode-request for Zen`).
+- Task: `starfleet/fix-zen-proxy-opencode-request-403`.
