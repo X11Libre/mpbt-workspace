@@ -44,3 +44,5 @@ Completion. Defiant + Voyager laut Praetor wieder gesund.
 - 2026-10-14T09:39:15Z Enterprise: Ad-hoc-Fix committet+gepusht: commit 57d9260 auf Branch wt/proxy-stopgap (origin/mpbt-hq/starfleetctl). Inhalt: launch.go aus Parent 188216a wiederhergestellt (LaunchShip zurueck), damit origin/master wieder baut. Diff: +352 Zeilen in internal/session/launch.go, sonst nichts. PR-Kandidat gegen master offen (LaForge).
 
 - 2026-10-14T09:40:40Z Enterprise: master REPARIERT: Fast-Forward origin/master ec70e93..57d9260 (Branch war ungeschuetzt). Verifiziert: origin/master == 57d9260, func LaunchShip vorhanden (=1). Deploytes Binary .starfleet-ai/bin/starfleetctl (14754715 B) stammt aus genau diesem Baum -> bereits konsistent, kein Rebuild noetig. Offen bleibt nur der WIP-Streaming-Diskriminator (LaForge).
+
+- 2026-10-15T11:27:38Z Enterprise: VERIFIZIERT ERLEDIGT (Enterprise): origin/master baut gruen (go build rc=0). WIP-Hang-Ursache weg: internal/modelproxy/turn.go existiert nicht mehr, 0 Treffer StreamChunks in internal/modelproxy/ (NewTurn-Diskriminator entfernt/zurueckgerollt). Proxy laeuft live auf fa7d57b und liefert 200.
