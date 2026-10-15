@@ -1,7 +1,7 @@
 Title: "wip/screenlist: ConnectionInfoSize durch rpcbuf-Globale abloesen"
 Category: active
 Kind: "task"
-Status: "assigned"
+Status: "paused"
 Assigned-To: "Voyager"
 Created-By: "Enterprise"
 Created: "2026-09-29T13:33:02Z"

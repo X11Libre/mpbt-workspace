@@ -6,7 +6,7 @@ order: 45
 
 ## Standing ships for xlibre release branches
 
-Three dedicated ships, one per release line, model `heavy-model` (Dreadnought strategy):
+Three dedicated ships, one per release line, model `cruiser`:
 
 | Ship | Release | mpbt Clone | Target Branch | Tracker Branch | Incubator Branch |
 |------|---------|------------|---------------|----------------|------------------|
@@ -44,12 +44,12 @@ Each ship owns **its release completely**:
 
 ```bash
 # First spawn (per ship)
-./.starfleet-ai/bin/starfleetctl session ship-run --name XL-0 --model heavy-model
-./.starfleet-ai/bin/starfleetctl session ship-run --name XL-1 --model heavy-model
-./.starfleet-ai/bin/starfleetctl session ship-run --name XL-2 --model heavy-model
+./.starfleet-ai/bin/starfleetctl session ship-run --name XL-0 --model cruiser
+./.starfleet-ai/bin/starfleetctl session ship-run --name XL-1 --model cruiser
+./.starfleet-ai/bin/starfleetctl session ship-run --name XL-2 --model cruiser
 ```
 
-- `--model heavy-model` (strategy `heavy-model`, Dreadnought class) — **REQUIRED**.
+- `--model cruiser` — **REQUIRED**.
 - Launch type: `background` (detached). `session stop` only for `background`/`auto` ships.
 - On restart after crash: new `ship-run` with same `--name` (reuses name after `session stop` cleanup).
 - Flagship (Enterprise) monitors board; if ship is `idle` > 2h without assignment, nudge or reassign.

@@ -36,7 +36,7 @@ automatisch wieder hochgezogen):
 - **Galaxy** — für **verschiedene andere größere Aufgaben (on-demand)**.
 
 **Ist-Zustand (2026-10-02, gemessen):** Laforge läuft wieder, **eine** Instanz,
-`--launch-type background`, `--model nim-primary` (pids 541/551 nach dem
+`--launch-type background`, `--model cruiser` (pids 541/551 nach dem
 Neustart). Vorher stand er als **verwaistes Heartbeat** im Board, während kein
 Prozess lebte — dieselbe Klasse wie der Barcley-Eintrag am Anfang dieser Sitzung:
 Board-Eintrag und Prozesszustand widersprechen sich, und nur `ps` sagt, was lebt.
@@ -46,19 +46,17 @@ tragen den Ship-Namen in der Kommandozeile** — der Wrapper *und* sein opencode
 `grep -c` zählt damit **Zeilen, keine Instanzen**. Ein Wrapper mit einem Kind ist
 *eine* Session. Instanzen zählt man anhand der Elternbeziehung.
 
-Laforge läuft auf dem **Meta-Model `nim-primary`** (`opencode --model nim-primary`,
+Laforge läuft auf dem **Meta-Model `cruiser`** (`opencode --model cruiser`,
 `server=meta-model`). Das reicht für den starfleetctl-Source ausdrücklich aus.
 
-`nim-primary` ist eine **Strategie, kein gepinntes Modell** — sie wählt unter den
-NIM-Modellen, was frei ist (`default_model` aktuell
-`nvidia/nemotron-3-ultra-550b-a55b`). Genau die Indirektion ist gemeint: nicht auf
+`cruiser` ist eine **Strategie, kein gepinntes Modell** — sie wählt unter den
+verfügbaren Modellen, was frei ist. Genau die Indirektion ist gemeint: nicht auf
 eine konkrete Modell-ID festlegen, damit Rate-Limits und Auslastung den
-starfleetctl-Source nicht blockieren. Deshalb **kein** Hochziehen auf ein Nemotron
+starfleetctl-Source nicht blockieren. Deshalb **kein** Hochziehen auf ein bestimmtes
 Modell, nur weil gerade eines frei ist — das verliert die Failover-Eigenschaft und
 kostet Kapazität, die woanders fehlt.
 
-Beim Neustart also `--model nim-primary` angeben, nicht
-`nvidia/nemotron-3-ultra-550b-a55b`.
+Beim Neustart also `--model cruiser` angeben, nicht eine konkrete Modell-ID.
 
 **Neustart bei Absturz:** siehe unten. Aktuell gibt es **keinen** automatischen
 Wiederbelebungs-Mechanismus in starfleetctl (kein keepalive, kein respawn, kein
@@ -71,8 +69,8 @@ Schiff weg, bis jemand es bemerkt.
 Wenn eines der drei Schiffe abstürzt oder gestoppt werden muss:
 
 1. Automatisch wieder neu starten (`session ship-run --name <ship> --model <modell> --class worker --launch-type background`).
-   Für **Laforge** ist `--model nim-primary` (das Meta-Model) das Vorgabemodell —
-   nicht die darunterliegende Modell-ID.
+    Für **Laforge** ist `--model cruiser` das Vorgabemodell —
+    nicht die darunterliegende Modell-ID.
 2. Continuation-Direktive senden, damit es **an seiner Aufgabe weiterarbeitet**.
 3. Vorher gestopptes zuständigkeitsfremdes Zuweisungen ggf. korrigieren (siehe
    "Task-Zuständigkeit" oben).
