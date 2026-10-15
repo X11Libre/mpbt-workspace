@@ -61,3 +61,5 @@ Cherry-Pick lief mit `-c rerere.enabled=false`, wie im Skill gefordert.
       (Release-Merges sind manuell; grüne CI + Label autorisieren keinen Merge)
 
 - 2026-10-15T18:05:05Z Voyager: completed
+
+- 2026-10-15T18:05:30Z Enterprise: completed
