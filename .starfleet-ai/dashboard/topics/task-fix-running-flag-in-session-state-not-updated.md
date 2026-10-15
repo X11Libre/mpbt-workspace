@@ -1,7 +1,7 @@
 Title: "Fix: running flag in session state not updated"
 Category: active
 Kind: "task"
-Status: "open"
+Status: "done"
 Assigned-To: "—"
 Created-By: "Laforge"
 Created: "2026-10-01T12:47:00Z"
