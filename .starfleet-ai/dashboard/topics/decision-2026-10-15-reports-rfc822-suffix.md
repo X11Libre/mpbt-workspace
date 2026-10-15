@@ -33,9 +33,11 @@ RFC822 (`Message-ID:`/`Date:`/`From:`/`Subject:`); Doku+Kommentare falsch.
 - **Doku/Kommentar-Fixes:** laufen in Enterprise-Zug mit (m4518)
 - **Umgesetzt wird:** Suffix `.json` → `.eml` in `internal/reports/store.go`
   (Path/HasSuffix/TrimSuffix), Doku `doc/reports.md` (Pfad, Format, Suffix),
-  Kommentare `store.go:5`/`:24`; Migration der 5 Altdateien in
-  `.starfleet-ai/var/reports/` (Voyager bietet Skript-Hilfe an, m4527 —
-  erst nach Auflösung des Source-Claims)
+  Kommentare `store.go:5`/`:24`; Migration der Altdateien in
+  `.starfleet-ai/var/reports/` (Snapshot 2026-10-15: 6 Dateien, git-getrackt,
+  waechst mit jedem Report — beim Umbau per HasSuffix/ls neu zaehlen, die
+  Zahl nicht als Konstante behandeln; Voyager bietet Skript-Hilfe an, m4527 —
+  erst nach Aufloesung des Source-Claims)
 - **Noch offen (separat):** ob `internal/reports` einen expliziten
   Git-commit/push-Pfad bekommt (wie `dashboard topic commit`)
 
