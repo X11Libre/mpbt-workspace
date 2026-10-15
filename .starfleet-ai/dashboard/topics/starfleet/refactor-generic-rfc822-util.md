@@ -1,7 +1,7 @@
 Title: "Refactor (post-release): generischer RFC822-Parser/Writer als util-Subpackage"
 Category: parked
 Kind: "task"
-Status: "assigned"
+Status: "in_progress"
 Assigned-To: "Defiant"
 Tags: "starfleetctl,refactoring,rfc822,post-release"
 
