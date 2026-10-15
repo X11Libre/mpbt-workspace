@@ -1432,3 +1432,49 @@ erfüllt (msg_ + 12 Klein-Hex + 14 Base62, Länge 30). Nicht-leer und nicht-konf
 leer `""` oder abwesend → 200. Kein Replay-Schutz. `comms tell`/Reports für Details:
 Report `r-1792059708782965624@starfleet`. Merksatz: der reale opencode-Client sendet den Header
 **gar nicht** — wer ihn forgiert (oder einen falschen weiterreicht), erzeugt den 403 selbst.
+
+### Model-Proxy Fallback Fixes (2026-10-15)
+
+**Problem:** Model-proxy fallback mechanism was broken for upstream 5xx errors and stream interruptions when `MaxRetries=0` (default).
+
+**Root Causes Identified:**
+1. **5xx Fallback Bug** (fixed in `fe386a5`): In `proxy.go` line 1399, retry condition `attempt < attempts` with `attempts = MaxRetries + 1`. Default `MaxRetries=0` → `attempts=1`, so `attempt=1` gives `1<1=false`, preventing any retry for 5xx errors.
+2. **Streaming Fallback Bug** (fixed in `a2510d0`): Same bug at line 1496: `failed && attempt < attempts` prevented stream fallback on first attempt when `MaxRetries=0`.
+3. **Provider Timeout Mismatch on Fallback**: When falling back to different provider type (e.g., nvidia-direct → zen-proxy), HTTP clients retained original provider's timeout settings (30s vs 15s).
+4. **Hardcoded Response Header Timeout**: Hardcoded 30s caused `ProviderHeaderTimeoutError` for slow upstream providers (NVIDIA NIM).
+
+**Fixes Deployed (commits `fe386a5`, `a2510d0`, `18e56f7`):**
+1. **5xx Fallback Fix**: Minimum 2 attempts for strategy routes in `proxy.go`:
+   ```go
+   attempts := prov.MaxRetries + 1
+   if p.getStrategyForModel(requestedModel) != nil && attempts < 2 {
+       attempts = 2
+   }
+   ```
+2. **Streaming Fallback Fix**: Extended condition to `(attempt < attempts || (attempt == attempts && attempts == 1))` and added full reroute logic with circuit breaker handling and client recreation.
+4. **Provider Timeout Recreation on Fallback**: When switching providers during fallback, recreate HTTP clients with new provider's settings including `ResponseHeaderTimeout`.
+5. **Configurable Response Header Timeout**: Added `ResponseHeaderTimeout` field to Provider config (default 30s, configurable per provider in `model-proxy.yaml`).
+
+**Files Modified:**
+- `internal/modelproxy/proxy.go`: ForwardChat fallback logic, streaming fallback, provider timeout recreation
+- `internal/modelproxy/config.go`: Added `ResponseHeaderTimeout` to Provider struct
+- `internal/config/config.go`: Added `ResponseHeaderTimeout` to `ModelProxyProvider` struct
+- Documentation: `sop.d/local/model-proxy-fallback-fixes.md` created
+
+**Verification:**
+- `cd _WORK_/starfleetctl/sources/starfleetctl && make all` — passes
+- All modelproxy tests pass
+- Fleet verification: 7 ships active, fallback verified in production
+
+**Config Example (model-proxy.yaml):**
+```yaml
+providers:
+  - id: nim-proxy
+    response_header_timeout: 60s  # Optional, defaults to 30s
+```
+
+**Deploy:**
+```bash
+./starfleet-bootstrap
+./.starfleet-ai/bin/starfleetctl model-proxy restart
+```
