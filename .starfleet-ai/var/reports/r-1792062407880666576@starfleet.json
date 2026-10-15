@@ -1,0 +1,49 @@
+Message-ID: <r-1792062407880666576@starfleet>
+Date: 2026-10-15T13:06:47+02:00
+From: Enterprise
+Subject: starfleetctl: Pre-Release-Bugfixes (comms + web) + Reports-Doku
+Tags: starfleetctl,bugfix,comms,web,reports
+Task-Ref: bug-web-recent-msgs-per-id-nach-reset
+Created: 2026-10-15T13:06:47+02:00
+
+master 8aa880f..75cb494, live deployt; Root cause: .seq-Reset -> ID-Inversion
+
+# starfleetctl: Pre-Release-Bugfixes (comms + web) + Reports-Doku
+
+Auslöser: Praetor-Befund „im Web-Frontend sehe ich bei Enterprise keine neuen Messages mehr". Die Analyse ergab einen zurückgesetzten Message-ID-Zähler und mehrere Folge-Bugs. LaForge war offline → Praetor-Freigabe zum direkten Beheben im Source.
+
+## Root cause (gemessen)
+
+`MsgDir/.seq` ist eine **einzelne, ephemere Dotfile** unter dem gitignorierten `var/comms/`. Ihr Wert ging verloren/wurde ersetzt: der Zähler fiel von ~`m4513` auf `m0001` (belegt: `m0001` existiert an zwei Daten, Oct 8 und Oct 13). Da `conversationFiles()` und die Web-„neueste N"-Auswahl **nach numerischer ID** sortierten, standen die ALTEN `m4xxx` oben — neue Messages (niedrigere IDs) fielen aus dem 300er-Fenster und wurden nie angezeigt. Nebeneffekt: der Zähler lief erneut auf `m4513` zu → ID-Kollision drohte.
+
+Eigener Messbefund zur „1 Monat"-Aufräumfrage: der **ganze** Store ist maximal **7 Tage** alt (ältestes `m*.json` = 2026-10-08) — ein `-mtime +30`-Cleanup wäre ein **No-op**.
+
+## Commits (master, je ein Issue)
+
+| Commit | Inhalt |
+|---|---|
+| `4ab45d2` | fix(comms): `nextID` monoton — floor auf `max(.seq, höchste vorhandene id)+1` → kein Rückwärts/Kollision nach `.seq`-Verlust |
+| `aa2576f` | fix(comms): Web-„neueste N" nach **mtime** statt ID (robust gegen jedes Key-Schema) |
+| `e7b65a8` | fix(comms): `ack` idempotent — bereits-gesehen = No-op statt irreführendem „no such directive" |
+| `687b843` | fix(comms): `prune` löscht verbrauchte Direktiven wirklich (aus `seen/`, nicht `unseen/`) |
+| `e71e40d` | fix(comms): `comms <cmd> --help` führt den Befehl nicht mehr aus (Schutz für `clear`) |
+| `0ea0abb` | test(comms): Regressionstests für alle obigen |
+| `75cb494` | docs(reports): Storage-Pfad/Format/Git-Wortlaut korrigiert (Defiant-Befund m4514/m4520, Praetor-Entscheidung m4522) |
+
+## Verifikation
+
+- `make all` grün (build, vet, fmt, test, check-plugin).
+- **Isoliertes Testbed** (eigene Workspace, :18080/:18443): Web-Ordering mit invertierten IDs → neueste by time; `ack` zweimal grün; `clear --help` lässt Heartbeat stehen; `nextID` mit `.seq=3` und höchster ID 9001 → neue ID `m9002`.
+- **Live deployt**: Binary `75cb494`; `web` + `timer worker` laufen auf `75cb494` (via `/proc/<pid>/exe`); `GET /api/msgs?ship=Enterprise&limit=8` liefert jetzt die neuesten zuerst (`m4516` age 1 s, `m4514` age 48 s, `m1346` …); `GET /` = 200.
+- Live bestätigt automatisch: die nächste Fremd-Nachricht war `m4514` (> 4513) — der monotone Zähler greift.
+
+## Offen / nicht im Release-Scope
+
+- Diskussions-Topic `parked/discussion-starfleetctl-redesigns`: zeit-sortierbare Message-Keys (ULID) vs. Sequenz; `stat()`-Kosten (gemessen **19,4 ms/4550 Dateien**, readdir 5,3 ms); Caching.
+- Reports: Suffix-Wahl (`.eml` vs `.rfc822`) + Migration der 5 Altdateien; evtl. expliziter Git-commit-Pfad.
+- `seen/`-Retention (`BusTTL` = 900 s). **Kein Auto-Pruning gebaut** (Praetor).
+
+## Hinweise für den Source-Owner (LaForge)
+
+- Die comms-Fixes berühren das ACK-Protokoll und das Poller-Verhalten (Poller markiert Nachrichten beim Zustellen als gesehen) — bitte nachsichtig gegenlesen.
+- Bug-Topics geschlossen: `bug-comms-ack-nicht-idempotent`, `bug-web-recent-msgs-per-id-nach-reset`.
