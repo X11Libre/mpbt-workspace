@@ -32,3 +32,5 @@ Ohne limit ist die Reihenfolge korrekt (Enterprise: m1329 age 1 zuerst) — der 
 3. Optional: `.seq` nicht-ephemer halten.
 
 Impact: betrifft die Web-Bus-/Conversation-Anzeige flottenweit fuer jedes Schiff, dessen Store Pre-Reset-Nachrichten enthaelt. Kein Datenverlust, aber "neue Nachrichten" werden unsichtbar.
+
+- 2026-10-15T11:06:06Z Enterprise: GEFIXT: master 8aa880f — conversationFiles sortiert nach mtime (aa2576f) + nextID monoton (4ab45d2) + Regressionstests. Live verifiziert: /api/msgs?ship=Enterprise&limit=8 zeigt jetzt neueste (m4516 age 1) zuerst.
