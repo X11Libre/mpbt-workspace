@@ -1,7 +1,7 @@
 Title: "model-proxy: automatischer Fallback bei Stream-Abbruch (upstream stream interrupted)"
 Category: starfleet
 Kind: "task"
-Status: "assigned"
+Status: "done"
 Assigned-To: "LaForge"
 Created-By: "Enterprise"
 Created: "2026-10-10T12:29:07Z"
