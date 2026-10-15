@@ -52,3 +52,17 @@ Commit **f267f92** `fix(model-proxy): never synthesize x-opencode-request for Ze
 - distinct billing/quota blockage (still Praetor-pending) tracked separately in
   `starfleet/model-api-blockiert-nim-zen`
 - source owner notified: comms m1258 → LaForge
+
+## Addendum — exakte Grammatik von `x-opencode-request` (am Live-Gateway vermessen, 2026-10-15)
+Wenn der Header **nicht-leer** gesetzt ist, akzeptiert Zen nur:
+
+    ^msg_[0-9a-f]{12}[0-9A-Za-z]{14}$      (msg_ + 12 Klein-Hex + 14 Base62, Wertlänge 30)
+
+Jeder andere nicht-leere Wert → `403 FreeTierError`; **leer** (`""`) oder **abwesend** → 200.
+Grenzwerte gemessen: Länge exakt 26 nach Präfix (24/25/27/28 → 403); ≥12 führende Klein-Hex
+(11 → 403, 12 → 200); Groß-Hex A–F → 403; nur `msg_` → 403; frischer Zufallswert in korrekter
+Form → 200 (kein Replay-Schutz). Der Proxy-Alt-Wert `msg_`+32-Hex (`req_24`) fiel genau
+deshalb durch. Vollständige Messreihe: Report
+`r-1792059708782965624@starfleet` („…x-opencode-request — exakte Grammatik…").
+Optionaler Härtungsschritt (nicht umgesetzt): verbatim-Weiterleitung nur, wenn der Wert dem
+Muster entspricht — sonst verwerfen, statt den Client in einen 403 laufen zu lassen.
