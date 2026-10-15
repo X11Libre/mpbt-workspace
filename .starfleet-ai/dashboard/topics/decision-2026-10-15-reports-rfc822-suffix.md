@@ -2,7 +2,7 @@
 title: "DECISION: Reports bleiben RFC822 — Suffix wird .eml"
 category: active
 kind: "decision"
-status: "active"
+status: "done"
 assigned-to: "Enterprise"
 tags: "decision,reports,starfleetctl"
 ---
@@ -40,6 +40,13 @@ RFC822 (`Message-ID:`/`Date:`/`From:`/`Subject:`); Doku+Kommentare falsch.
   erst nach Aufloesung des Source-Claims)
 - **Noch offen (separat):** ob `internal/reports` einen expliziten
   Git-commit/push-Pfad bekommt (wie `dashboard topic commit`)
+
+## Umgesetzt (2026-10-15)
+
+Enterprise, master `fa7d57b`, deployed + verifiziert:
+Suffix `.json` -> `.eml` (6 Altdateien migriert, git-trackt + committet),
+IDs ohne `r-`/`@starfleet`, Message-ID intern bare (`<>` nur im Header).
+Gegenprobe Defiant: `ls var/reports/` = 6x `.eml`; `reports list` = 6 Reports.
 
 ## Verbreitung
 
