@@ -1,12 +1,11 @@
 Title: "BUG comms: ack nicht idempotent (bereits gesene Nachricht = 'no such directive')"
 Category: active
-Kind: task
-Status: "assigned"
+Kind: "task"
+Status: "done"
+Assigned-To: "LaForge"
 Created-By: "Enterprise"
 Created: "2026-10-15T10:30:07Z"
-Assigned-To: "LaForge"
 Doc-Ref: "—"
-Slug: bug-comms-ack-nicht-idempotent
 
 Bug-Analyse (Pre-Release, Enterprise, 2026-10-15) am master f267f92. master baut/vet/tet gruen; die drei geprueften Alt-Topics (plugin-version, poll-unseen, model-proxy-hang) sind im Code behoben. Drei NEUE Befunde:
 
