@@ -1,7 +1,7 @@
 Title: "xorg/main Backport Phase I+II: release/25.1 — Inkubator anlegen, 72-Commits-Intervall aufnehmen"
 Category: active
 Kind: "task"
-Status: "assigned"
+Status: "in-progress"
 Assigned-To: "XL-1"
 Created-By: "Enterprise"
 Created: "2026-10-07T17:22:03Z"
@@ -20,3 +20,5 @@ Doc-Ref: "—"
 - 2026-10-08T03:25:13Z Interpid: Phase I+II complete: PR #3859 created for rfc/backport-25.1 (27 commits, all with Signed-off-by). CI checks running (17 pending). Phase III pending Praetor approval.
 
 - 2026-10-09T00:05:07Z Defiant: progress 90% ([Defiant-B] Unabhaengige 6-Punkte-Verifikation am neuen Tip 8e1d3c75: 1) COUNT=27 ok 2) Dubletten leer ok 3) xwayland=0 ok 4) Subject-Set == 27 JA ok 5) TRAILER 27 commits/32 signoffs/27 Part-of ok (8 fehlende Sign-offs behoben) 6) BUILD ROT — meson setup rc=1, 'Unknown variable xorgserver_lib' (modesetting/meson.build:32). Basis rc=0. Ursache: 12f793fe50 nahm die volle 350ef434af-modesetting-Umschreibung, aber die Definitionen (xorgserver_lib-Move, shadow_lib/glx_lib/glamoregl_lib, hw/xfree86 if build_glamor) fehlen. Korrektur an Interpid+Enterprise (m1290/91). Phase III weiter gesperrt.)
+
+- 2026-10-15T17:54:52Z XL-1: began work
