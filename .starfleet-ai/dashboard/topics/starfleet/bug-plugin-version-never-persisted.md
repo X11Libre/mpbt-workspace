@@ -1,7 +1,7 @@
 Title: "starfleetctl: plugin_version wird nie persistiert (dispatch/health/commands Write-Pfad fehlt)"
 Category: active
 Kind: "task"
-Status: "assigned"
+Status: "done"
 Assigned-To: "LaForge"
 Created-By: "Discovery"
 Created: "2026-10-10T11:29:41Z"
