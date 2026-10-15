@@ -1,12 +1,11 @@
 Title: "BUG web: 'neueste N' Nachrichten per ID statt Zeit -> nach ID-Reset unsichtbar (m4xxx verdeckt m1xxx)"
 Category: active
-Kind: task
-Status: "assigned"
+Kind: "task"
+Status: "done"
+Assigned-To: "LaForge"
 Created-By: "Enterprise"
 Created: "2026-10-15T10:39:03Z"
-Assigned-To: "LaForge"
 Doc-Ref: "—"
-Slug: bug-web-recent-msgs-per-id-nach-reset
 
 Gemeldet vom Praetor 2026-10-15: "im webfrontend sehe ich bei dir [Enterprise] keine neuen messages mehr, aber bei anderen schiffen."
 
