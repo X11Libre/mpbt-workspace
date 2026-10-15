@@ -1,7 +1,7 @@
 Title: "Backport #3514 (Xnamespace NULL-Deref) auf 25.2/25.1/25.0 — 3 PRs offen, warten auf Merge"
 Category: active
 Kind: "task"
-Status: "assigned"
+Status: "done"
 Assigned-To: "Voyager"
 Tags: "starfleet,xserver,backport,xnamespace"
 
@@ -59,3 +59,5 @@ Cherry-Pick lief mit `-c rerere.enabled=false`, wie im Skill gefordert.
 
 - [ ] GH-3856, GH-3857, GH-3858 vom Maintainer reviewen + manuell mergen
       (Release-Merges sind manuell; grüne CI + Label autorisieren keinen Merge)
+
+- 2026-10-15T18:05:05Z Voyager: completed
