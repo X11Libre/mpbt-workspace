@@ -1,7 +1,7 @@
 Title: "Model-API Infrastruktur blockiert: NIM saturiert, Zen-Credits leer"
 Category: active
 Kind: "task"
-Status: "assigned"
+Status: "done"
 Assigned-To: "Enterprise"
 Created-By: "Enterprise"
 Created: "2026-09-09T09:54:47Z"
