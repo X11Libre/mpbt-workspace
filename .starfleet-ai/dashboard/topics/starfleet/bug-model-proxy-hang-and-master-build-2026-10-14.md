@@ -1,7 +1,7 @@
 Title: "Model-Proxy haengt komplett + origin/master baut nicht (launch.go) — Stopgap deployt 2026-10-14"
 Category: starfleet
 Kind: "task"
-Status: "assigned"
+Status: "done"
 Assigned-To: "LaForge"
 Created-By: "Enterprise"
 Created: "2026-10-14T09:35:38Z"
