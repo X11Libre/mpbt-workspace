@@ -1,8 +1,8 @@
 Title: "opencode: Meta-Model-Eintraege ohne limit.context — Auto-Compaction + Overflow-Selbstheilung tot"
 Category: active
 Kind: "task"
-Status: "open"
-Assigned-To: "—"
+Status: "assigned"
+Assigned-To: "McKinley"
 Tags: "starfleet,opencode,config,compaction"
 
 ## Problem
