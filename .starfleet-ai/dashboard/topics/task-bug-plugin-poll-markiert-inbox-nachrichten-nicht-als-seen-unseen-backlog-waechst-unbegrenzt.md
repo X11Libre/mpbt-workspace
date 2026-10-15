@@ -1,7 +1,7 @@
 Title: "BUG plugin: poll() markiert inbox-Nachrichten nicht als seen -> unseen-Backlog waechst unbegrenzt"
 Category: active
 Kind: "task"
-Status: "assigned"
+Status: "done"
 Assigned-To: "LaForge"
 Created-By: "Enterprise"
 Created: "2026-10-09T09:13:18Z"
