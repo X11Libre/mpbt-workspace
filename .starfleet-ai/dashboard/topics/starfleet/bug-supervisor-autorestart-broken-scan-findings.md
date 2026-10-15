@@ -1,7 +1,7 @@
 Title: "release-blocker-Kandidat: supervisor/auto-restart kaputt + Scan-Befunde"
 Category: starfleet
 Kind: "task"
-Status: "assigned"
+Status: "done"
 Assigned-To: "LaForge"
 Created-By: "Enterprise"
 Created: "2026-10-14T12:40:09Z"
