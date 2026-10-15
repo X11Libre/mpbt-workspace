@@ -1,11 +1,9 @@
----
-title: "Backport #3514 (Xnamespace NULL-Deref) auf 25.2/25.1/25.0 — 3 PRs offen, warten auf Merge"
-category: active
-kind: task
-status: open
-assigned-to: "—"
-tags: "starfleet,xserver,backport,xnamespace"
----
+Title: "Backport #3514 (Xnamespace NULL-Deref) auf 25.2/25.1/25.0 — 3 PRs offen, warten auf Merge"
+Category: active
+Kind: "task"
+Status: "assigned"
+Assigned-To: "Voyager"
+Tags: "starfleet,xserver,backport,xnamespace"
 
 ## Auftrag (Praetor, 2026-10-07)
 
