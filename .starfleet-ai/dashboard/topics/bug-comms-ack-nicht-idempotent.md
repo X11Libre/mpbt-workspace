@@ -26,3 +26,5 @@ FIX: in `ackMessage` zuerst pruefen, ob `b.mfileSeen(b.ShipID,id)` bereits exist
 
 ## Einordnung Release
 Kein Blocker unter den Befunden; #1 ist der relevanteste (Protokoll-UX). Empfehlung: #1 vor dem Release, #2/#3 direkt danach. Source-Owner: LaForge (per comms informiert).
+
+- 2026-10-15T11:06:04Z Enterprise: GEFIXT: master 8aa880f — ackMessage behandelt bereits-gesehene Nachricht als No-op (e7b65a8) + Regressionstest. Live verifiziert (Testbed + Enterprise).
