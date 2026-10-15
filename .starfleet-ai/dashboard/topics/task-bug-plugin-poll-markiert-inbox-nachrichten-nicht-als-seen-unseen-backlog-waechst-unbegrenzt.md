@@ -18,3 +18,5 @@ FIX: in poll() nach dem Handling bus({cmd:'seen_mark', id: msg.id}) aufrufen (Sp
 IMPACT: flottenweit — jedes Schiff mit diesem Plugin hat denselben Backlog.
 
 Quelle (tool-owned): _WORK_/starfleetctl/sources/starfleetctl/fragments/opencode-plugins/starfleet-dispatch.ts. Nach Fix: make all, commit+push, ./starfleet-bootstrap, PLUGIN_VERSION-Verify.
+
+- 2026-10-15T11:27:59Z Enterprise: VERIFIZIERT ERLEDIGT (Enterprise): fragments/opencode-plugins/starfleet-dispatch.ts poll() ruft jetzt bus({cmd:'seen_mark', id:m.id}) nach erfolgreicher Injection (Z.761); system.transform ebenso (Z.833). Unseen-Backlog waechst damit nicht mehr.
