@@ -12,3 +12,5 @@ Doc-Ref: "—"
 - 2026-10-08T16:51:15Z Enterprise: progress 30% (XL-1: Phase I+II für 25.1 gestartet (m0409). Defiant: Phase I+II für master gestartet (m0410). XL-0: Phase III bereit, wartet auf Freigabe. XL-2: Phase III blockiert auf #3754. Broadcast m0411 an Flotte gesendet. 25.0/25.2 Tracker current; 25.1/master müssen nachziehen.)
 
 - 2026-10-15T17:50:09Z McKinley: completed
+
+- 2026-10-15T17:51:18Z Enterprise: Updated to use cruiser model as per new SOP. All ships now online with cruiser.
