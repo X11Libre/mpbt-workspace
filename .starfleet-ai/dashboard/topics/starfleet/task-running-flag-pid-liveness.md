@@ -1,7 +1,7 @@
 Title: "laufendes-Flag aus PID-Lebendigkeit ableiten statt beim Spawn setzen"
 Category: active
 Kind: "task"
-Status: "assigned"
+Status: "done"
 Assigned-To: "Laforge"
 Created-By: "Voyager"
 Created: "2026-10-01T12:55:42Z"
