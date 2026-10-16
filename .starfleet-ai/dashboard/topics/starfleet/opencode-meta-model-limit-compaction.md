@@ -123,3 +123,5 @@ models-map der opencode.json, NICHT aus /v1/models — Standing Lesson).
   Wirksamkeit braucht Neustart (kein Control-Socket, run-gestartete Session).
 
 - 2026-10-15T17:55:47Z McKinley: began work
+
+- 2026-10-16T08:40:12Z McKinley: Implemented fix: Added Output field to virtualModelInfos function in internal/modelproxy/occonfig.go. This ensures that generated ship configs for meta-model strategies include the limit.context field, fixing the sidebar usage display, enabling proactive auto-compaction, and restoring reactive overflow self-healing.
