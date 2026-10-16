@@ -22,3 +22,5 @@ Akzeptanz: (a) build+vet+go test -count=1 ./... gruen nachvollzogen; (b) mind. e
 Anschluss (nur nach Freigabe/Absprache, nicht sofort): Triage der drei offenen starfleetctl-Comms-Bugs (bug-comms-ackmessage-race, bug-comms-ackmessage-missing-unseen-cleanup, bug-comms-broadcast-partial-success) — Root-Cause + Repro, Patch lokal.
 
 - 2026-10-16T08:23:34Z Rosetta: began work
+
+- 2026-10-16T08:35:18Z Rosetta: progress 50% (Review completed - found missing provider timeout mismatch fix)
