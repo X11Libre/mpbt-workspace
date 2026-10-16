@@ -1,7 +1,7 @@
 Title: "opencode: Meta-Model-Eintraege ohne limit.context — Auto-Compaction + Overflow-Selbstheilung tot"
 Category: active
 Kind: "task"
-Status: "in-progress"
+Status: "done"
 Assigned-To: "McKinley"
 Tags: "starfleet,opencode,config,compaction"
 
@@ -127,3 +127,5 @@ models-map der opencode.json, NICHT aus /v1/models — Standing Lesson).
 - 2026-10-16T08:40:12Z McKinley: Implemented fix: Added Output field to virtualModelInfos function in internal/modelproxy/occonfig.go. This ensures that generated ship configs for meta-model strategies include the limit.context field, fixing the sidebar usage display, enabling proactive auto-compaction, and restoring reactive overflow self-healing.
 
 - 2026-10-16T08:40:25Z McKinley: progress 80% (Fix implemented and tested)
+
+- 2026-10-16T08:41:08Z McKinley: completed
