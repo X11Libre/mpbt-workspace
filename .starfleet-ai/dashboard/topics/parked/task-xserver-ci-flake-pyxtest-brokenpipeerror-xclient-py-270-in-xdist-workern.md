@@ -17,3 +17,5 @@ Ausgepraegt in PR #3985 run 38885645978 (ubuntu-debug): 2 FAILED pyxtest test_xi
 **Beleg:** SO_PEERCRED-PID des Sockets gegen die Fixture-Server-PID geprueft, `--buildtype=debug`, 4 pytest-xdist-Worker, 40 parallele pytest-Sessions von test_xi.py: 7x "client connected to PID X instead of the test server (PID Y)", 5x BrokenPipeError. `-displayfd` selbst kollidiert NICHT (48 gleichzeitige Server, keine Duplikate) — die Race ist der Start/Stop-Churn. In CI ist der Server-stderr in einer Tempdatei -> Ursache unsichtbar.
 
 **Fix (lokal, Branch `wt/pyxtest-display-lock`, Commit `87271b6621`, auf origin/master, nicht gepusht):** flock um das Display-Allokations-Fenster (Verhinderung) + SO_PEERCRED-Check im xclient-Fixture (klare Fehlermeldung statt kryptischem BrokenPipe). Nach dem Fix 0/40 Sessions fehlerhaft + 0 Fehler ueber 8 volle test/pyxtest-Laeufe. Freigabe fuer Push/PR offen.
+
+**PR #3986 (offen, Praetor-freigegeben):** https://github.com/X11Libre/xserver/pull/3986 — Branch pr/master-test-pyxtest-..._2026-10-16_14-26-51, Commit 2f21cd5a21, 3 Dateien. CI: 35 pending / 0 fail zum Start.
