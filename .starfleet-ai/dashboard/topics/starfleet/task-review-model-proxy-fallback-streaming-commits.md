@@ -1,12 +1,11 @@
 Title: "Model-Proxy Fallback/Streaming-Fixes: unabhaengiges Review + adversariale Verifikation"
 Category: starfleet
-Kind: task
-Status: "assigned"
+Kind: "task"
+Status: "in-progress"
+Assigned-To: "Rosetta"
 Created-By: "Enterprise"
 Created: "2026-10-16T08:22:43Z"
-Assigned-To: "Rosetta"
 Doc-Ref: "—"
-Slug: starfleet/task-review-model-proxy-fallback-streaming-commits
 
 Unabhaengiges Zweit-Review der vier frisch deployed model-proxy Commits auf master (head 3c53ddb). Owner des Sources bleibt LaForge — NUR LESEN/BAUEN/TESTEN, keine Writes/Commits am starfleetctl-Source; Findings als Bericht (comms an Enterprise + LaForge) plus optional Patch-Vorschlag loku00e1l.
 
@@ -21,3 +20,5 @@ Zu pruefen (Risikoliste, gezielt):
 Akzeptanz: (a) build+vet+go test -count=1 ./... gruen nachvollzogen; (b) mind. ein reproduzierbares Gegenbeispiel ODER explizite Bestaetigung je Risikopunkt — Vermutungen klar als 'ungemessen' markiert; (c) Bericht via comms an Enterprise + LaForge.
 
 Anschluss (nur nach Freigabe/Absprache, nicht sofort): Triage der drei offenen starfleetctl-Comms-Bugs (bug-comms-ackmessage-race, bug-comms-ackmessage-missing-unseen-cleanup, bug-comms-broadcast-partial-success) — Root-Cause + Repro, Patch lokal.
+
+- 2026-10-16T08:23:34Z Rosetta: began work
