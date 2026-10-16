@@ -67,6 +67,22 @@ model_proxy:
           provider: "nvidia-direct"
           context_window: 131072
           priority: 3
+        - id: "nvidia/nemotron-3.5-super-vl-120b-a12b"
+          provider: "nvidia-direct"
+          context_window: 131072
+          priority: 4
+        - id: "nvidia/nemotron-3.5-lightning-30b-a3b"
+          provider: "nvidia-direct"
+          context_window: 131072
+          priority: 5
+        - id: "meta/muse-glimmer-30b"
+          provider: "nvidia-direct"
+          context_window: 131072
+          priority: 6
+        - id: "openai/gpt-oss-20b"
+          provider: "nvidia-direct"
+          context_window: 131072
+          priority: 7
       strategy: "fallback"
       # Effective limit: min(200000, 131072, 131072) = 131072
 
@@ -85,21 +101,35 @@ model_proxy:
       # Effective limit: min(200000, 1000000) = 200000
 
     - id: cruiser
-      description: "Cruiser (N3U/N3S/Glimmer/Llama-vision/BP/N3U-free)"
+      description: "Cruiser"
       default_model: "nvidia/nemotron-3-ultra-550b-a55b"
       models:
         - id: "nvidia/nemotron-3-ultra-550b-a55b"
           provider: "nvidia-direct"
           context_window: 131072
+#          context_window: 1000000
           priority: 1
         - id: "nvidia/nemotron-3-super-120b-a12b"
           provider: "nvidia-direct"
           context_window: 131072
           priority: 2
-        - id: "meta/muse-glimmer-30b"
+        - id: "nvidia/nemotron-3.5-super-vl-120b-a12b"
+          provider: "nvidia-direct"
+          context_window: 131072
+          priority: 3
+        - id: "nvidia/nemotron-3.5-lightning-30b-a3b"
           provider: "nvidia-direct"
           context_window: 131072
           priority: 4
+        - id: "meta/muse-glimmer-30b"
+          provider: "nvidia-direct"
+          context_window: 131072
+          priority: 6
+        - id: "openai/gpt-oss-20b"
+          provider: "nvidia-direct"
+          context_window: 131072
+          priority: 7
+# temporary disabled due problems
         - id: "meta/llama-3.2-11b-vision-instruct"
           provider: "nvidia-direct"
           context_window: 131072

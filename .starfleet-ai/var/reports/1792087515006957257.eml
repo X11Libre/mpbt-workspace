@@ -1,0 +1,8 @@
+Message-ID: <1792087515006957257>
+Date: 2026-10-15T20:05:15+02:00
+From: Voyager
+Subject: Task completed: Backport #3514 (Xnamespace NULL-Deref) on release branches
+Task-Ref: starfleet/backport-3514-namespace-null-deref
+Created: 2026-10-15T20:05:15+02:00
+
+The three backport PRs (GH-3856 for 25.2, GH-3857 for 25.1, GH-3858 for 25.0) are already merged. The task is complete.

@@ -1,0 +1,160 @@
+# Model proxy — local OpenAI-compatible endpoint in front of the real model
+# API backends (NVIDIA NIM, OpenCode Zen, ...). Ships talk to this single
+# local endpoint; the proxy retries transient upstream errors and catches
+# streaming failures so a model-API hiccup never leaks raw into the session.
+#
+# The proxy's provider entries are injected into every generated per-ship
+# opencode config as opencode providers named by their `id` (here
+# nim-proxy/zen-proxy). Model catalogs are queried automatically from the
+# upstream /models endpoint — no manual model list needed.
+#
+# listen_addr is bound to localhost only: the proxy holds the real API keys
+# and is only ever used by local opencode processes.
+model_proxy:
+  listen_addr: "127.0.0.1:8443"
+
+  # Each provider: id (opencode provider name), name (label), base_url
+  # (OpenAI-compatible upstream), api_key (env-referenced — the proxy keeps
+  # the real key, ships never see it), optional retry tuning.
+  # Direct providers (bypassing the proxy) are configured in fleet.yaml
+  # under direct_providers: and merged at runtime.
+  providers:
+    - id: nim-proxy
+      name: "NVIDIA NIM (local proxy)"
+      base_url: "https://integrate.api.nvidia.com/v1"
+      api_key: "{env:NIM_API_KEY}"
+
+    - id: zen-proxy
+      name: "OpenCode Zen (local proxy)"
+      type: opencode-zen
+      base_url: "https://opencode.ai/zen/v1"
+      api_key: "{env:OPENCODE_API_KEY}"
+      # OpenCode Zen's free tier only accepts requests that look like the
+      # official opencode client, and now requires the x-opencode-* identity
+      # headers on top of the User-Agent. The "opencode-zen" type makes the
+      # proxy forward the client's real session id (opencode sends it as
+      # X-Session-Id; forwarded verbatim so Zen's per-session prefix cache
+      # stays warm) and stamps the missing identity headers.
+
+    - id: meta-model
+      name: "Meta-Model Strategies"
+      type: meta-model
+      # Virtual provider: no upstream, no base_url. Its catalog is synthesized
+      # from the strategies below — one model endpoint per strategy, named by
+      # the strategy ID (e.g. "heavy-model"). Chat requests addressing such a
+      # virtual model are routed through the strategy's picking logic onto the
+      # real upstream models; direct requests for real model ids bypass the
+      # strategy layer entirely.
+
+  # Meta-model routing strategies — own curated models on zen-proxy only.
+  # NEVER reference normal models (nim-proxy) here: the whole point is that
+  # meta-model routing is decoupled from the normal model pool, so NIM
+  # outages don't cascade into the strategy layer.
+  strategies:
+    - id: heavy-model
+      description: "Dreadnought"
+      default_model: "big-pickle"
+      models:
+        - id: "big-pickle"
+          provider: "zen-proxy"
+          context_window: 200000
+          priority: 1
+        - id: "nvidia/nemotron-3-ultra-550b-a55b"
+          provider: "nvidia-direct"
+          context_window: 131072
+          priority: 2
+        - id: "nvidia/nemotron-3-super-120b-a12b"
+          provider: "nvidia-direct"
+          context_window: 131072
+          priority: 3
+      strategy: "fallback"
+      # Effective limit: min(200000, 131072, 131072) = 131072
+
+    - id: balanced-model
+      description: "60% BigPickle, 40% Nemotron Ultra Free"
+      models:
+        - id: "big-pickle"
+          provider: "zen-proxy"
+          context_window: 200000
+          weight: 3
+        - id: "nemotron-3-ultra-free"
+          provider: "zen-proxy"
+          context_window: 1000000
+          weight: 2
+      strategy: "weighted"
+      # Effective limit: min(200000, 1000000) = 200000
+
+    - id: cruiser
+      description: "Cruiser (N3U/N3S/Glimmer/Llama-vision/BP/N3U-free)"
+      default_model: "nvidia/nemotron-3-ultra-550b-a55b"
+      models:
+        - id: "nvidia/nemotron-3-ultra-550b-a55b"
+          provider: "nvidia-direct"
+#          context_window: 131072
+          context_window: 1000000
+          priority: 1
+        - id: "nvidia/nemotron-3-super-120b-a12b"
+          provider: "nvidia-direct"
+          context_window: 131072
+          priority: 2
+# temporary disabled due problems
+#        - id: "meta/muse-glimmer-30b"
+#          provider: "nvidia-direct"
+#          context_window: 131072
+#          priority: 4
+#        - id: "meta/llama-3.2-11b-vision-instruct"
+#          provider: "nvidia-direct"
+#          context_window: 131072
+#          priority: 5
+#        - id: "big-pickle"
+#          provider: "zen-proxy"
+#          context_window: 200000
+#          priority: 90
+        - id: "nemotron-3-ultra-free"
+          provider: "zen-proxy"
+          context_window: 1000000
+          priority: 99
+      strategy: "fallback"
+
+    - id: nim-primary
+      description: "nim-primary (N3U/N3S/Glimmer/Llama-vision/BP/N3U-free)"
+      default_model: "nvidia/nemotron-3-ultra-550b-a55b"
+      models:
+        - id: "nvidia/nemotron-3-ultra-550b-a55b"
+          provider: "nvidia-direct"
+          context_window: 131072
+          priority: 1
+        - id: "nvidia/nemotron-3-super-120b-a12b"
+          provider: "nvidia-direct"
+          context_window: 131072
+          priority: 2
+        - id: "meta/muse-glimmer-30b"
+          provider: "nvidia-direct"
+          context_window: 131072
+          priority: 4
+        - id: "meta/llama-3.2-11b-vision-instruct"
+          provider: "nvidia-direct"
+          context_window: 131072
+          priority: 5
+        - id: "big-pickle"
+          provider: "zen-proxy"
+          context_window: 200000
+          priority: 90
+        - id: "nemotron-3-ultra-free"
+          provider: "zen-proxy"
+          context_window: 1000000
+          priority: 99
+      strategy: "fallback"
+      # Effective limit: min(131072, ...) = 65536 (nano) / 131072 sonst
+      # Reihenfolge: NIM-direct zuerst (verifiziert tool-call-faehig), Zen erst
+      # als letzte Nothilfe (Quota gilt fuer alle Zen-Modelle gemeinsam).
+      # Prio 90 big-pickle > Prio 99 ultra-free: BigPickle zuerst wenn Zen frei.
+
+  # Automated background model-health check: served-listing + chat probe +
+  # agent-capability (tool-call) probe, persisted to
+  # .starfleet-ai/var/model-health.json and served at /v1/model-health.
+  health:
+    interval: "30m"
+    timeout: "20s"
+    parallel: 4
+    capability_probe: true
