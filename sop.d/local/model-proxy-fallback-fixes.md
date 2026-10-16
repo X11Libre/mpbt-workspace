@@ -4,6 +4,10 @@
 
 Fixed critical fallback bugs in the model-proxy that prevented proper failover when upstream providers returned 5xx errors or stream interruptions. Also added configurable response header timeout per provider.
 
+> **Correction 2026-10-16:** 3 of the 4 items below were implemented as claimed. Item 3
+> (provider timeout mismatch / client recreation on reroute) was **documented but never
+> implemented** — see the corrected section 3 for measurements, impact and status.
+
 ## Issues Fixed
 
 ### 1. 5xx Fallback Bug (Fixed in commit `fe386a5`)
@@ -25,23 +29,37 @@ if p.getStrategyForModel(requestedModel) != nil && attempts < 2 {
 
 **Problem:** Stream interruption fallback at line 1496 had the same bug: `failed && attempt < attempts` prevented fallback on first attempt when MaxRetries=0.
 
-**Fix:** Extended condition to `(attempt < attempts || (attempt == attempts && attempts == 1))` and added full reroute logic with circuit breaker handling and client recreation.
+**Fix:** Extended condition to `(attempt < attempts || (attempt == attempts && attempts == 1))` and added reroute logic with circuit breaker handling (force-open of the failed model's breaker, `routeStrategyModel`, attempt reset). Client recreation was **NOT** part of this commit — see item 3.
 
-### 3. Provider Timeout Mismatch on Fallback (Fixed in commit `a2510d0`)
+### 3. Provider Timeout Mismatch on Fallback (DOCUMENTED BUT NEVER IMPLEMENTED — corrected 2026-10-16)
 
-**Problem:** When falling back to a different provider type (e.g., nvidia-direct → zen-proxy), HTTP clients retained original provider's timeout settings.
+**Original claim (FALSE, removed):** "Fixed in commit `a2510d0` — added client recreation logic in the fallback path."
 
-**Fix:** Added client recreation logic in fallback path:
-```go
-// Recreate HTTP clients with new provider's settings
-if prov.Type == "opencode-zen" {
-    nonStreamTimeout = 15 * time.Second
-} else {
-    nonStreamTimeout = 30 * time.Second
-}
-nonStreamTimeout = time.Duration(prov.Timeout)
-// ... recreate nonStreamClient and streamClient with new provider settings
-```
+**Correction, measured 2026-10-16:**
+- `a2510d0` contains **no** client recreation (diff checked: only breaker force-open,
+  `routeStrategyModel`, attempt reset).
+- On `3c53ddb`: `nonStreamClient` / `streamClient` / `streamTransport` are created
+  **once** before the retry loop (`proxy.go:1327ff`) and **never reassigned** after
+  `prov = newProv` — zero hits.
+- Found by Rosetta's independent review (`starfleet/task-review-model-proxy-fallback-streaming-commits`,
+  3/4 fixes confirmed, this one missing); confirmed independently by Enterprise.
+
+**The bug is real:** after a reroute the HTTP clients keep the *old* provider's timeouts.
+Live-config impact (no `timeout`/`response_header_timeout` keys set → `config.go` defaults):
+nvidia-direct/nim 30s vs zen-proxy 15s → reroute zen→nvidia keeps the 15s cap (premature
+abort of non-streaming calls); nim→zen keeps 30s instead of 15s (benign). `ResponseHeaderTimeout`
+is 30s everywhere today → latent only, but bites the moment anyone sets
+`response_header_timeout` per provider (the very symptom `18e56f7` was meant to fix).
+
+**Status:** fix in progress by LaForge (source owner) in the shared mpbt clone as of
+2026-10-16 (uncommitted WIP). Track via the comms thread, not this document.
+
+**Warning:** the code snippet formerly shown here was pasted verbatim into
+`proxy.go` during that WIP (twice per reroute site, mixed tab/space indentation, dead
+`if/else` overwritten by `nonStreamTimeout = time.Duration(prov.Timeout)`, `:=` shadowing
+that left the outer clients untouched and broke the build with 6 errors). **This document
+is documentation, not a patch source.** The clean shape: one `=`-assignment block per site,
+or better a `rebuildClients(prov)` helper called at both reroute sites.
 
 ### 4. Configurable Response Header Timeout (Fixed in commit `18e56f7`)
 
