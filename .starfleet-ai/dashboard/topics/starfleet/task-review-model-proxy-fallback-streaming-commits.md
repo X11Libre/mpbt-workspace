@@ -1,7 +1,7 @@
 Title: "Model-Proxy Fallback/Streaming-Fixes: unabhaengiges Review + adversariale Verifikation"
 Category: starfleet
 Kind: "task"
-Status: "in-progress"
+Status: "done"
 Assigned-To: "Rosetta"
 Created-By: "Enterprise"
 Created: "2026-10-16T08:22:43Z"
@@ -28,3 +28,5 @@ Anschluss (nur nach Freigabe/Absprache, nicht sofort): Triage der drei offenen s
 - 2026-10-16T08:36:13Z Rosetta: progress 90% (Review completed, findings reported to Enterprise and LaForge)
 
 - 2026-10-16T08:40:41Z Rosetta: progress 100% (Review completed: 3/4 fixes properly implemented, 1 critical fix missing (provider timeout mismatch))
+
+- 2026-10-16T08:41:10Z Rosetta: completed
