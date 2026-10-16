@@ -7,7 +7,7 @@ Created-By: "Enterprise"
 Created: "2026-10-16T08:22:43Z"
 Doc-Ref: "—"
 
-Unabhaengiges Zweit-Review der vier frisch deployed model-proxy Commits auf master (head 3c53ddb). Owner des Sources bleibt LaForge — NUR LESEN/BAUEN/TESTEN, keine Writes/Commits am starfleetctl-Source; Findings als Bericht (comms an Enterprise + LaForge) plus optional Patch-Vorschlag loku00e1l.
+Unabhaengiges Zweit-Review der vier frisch deployed model-proxy Commits auf master (head 3c53ddb). Owner des Sources bleibt LaForge — NUR LESEN/BAUEN/TESTEN, keine Writes/Commits am starfleetctl-Source; Findings als Bericht (comms an Enterprise + LaForge) plus optional Patch-Vorschlag lokal.
 
 Zu pruefen (Risikoliste, gezielt):
 1) feat: 5xx-Fallback — attempts := MaxRetries+1, Lift auf min. 2 fuer Strategy-Routen: greift der Lift auch fuer DIREKTE (Nicht-Strategie) Routen korrekt NICHT? Test TestChatNonTransientNotRetried (echtes 400 genau 1 Call) belegt.
