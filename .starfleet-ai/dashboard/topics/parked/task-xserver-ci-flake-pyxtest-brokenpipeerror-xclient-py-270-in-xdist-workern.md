@@ -1,7 +1,7 @@
 Title: "xserver CI flake: pyxtest BrokenPipeError (xclient.py:270) in xdist-Workern"
 Category: parked
 Kind: task
-Status: "open"
+Status: "done"
 Created-By: "Defiant"
 Created: "2026-10-16T10:39:31Z"
 Assigned-To: "—"
@@ -19,3 +19,5 @@ Ausgepraegt in PR #3985 run 38885645978 (ubuntu-debug): 2 FAILED pyxtest test_xi
 **Fix (lokal, Branch `wt/pyxtest-display-lock`, Commit `87271b6621`, auf origin/master, nicht gepusht):** flock um das Display-Allokations-Fenster (Verhinderung) + SO_PEERCRED-Check im xclient-Fixture (klare Fehlermeldung statt kryptischem BrokenPipe). Nach dem Fix 0/40 Sessions fehlerhaft + 0 Fehler ueber 8 volle test/pyxtest-Laeufe. Freigabe fuer Push/PR offen.
 
 **PR #3986 (offen, Praetor-freigegeben):** https://github.com/X11Libre/xserver/pull/3986 — Branch pr/master-test-pyxtest-..._2026-10-16_14-26-51, Commit 2f21cd5a21, 3 Dateien. CI: 35 pending / 0 fail zum Start.
+
+**Erledigt (2026-10-16):** Fix gemergt auf master.
