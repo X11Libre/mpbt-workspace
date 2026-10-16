@@ -1,3 +1,9 @@
+---
+slug: local/model-proxy-fallback-fixes
+title: "Model-Proxy Fallback Fixes (2026-10-15)"
+order: 25
+---
+
 # Model-Proxy Fallback Fixes (2026-10-15)
 
 ## Summary
@@ -51,8 +57,15 @@ abort of non-streaming calls); nim→zen keeps 30s instead of 15s (benign). `Res
 is 30s everywhere today → latent only, but bites the moment anyone sets
 `response_header_timeout` per provider (the very symptom `18e56f7` was meant to fix).
 
-**Status:** fix in progress by LaForge (source owner) in the shared mpbt clone as of
-2026-10-16 (uncommitted WIP). Track via the comms thread, not this document.
+**Status (2026-10-16): FIXED + VERIFIED.** LaForge committed the client recreation
+as `a408f59` (52 insertions / 2 `=`-assignment blocks, no `:=`), pushed to
+`origin/master`, deployed via `./starfleet-bootstrap` + `model-proxy restart`
+(pid 25360, running rev `a408f59`). **Measured end-to-end** (not just read): a
+freshly generated ship config (deployed binary) now emits `limit` for every
+meta-model strategy — cruiser 131072/131072, heavy-model 131072/131072,
+nim-primary 131072/131072, balanced-model 200000/200000 (= `EffectiveLimit`).
+Before, `output=0` + `omitempty` dropped `limit` entirely. Independently confirmed
+by LaForge (m5208) and McKinley (m5209).
 
 **Warning:** the code snippet formerly shown here was pasted verbatim into
 `proxy.go` during that WIP (twice per reroute site, mixed tab/space indentation, dead
