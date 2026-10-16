@@ -1,7 +1,7 @@
 Title: "xserver CI flake: display-number race in parallel test/info suites"
 Category: parked
 Kind: task
-Status: "open"
+Status: "done"
 Created-By: "Defiant"
 Created: "2026-10-16T08:18:53Z"
 Assigned-To: "—"
@@ -15,3 +15,5 @@ SYSTEMIC CI flake (not PR-caused): 'xserver-build-ubuntu-no-gbm' (and other lane
 - Inhalt: is_parallel:false an den 3 display-info-Suiten; Harness-only, kein Produktionscode.
 - Praetor-Freigabe: 2026-10-16. CI: 18 pass / 0 fail / 19 pending zum Zeitpunkt des Erstellens.
 - Verifizierung: meson setup gruen, meson introspect -> 9/9 info-Tests is_parallel=False.
+
+**Erledigt (2026-10-16):** Fix gemergt auf master.
