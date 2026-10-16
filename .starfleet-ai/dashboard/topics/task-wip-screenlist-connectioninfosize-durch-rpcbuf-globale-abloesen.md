@@ -12,3 +12,5 @@ Folge-Commit auf Branch wip/screenlist (Branch liegt auf origin, SHA 06a49d4414.
 - 2026-10-16T07:56:31Z Voyager: began work
 
 - 2026-10-16T07:56:56Z Voyager: Inspected worktree: see modifications in dix/connsetup.c, dix/connsetup_priv.h, dix/dix_priv.h, dix/globals.c, dix/main.c. Continuing work on wip/screenlist branch.
+
+- 2026-10-16T07:57:04Z Voyager: progress 30% (Continuing work on ConnectionInfoSize removal)
