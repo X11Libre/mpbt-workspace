@@ -100,47 +100,48 @@ model_proxy:
       strategy: "weighted"
       # Effective limit: min(200000, 1000000) = 200000
 
+    # INFO: disabled context_window, because ships were hanging in infinite compaction loops
+    # it seems the numbers in here are far too low
     - id: cruiser
       description: "Cruiser"
       default_model: "nvidia/nemotron-3-ultra-550b-a55b"
       models:
         - id: "nvidia/nemotron-3-ultra-550b-a55b"
           provider: "nvidia-direct"
-          context_window: 131072
-#          context_window: 1000000
+#          context_window: 131072
           priority: 1
         - id: "nvidia/nemotron-3-super-120b-a12b"
           provider: "nvidia-direct"
-          context_window: 131072
+#          context_window: 131072
           priority: 2
         - id: "nvidia/nemotron-3.5-super-vl-120b-a12b"
           provider: "nvidia-direct"
-          context_window: 131072
+#          context_window: 131072
           priority: 3
         - id: "nvidia/nemotron-3.5-lightning-30b-a3b"
           provider: "nvidia-direct"
-          context_window: 131072
+#          context_window: 131072
           priority: 4
         - id: "meta/muse-glimmer-30b"
           provider: "nvidia-direct"
-          context_window: 131072
+#          context_window: 131072
           priority: 6
         - id: "openai/gpt-oss-20b"
           provider: "nvidia-direct"
-          context_window: 131072
+#          context_window: 131072
           priority: 7
 # temporary disabled due problems
         - id: "meta/llama-3.2-11b-vision-instruct"
           provider: "nvidia-direct"
-          context_window: 131072
+#          context_window: 131072
           priority: 5
         - id: "big-pickle"
           provider: "zen-proxy"
-          context_window: 200000
+#          context_window: 200000
           priority: 90
         - id: "nemotron-3-ultra-free"
           provider: "zen-proxy"
-          context_window: 1000000
+#          context_window: 1000000
           priority: 99
       strategy: "fallback"
 
