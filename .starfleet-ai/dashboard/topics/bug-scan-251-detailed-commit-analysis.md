@@ -1,12 +1,7 @@
----
-title: "Bug-Scan release/25.1: detaillierte Analyse aller Commits seit xlibre-xserver-25.1.9 (100 Commits)"
-slug: bug-scan-251-detailed-commit-analysis
-status: open
-category: active
-created: "2026-10-18"
-updated: "2026-10-18"
-assigned_to: XL-1
----
+Title: "Bug-Scan release/25.1: detaillierte Analyse aller Commits seit xlibre-xserver-25.1.9 (100 Commits)"
+Category: active
+Status: "done"
+Created: "2026-10-18"
 
 # Detaillierte Bug-Analyse: release/25.1 Commits seit xlibre-xserver-25.1.9
 
@@ -566,3 +561,4 @@ assigned_to: XL-1
 - Vollständige Commit-Liste: `_WORK_/tmp/251_since_tag_full.txt` (100 Einträge)
 - Build-Test: `-Dwerror=true` → keine neuen Fehler durch lokale Cherry-Picks (52e6dcf41e, f0e6e4fe26)
 - Vorheriger Scan (m5480): Bestätigt — keine noch enthaltenen Produktiv-Bugs
+- 2026-10-18T08:03:15Z XL-1: completed
