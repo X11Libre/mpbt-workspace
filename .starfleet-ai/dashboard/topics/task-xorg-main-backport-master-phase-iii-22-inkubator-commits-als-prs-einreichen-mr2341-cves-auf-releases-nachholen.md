@@ -1,11 +1,11 @@
 Title: "xorg/main-Backport master Phase III: 22 Inkubator-Commits als PRs einreichen + MR2341-CVEs auf Releases nachholen"
 Category: active
-Kind: task
+Kind: "task"
 Status: "open"
+Assigned-To: "—"
 Created-By: "Enterprise"
 Created: "2026-10-20T15:18:17Z"
-Assigned-To: "—"
 Doc-Ref: "—"
-Slug: task-xorg-main-backport-master-phase-iii-22-inkubator-commits-als-prs-einreichen-mr2341-cves-auf-releases-nachholen
 
 
+- 2026-10-20T16:17:54Z Enterprise: progress 70% (Phase III abgeschlossen: 20 Commits in 8 PRs (#4026-#4033) eingereicht, Inkubator ba15e2bde1, 18/20 Marker, 20/20 Trailer. 4 MR-2341-Commits als DUP auf master verifiziert und verworfen.)
