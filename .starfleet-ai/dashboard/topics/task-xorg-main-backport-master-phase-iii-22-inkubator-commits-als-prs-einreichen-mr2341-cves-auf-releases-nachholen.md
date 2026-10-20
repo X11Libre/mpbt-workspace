@@ -10,3 +10,5 @@ Doc-Ref: "—"
 - 2026-10-20T16:17:54Z Enterprise: progress 70% (Phase III abgeschlossen: 20 Commits in 8 PRs (#4026-#4033) eingereicht, Inkubator ba15e2bde1, 18/20 Marker, 20/20 Trailer. 4 MR-2341-Commits als DUP auf master verifiziert und verworfen.)
 
 - 2026-10-20T16:47:05Z Enterprise: progress 100% (Abgeschlossen: Master Phase III (8 PRs #4026-#4033) + Release-Gaps: 25.2 CVE-93516 PR #4034 erstellt, 25.1/25.0 bereits vollstaendig. Tracker master auf xorg/main gezogen, Auslassungsliste aktualisiert.)
+
+- 2026-10-20T17:56:52Z Enterprise: progress 100% (ABGESCHLOSSEN: 9 PRs (#4026-#4034). MERGED: #4027-#4033 (master) + #4034 (release/25.2). Offen: #4026 (CI gruen). Tracker master=xorg/main.)
