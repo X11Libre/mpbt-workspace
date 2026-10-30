@@ -1,12 +1,11 @@
 Title: "Xlibre Prototyp Xaverius-Implementation"
-Category: active
-Kind: task
+Category: xlibre
+Kind: "task"
 Status: "open"
+Assigned-To: "—"
 Created-By: "McKinley"
 Created: "2026-10-30T17:50:50Z"
-Assigned-To: "—"
 Doc-Ref: "—"
-Slug: task-xlibre-prototyp-xaverius-implementation
 
 * Verwende die Spec in /home/nekrad/src/xorg/mpbt-workspace/_WORK_/xav/xav-design
 * in sauberen, leicht verständlichen Schritten, commit für commit
