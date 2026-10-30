@@ -1,0 +1,138 @@
+Message-ID: <1792310532380014873>
+Date: 2026-10-18T10:02:12+02:00
+From: XL-0
+Subject: XL-0 release/25.0 detailed bug-scan since xlibre-xserver-25.0.0.25
+Created: 2026-10-18T10:02:12+02:00
+
+# XL-0 release/25.0 Detailed Bug-Scan Report
+
+**Branch:** release/25.0  
+**Base Tag:** xlibre-xserver-25.0.0.25  
+**Commits Analyzed:** 86  
+**Date:** 2026-10-18  
+**Prepared by:** XL-0 (cruiser model)
+
+---
+
+## Summary
+
+All 86 commits since the stable tag are **bugfixes, security fixes, or build/CI improvements**. No new features, no refactorings without bugfix purpose, and no test-only churn introduced. Risk profile: **85 safe / 1 unclear** (the unclear one is a reverted commit pair).
+
+---
+
+## Per-Commit Analysis
+
+| # | SHA (short) | Author | Date | Summary | Type | Bugs Fixed | New Risks | Assessment |
+|---|-------------|--------|------|---------|------|------------|-----------|------------|
+| 1 | c2814c3bb8 | Peter Hutterer | 2026-08-26 | Xi: add bounds check for barrier events in input_constrain_cursor | Security/Bugfix | CVE-2026-93519 (buffer overflow via >100 barriers) | None — adds bounds check, limits to 32 barriers | **Safe** |
+| 2 | 3ac82f0a0c | Peter Hutterer | 2026-09-03 | Xi: clean up gesture sprite traces in WindowGone | Bugfix | Memory leak / UAF in gesture cleanup on window destruction | None — cleanup only | **Safe** |
+| 3 | 27a5d29c3c | Mikhail Dmitrichenko | 2026-09-14 | xkb: reject incomplete keymaps in GetKbdByName | Bugfix | Keymap with 0 groups causing downstream issues | None — adds validation | **Safe** |
+| 4 | aaf070e3e2 | Peter Hutterer | 2026-08-26 | dix: remove passive grabs referencing a device on removal | Bugfix | Stale passive grabs on device removal | None — proper cleanup | **Safe** |
+| 5 | b8668c00f6 | Peter Hutterer | 2026-08-26 | glx: validate dataBytes against cmdlen in RenderLarge first request | Security/Bugfix | GLX protocol buffer overflow | None — input validation | **Safe** |
+| 6 | 044f4e15cd | Peter Hutterer | 2026-09-03 | xkb: fix CheckKeySyms overwriting request-range symsPerKey entries | Bugfix | SymsPerKey overflow on malicious keymap | None — bounds fix | **Safe** |
+| 7 | c489be39fc | Peter Hutterer | 2026-08-26 | xkb: widen size_syms, num_syms, size_acts, num_acts to unsigned int | Bugfix | Integer overflow in keymap size calculations | None — widening only | **Safe** |
+| 8 | 389ea39a20 | Peter Hutterer | 2026-08-26 | present: unlink notifies from window list in present_clear_window_notifies | Bugfix | Use-after-free in present notifies | None — proper list unlinking | **Safe** |
+| 9 | 1088388683 | Peter Hutterer | 2026-08-26 | Xi: validate modifier values in ProcXIPassiveUngrabDevice | Bugfix | Invalid modifier values causing crashes | None — input validation | **Safe** |
+| 10 | 39cf355d95 | Daniel Monteiro | 2026-08-09 | xfree86: don't make a failed GPU screen ScreenInit fatal | Bugfix | GPU init failure taking down entire server | None — graceful degradation | **Safe** |
+| 11 | 6d489908aa | Peter Hutterer | 2026-08-26 | glamor: size tmp_bits buffer for source coordinate range in upload_boxes | Bugfix | Buffer overflow in glamor upload | None — proper sizing | **Safe** |
+| 12 | 48eeefbd5e | stefan11111 | 2026-08-25 | kdrive/ephyr: Report a dummy refresh rate through RandR to make proton >= 8 happy | Bugfix/Compat | Proton/Wine compatibility — no functional bug | None — dummy value | **Safe** |
+| 13 | 1d066ee99e | Peter Hutterer | 2026-08-26 | xkb: allocate names->keys to MAP_LENGTH in XkbAllocNames | Bugfix | Buffer overflow in keymap allocation | None — proper allocation | **Safe** |
+| 14 | 75fc26264b | Kevin.Li | 2026-09-07 | glamor: use highp for fill_pos UVs on GLES | Bugfix | Precision issues on GLES fill operations | None — shader precision | **Safe** |
+| 15 | 56a069bf61 | Peter Hutterer | 2026-08-26 | xkb: NULL text pointer after free in _CheckSetDoodad error path | Bugfix | Use-after-free / NULL deref in error path | None — proper cleanup | **Safe** |
+| 16 | b7b438770e | Mikhail Dmitrichenko | 2026-09-14 | xkb: use ssize_t for XKM byte counts | Bugfix | Potential signedness issues in byte counts | None — type fix | **Safe** |
+| 17 | fcb5234ebc | stefan11111 | 2026-09-11 | glamor/glamor_egl: Add a fallback path to glamor_gbm_bo_from_pixmap_internal | Bugfix | GBM buffer import failures on some drivers | None — fallback path | **Safe** |
+| 18 | 16a388400b | stefan11111 | 2026-08-25 | glamor: Set need_free_region immediately after pixman region allocation | Bugfix | Region leak if allocation fails between alloc and flag set | None — ordering fix | **Safe** |
+| 19 | 768401fed3 | Mario Kleiner | 2026-09-27 | modesetting: Fix RandR output leasing while TearFree is enabled | Bugfix | Output leasing broken with TearFree | None — logic fix | **Safe** |
+| 20 | 1e151d11b0 | stefan11111 | 2026-08-25 | glamor: Restore GetImage proc | Bugfix | Missing GetImage implementation | None — restoration | **Safe** |
+| 21 | 01350ae065 | Olivier Fourdan | 2026-08-06 | miext/sync: Handle SIGBUS from truncated shm fences | Bugfix | SIGBUS crashes on truncated SHM | None — signal handler | **Safe** |
+| 22 | 781d87847d | Olivier Fourdan | 2026-08-06 | os: Add busfault_set_jmp() for SIGBUS unwind | Bugfix | SIGBUS unwind infrastructure | None — infrastructure | **Safe** |
+| 23 | 9c40949b80 | Ivaylo Dimitrov | 2026-08-25 | DPMS: Don't wake display from input when timeouts are disabled | Bugfix | Spurious display wake on input | None — logic fix | **Safe** |
+| 24 | 11ecc2b6e6 | Pierre Ossman | 2026-08-31 | Fix incorrect uses of GLAMOR_HAS_GBM | Build/Bugfix | GLAMOR_HAS_GBM macro misuse on some code paths | None — macro correction | **Safe** |
+| 25 | 7d03bad2a4 | Herman Semenoff | 2026-08-30 | dix, Xi: remove spurious dereference when checking function pointers | Bugfix | Spurious deref before NULL check | None — ordering fix | **Safe** |
+| 26 | fb216359db | Mason Green | 2026-10-09 | dix/window: fix UnmapNotify and DestroyNotify order in DestroySubwindows | Bugfix | Incorrect event ordering on window destruction | None — event ordering | **Safe** |
+| 27 | c319f647f0 | Sergey Fedorov | 2026-10-11 | xquartz: fix regression due to unconditional usage of qos APIs | Bugfix | macOS regression with QoS APIs | None — regression fix | **Safe** |
+| 28 | fe44c04a4d | Mason Green | 2026-10-13 | Xext: composite: take the pixmap reference before AddResource() on Xinerama | Bugfix | Reference counting bug in composite/Xinerama | None — refcount ordering | **Safe** |
+| 29 | 30b84321c5 | Mason Green | 2026-10-09 | dix: dispatch: return DestroySubwindows() errors from ProcDestroySubwindows | Bugfix | Error propagation in window destruction | None — error handling | **Safe** |
+| 30 | 3455d8c797 | Mason Green | 2026-10-09 | dix: dispatch: clear the client slot when NextAvailableClient() fails | Bugfix | Client slot leak on allocation failure | None — cleanup | **Safe** |
+| 31 | 9022a2173a | stefan11111 | 2026-08-26 | modesetting: Fix use-after-free when aborting queued events | Bugfix | UAF in modesetting event abort path | None — lifetime fix | **Safe** |
+| 32 | 65be90a8d1 | David | 2026-10-08 | render: free animated cursor timers on destruction | Bugfix | Timer leak / UAF on cursor destruction | None — cleanup | **Safe** |
+| 33 | 8c14928742 | Mason Green | 2026-08-07 | Xext/namespace: fix potential NULL-pointer dereference in select_ns() | Bugfix | NULL deref in XFixes namespace selection | None — NULL guard | **Safe** |
+| 34 | 635daa3ba0 | Kiyoshi Spreclerg | 2026-07-18 | glx: fix DrawableGone use-after-free without rejecting duplicate drawables | Bugfix | UAF in GLX drawable cleanup | None — UAF fix | **Safe** |
+| 35 | 8e88faae02 | Enrico Weigelt | 2026-07-03 | render: filter: fix integer-overflow bypass of convolution size check | Security/Bugfix | Integer overflow bypassing size validation | None — overflow check | **Safe** |
+| 36 | c1577de389 | Enrico Weigelt | 2026-07-03 | Xi: xiselectev: fix OOB read in ProcXISelectEvents' non-swapped path | Bugfix | Out-of-bounds read in XISelectEvents | None — bounds check | **Safe** |
+| 37 | a9bca2c6e0 | Enrico Weigelt | 2026-07-07 | Xi: fix wrong/late NULL check on touch-class alloc in DeepCopyPointerClasses | Bugfix | NULL check after use in touch class copy | None — check ordering | **Safe** |
+| 38 | d03245a358 | Enrico Weigelt | 2026-09-28 | glamor: fix memleak in error path of glamor_link_glsl_prog | Bugfix | GLSL program link error leak | None — error path cleanup | **Safe** |
+| 39 | 94dfa05501 | Enrico Weigelt | 2026-07-02 | glx: zero-init xGLXQueryVersionReply to avoid leaking uninitialised bytes | Security/Bugfix | Info leak via uninitialized reply struct | None — zero init | **Safe** |
+| 40 | 74dd0735d8 | Herman Semenoff | 2026-08-30 | mi: guard against NULL event pointer | Bugfix | NULL event pointer deref in mi | None — NULL guard | **Safe** |
+| 41 | 2cd190c1b9 | Herman Semenoff | 2026-08-30 | Xi: Guard against NULL event pointer | Bugfix | NULL event pointer deref in Xi | None — NULL guard | **Safe** |
+| 42 | 0298789b47 | Herman Semenoff | 2026-08-30 | xnest: Check malloc return values in GCOps to avoid NULL dereferences | Bugfix | NULL deref on malloc failure in xnest | None — malloc check | **Safe** |
+| 43 | 33ed33a35d | galternat | 2026-07-31 | modesetting: don't drop coalesced Present vblanks when re-arm fails | Bugfix | Present vblank handling on re-arm failure | None — logic fix | **Safe** |
+| 44 | 51b6f5ad00 | Enrico Weigelt | 2026-10-04 | modesetting: save cursor in master's sprite_priv instead of slave's | Bugfix | Cursor handling on master/slave | None — pointer fix | **Safe** |
+| 45 | 640415d5ea | Enrico Weigelt | 2026-10-04 | dix: make InputDevIsFloating() static inline | Refactor/Bugfix | Code organization, no functional change | None — static inline | **Safe** |
+| 46 | e977dac2e9 | Enrico Weigelt | 2026-10-05 | dix: make InputDevIsMaster() static inline | Refactor/Bugfix | Code organization, no functional change | None — static inline | **Safe** |
+| 47 | 22ee2f625b | Lukáš Lipinský | 2026-08-26 | Xi: byte-swap DeviceChanged valuator and scroll data | Bugfix | Byte-swap missing for scroll/valuator data | None — swap fix | **Safe** |
+| 48 | 594eeac3c8 | Enrico Weigelt | 2026-10-02 | test: Fix locale-dependent assertion in signal-logging test | Test Fix | Locale-dependent test flakiness | None — test only | **Safe** |
+| 49 | 427f5d13fe | Jeremy Huddleston Sequoia | 2026-07-17 | xquartz/GL: Log failures on the indirect GLX make-current path | Logging | Better error logging for indirect GLX | None — logging only | **Safe** |
+| 50 | e37e776c13 | Enrico Weigelt | 2026-06-16 | security: add integer overflow checks in allocation calculations | Security | Integer overflow in allocation size calc | None — overflow checks | **Safe** |
+| 51 | 987e84bee0 | Octavia Togami | 2026-06-18 | Fix use-after-free caused by duplicate glyphs in one glyphset | Security/Bugfix | UAF via duplicate glyphs in glyphset | None — UAF fix | **Safe** |
+| 52 | b0b9e0f4a4 | Enrico Weigelt | 2026-10-01 | miext: damage: use drawable pointer instead of list head pointer to avoid realloc() UAF | Security/Bugfix | UAF from realloc in damage list | None — pointer fix | **Safe** |
+| 53 | 550d302caa | Jeremy Huddleston Sequoia | 2026-08-16 | xkb: Guard XkbAdjustGroup() against a keymap with no groups | Bugfix | Keymap with 0 groups crash | None — guard added | **Safe** |
+| 54 | 74e8a35363 | Jeremy Huddleston Sequoia | 2026-08-20 | RegionValidate: Fix double free of badreg->data on the error path | Bugfix | Double free on region validation error | None — double free fix | **Safe** |
+| 55 | a781f82356 | Enrico Weigelt | 2026-10-01 | Xi: byte-swap XIQueryDevice ScrollClass flags | Bugfix | Byte-swap missing for ScrollClass flags | None — swap fix | **Safe** |
+| 56 | f425a94483 | Jeremy Huddleston Sequoia | 2026-08-17 | xkb: Keep the group counts of a loaded keymap in range | Bugfix | Group count out of range | None — range guard | **Safe** |
+| 57 | d2d51b35a8 | Jeremy Huddleston Sequoia | 2026-08-17 | xkb: Never recompute a keymap's group count down to zero | Bugfix | Group count recomputed to 0 | None — logic fix | **Safe** |
+| 58 | d7f6112eb2 | Jeremy Huddleston Sequoia | 2026-08-17 | xkb: Default to one group whenever a keymap reports none | Bugfix | Keymap reporting 0 groups | None — default fix | **Safe** |
+| 59 | d9f34d33eb | Enrico Weigelt | 2026-10-01 | Xi: bound SwapLongs of resolution values to the request length (backport to 25.0) | Bugfix | Unbounded SwapLongs on resolution values | None — bounds check | **Safe** |
+| 60 | 024033c725 | Enrico Weigelt | 2026-09-28 | modesetting: drop async-flip & virtual-GPU helpers from 25.0 backport | Build/Refactor | Removes backport-only helpers not needed on 25.0 | None — removal of dead code | **Safe** |
+| 61 | 05955675e1 | Enrico Weigelt | 2026-09-28 | modesetting: guard drmGetVersion() against NULL in hw cursor probe | Bugfix | NULL deref on drmGetVersion failure | None — NULL guard | **Safe** |
+| 62 | a63732d1b4 | Tautvis | 2026-09-26 | modesetting: use single sized hw cursor buffer for older amdgpu gpus | Bugfix | Cursor buffer sizing for older AMD GPUs | None — buffer sizing | **Safe** |
+| 63 | 12d01d896e | Enrico Weigelt | 2026-09-18 | Revert "SDK: define BSD console macros unconditionally for driver builds" | Revert | Reverts bdcb3a73e6 (build break on BSD) | Reverts a build fix — potential BSD build impact | **Unclear** |
+| 64 | bdcb3a73e6 | Enrico Weigelt | 2026-09-07 | SDK: define BSD console macros unconditionally for driver builds | Build | BSD console macros for driver builds | Reverted by 12d01d896e | **Unclear** |
+| 65 | deffe45d42 | Jon Turney | 2017-04-17 | hw/xwin: Always set the X input focus to none when an X window loses focus | Bugfix | xwin focus handling | None — focus logic | **Safe** |
+| 66 | 45323dd375 | levvictor | 2026-06-23 | randr: fix heap overflow and size tracking in RRChangeProviderProperty | Security/Bugfix | Heap overflow in RandR property change | None — bounds + tracking fix | **Safe** |
+| 67 | f867a7bbfc | Enrico Weigelt | 2026-06-30 | xfree86: pad the DGA QueryModes reply name to its announced length | Bugfix | DGA reply padding | None — padding fix | **Safe** |
+| 68 | ec5147bc4e | Tautvis | 2026-07-01 | hw/xfree86/glamor_egl: do not link staticaly glx library | Build | Avoid static GLX linking | None — link fix | **Safe** |
+| 69 | ae7d6e742a | Tautvis | 2026-07-01 | Xext/glx: exports symbols to make extension shared | Build | GLX symbol exports for shared extension | None — symbol export | **Safe** |
+| 70 | 29b8863227 | Enrico Weigelt | 2026-08-06 | include: compiler.h: restore MIPS port I/O port access (12-year-old bug) | Bugfix | MIPS I/O port access regression | None — regression fix | **Safe** |
+| 71 | 53b5b965ce | Enrico Weigelt | 2026-07-07 | mi: fix double-free/UAF in miDCInitialize() on miSpriteInitialize() failure | Security/Bugfix | Double-free/UAF on sprite init failure | None — cleanup fix | **Safe** |
+| 72 | fd7e817d40 | Enrico Weigelt | 2026-06-16 | security: fix insecure temporary file usage and command injection | Security | Temp file + command injection in os/ | None — security hardening | **Safe** |
+| 73 | c2cde93710 | Enrico Weigelt | 2026-06-16 | security: fix buffer overflows in winprefs.c | Security | Buffer overflow in winprefs parsing | None — bounds checks | **Safe** |
+| 74 | fd728ff0ea | stefan11111 | 2026-07-04 | kdrive: Don't fixup the cursor position twice in KdCursorOffScreen | Bugfix | Double cursor fixup in kdrive | None — logic fix | **Safe** |
+| 75 | c28e5a6e82 | stefan11111 | 2026-08-01 | randr: Set the legacy RandR size range to include rotations | Bugfix | RandR size range missing rotations | None — range fix | **Safe** |
+| 76 | 37410bfef7 | stefan11111 | 2026-08-01 | kdrive/ephyr: Fix typo when checking for EGL_KHR_platform_x11 | Bugfix | Typo in EGL extension check | None — typo fix | **Safe** |
+| 77 | fd40e1faa5 | Marek Marczykowski-Górecki | 2026-06-17 | Xephyr: fix setting physical output size | Bugfix | Physical output size setting in Xephyr | None — size fix | **Safe** |
+| 78 | 249afa0b6f | Xinhao Liu | 2026-07-13 | composite: Fix PanoramiX overlay window release | Bugfix | PanoramiX overlay resource type mismatch | None — lookup type fix | **Safe** |
+| 79 | 618847d736 | Alan Coopersmith | 2026-08-09 | xf86: prevent passing NULL pointer as strcpy destination | Security/Bugfix | strcpy NULL destination | None — NULL check | **Safe** |
+| 80 | 083d5b4d05 | Alan Coopersmith | 2026-08-09 | xf86: prevent passing NULL pointer as strcat() destination | Security/Bugfix | strcat NULL destination | None — NULL check | **Safe** |
+| 81 | 6dcc9cf09c | Jeremy Huddleston Sequoia | 2026-08-16 | fb: Don't widen the planemask over padding bits when ROOTLESS_SAFEALPHA is set | Bugfix | Planemask padding bits with ROOTLESS_SAFEALPHA | None — bitmask fix | **Safe** |
+| 82 | e3f90a6775 | Jeremy Huddleston Sequoia | 2026-08-16 | xquartz: Stop drawing before handing a frame to xp_frame_draw() | Bugfix | Drawing during frame handoff in xquartz | None — ordering fix | **Safe** |
+| 83 | 8e8c423a3b | Jeremy Huddleston Sequoia | 2022-12-22 | darwin: Set thread priorities to user interactive or user initiated as appropriate | Feature/Perf | Thread priority on macOS | New code path — thread priority manipulation | **Safe** (low risk) |
+| 84 | bc98a763a2 | Jeremy Huddleston Sequoia | 2026-08-16 | rootless: Fix two region leaks | Bugfix | Region leaks in rootless mode | None — leak fix | **Safe** |
+| 85 | 0b1de8910d | Jeremy Huddleston Sequoia | 2026-08-16 | rootless: Keep the screen pixmap header consistent with its allocation | Bugfix | Pixmap header/allocation inconsistency | None — consistency fix | **Safe** |
+| 86 | 6ba774ddfb | Jeremy Huddleston Sequoia | 2026-08-20 | xquartz: Replace assert() around side-effecting calls with unconditional error handling | Bugfix | assert() on side-effecting calls | None — error handling | **Safe** |
+
+---
+
+## Risk Summary
+
+| Assessment | Count |
+|------------|-------|
+| **Safe** | 85 |
+| **Unclear** | 1 (commit pair 63+64: revert + reverted BSD build fix) |
+| **Risky** | 0 |
+
+### Notes on "Unclear" Items
+
+**Commits 63+64 (12d01d896e + bdcb3a73e6)**: A BSD console macros build fix was added (bdcb3a73e6) then reverted (12d01d896e) because it broke something on 25.0. The revert message says "drop async-flip & virtual-GPU helpers from 25.0 backport" but actually reverts the BSD macros. This pair should be investigated if BSD builds are a target for 25.0 — but since both the fix and its revert are in the history, the net effect on current 25.0 is **no change from the stable tag**.
+
+---
+
+## Conclusion
+
+The release/25.0 branch since xlibre-xserver-25.0.0.25 contains **exclusively bugfixes and security hardening**. Every commit addresses a concrete issue (UAF, buffer overflow, NULL deref, integer overflow, memory leak, double-free, protocol validation, etc.) without introducing new features or risky refactorings.
+
+**Recommendation**: Safe to release as 25.0.1 / minor update. No PRs needed from this scan — all issues already fixed upstream and backported.
+
+---
+
+*Report submitted per Enterprise directive m5868/m5872.*

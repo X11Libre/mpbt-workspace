@@ -1,0 +1,92 @@
+Message-ID: <1792264955905470938>
+Date: 2026-10-17T21:22:35+02:00
+From: XL-0
+Subject: XL-0 release/25.0 bug-scan since stable tag xlibre-xserver-25.0.0.25
+Created: 2026-10-17T21:22:35+02:00
+
+c2814c3bb8 Xi: add bounds check for barrier events in input_constrain_cursor
+3ac82f0a0c Xi: clean up gesture sprite traces in WindowGone
+27a5d29c3c xkb: reject incomplete keymaps in GetKbdByName
+aaf070e3e2 dix: remove passive grabs referencing a device on removal
+b8668c00f6 glx: validate dataBytes against cmdlen in RenderLarge first request
+044f4e15cd xkb: fix CheckKeySyms overwriting request-range symsPerKey entries
+c489be39fc xkb: widen size_syms, num_syms, size_acts, num_acts to unsigned int
+389ea39a20 present: unlink notifies from window list in present_clear_window_notifies
+1088388683 Xi: validate modifier values in ProcXIPassiveUngrabDevice
+39cf355d95 xfree86: don't make a failed GPU screen ScreenInit fatal
+6d489908aa glamor: size tmp_bits buffer for source coordinate range in upload_boxes
+48eeefbd5e kdrive/ephyr: Report a dummy refresh rate through RandR to make proton >= 8 happy
+1d066ee99e xkb: allocate names->keys to MAP_LENGTH in XkbAllocNames
+75fc26264b glamor: use highp for fill_pos UVs on GLES
+56a069bf61 xkb: NULL text pointer after free in _CheckSetDoodad error path
+b7b438770e xkb: use ssize_t for XKM byte counts
+fcb5234ebc glamor/glamor_egl: Add a fallback path to `glamor_gbm_bo_from_pixmap_internal`
+16a388400b glamor: Set `need_free_region` immediately after pixman region allocation
+768401fed3 modesetting: Fix RandR output leasing while TearFree is enabled.
+1e151d11b0 glamor: Restore `GetImage` proc
+01350ae065 miext/sync: Handle SIGBUS from truncated shm fences
+781d87847d os: Add busfault_set_jmp() for SIGBUS unwind
+9c40949b80 DPMS: Don't wake display from input when timeouts are disabled
+11ecc2b6e6 Fix incorrect uses of GLAMOR_HAS_GBM
+7d03bad2a4 dix, Xi: remove spurious dereference when checking function pointers
+fb216359db dix/window: fix UnmapNotify and DestroyNotify order in DestroySubwindows
+c319f647f0 xquartz: fix regression due to unconditional usage of qos APIs
+fe44c04a4d Xext: composite: take the pixmap reference before AddResource() on Xinerama
+30b84321c5 dix: dispatch: return DestroySubwindows() errors from ProcDestroySubwindows
+3455d8c797 dix: dispatch: clear the client slot when NextAvailableClient() fails
+9022a2173a modesetting: Fix use-after-free when aborting queued events
+65be90a8d1 render: free animated cursor timers on destruction
+8c14928742 Xext/namespace: fix potential NULL-pointer dereference in select_ns()
+635daa3ba0 glx: fix DrawableGone use-after-free without rejecting duplicate drawables
+8e88faae02 render: filter: fix integer-overflow bypass of convolution size check
+c1577de389 Xi: xiselectev: fix OOB read in ProcXISelectEvents' non-swapped path
+a9bca2c6e0 Xi: fix wrong/late NULL check on touch-class alloc in DeepCopyPointerClasses()
+d03245a358 glamor: fix memleak in error path of glamor_link_glsl_prog()
+94dfa05501 glx: zero-init xGLXQueryVersionReply to avoid leaking uninitialised bytes
+74dd0735d8 mi: guard against NULL event pointer
+2cd190c1b9 Xi: Guard against NULL event pointer
+0298789b47 xnest: Check malloc return values in GCOps to avoid NULL dereferences
+33ed33a35d modesetting: don't drop coalesced Present vblanks when re-arm fails
+51b6f5ad00 modesetting: save cursor in master's sprite_priv instead of slave's
+640415d5ea dix: make InputDevIsFloating() static inline
+e977dac2e9 dix: make InputDevIsMaster() static inline
+22ee2f625b Xi: byte-swap DeviceChanged valuator and scroll data
+594eeac3c8 test: Fix locale-dependent assertion in signal-logging test
+427f5d13fe xquartz/GL: Log failures on the indirect GLX make-current path
+e37e776c13 security: add integer overflow checks in allocation calculations
+987e84bee0 Fix use-after-free caused by duplicate glyphs in one glyphset
+b0b9e0f4a4 miext: damage: use drawable pointer instead of list head pointer to avoid realloc() UAF
+550d302caa xkb: Guard XkbAdjustGroup() against a keymap with no groups
+74e8a35363 RegionValidate: Fix double free of badreg->data on the error path
+a781f82356 Xi: byte-swap XIQueryDevice ScrollClass flags
+f425a94483 xkb: Keep the group counts of a loaded keymap in range
+d2d51b35a8 xkb: Never recompute a keymap's group count down to zero
+d7f6112eb2 xkb: Default to one group whenever a keymap reports none
+d9f34d33eb Xi: bound SwapLongs of resolution values to the request length (backport to 25.0)
+024033c725 modesetting: drop async-flip & virtual-GPU helpers from 25.0 backport
+05955675e1 modesetting: guard drmGetVersion() against NULL in hw cursor probe
+a63732d1b4 modesetting: use single sized hw cursor buffer for older amdgpu gpus
+12d01d896e Revert "SDK: define BSD console macros unconditionally for driver builds"
+bdcb3a73e6 SDK: define BSD console macros unconditionally for driver builds
+deffe45d42 hw/xwin: Always set the X input focus to none when an X window loses focus
+45323dd375 randr: fix heap overflow and size tracking in RRChangeProviderProperty
+f867a7bbfc xfree86: pad the DGA QueryModes reply name to its announced length
+ec5147bc4e hw/xfree86/glamor_egl: do not link staticaly glx library
+ae7d6e742a Xext/glx: exports symbols to make extension shared
+29b8863227 include: compiler.h: restore MIPS port I/O port access (12-year-old bug)
+53b5b965ce mi: fix double-free/UAF in miDCInitialize() on miSpriteInitialize() failure
+fd7e817d40 security: fix insecure temporary file usage and command injection
+c2cde93710 security: fix buffer overflows in winprefs.c
+fd728ff0ea kdrive: Don't fixup the cursor position twice in KdCursorOffScreen
+c28e5a6e82 randr: Set the legacy RandR size range to include rotations
+37410bfef7 kdrive/ephyr: Fix typo when checking for `EGL_KHR_platform_x11`
+fd40e1faa5 Xephyr: fix setting physical output size
+249afa0b6f composite: Fix PanoramiX overlay window release
+618847d736 xf86: prevent passing NULL pointer as strcpy destination
+083d5b4d05 xf86: prevent passing NULL pointer as strcat() destination
+6dcc9cf09c fb: Don't widen the planemask over padding bits when ROOTLESS_SAFEALPHA is set
+e3f90a6775 xquartz: Stop drawing before handing a frame to xp_frame_draw()
+8e8c423a3b darwin: Set thread priorities to user interactive or user initiated as appropriate
+bc98a763a2 rootless: Fix two region leaks
+0b1de8910d rootless: Keep the screen pixmap header consistent with its allocation
+6ba774ddfb xquartz: Replace assert() around side-effecting calls with unconditional error handling

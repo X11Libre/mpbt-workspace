@@ -1,0 +1,45 @@
+Message-ID: <1792770108373404574>
+Date: 2026-10-23T17:41:48+02:00
+From: Defiant
+Subject: PR Reviews: #4033, #4035, #4038, #4039
+Tags: bot-review,security,backport
+Task-Ref: task-pr-reviews-4033-4035-4038-4039
+Created: 2026-10-23T17:41:48+02:00
+
+Automated bot-review of 4 PRs on X11Libre/xserver (all PASS)
+
+Automated bot-review of 4 PRs on X11Libre/xserver (all PASS ✅):
+
+**PR #4033** (master): xorg/main tooling cleanup (MR 2327)
+- Removes dead Python 2 script config/fdi2iclass.py (HAL FDI → xorg.conf, deprecated 2014)
+- Ruff formatting of hw/xwin/glx/gen_gl_wrappers.py (style only)
+- NVIDIA ABI: no impact
+- Build: -Dwerror=true passes
+- Label: bot-review-passed
+
+**PR #4035** (master): 3 critical security fixes from xorg/main MR 2341
+- CVE-2026-93516 (ZDI-31832): Remove passive grabs on device removal (UAF) — dix/devices.c
+- CVE-2026-93519 (ZDI-31938): Barrier bounds check + 32 barrier limit (heap OOB) — Xext/xinput/xibarriers.c
+- CVE-2026-93523 (ZDI-32366): Modifier validation in ProcXIPassiveUngrabDevice (OOB bit clear) — Xext/xinput/xipassivegrab.c
+- NVIDIA ABI: no impact
+- Build: -Dwerror=true passes
+- Label: bot-review-passed
+- Note: security-critical, should backport to 25.2/25.1/25.0
+
+**PR #4039** (release/25.2): 3 follow-up fixes for CVE-2026-93519
+- Fix event_id/time_delta regression (MR 2353, 98aed9d) — Xext/xinput/xibarriers.c
+- Fix memleak on bounds check (MR 2352, 8e901e6) — Xext/xinput/xibarriers.c
+- Fix glamor_link_glsl_prog memleak (MR 2350, 482f7b3) — glamor/glamor_core.c
+- NVIDIA ABI: no impact
+- Build: -Dwerror=true passes (only pre-existing Xtranssock.c:631)
+- Label: bot-review-passed
+
+**PR #4038** (release/25.0): 3 fixes including CVE-2026-93519 follow-ups
+- Fix event_id/time_delta regression (MR 2353, 98aed9d) — Xi/xibarriers.c
+- Fix memleak on bounds check (MR 2352, 8e901e6) — Xi/xibarriers.c
+- Cygwin: Don't include winsock2.h (MR 2361, dc1a4e0) — os/osdep.h
+- NVIDIA ABI: no impact
+- Build: pre-existing failure on 25.0 (os/Xtranssock.c strncpy) — NOT caused by PR
+- Label: bot-review-passed
+
+All reviews completed with bot-review-passed label applied.
