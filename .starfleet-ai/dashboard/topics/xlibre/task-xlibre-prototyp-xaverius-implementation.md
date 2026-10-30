@@ -14,6 +14,7 @@ Doc-Ref: "—"
 * zwischendurch starfleet-reports mit aktuellem Zwischenbericht einstellen (darf auch der gleiche report updated werden)
 * möglichst komplett autonom machen
 * andere schiffe dürfen gern zur Hilfe genommen werden -> lastverteilung
+* zwischendurch auch immer wieder die spec repo nochmal pullen und dann nochmal anschauen, weil parallel evtl. noch Änderungen rein kommen können (die aktuelle branch docs/restructure-2026-10-21 dort ausgecheckt lassen)
 
 Teil A:
 
