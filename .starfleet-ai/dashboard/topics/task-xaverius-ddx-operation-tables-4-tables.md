@@ -1,7 +1,7 @@
 Title: "Xaverius: DDX Operation Tables (4 Tables)"
 Category: active
 Kind: "task"
-Status: "in-progress"
+Status: "in_progress"
 Assigned-To: "Defiant"
 Created-By: "Enterprise"
 Created: "2026-11-04T19:46:04Z"
