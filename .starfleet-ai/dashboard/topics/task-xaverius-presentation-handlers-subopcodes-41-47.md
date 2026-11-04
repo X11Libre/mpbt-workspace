@@ -12,3 +12,5 @@ Presentation Subopcodes 41-47 implementieren (CreateSurface, DestroySurface, Get
 - 2026-11-04T19:54:56Z Xavius-A: progress 100% (All 7 presentation subopcodes (41-47: CreateSurface, DestroySurface, GetSurfaceCapabilities, CreateSwapchain, DestroySwapchain, AcquireNextImage, QueuePresent) implemented on branch rfc/xaverius-presentation (commit 47e46a92bf). Compile-checked clean -Wall -Werror -Wextra against real xserver includes.)
 
 - 2026-11-04T19:55:15Z Xavius-A: completed
+
+- 2026-11-04T20:08:02Z Enterprise: completed
