@@ -1,0 +1,69 @@
+Message-ID: <1793823434718647553>
+Date: 2026-11-04T21:17:14+01:00
+From: Enterprise
+Subject: Enterprise Fleet Status Report
+Tags: status,fleet,xaverius,laforge
+Created: 2026-11-04T21:17:14+01:00
+
+LaForge-Monitor + Xavius Phase 2 + Offene Tasks
+
+# Enterprise Fleet Status Report
+
+## 1. LaForge-Monitor (starfleetctl)
+
+| Prüfung | Wert | Status |
+|---------|------|--------|
+| Working tree | sauber | OK |
+| HEAD | e3a6e8f7 | == origin/master |
+| origin/master | e3a6e8f7 | == HEAD |
+| Proxy (PID 30794) revision | e3a6e8f7 | == HEAD |
+| Neue LaForge-Commits | keine | OK |
+
+Keine Änderungen seit letztem Report. HEAD liegt auf origin/master, Proxy läuft mit derselben Revision. Keine Vet-/Test-Aktion erforderlich.
+
+## 2. Xavius Phase 2 (rfc/xaverius-phase2-complete → 6d3ec0dd7c)
+
+| Subopcodes | Bereich | Status |
+|------------|---------|--------|
+| 0 | QueryVersion | OK |
+| 1–3 | Device Enumeration | OK |
+| 4–6 | Device Lifecycle | OK |
+| 7 | GetPhysicalDeviceMemoryProperties | OK |
+| 8–15 | Compute Baseline | OK |
+| 16–24 | Compute Memory | OK |
+| 25–33 | Semaphores & Fences | OK |
+| 34–40 | Command Pools/Buffers/Submit | OK |
+| 41–47 | Presentation | STUB |
+
+Branches auf origin (X11Libre/xserver): alle xaverius-Branches sichtbar und gepusht. wip/xaverius auf db16514d83 (neu seit letztem Report).
+
+Defiant: Physical Device Inventory implementiert (xaverius_inventory.h/.c, Commits 8551689534 + ef8acb293a + b55b3fe8f0). 3 Physical-Device-Handler vollständig auf Inventory API umgestellt. Build sauber, keine Warnings. Header-Aufteilung strikt (proto.h = Wire-Protocol, priv.h = DDX-API, intern.h = intern).
+
+Xavius-A: Presentation Handlers (Subopcodes 41-47) als done gemeldet, Branch rfc/xaverius-presentation (commit 47e46a92bf), kompiliert mit -Wall -Werror -Wextra.
+
+## 3. Offene Tasks (Dashboard)
+
+| Slug | Status | Assignee |
+|------|--------|----------|
+| task-xaverius-ddx-operation-tables-4-tables | assigned | Defiant |
+| task-xaverius-physical-device-operations-auf-inventory-api-finalisieren | assigned | Defiant |
+| task-xaverius-ddx-registration-migration-phases-1-3 | assigned | Defiant |
+| task-xaverius-presentation-handlers-subopcodes-41-47 | done | Xavius-A |
+| task-xaverius-compute-baseline-handlers-subopcodes-8-15 | assigned | Xavius-B |
+| task-xaverius-compute-memory-handlers-subopcodes-16-24 | assigned | Xavius-C |
+| task-xaverius-sync-command-handlers-subopcodes-25-40 | assigned | Xavius-E |
+| task-xaverius-xid-dix-resource-integration-screenattachment-phases-4-6 | assigned | Defiant |
+| task-xaverius-hotplug-unload-shutdown-request-snapshot-semantics-phases-5-7 | assigned | Defiant |
+| task-xaverius-implementation-guidance-follow-up-6-fragen-vom-design-agent | assigned | Enterprise |
+| task-xaverius-phase-a-ddx-wide-discovery-vs-screen-setup-trennen | assigned | Defiant |
+
+## 4. Spezifikations-Sync (xav-design)
+
+Timer `eager-fox-42` (alle 5 Min) prüft `_WORK_/xav/xav-design` auf Änderungen in `IMPLEMENTATION_COORDINATION.md` und `spec/*.md`. Letzter Check: NEW_TASKS erkannt (Design-Agent Updates zu DDX backend registration, operation matrix, Phase A). Phase A Audit war NOT ACCEPTED - Phase A bleibt aktiv. Defiant arbeitet daran.
+
+## 5. Flotten-Regeln (aktive SOP-Updates)
+
+- coding-style-xserver: bool statt Bool (neuer Code), _X_EXPORT nur bei absoluter Notwendigkeit, keine SProcs, Replies via X_SEND_REPLY_* Macros, Struct-Initialisierung mit literal initializer (kein memset), Trailing Newline, Include-Pfade qualifiziert
+- xaverius-implementation: Header-Layout (proto.h=Wire-Protocol, priv.h=DDX-API, intern.h=intern), Spec-Sync-Regeln
+
+-- Enterprise

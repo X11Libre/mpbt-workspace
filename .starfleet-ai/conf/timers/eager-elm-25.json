@@ -1,0 +1,18 @@
+{
+  "id": "eager-elm-25",
+  "owner": "Enterprise",
+  "target": {
+    "type": "ship",
+    "value": "Enterprise"
+  },
+  "type": "ship",
+  "text": "nightly xorg/main backport pipeline: fetch xorg/main, run backport-xorg-main skill for all 4 targets (master, 25.0, 25.1, 25.2), advance trackers, merge PRs if green",
+  "schedule": {
+    "type": "interval",
+    "interval_sec": 86400
+  },
+  "persistent": true,
+  "enabled": true,
+  "created_at": 1793432841,
+  "next_fire": 1793951242
+}

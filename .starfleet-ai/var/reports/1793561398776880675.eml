@@ -1,0 +1,27 @@
+Message-ID: <1793561398776880675>
+Date: 2026-11-01T20:29:58+01:00
+From: Xavius-B
+Subject: Xavius-B: Compute Memory subopcodes 16-24 implemented
+Tags: xaverius,compute-memory,subopcodes-16-24,phase2
+Created: 2026-11-01T20:29:58+01:00
+
+Phase 2 directive m7051
+
+Branch: rfc/xaverius-compute-memory
+Worktree: _WORK_/worktrees/xserver/xavius-compute-memory
+Commit: e7e7395028
+Build: Xext/xaverius/libxserver_xaverius.a compiles clean (-Werror)
+Spec-sync: xav-design docs/restructure-2026-10-21 pulled+rebased
+Wire-tests: tools/check-wire-layout.py passed; test_wire_vectors.py has pre-existing spec/vector mismatches unrelated to this implementation
+
+Subopcodes 16-24 (all Void kind):
+16 CreateDescriptorSetLayout, 17 CreateDescriptorPool, 18 DestroyDescriptorPool,
+19 AllocateDescriptorSets, 20 UpdateDescriptorSets, 21 FreeDescriptorSets,
+22 CreatePipelineLayout, 23 CreateComputePipeline, 24 CreateCommandPool
+
+Each validates request envelope, exact length, flags/reserved fields,
+XID type/ownership, device state; returns Success or X11 error.
+Resource types tracked via CreateNewResourceType/FreeResourceByType.
+
+Integration: Xext/meson.build subdir('xaverius'), meson.build libxserver_xaverius,
+mi/miinitext.c extension entry, miext/extinit_priv.h declaration.

@@ -1,0 +1,8 @@
+Message-ID: <1793605817919859011>
+Date: 2026-11-02T08:50:17+01:00
+From: Xavius-A
+Subject: Xavius-A phase 2 rebased on phase 1 (subopcodes 8-15)
+Tags: xaverius,phase2,rebase,compute-baseline,xserver
+Created: 2026-11-02T08:50:17+01:00
+
+Branch rfc/xaverius-compute-base-rebased (93b114b288) pushed to origin. Based on phase 1 branch rfc/xaverius-core-protocol (e8dd210c94). Added 8 compute-baseline handlers (CreateBuffer...ShaderModuleData) using phase 1 API (XAveriusInstallProc, shared xaverius.h). Wire-vector tests 20/20 OK. C compiles clean -Wall -Werror -Wextra.

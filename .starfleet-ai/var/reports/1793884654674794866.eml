@@ -1,0 +1,91 @@
+Message-ID: <1793884654674794866>
+Date: 2026-11-05T14:17:34+01:00
+From: Enterprise
+Subject: Enterprise Fleet Status Report
+Tags: status,fleet,xaverius,laforge
+Created: 2026-11-05T14:17:34+01:00
+
+LaForge-Monitor + Xavius Phase 2 + Phase A Gate Re-Open + Offene Tasks
+
+# Enterprise Fleet Status Report
+
+## 1. LaForge-Monitor (starfleetctl)
+
+| Prüfung | Wert | Status |
+|---------|------|--------|
+| Working tree | sauber | OK |
+| HEAD | e3a6e8f7 | == origin/master |
+| origin/master | e3a6e8f7 | == HEAD |
+| Proxy (PID 30794) revision | e3a6e8f7 | == HEAD |
+| Neue LaForge-Commits | keine | OK |
+
+Keine Änderungen seit letztem Report. HEAD liegt auf origin/master, Proxy läuft mit derselben Revision. Keine Vet-/Test-Aktion erforderlich.
+
+## 2. Xavius Phase 2 (rfc/xaverius-phase2-complete → 6d3ec0dd7c)
+
+| Subopcodes | Bereich | Status |
+|------------|---------|--------|
+| 0 | QueryVersion | OK |
+| 1–3 | Device Enumeration | OK |
+| 4–6 | Device Lifecycle | OK |
+| 7 | GetPhysicalDeviceMemoryProperties | OK |
+| 8–15 | Compute Baseline | OK |
+| 16–24 | Compute Memory | OK |
+| 25–33 | Semaphores & Fences | OK |
+| 34–40 | Command Pools/Buffers/Submit | OK |
+| 41–47 | Presentation | STUB |
+
+Branches auf origin (X11Libre/xserver): alle xaverius-Branches sichtbar und gepusht. wip/xaverius auf **e94008ad0c** (Phase A Fixups, Build grün).
+
+## 3. Phase A Status: GATE RE-OPENED (Design-Agent Re-Evaluation)
+
+Defiant hat Commit `e94008ad0c` auf `origin/wip/xaverius` gepusht (3 Commits nach Audit-Tip 89df8ba). Die Implementierung umfasst:
+
+### Implemented Phase A Requirements:
+- **XaveriusRegisterProvider(caps,ops)** — DDX-wide registration entry point
+- **XaveriusScreenInit(pScreen)** — screen-local only (kein ops param)
+- **XaveriusDDXOps** — nur ScreenInit/ScreenFini (3 Device-Callbacks entfernt)
+- **XaveriusRegistryInit()** vor xaverius_device_init() (C7 garantiert)
+- **Duplicate-ID idempotent** (return true bei gleicher Identity)
+- **Build grün** (-Dwerror, meson/ninja -k 0, full tree)
+- **3 Commits nach Audit-Tip** 89df8ba (neue Implementierung)
+
+### C1-C10 Audit Coverage:
+| C1–C4, C8–C10 | Noch offen für Design-Agent-Prüfung |
+| C5 (failure-atomic DIX Publication) | **durch Transaction-Unwind abgedeckt** |
+| C6 (native handle/context ownership) | **durch Transaction-Unwind abgedeckt** |
+
+### Current Status:
+- **Gate ist wieder offen für Phase-A-Reevaluation** — Defiant hat signifikante Korrekturen vorgenommen
+- **XaveriusRegistryInit()** vor xaverius_device_init() implementiert (C7 garantiert)
+- **XaveriusRegisterProvider(caps,ops)** als DDX-wide Entry Point implementiert
+- **Phase B (DDX Operation Tables) blockiert** bis Phase A offiziell akzeptiert ist
+
+## 4. Spezifikations-Sync (xav-design)
+
+Timer `fair-moon-31` prüft origin-Änderungen in `_WORK_/xav/xav-design`. Letzte origin-Commits: `02c7602` → `a1f35c5` → `15485e3` → `61cf718` → `ebe6c52`. Dateien: `IMPLEMENTATION_COORDINATION.md`, `spec/errors.md` — bereits an Defiant kommuniziert (m8112/m8113).
+
+## 5. Offene Tasks (Dashboard)
+
+| Slug | Status | Assignee |
+|------|--------|----------|
+| task-xaverius-ddx-operation-tables-4-tables | blocked | Defiant |
+| task-xaverius-physical-device-operations-auf-inventory-api-finalisieren | assigned | Defiant |
+| task-xaverius-ddx-registration-migration-phases-1-3 | done | Defiant |
+| task-xaverius-presentation-handlers-subopcodes-41-47 | done | Xavius-A |
+| task-xaverius-compute-baseline-handlers-subopcodes-8-15 | assigned | Xavius-B |
+| task-xaverius-compute-memory-handlers-subopcodes-16-24 | done | Xavius-C |
+| task-xaverius-sync-command-handlers-subopcodes-25-40 | done | Xavius-E |
+| task-xaverius-xid-dix-resource-integration-screenattachment-phases-4-6 | assigned | Defiant |
+| task-xaverius-hotplug-unload-shutdown-request-snapshot-semantics-phases-5-7 | assigned | Defiant |
+| task-xaverius-implementation-guidance-follow-up-6-fragen-vom-design-agent | assigned | Enterprise |
+| task-xaverius-phase-a-ddx-wide-discovery-vs-screen-setup-trennen | blocked | Defiant |
+
+## 6. Next Steps
+
+1. **Design-Agent Phase A Re-Evaluation** gegen Commit `e94008ad0c`
+2. **Phase B autorisieren**, falls Phase A akzeptiert
+3. **Timer `fair-moon-31`** weiter überwachen (alle 5 Min)
+4. **Timer `calm-ape-32`** weiter überwachen (alle 10 Min)
+
+-- Enterprise

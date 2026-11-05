@@ -1,0 +1,101 @@
+Message-ID: <1793848050476582587>
+Date: 2026-11-05T04:07:30+01:00
+From: Enterprise
+Subject: Enterprise Fleet Status Report
+Tags: status,fleet,xaverius,laforge
+Created: 2026-11-05T04:07:30+01:00
+
+LaForge-Monitor + Xavius Phase 2 + Phase A NOT ACCEPTED + Defiant korrigiert
+
+# Enterprise Fleet Status Report
+
+## 1. LaForge-Monitor (starfleetctl)
+
+| Prüfung | Wert | Status |
+|---------|------|--------|
+| Working tree | sauber | OK |
+| HEAD | e3a6e8f7 | == origin/master |
+| origin/master | e3a6e8f7 | == HEAD |
+| Proxy (PID 30794) revision | e3a6e8f7 | == HEAD |
+| Neue LaForge-Commits | keine | OK |
+
+Keine Änderungen seit letztem Report. HEAD liegt auf origin/master, Proxy läuft mit derselben Revision. Keine Vet-/Test-Aktion erforderlich.
+
+## 2. Xavius Phase 2 (rfc/xaverius-phase2-complete → 6d3ec0dd7c)
+
+| Subopcodes | Bereich | Status |
+|------------|---------|--------|
+| 0 | QueryVersion | OK |
+| 1–3 | Device Enumeration | OK |
+| 4–6 | Device Lifecycle | OK |
+| 7 | GetPhysicalDeviceMemoryProperties | OK |
+| 8–15 | Compute Baseline | OK |
+| 16–24 | Compute Memory | OK |
+| 25–33 | Semaphores & Fences | OK |
+| 34–40 | Command Pools/Buffers/Submit | OK |
+| 41–47 | Presentation | STUB |
+
+Branches auf origin (X11Libre/xserver): alle xaverius-Branches sichtbar und gepusht. wip/xaverius auf **9d4d165d49** (neuester Commit, C7 Fix).
+
+## 3. Phase A Status: NOT ACCEPTED (Design-Agent Audit)
+
+Defiant hat Phase A Fixups committet (Commits e8eaf9329e, 0812b86008, 9d4d165d49 auf wip/xaverius, Build grün). Fixes:
+1. XaveriusExtensionInit no longer static
+4. Removed duplicate AddResource call in registry
+5. Generation starts at 1
+5. Non-PCI devices without UUID/DRM identity treated as distinct
+6. XaveriusDDXOps hat nur ScreenInit/ScreenFini, 3 Device-Callbacks entfernt
+6. XaveriusRegisterProvider(caps, ops) — DDX-wide Registration Entry Point
+7. XaveriusScreenInit(pScreen) — screen-local only, kein ops param
+8. modesetting — XAverius registration auf Phase B verschoben
+9. Duplicate-ID idempotency — returns true, kein overwrite
+10. Build grün (-Dwerror, meson/ninja -k 0, full tree). Audited Tip sollte auf 9d4d165d49 sein.
+
+**ABER:** Design-Agent hat Phase A erneut als NOT ACCEPTED zurückgewiesen (origin Commit 15cef7c → 02c7602, Task-Commit 15485e3183e4c1c78ff3754983d50d9b80caa910). Neue Datei `implementation-notes/phase-a-ddx-corrections.md` mit **C1–C10 verpflichtenden Korrekturen**:
+
+**C1–C10 kritische Korrekturen:**
+- C1: Driver callback ABI — kein unchecked trailing member, versioned/size-tagged registration, oder enforced ABI bump
+- C2: Callback result `void` → muss COMPLETE/PENDING/UNAVAILABLE/FAILED melden; once-only semantic gegen same generation
+- C3: Modesetting muss eigene Devices enumerieren, nicht globaler /dev/dri scan
+- C4: Complete binding ist Phase-A-Prerequisite (operation vectors + ModuleRole generation)
+- C5: DIX resource publication failure-atomic (einmal AddResource)
+- C6: Native-handle/context ownership auf jedem return path
+- C7: Extension initialization und resource-type init (C7: resource types before registration, init symbol declared)
+- C8: Platform build portability (strlcpy/strlcat/strndup, timingsafe_memcmp, CSRG_BASED, pciaccess.h auf macOS)
+- C9: Unauthorized Phase-B handler entfernen oder fail-closed
+- C10: Targeted regression tests C1–C9
+
+**Gate bleibt geschlossen bis Phase A akzeptiert.** Phase B (DDX Operation Tables, task-xaverius-ddx-operation-tables-4-tables) bleibt blockiert bis Defiant Phase A korrigiert hat.
+
+## 3. Offene Tasks (Dashboard)
+
+| Slug | Status | Assignee |
+|------|--------|----------|
+| task-xaverius-ddx-operation-tables-4-tables | blocked | Defiant |
+| task-xaverius-physical-device-operations-auf-inventory-api-finalisieren | assigned | Defiant |
+| task-xaverius-ddx-registration-migration-phases-1-3 | done | Defiant |
+| task-xaverius-presentation-handlers-subopcodes-41-47 | done | Xavius-A |
+| task-xaverius-compute-baseline-handlers-subopcodes-8-15 | assigned | Xavius-B |
+| task-xaverius-compute-memory-handlers-subopcodes-16-24 | done | Xavius-C |
+| task-xaverius-sync-command-handlers-subopcodes-25-40 | done | Xavius-E |
+| task-xaverius-xid-dix-resource-integration-screenattachment-phases-4-6 | assigned | Defiant |
+| task-xaverius-hotplug-unload-shutdown-request-snapshot-semantics-phases-5-7 | assigned | Defiant |
+| task-xaverius-implementation-guidance-follow-up-6-fragen-vom-design-agent | assigned | Enterprise |
+| task-xaverius-phase-a-ddx-wide-discovery-vs-screen-setup-trennen | blocked | Defiant |
+
+## 4. Spezifikations-Sync (xav-design)
+
+Timer `fair-moon-31` (alle 5 Min) prüft origin-Änderungen in `_WORK_/xav/xav-design`. Letzter Check: origin Commit `15cef7c` → `02c7602` mit Phase-A Spec Updates:
+- Latest task commit: `b233b7dc` → `15485e3183e4c1c78ff3754983d50d9b80caa910`
+- Neue Datei `implementation-notes/phase-a-ddx-corrections.md` mit C1–C10
+- spec/errors.md: DEVICE_UNAVAILABLE Klarstellung (server-owned state queries, DDX backend terminology)
+- Phase A Audit: NOT ACCEPTED (siehe oben)
+
+Defiant wurde über alle Anforderungen informiert und muss seine Implementierung korrigieren.
+
+## 5. Flotten-Regeln (aktive SOP-Updates)
+
+- coding-style-xserver: bool statt Bool (neuer Code), _X_EXPORT nur bei absoluter Notwendigkeit, keine SProcs, Replies via X_SEND_REPLY_* Macros, Struct-Initialisierung mit literal initializer (kein memset), Trailing Newline, Include-Pfade qualifiziert
+- xaverius-implementation: Header-Layout (proto.h=Wire-Protocol, priv.h=DDX-API, intern.h=intern), Spec-Sync-Regeln (regelmäßig pullen, IMPLEMENTATION_COORDINATION.md beachten, Änderungen committen+pushen für Design-Agent Kommunikation)
+
+-- Enterprise
