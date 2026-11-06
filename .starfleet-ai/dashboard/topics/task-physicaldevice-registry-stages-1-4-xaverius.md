@@ -28,3 +28,5 @@ Implement PhysicalDevice registry Stages 1-4 per active task active-physical-dev
 - 2026-11-06T12:22:54Z Defiant: progress 80% (Removed duplicate XaveriusRegisterDevice prototype from xaverius_intern.h (commit 49c1477223). Declaration stays in xaverius_priv.h (DDX-visible). Build green (-Dwerror).)
 
 - 2026-11-06T12:24:54Z Defiant: progress 85% (Renamed registry globals xaverius_devices → xaverius_physical_devices and xaverius_device_count → xaverius_physical_device_count (commit a40bd41b11). Build green (-Dwerror).)
+
+- 2026-11-06T12:26:17Z Defiant: progress 90% (Renamed XaveriusProviderCapabilities → XaveriusDeviceCapabilities (commit 67f60e317f). Build green (-Dwerror).)
