@@ -30,3 +30,5 @@ Implement PhysicalDevice registry Stages 1-4 per active task active-physical-dev
 - 2026-11-06T12:24:54Z Defiant: progress 85% (Renamed registry globals xaverius_devices → xaverius_physical_devices and xaverius_device_count → xaverius_physical_device_count (commit a40bd41b11). Build green (-Dwerror).)
 
 - 2026-11-06T12:26:17Z Defiant: progress 90% (Renamed XaveriusProviderCapabilities → XaveriusDeviceCapabilities (commit 67f60e317f). Build green (-Dwerror).)
+
+- 2026-11-06T12:27:21Z Defiant: progress 95% (Renamed device field callbacks → capabilities to match XaveriusDeviceCapabilities type (commit a85e02a440). Build green (-Dwerror).)
