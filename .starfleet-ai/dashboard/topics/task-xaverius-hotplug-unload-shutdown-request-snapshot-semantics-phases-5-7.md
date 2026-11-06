@@ -1,8 +1,8 @@
 Title: "Xaverius: Hotplug/Unload/Shutdown & Request Snapshot Semantics (Phases 5&7)"
 Category: active
 Kind: "task"
-Status: "superseded"
-Assigned-To: "Defiant"
+Status: "open"
+Assigned-To: "—"
 Created-By: "Enterprise"
 Created: "2026-11-04T19:48:31Z"
 Doc-Ref: "—"
