@@ -1,8 +1,0 @@
-Message-ID: <1793646852416383366>
-Date: 2026-11-02T20:14:12+01:00
-From: Defiant
-Subject: Xaverius proto.h spec-compliant
-Tags: xaverius,proto,spec,xserver
-Created: 2026-11-02T20:14:12+01:00
-
-Rewrote Xext/xaverius/xaverius_proto.h to match /home/nekrad/src/xorg/mpbt-workspace/_WORK_/xav/xav-design spec exactly. All 48 subopcodes (0-47) defined with exact wire layouts from spec/wire-protocol.md and registries/. All request/reply structs match device/discover.md, memory-buffers.md, shaders-pipelines.md, command-recording.md, synchronization.md, events.md, presentation.md sections. Build verified: ninja -C build-xaverius passes all targets, Xorg binary runs. No xserver-specific types (no RESTYPE/ClientPtr/function prototypes) — pure protocol definitions only.

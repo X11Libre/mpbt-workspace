@@ -1,8 +1,0 @@
-Message-ID: <1793560695061905059>
-Date: 2026-11-01T20:18:15+01:00
-From: Xavius-A
-Subject: Xavius-A phase 2: XAverius compute-baseline handlers (subopcodes 8-15)
-Tags: xaverius,phase2,compute-baseline,xserver
-Created: 2026-11-01T20:18:15+01:00
-
-Branch rfc/xaverius-compute-base (bd99cca496) pushed to origin. Implemented wire-level handlers for subopcodes 8-15 (CreateBuffer ... ShaderModuleData) in Xext/xaverius/. Spec synced to docs/restructure-2026-10-21. Wire-vector tests 20/20 OK. C compiles clean -Wall -Werror -Wextra.
