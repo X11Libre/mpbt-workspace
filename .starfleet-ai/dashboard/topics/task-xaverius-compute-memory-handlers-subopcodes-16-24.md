@@ -1,8 +1,8 @@
 Title: "Xaverius: Compute Memory Handlers (Subopcodes 16-24)"
 Category: active
 Kind: "task"
-Status: "superseded"
-Assigned-To: "Xavius-C"
+Status: "open"
+Assigned-To: "—"
 Created-By: "Enterprise"
 Created: "2026-11-04T19:47:37Z"
 Doc-Ref: "—"
