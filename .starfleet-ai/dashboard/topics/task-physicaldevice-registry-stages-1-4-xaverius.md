@@ -18,3 +18,5 @@ Implement PhysicalDevice registry Stages 1-4 per active task active-physical-dev
 - 2026-11-06T11:31:54Z Defiant: progress 50% (Proto.h constants renamed XAV_* → XAVERIUS_* schema (commit c21632db21). Build green. Next: Gpu* model + GpuRegistryRegisterDdxDevice() per Stage 1-4 spec.)
 
 - 2026-11-06T11:44:51Z Defiant: progress 60% (Naming alignment done (commit 53a2089ac7): wire-protocol structs xav* -> Xaverius*, defines XAVERIUS_*, atoms xav_atom_* -> xaverius_atom_*, MakeAtom -> dixAddAtom. Build green (-Dwerror). wip/xaverius: C5/C7 registry fix, identity_equal fix, xaverius.h slimmed, proto.h naming aligned, dixAddAtom migration.)
+
+- 2026-11-06T11:46:06Z Defiant: progress 65% (Dropped XaveriusScreenPrivateKey macro (commit 34546c23ff): screen.c and XaveriusGetScreen now use &XaveriusScreenPrivateKeyRec directly. XaveriusEventBase and XaveriusScreenPrivateKeyRec unchanged. Build green (-Dwerror).)
