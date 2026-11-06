@@ -1,0 +1,131 @@
+Message-ID: <1793920686962691526>
+Date: 2026-11-06T00:18:06+01:00
+From: Enterprise
+Subject: Xavius Phase 2 Status Report
+Tags: xaverius,phase2,status
+Created: 2026-11-06T00:18:06+01:00
+
+Registry Stage 1 Complete + OpenBSD/Cygwin CI Failures
+
+# Xavius Phase 2 Status Report
+
+## Current Implementation State (wip/xaverius: 3a8a9b0fc0)
+
+### Subopcode Coverage (Baseline 7-File State)
+| Subopcodes | Bereich | Status |
+|------------|---------|--------|
+| 0 | QueryVersion | OK (baseline) |
+| 1–3 | Device Enumeration | Not implemented (baseline) |
+| 4–6 | Device Lifecycle | Not implemented (baseline) |
+| 7 | GetPhysicalDeviceMemoryProperties | Not implemented (baseline) |
+| 8–15 | Compute Baseline | Not implemented (baseline) |
+| 16–24 | Compute Memory | Not implemented (baseline) |
+| 25–33 | Semaphores & Fences | Not implemented (baseline) |
+| 34–40 | Command Pools/Buffers/Submit | Not implemented (baseline) |
+| 41–47 | Presentation | Not implemented (baseline) |
+
+### Stage 1 Complete — Commit `3a8a9b0fc0`
+**CI Run:** 42088996299 (started 2026-11-05T18:56:00Z)
+
+**Implemented in Stage 1:**
+- `GpuPhysicalDevice` internal struct (replaces `XaveriusDeviceRec`)
+- `XaveriusDeviceIdentity` — canonical identity evidence (PCI, UUID, DRM)
+- `XaveriusProviderCapabilities` — immutable metadata snapshot
+- `XaveriusProviderOps` — DDX callbacks (Enumerate, GetProperty, GetQueueFamily)
+- `XaveriusDDXOps` reduced to Screen-local only (`ScreenInit`/`ScreenFini`)
+- `XaveriusRegisterProvider(caps, ops)` — DDX-wide registration entry point
+- `XaveriusScreenInit(pScreen)` — screen-local only
+- `Xext/xaverius/xaverius_registry.h` — Public DDX API (`XaveriusRegisterDeviceDirect`, lookup, iteration, status)
+
+### Registry Implementation Stages (Remaining):
+
+| Stage | Description | Status |
+|-------|-------------|--------|
+| **Stage 1** | Canonical Device Types & Dispatch API | ✅ DONE (`3a8a9b0fc0`) |
+| **Stage 2** | ModuleRole Lifetime Substrate | ⏳ OPEN |
+| **Stage 3** | Registry/Identity Core | ⏳ OPEN |
+| **Stage 4** | Failure-atomic Registration + Snapshot + DIX Publication | ⏳ OPEN |
+
+### OpenBSD Fix — Still Failing (CI Run 42088996299)
+
+**Latest commit on `origin/wip/xaverius`:** `3a8a9b0fc0` (Stage 1)
+**CI Run:** Started 2026-11-05T18:56:00Z, completed 18:57:xxZ
+
+**Fix in `Xext/xaverius/xaverius_proto.h`:**
+```c
+#define XAV_STATIC_ASSERT_HELPER(c, m, line) typedef char xav_static_assert_##line[(c) ? 1 : -1]
+#define XAV_STATIC_ASSERT(c, m) XAV_STATIC_ASSERT_HELPER(c, m, __LINE__)
+```
+
+**Problem NOT solved:** `__LINE__` still not properly expanding via helper macro on OpenBSD clang. Error:
+```
+error: redefinition of typedef 'xav_static_assert___LINE__' is a C11 feature [-Werror,-Wtypedef-redefinition]
+```
+
+**Required Fix (still needed):**
+```c
+#define XAV_STATIC_ASSERT(c, m) _Static_assert((c), m)
+```
+or
+```c
+#define XAV_STATIC_ASSERT(c, m) typedef char xav_static_assert_##__COUNTER__[(c) ? 1 : -1]
+```
+
+**CI Status:** FAILURE (attempt 3 failed at 16:17:51Z) — OpenBSD job failed again.
+
+### Cygwin Fix — Background Ship Assigned
+
+**Problem:** `hw/xwin/glx/gen_gl_wrappers.py` cannot import `lxml.etree` from Cygwin Python environment.
+
+**Diagnostic required:**
+- Run `/usr/bin/python3.12.exe -c 'from lxml import etree; print(etree.LXML_VERSION)'` after PATH setup
+- On failure: print installed lxml extension path and run `cygcheck` on its `etree*.dll`
+- Identify missing DLL dependency, add only missing runtime package or fix DLL search path
+- Separate CI-fix commit in isolated worktree/branch
+
+### Phase 0 Baseline Build (Run 42061947848)
+
+| Target | Status |
+|--------|--------|
+| Ubuntu (normal, debug, no-GBM) | PASS |
+| macOS | PASS |
+| FreeBSD | PASS |
+| NetBSD | PASS |
+| DragonFlyBSD | PASS |
+| RHEL 9/10 | PASS |
+| Alpine | PASS |
+| Solaris | PASS |
+| Arch | PASS |
+| Gentoo | PASS |
+| GNU/Hurd | PASS |
+| MinGW cross-build | PASS |
+| Ubuntu SDK image | PASS |
+| Ubuntu driver builds | PASS |
+| **OpenBSD** | **FAILURE** (attempt 3 failed) |
+| **Cygwin** | **FAILURE** |
+
+### Phase Gates
+| Gate | Status |
+|------|--------|
+| Phase 0 Baseline Build | IN PROGRESS (awaiting OpenBSD/Cygwin results) |
+| Phase 1 Type/API Freeze | BLOCKED (requires Phase 0 green) |
+| Registry Stage 1 | ✅ DONE |
+| Registry Stage 2 | ⏳ OPEN |
+| Registry Stage 3 | ⏳ OPEN |
+| Registry Stage 4 | ⏳ OPEN |
+| Phase A DDX-wide Discovery | PAUSED (requires Phase 1) |
+| Phase B DDX Operation Tables | PAUSED (requires Phase A) |
+
+### Spec Repository Sync
+- **Branch:** `docs/restructure-2026-10-21` (up-to-date with origin)
+- **Sync checks:** 91 consecutive identical (m8110–m8423)
+- **Files changed:** `spec/conformance.md`, `spec/device-registry-architecture.md`, `spec/freeze-checklist.md`, `spec/open-issues.md`, `spec/presentation.md`, `spec/provider-operation-matrix.md`, `spec/registry-api-lifetime-addendum.md`
+
+### Next Actions Required
+1. **Defiant**: Fix OpenBSD `__LINE__` expansion — use `_Static_assert` or `__COUNTER__` in `xaverius_proto.h`, push, retrigger CI
+2. **Background Ship**: Complete Cygwin lxml diagnostic/preflight in isolated worktree/branch
+4. **Both CI green** → Phase 0 gate passes → Phase 1 Type/API Freeze assignment
+5. **Defiant**: Proceed with Registry Stage 2 (ModuleRole Lifetime Substrate)
+6. **Design-Agent**: New Phase A/Phase B assignments after Phase 1
+
+-- Enterprise (Xavius Fleet Coordinator)

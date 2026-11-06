@@ -1,0 +1,115 @@
+Message-ID: <1793952503020536446>
+Date: 2026-11-06T09:08:23+01:00
+From: Enterprise
+Subject: Enterprise Fleet Status Report
+Tags: status,fleet,xaverius,laforge
+Created: 2026-11-06T09:08:23+01:00
+
+LaForge-Monitor + Xavius Phase 2 + Offene Tasks
+
+# Enterprise Fleet Status Report
+
+## 1. LaForge-Monitor (starfleetctl)
+
+| Prüfung | Wert | Status |
+|---------|------|--------|
+| Working tree | sauber | OK |
+| HEAD | e3a6e8f7 | == origin/master |
+| origin/master | e3a6e8f7 | == HEAD |
+| Proxy (PID 30794) revision | e3a6e8f7 | == HEAD |
+| Neue LaForge-Commits | keine | OK |
+
+Keine Änderungen seit letztem Report. HEAD liegt auf origin/master, Proxy läuft mit derselben Revision. Keine Vet-/Test-Aktion erforderlich.
+
+## 2. Xavius Status: **REGISTRY IMPLEMENTATION ACTIVE (Stages 1-4)**
+
+### Rollback & Baseline:
+- **Rollback COMPLETE** — `wip/xaverius` auf `f6f3e87aa81724208496d539e40d2eee2c3d2641` (7-file baseline)
+- **Preserved old branch**: `wip/xaverius_old_1` bei `deb0e445001389be031fa7e006e3e2e216616b50`
+- **Backup branch**: `wip/xaverius-backup-20261105` bei `5f01860375` (vor Stage 1)
+- **Rebuild Plan**: `implementation-notes/xserver-registry-rebuild-plan-2026-11-05.md`
+
+### Active Assignment: **PhysicalDevice Registry Implementation (Stages 1-4)**
+**ACTIVE — HIGH PRIORITY** — ersetzt Phase A/B Gate.
+
+**Branch**: `X11Libre/xserver:wip/xaverius` bei `f6f3e87aa81724208496d539e40d2eee2c3d2641`
+
+### Stage 1 Complete (Defiant Commit `3a8a9b0fc0` auf `origin/wip/xaverius`):
+- `Xext/xaverius/xaverius_intern.h` — Core internal definitions (GpuPhysicalDevice, XaveriusRegistryInit/Fini, XaveriusRegisterProvider, etc.)
+- `Xext/xaverius/xaverius_priv.h` — DDX-facing types (XaveriusDeviceIdentity, XaveriusProviderCapabilities, XaveriusProviderOps, XaveriusScreenInit, XaveriusRegisterProvider)
+- `Xext/xaverius/xaverius_registry.h` — Public DDX API (XaveriusRegisterDeviceDirect, device lookup/iteration/status)
+
+**API Names aktualisiert:**
+- `GpuPhysicalDevice` statt `XaveriusDeviceRec`
+- `XaveriusProviderCapabilities` statt `XaveriusProviderCallbacks`
+- `XaveriusProviderOps` statt `XaveriusDDXOps`
+- `XaveriusRegisterProvider(caps, ops)` — DDX-wide registration entry point
+- `XaveriusRegisterDeviceDirect(identity, caps, native_handle, context)` — exact binding per spec
+- `XaveriusScreenInit(pScreen)` — screen-local only, no ops param
+
+**Stage 1 Build:** ✅ grün (-Dwerror, meson/ninja -k 0, full tree)
+
+**Stage 2-4 noch ausstehend:**
+- Stage 2: ModuleRole lifetime substrate
+- Stage 3: Registry/identity core
+- Stage 4: Failure-atomic registration + snapshot + DIX publication
+
+### Phase 0 Baseline Build (CI Run 42061947848, started 16:11:18Z):
+| Target | Status |
+|--------|--------|
+| Ubuntu, macOS, FreeBSD, NetBSD, DragonFlyBSD, RHEL, Alpine, Solaris, Arch, Gentoo, Hurd, MinGW, SDK, drivers | PASS |
+| **OpenBSD** | **FAILURE** (CI attempt 3 failed at 16:17:51Z) |
+| **Cygwin** | **FAILURE** |
+| Ubuntu Valgrind | PENDING |
+
+### OpenBSD Fix — Still Failing (Defiant, m8280):
+- **Commit**: `5f01860375` auf `origin/wip/xaverius`
+- **Fix versucht**: `XAV_STATIC_ASSERT_HELPER` helper macro in `Xext/xaverius/xaverius_proto.h` Zeilen 458-462
+- **CI Result**: **FAILURE** — OpenBSD VM attempt 3 failed at 16:17:51Z
+- **Compiler Error**: `redefinition of typedef 'xav_static_assert___LINE__' is a C11 feature [-Werror,-Wtypedef-redefinition]`
+- **Root Cause**: `__LINE__` wird vom OpenBSD-Clang-Präprozessor NICHT im `##`-Operator expandiert
+- **Required Fix**: `#define XAV_STATIC_ASSERT(c, m) _Static_assert((c), m)` (C11, OpenBSD 8.0) **oder** `#define XAV_STATIC_ASSERT(c, m) typedef char xav_static_assert_##__COUNTER__[(c) ? 1 : -1]`
+
+### Cygwin Fix — Background Ship Assigned:
+- **Bug**: `hw/xwin/glx/gen_gl_wrappers.py` cannot import `lxml.etree` from Cygwin Python environment
+- **Diagnostic required**: Run `/usr/bin/python3.12.exe -c 'from lxml import etree; print(etree.LXML_VERSION)'` after PATH setup; on failure print installed lxml extension path and `cygcheck` its `etree*.dll`
+- **Status**: Waiting for separate worktree/branch assignment
+
+## 3. Spec-Repo Sync (xav-design):
+- **Branch**: `docs/restructure-2026-10-21` (up-to-date with origin)
+- **Sync checks**: 122 consecutive identical (m8110–m8830)
+- **Latest changes** (m8288/m8290/m8296/m8299/m8307/m8313/m8321): 7 new files: `spec/conformance.md`, `spec/device-registry-architecture.md`, `spec/freeze-checklist.md`, `spec/open-issues.md`, `spec/presentation.md`, `spec/provider-operation-matrix.md`, `spec/registry-api-lifetime-addendum.md`
+
+## 4. CI Tasks (Parallel, LOW Priority):
+| Task | Status | Assignee |
+|------|--------|----------|
+| OpenBSD Macro-Fix | ACTIVE | Defiant (m8280) — CI still failing |
+| Cygwin lxml Diagnostic | ACTIVE | Background ship — pending worktree/branch |
+| Cygwin CI Baseline Attribution | ACTIVE | — |
+| Cygwin Baseline Failure Diagnosis | ACTIVE | — |
+
+## 5. Offene Tasks (Dashboard)
+
+| Slug | Status | Assignee |
+|------|--------|----------|
+| Xavius PhysicalDevice Registry (Stages 1-4) | ACTIVE | Defiant |
+| Stage 1 — Canonical Device Types/Dispatch API | DONE | Defiant (commit `3a8a9b0fc0`) |
+| Stage 2 — ModuleRole Lifetime Substrate | OPEN | Defiant |
+| Stage 3 — Registry/Identity Core | OPEN | Defiant |
+| Stage 4 — Failure-atomic Registration + Snapshot + DIX Publication | OPEN | Defiant |
+| OpenBSD CI Repair (isolated) | ACTIVE | Defiant |
+| Cygwin CI Repair (isolated) | ACTIVE | Background ship |
+| Cygwin CI Baseline Attribution | ACTIVE | — |
+| Cygwin Baseline Failure Diagnosis | ACTIVE | — |
+| Xavius Phase 1 (type/API freeze) | BLOCKED | wartet auf Phase 0 grün |
+| Xavius Phase A/Phase B implementation | SUPERSEDED | per Design-Agent |
+
+## 6. Next Steps
+
+1. **Defiant**: Registry Stages 2-4 weitertreiben (ModuleRole Lifetime Substrate → Registry/Identity Core → Failure-atomic Registration + Snapshot + DIX Publication)
+2. **Defiant**: OpenBSD Macro-Fix neu evaluieren (_Static_assert oder __COUNTER__), CI neu auslösen
+3. **Background ship**: Cygwin lxml diagnostic/preflight in separatem worktree/branch
+4. **Beide CI grün** → Phase 0 Gate → Phase 1 Type/API Freeze assignment
+5. **Design-Agent**: Neue Phase-A/Phase-B Assignments nach Phase 1
+
+-- Enterprise

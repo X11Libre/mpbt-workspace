@@ -1,0 +1,80 @@
+Message-ID: <1793897285266497821>
+Date: 2026-11-05T17:48:05+01:00
+From: Enterprise
+Subject: Enterprise Fleet Status Report
+Tags: status,fleet,xaverius,laforge
+Created: 2026-11-05T17:48:05+01:00
+
+LaForge-Monitor + Xavius Phase 2 + Offene Tasks
+
+# Enterprise Fleet Status Report
+
+## 1. LaForge-Monitor (starfleetctl)
+
+| Prüfung | Wert | Status |
+|---------|------|--------|
+| Working tree | sauber | OK |
+| HEAD | e3a6e8f7 | == origin/master |
+| origin/master | e3a6e8f7 | == HEAD |
+| Proxy (PID 30794) revision | e3a6e8f7 | == HEAD |
+| Neue LaForge-Commits | keine | OK |
+
+Keine Änderungen seit letztem Report. HEAD liegt auf origin/master, Proxy läuft mit derselben Revision. Keine Vet-/Test-Aktion erforderlich.
+
+## 2. Xavius Status (Phase 0 Baseline Build)
+
+| Target | Status |
+|--------|--------|
+| Ubuntu (normal, debug, no-GBM) | PASS |
+| macOS | PASS |
+| FreeBSD | PASS |
+| NetBSD | PASS |
+| DragonFlyBSD | PASS |
+| RHEL 9/10 | PASS |
+| Alpine | PASS |
+| Solaris | PASS |
+| Arch | PASS |
+| Gentoo | PASS |
+| GNU/Hurd | PASS |
+| MinGW cross-build | PASS |
+| Ubuntu SDK image | PASS |
+| Ubuntu driver builds | PASS |
+| **OpenBSD** | **FAILURE** (CI attempt 3 failed at 16:17:51Z, commit 5f01860375) |
+| **Cygwin** | **FAILURE** (xserver-build-cygwin) |
+| Ubuntu Valgrind | PENDING |
+
+### OpenBSD Fix (m8280 an Defiant weitergeleitet):
+- **Fehler**: `redefinition of typedef 'xav_static_assert___LINE__'` bei Kompilierung
+- **Ursache**: `__LINE__` wird vom OpenBSD-Clang-Präprozessor NICHT im `##`-Operator expandiert. `XAV_STATIC_ASSERT_HELPER(c, m, __LINE__)` übergibt `'__LINE__'` als Literaltext, nicht als Zeilennummer. Jeder `XAV_STATIC_ASSERT`-Aufruf erzeugt also denselben Typedef-Namen → Redefinition-Fehler.
+- **Empfohlener Fix**: `# define XAV_STATIC_ASSERT(c, m) _Static_assert((c), m)` (C11, OpenBSD 8.0 unterstützt) **bzw.** `# define XAV_STATIC_ASSERT(c, m) typedef char xav_static_assert_##__COUNTER__[(c) ? 1 : -1]` (Clang-kompatibel)
+- **Status**: CI läuft weiter (Run 42061947848), offen bis Ergebnis bekannt
+
+### Cygwin Fix (Background Ship):
+- **Bug**: `hw/xwin/glx/gen_gl_wrappers.py` kann `lxml.etree` nicht importieren
+- **Diagnostic nötig**: `/usr/bin/python3.12.exe -c 'from lxml import etree; print(etree.LXML_VERSION)'` nach PATH-Setup. Bei Fehler: installierte lxml-Extension-Pfad ausgeben und `cygcheck` auf `etree*.dll` laufen lassen.
+- **Status**: Background ship assigned, wartet auf Umsetzung
+
+### Phase 0 Gate:
+- **Läuft**: Baseline Build (14 PASS, 2 FAIL: OpenBSD/Cygwin, rest PASS)
+- **Blockiert**: Bis Failures klassifiziert und CI-Fixes abgeschlossen
+
+## 3. Offene Tasks (Dashboard)
+
+| Slug | Status | Assignee |
+|------|--------|----------|
+| Xavius Phase 0 Baseline Build | ACTIVE | — |
+| OpenBSD CI Repair (isolated) | ACTIVE | Defiant |
+| Cygwin CI Repair (isolated) | ACTIVE | Background ship |
+| Cygwin CI Baseline Attribution | ACTIVE | — |
+| Cygwin Baseline Failure Diagnosis | ACTIVE | — |
+| Xavius Phase 1 (type/API freeze) | BLOCKED | wartet auf Phase 0 grün |
+| Xavius Phase A/Phase B implementation | PAUSED | per Design-Agent |
+
+## 4. Next Steps
+
+1. **Defiant**: OpenBSD Fix neu evaluieren (_Static_assert oder __COUNTER__), CI neu auslösen
+2. **Background ship**: Cygwin lxml diagnostic/preflight in separatem worktree/branch
+3. **Beide CI grün** → Phase 0 Gate → Phase 1 Type/API Freeze assignment
+4. **Design-Agent**: Neue Phase-A/Phase-B Assignments nach Phase 1
+
+-- Enterprise
