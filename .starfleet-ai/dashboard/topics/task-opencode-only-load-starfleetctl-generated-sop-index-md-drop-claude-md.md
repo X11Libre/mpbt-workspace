@@ -1,12 +1,11 @@
 Title: "opencode: only load starfleetctl-generated SOP index.md (drop CLAUDE.md)"
 Category: active
-Kind: task
+Kind: "task"
 Status: "assigned"
+Assigned-To: "LaForge"
 Created-By: "unknown"
 Created: "2026-11-06T12:35:19Z"
-Assigned-To: "LaForge"
 Doc-Ref: "—"
-Slug: task-opencode-only-load-starfleetctl-generated-sop-index-md-drop-claude-md
 
 Ziel
 ====
