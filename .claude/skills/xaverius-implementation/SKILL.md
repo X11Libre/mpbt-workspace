@@ -15,10 +15,9 @@ When skill conflicts with active assignment/spec: ignore the conflicting skill t
 
 - DDX directly registers every PhysicalDevice it serves; no separate Vulkan/provider inventory.
 - Process-wide PhysicalDevice identity/registry is independent of X11 Screens; ScreenAttachment is separate and non-owning.
-- Exact per-device `GpuDeviceBackendBinding` carries borrowed native handle/context and immutable typed `GpuDeviceBackendOps`.
-- `GpuModuleRole` is shared module lifetime/admission/quiescence only, not a Provider object or dispatch proxy.
-- Registration, snapshot installation and DIX/XID publication are separate; successful registration does not imply an XID.
-- The canonical API names are those in the current normative spec/active task, including `GpuPhysicalDevice`, `GpuDeviceBackendBinding`, `GpuDeviceBackendOps`, `GpuDeviceBackendRegistration`, `GpuModuleRole`, `GpuRegistryRegisterDdxDevice()`, and `XaPhysicalDevicePublish()`.
+- Exact per-device `XaveriusDeviceBackendBinding` carries borrowed native handle/context and immutable typed `XaveriusDeviceBackendOps`.
+- `XaveriusModuleRole` is shared module lifetime/admission/quiescence only, not a Provider object or dispatch proxy.
+- The canonical API names are those in the current normative spec/active task, including `XaveriusPhysicalDevice`, `XaveriusDeviceBackendBinding`, `XaveriusDeviceBackendOps`, `XaveriusDeviceBackendRegistration`, `XaveriusModuleRole`, `XaveriusRegistryRegisterDdxDevice()`, and `XaPhysicalDevicePublish()`.
 
 ## Exactly Three Headers
 
