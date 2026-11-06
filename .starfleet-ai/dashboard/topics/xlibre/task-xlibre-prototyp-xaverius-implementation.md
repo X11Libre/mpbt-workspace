@@ -1,7 +1,7 @@
 Title: "Xlibre Prototyp Xaverius-Implementation"
 Category: xlibre
 Kind: "task"
-Status: "open"
+Status: "parked"
 Assigned-To: "—"
 Created-By: "McKinley"
 Created: "2026-10-30T17:50:50Z"
