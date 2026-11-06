@@ -1,7 +1,7 @@
 Title: "Xaverius Phase A: DDX-wide discovery vs Screen setup trennen"
 Category: active
 Kind: "task"
-Status: "completed"
+Status: "superseded"
 Assigned-To: "Defiant"
 Created-By: "Enterprise"
 Created: "2026-11-04T19:50:49Z"
