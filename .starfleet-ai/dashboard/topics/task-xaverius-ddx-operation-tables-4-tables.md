@@ -1,8 +1,8 @@
 Title: "Xaverius: DDX Operation Tables (4 Tables)"
 Category: active
 Kind: "task"
-Status: "superseded"
-Assigned-To: "Defiant"
+Status: "open"
+Assigned-To: "—"
 Created-By: "Enterprise"
 Created: "2026-11-04T19:46:04Z"
 Doc-Ref: "—"
