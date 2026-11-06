@@ -1,7 +1,7 @@
 Title: "Xaverius: Compute Baseline Handlers (Subopcodes 8-15)"
 Category: active
 Kind: "task"
-Status: "parked"
+Status: "open"
 Assigned-To: "—"
 Created-By: "Enterprise"
 Created: "2026-11-04T19:47:21Z"
