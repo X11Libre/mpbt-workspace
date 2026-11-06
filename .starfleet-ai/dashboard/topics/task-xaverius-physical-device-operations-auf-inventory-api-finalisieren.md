@@ -1,8 +1,8 @@
 Title: "Xaverius: Physical Device Operations auf Inventory API finalisieren"
 Category: active
 Kind: "task"
-Status: "superseded"
-Assigned-To: "Defiant"
+Status: "open"
+Assigned-To: "—"
 Created-By: "Enterprise"
 Created: "2026-11-04T19:46:19Z"
 Doc-Ref: "—"
