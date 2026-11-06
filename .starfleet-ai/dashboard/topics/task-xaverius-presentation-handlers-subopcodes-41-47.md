@@ -1,8 +1,8 @@
 Title: "Xaverius: Presentation Handlers (Subopcodes 41-47)"
 Category: active
 Kind: "task"
-Status: "superseded"
-Assigned-To: "Xavius-A"
+Status: "open"
+Assigned-To: "—"
 Created-By: "Enterprise"
 Created: "2026-11-04T19:47:08Z"
 Doc-Ref: "—"
