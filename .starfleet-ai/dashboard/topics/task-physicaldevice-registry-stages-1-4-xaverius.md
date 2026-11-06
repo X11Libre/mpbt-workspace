@@ -32,3 +32,5 @@ Implement PhysicalDevice registry Stages 1-4 per active task active-physical-dev
 - 2026-11-06T12:26:17Z Defiant: progress 90% (Renamed XaveriusProviderCapabilities → XaveriusDeviceCapabilities (commit 67f60e317f). Build green (-Dwerror).)
 
 - 2026-11-06T12:27:21Z Defiant: progress 95% (Renamed device field callbacks → capabilities to match XaveriusDeviceCapabilities type (commit a85e02a440). Build green (-Dwerror).)
+
+- 2026-11-06T13:23:53Z Defiant: progress 15% (Stage 1 complete (commit 71876de44c): Gpu* model introduced — GpuDeviceBackendOps + 4 typed ops tables, ABI version, GpuPhysicalDevice/GpuDeviceBackendBinding/GpuModuleRole internal structs, normative GpuRegistryRegisterDdxDevice/GpuPhysicalDeviceRelease/GpuRegistryRemoveDeviceBackendBinding API, XaPhysicalDevicePublish stub, DIX destructor via CreateNewResourceType. Old XaveriusDevice/XaveriusDeviceCapabilities/XaveriusRegisterDevice removed. Three-header rule kept. Build green (-Dwerror). Next: Stage 2 ModuleRole substrate.)
