@@ -1,7 +1,7 @@
 Title: "Xaverius: XID/DIX Resource Integration & ScreenAttachment (Phases 4&6)"
 Category: active
 Kind: "task"
-Status: "parked"
+Status: "open"
 Assigned-To: "—"
 Created-By: "Enterprise"
 Created: "2026-11-04T19:48:10Z"
