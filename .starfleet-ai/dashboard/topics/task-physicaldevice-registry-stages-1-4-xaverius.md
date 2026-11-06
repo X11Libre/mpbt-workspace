@@ -20,3 +20,5 @@ Implement PhysicalDevice registry Stages 1-4 per active task active-physical-dev
 - 2026-11-06T11:44:51Z Defiant: progress 60% (Naming alignment done (commit 53a2089ac7): wire-protocol structs xav* -> Xaverius*, defines XAVERIUS_*, atoms xav_atom_* -> xaverius_atom_*, MakeAtom -> dixAddAtom. Build green (-Dwerror). wip/xaverius: C5/C7 registry fix, identity_equal fix, xaverius.h slimmed, proto.h naming aligned, dixAddAtom migration.)
 
 - 2026-11-06T11:46:06Z Defiant: progress 65% (Dropped XaveriusScreenPrivateKey macro (commit 34546c23ff): screen.c and XaveriusGetScreen now use &XaveriusScreenPrivateKeyRec directly. XaveriusEventBase and XaveriusScreenPrivateKeyRec unchanged. Build green (-Dwerror).)
+
+- 2026-11-06T11:47:03Z Defiant: progress 70% (XaveriusGetScreen is now a real _X_EXPORT'ed function in screen.c (commit 2c38ae36ea). XaveriusScreenFini dropped (close hook handles cleanup). XaveriusEventBase and XaveriusScreenPrivateKeyRec unchanged. Build green (-Dwerror).)
