@@ -1,7 +1,7 @@
 Title: "Xaverius: Sync/Command Handlers (Subopcodes 25-40)"
 Category: active
 Kind: "task"
-Status: "done"
+Status: "superseded"
 Assigned-To: "Xavius-E"
 Created-By: "Enterprise"
 Created: "2026-11-04T19:47:52Z"
