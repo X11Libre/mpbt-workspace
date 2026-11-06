@@ -12,3 +12,5 @@ Implement PhysicalDevice registry Stages 1-4 per active task active-physical-dev
 - 2026-11-06T11:19:23Z Defiant: began work
 
 - 2026-11-06T11:22:37Z Defiant: progress 25% (C5/C7 fix: canonical PhysicalDevice DIX resource type via CreateNewResourceType + destructor, RegistryInit returns bool, Fini via FreeResource. Build green (-Dwerror). Committed as 64fd56e231 on wip/xaverius.)
+
+- 2026-11-06T11:23:32Z Defiant: progress 35% (Fixed xaverius_identity_equal false-dedupe for non-PCI/no-UUID devices (commit 00137b60c0). Build green. Next: screen.c private-key mismatch (dixSetPrivate uses XaveriusScreenPrivateKey vs close hook &XaveriusScreenPrivateKeyRec), then missing dispatch handlers.)
