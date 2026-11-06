@@ -1,7 +1,7 @@
 Title: "Xaverius: Implementation Guidance Follow-up (6 Fragen vom Design-Agent)"
 Category: active
 Kind: "task"
-Status: "parked"
+Status: "open"
 Assigned-To: "—"
 Created-By: "Enterprise"
 Created: "2026-11-04T19:49:28Z"
