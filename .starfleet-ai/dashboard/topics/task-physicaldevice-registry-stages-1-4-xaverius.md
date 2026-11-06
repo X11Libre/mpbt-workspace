@@ -22,3 +22,5 @@ Implement PhysicalDevice registry Stages 1-4 per active task active-physical-dev
 - 2026-11-06T11:46:06Z Defiant: progress 65% (Dropped XaveriusScreenPrivateKey macro (commit 34546c23ff): screen.c and XaveriusGetScreen now use &XaveriusScreenPrivateKeyRec directly. XaveriusEventBase and XaveriusScreenPrivateKeyRec unchanged. Build green (-Dwerror).)
 
 - 2026-11-06T11:47:03Z Defiant: progress 70% (XaveriusGetScreen is now a real _X_EXPORT'ed function in screen.c (commit 2c38ae36ea). XaveriusScreenFini dropped (close hook handles cleanup). XaveriusEventBase and XaveriusScreenPrivateKeyRec unchanged. Build green (-Dwerror).)
+
+- 2026-11-06T12:19:56Z Defiant: progress 75% (Registry header cleanup done (commit 057b778c50): xaverius_registry.h removed, declarations split between xaverius_intern.h (internal) and xaverius_priv.h (DDX). XaveriusRegisterDeviceDirect → XaveriusRegisterDevice, identity passed by value. Build green (-Dwerror).)
