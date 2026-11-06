@@ -1,8 +1,8 @@
 Title: "Xaverius: DDX Registration & Migration Phases 1-3"
 Category: active
 Kind: "task"
-Status: "superseded"
-Assigned-To: "Defiant"
+Status: "open"
+Assigned-To: "—"
 Created-By: "Enterprise"
 Created: "2026-11-04T19:46:55Z"
 Doc-Ref: "—"
