@@ -12,6 +12,7 @@
 /var/model-health.json
 /var/model-proxy.pid
 /var/web.pid
+/var/wormholes/
 /term-pipes/
 
 # Runtime state files
@@ -41,3 +42,4 @@
 /src/starfleetctl/
 /src/bin/
 /var/sop.d/
+/var/wormholes/
