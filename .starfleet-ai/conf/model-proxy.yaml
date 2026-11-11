@@ -59,30 +59,34 @@ model_proxy:
           provider: "zen-proxy"
           context_window: 200000
           priority: 1
+        - id: "iceman-free"
+          provider: "zen-proxy"
+          context_window: 131072
+          priority: 2
         - id: "nvidia/nemotron-3-ultra-550b-a55b"
           provider: "nvidia-direct"
           context_window: 131072
-          priority: 2
+          priority: 3
         - id: "nvidia/nemotron-3-super-120b-a12b"
           provider: "nvidia-direct"
           context_window: 131072
-          priority: 3
+          priority: 4
         - id: "nvidia/nemotron-3.5-super-vl-120b-a12b"
           provider: "nvidia-direct"
           context_window: 131072
-          priority: 4
+          priority: 5
         - id: "nvidia/nemotron-3.5-lightning-30b-a3b"
           provider: "nvidia-direct"
           context_window: 131072
-          priority: 5
+          priority: 6
         - id: "meta/muse-glimmer-30b"
           provider: "nvidia-direct"
           context_window: 131072
-          priority: 6
+          priority: 7
         - id: "openai/gpt-oss-20b"
           provider: "nvidia-direct"
           context_window: 131072
-          priority: 7
+          priority: 8
       strategy: "fallback"
       # Effective limit: min(200000, 131072, 131072) = 131072
 
@@ -106,6 +110,10 @@ model_proxy:
       description: "Cruiser"
       default_model: "nvidia/nemotron-3-ultra-550b-a55b"
       models:
+        - id: "iceman-free"
+          provider: "zen-proxy"
+          context_window: 262144
+          priority: 0
         - id: "nvidia/nemotron-3-ultra-550b-a55b"
           provider: "nvidia-direct"
 #          context_window: 131072
