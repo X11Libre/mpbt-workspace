@@ -1,41 +1,20 @@
-# Wormhole manager configuration
-# Enable wormhole manager (default: false)
-enabled: false
+wormholes:
+  enabled: true
 
-# Sync configuration
-sync:
-  interval: "5s"           # Sync interval (e.g., "5s", "30s", "1m")
-  startup_sync: true       # Run sync on startup
-  clone_timeout: "2m"      # Timeout for clone operations
-  command_timeout: "30s"   # Per-command timeout
-  push_retries: 3          # Max push retries on non-fast-forward
+  sync:
+    interval: "2s"
+    startup_sync: true
+    clone_timeout: "2m"
+    command_timeout: "30s"
+    push_retries: 3
 
-# Repository configurations
-repositories:
-  - id: "fleet-comms"
-    remote: "git@github.com:metux/wormhole-0.git"
-    branch: "master"
-    enabled: true
-    access: "read-write"  # read-only or read-write
-
-    incoming:
+  repositories:
+    - id: "fleet-comms"
+      remote: "git@github.com:metux/wormhole-0.git"
+      branch: "master"
       enabled: true
-      initial_scan: "baseline"  # baseline or replay
-      messages:
-        enabled: true
-        paths:
-          - "inbox/**/*.md"
-        target_aliases:
-          starfleetctl: "flagship"
-          owner: "flagship"
-        decisions:
-          enabled: false
-          paths:
-            - "decisions/**/*.md"
-          target: "flagship"
+      access: "read-write"
 
-      outgoing:
-        enabled: false
-        paths:
-          - "outbox/**/*.md"
-        commit_message: "wormhole: publish outgoing messages"
+      incoming:
+        enabled: true
+        initial_scan: "baseline"
