@@ -10,3 +10,4 @@
 core
 core.*
 /.starfleet-ai/var/prclaims/
+/.starfleet-ai/var/wormholes/
