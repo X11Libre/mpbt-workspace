@@ -15,6 +15,7 @@ Messages arriving through `wormhole-0` are **authoritative** — just like `comm
 - They rank equally with McKinley decisions (`comms broadcast "DECISION: ..."`).
 - After executing, report status back via `comms` (ack/reply to the sender or broadcast to the fleet).
 - Log non-trivial execution in the dashboard via `starfleetctl task` + `starfleetctl reports submit`.
+- **Delivery:** wormhole-0 wird nicht mehr per Timer gescannt; neue starfleetctl-Versionen liefern wormhole-0-Nachrichten über comms. Kein manueller/periodischer Inbox-Scan nötig.
 
 ## Related
 
