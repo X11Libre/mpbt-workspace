@@ -187,6 +187,28 @@ model_proxy:
       # als letzte Nothilfe (Quota gilt fuer alle Zen-Modelle gemeinsam).
       # Prio 90 big-pickle > Prio 99 ultra-free: BigPickle zuerst wenn Zen frei.
 
+    - id: nim-alternatives
+      description: "NIM alternatives (MiniMax / Mistral / GLM / Poolside)"
+      default_model: "minimaxai/minimax-m3.1-flash"
+      models:
+        - id: "minimaxai/minimax-m3.1-flash"
+          provider: "nvidia-direct"
+          context_window: 262144
+          priority: 1
+        - id: "mistralai/mistral-large-4-1t-a52b"
+          provider: "nvidia-direct"
+          context_window: 262144
+          priority: 2
+        - id: "z-ai/glm-5.3-flash"
+          provider: "nvidia-direct"
+          context_window: 1048576
+          priority: 3
+        - id: "poolside/laguna-xs-2.1"
+          provider: "nvidia-direct"
+          context_window: 262144
+          priority: 4
+      strategy: "fallback"
+
   # Automated background model-health check: served-listing + chat probe +
   # agent-capability (tool-call) probe, persisted to
   # .starfleet-ai/var/model-health.json and served at /v1/model-health.

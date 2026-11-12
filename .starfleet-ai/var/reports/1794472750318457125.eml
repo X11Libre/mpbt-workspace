@@ -1,0 +1,77 @@
+Message-ID: <1794472750318457125>
+Date: 2026-11-12T09:39:10+01:00
+From: Enterprise
+Subject: Entscheidung erforderlich: nightly xorg/main backport 2026-11-11 (24 Commits, 4 Ziele)
+Created: 2026-11-12T09:39:10+01:00
+
+# Entscheidung erforderlich: nightly xorg/main backport (2026-11-11)
+
+## Entscheidungspunkt
+
+Freigabe zum Einreichen der Backport-PRs für das Intervall
+`eae2c21077..f6839e1d9b` (24 Commits) auf den vier Zielen
+(master, release/25.0, release/25.1, release/25.2).
+
+## Optionen
+
+- **Option a (Empfehlung):** Phase I/II für master ausführen (Inkubator rebasen, Commits
+  übernehmen, Tracker ziehen), Phase III nach Freigabe. Für 25.1 sofort zurückhalten
+  (offener PR #4062 blockiert den Inkubator). 25.0/25.2 vorbereiten, PRs nach Freigabe
+  einreichen.
+- **Option b:** Nur Tracker/Incubator vorbereiten, keine PRs einreichen; Lauf auf den
+  nächsten Zyklus verschieben.
+- **Option c:** Alle vier Ziele autonom durchziehen inkl. PR-Einreichung (ignoriert die
+  Phase-III-Freigaberegel und den 25.1-Blockadefall).
+
+## Status-Ecke
+
+| Größe | Wert |
+|---|---|
+| Tracker (alle 4 Ziele) | `eae2c21077` |
+| xorg/main | `f6839e1d9b` |
+| Rückstand | 24 Commits |
+| Kandidaten gesamt | 24 |
+| Klare Bugfixes | 15 |
+| Test-Commits (test/pyxtest) | 8 |
+| XWL (auszulassen) | 1 (`83eaa8540`) |
+| Refactoring/Feature (auf Release auszulassen) | 3 (`d518cedee`, `f16a49fa3`, `f258a85da`) |
+
+## Kandidatenklassifizierung
+
+### Auf master (alles übernehmen bis auf XWL)
+
+15 Bugfixes + 8 Test-Commits = 23 Commits (XWL `83eaa8540` ausgelassen).
+
+### Auf Release-Zweigen (nur Bugfixes, keine Features/Refactorings)
+
+Bugfixes (übernehmbar, sofern anwendbar):
+`bddd1a6ad` (Xv QueryImageAttributes), `59bef9938` (Xv PutImage),
+`1a84c543e` (glamor Xv overflow), `a77de3094` (XRes swap overflow),
+`6330d2f8e` (XRes client ID overflow), `43b4064af` (XTest valuator range),
+`71cba5e40` (Xv ShmPutImage overflow), `95cf222d4` (xfree86 EDID DS_RANGES),
+`550b9ed0d` (kdrive KdCreateScreenResources), `059c74070` (kdrive BitsPerRGB depth 30),
+`5bfd79900` (kdrive cmap !putColors).
+
+Nicht übernehmen auf Release (kein Bugfix):
+`d518cedee` (C99 struct init — Stil/Refactoring),
+`f16a49fa3` (Xkdrive man page — neues Build-Artifact),
+`f258a85da` (fbGetScreenPixmap-Ersatz — Refactoring).
+
+Test-Commits: anwendbar auf 25.1/25.2 (test/pyxtest vorhanden), **nicht** auf 25.0
+(test/pyxtest fehlt dort).
+
+## Blockaden / Risiken
+
+- **`rfc/backport-25.1` ist durch offenen PR #4062 blockiert**
+  ("backport xfree86: remove int10 helpers only the vm86 backend used").
+  Kein Force-Push auf diesen Inkubator, bis der PR gemergt/geschlossen ist.
+- Release-Zweige: Konflikte müssen pro Ziel einzeln gemessen werden (Cherry-Pick aus
+  xorg/main in alte Releases zieht ggf. Zwischen-Commits mit).
+- `-Dwerror=true` auf Release-Zweigen: bekannte Vorbedingungsfehler
+  (`os/Xtranssock.c:631` etc.), Verifikation ggf. mit `-Dwerror=false`.
+
+## Was nach der Entscheidung passiert
+
+Bei Option a: Phase I/II auf master ausführen, Tracker auf `f6839e1d9b` ziehen,
+Incubator pushen; dann Phase III (PRs einzeln nach Thema gruppiert) einreichen und
+nach grünem CI mergen. 25.1 liegt bis zum Merge von #4062 still.
