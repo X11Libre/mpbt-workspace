@@ -1,0 +1,7 @@
+comms:
+  routing:
+    local_domain: "local"
+    domains:
+      - domain: "pegasus"
+        transport: "wormhole"
+        repository: "fleet-comms"

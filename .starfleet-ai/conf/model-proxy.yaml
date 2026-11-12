@@ -139,10 +139,10 @@ model_proxy:
 #          context_window: 131072
           priority: 7
 # temporary disabled due problems
-        - id: "meta/llama-3.2-11b-vision-instruct"
-          provider: "nvidia-direct"
+#        - id: "meta/llama-3.2-11b-vision-instruct"
+#          provider: "nvidia-direct"
 #          context_window: 131072
-          priority: 8
+#          priority: 8
         - id: "big-pickle"
           provider: "zen-proxy"
 #          context_window: 200000
@@ -169,10 +169,10 @@ model_proxy:
           provider: "nvidia-direct"
           context_window: 131072
           priority: 4
-        - id: "meta/llama-3.2-11b-vision-instruct"
-          provider: "nvidia-direct"
-          context_window: 131072
-          priority: 5
+#        - id: "meta/llama-3.2-11b-vision-instruct"
+#          provider: "nvidia-direct"
+#          context_window: 131072
+#          priority: 5
         - id: "big-pickle"
           provider: "zen-proxy"
           context_window: 200000
