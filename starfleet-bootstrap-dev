@@ -27,7 +27,9 @@ echo "-- branch: $(git -C "$DEV" rev-parse --abbrev-ref HEAD) @ $(git -C "$DEV" 
 echo "-- building starfleetctl (dev) --"
 (
     cd "$DEV"
-    go build -o starfleetctl ./cmd/starfleetctl
+    # Stamp the DEV repo's commit, not an enclosing repo's: buildvcs follows a
+    # worktree's .git *file* upwards and would otherwise stamp mpbt-workspace.
+    GIT_DIR="$(git rev-parse --absolute-git-dir)" go build -o starfleetctl ./cmd/starfleetctl
 )
 
 mkdir -p "$ROOT/.starfleet-ai/bin" "$ROOT/.starfleet-ai/src/starfleetctl"
