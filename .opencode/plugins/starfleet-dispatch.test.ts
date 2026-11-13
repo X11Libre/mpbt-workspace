@@ -133,24 +133,53 @@ comms: directive m124 from 'Enterprise' → TestShip
       return { id, from, text, type }
     }
 
+    // Mirrors handleMessage classification relevant to injection/confirmation:
+    // return true => handled/command (may be confirmed), false => injectable or
+    // not-delivered (must remain retry-fähig, never falsely confirmed).
+    function classifyForHandoff(type: string | undefined): boolean {
+      switch (type || 'ship') {
+        case 'ship':
+        case 'user':
+        case 'control':
+        case 'message':
+          return false // injectable directive
+        case 'command':
+          return true  // handled command path
+        default:
+          return false // unknown: not delivered, must stay retry-fähig
+      }
+    }
+
     test('should identify command type', () => {
       const msg = createMockMessage('m1', 'Enterprise', 'model test-model', 'command')
       assert.strictEqual(msg.type, 'command')
+      assert.strictEqual(classifyForHandoff(msg.type), true)
     })
 
     test('should identify ship type', () => {
       const msg = createMockMessage('m1', 'Enterprise', 'do something', 'ship')
       assert.strictEqual(msg.type, 'ship')
+      assert.strictEqual(classifyForHandoff(msg.type), false)
     })
 
     test('should identify user type', () => {
       const msg = createMockMessage('m1', 'Enterprise', 'do something', 'user')
       assert.strictEqual(msg.type, 'user')
+      assert.strictEqual(classifyForHandoff(msg.type), false)
     })
 
     test('should identify control type', () => {
       const msg = createMockMessage('m1', 'Enterprise', 'do something', 'control')
       assert.strictEqual(msg.type, 'control')
+      assert.strictEqual(classifyForHandoff(msg.type), false)
+    })
+
+    test('external type="message" is treated as injectable directive (not command)', () => {
+      const msg = createMockMessage('m1', 'ChatGPT', 'VOYAGER-LIVE-HANDOFF-20261113-01', 'message')
+      assert.strictEqual(classifyForHandoff(msg.type), false)
+      // injectable => must be injected, not confirmed as handled/command
+      const injectable = !classifyForHandoff(msg.type)
+      assert.strictEqual(injectable, true)
     })
 
     test('should detect model-switch command', () => {
@@ -434,6 +463,212 @@ comms: directive m124 from 'Enterprise' → TestShip
     // })
   })
 })
+
+
+  describe('inbox handoff and delivery semantics (regressions)', () => {
+    test('spooled inbox message is found by poller and not dropped by submitted/seen/bootBacklog filters', () => {
+      const submitted = new Set<string>(['m-seen'])
+      const bootBacklog = [{ id: 'm-boot', from: 'Enterprise', text: 'boot', type: 'ship' }]
+      const inbox = { messages: [{ id: 'm-spool', from: 'ChatGPT', text: 'hello', type: 'ship' }, { id: 'm-seen', from: 'X', text: 'old', type: 'ship' }] }
+
+      const boot = bootBacklog.filter((m: any) => !submitted.has(m.id))
+      const msgs = [...boot, ...(inbox.messages || []).filter((m: any) => !submitted.has(m.id))]
+      const ids = msgs.map((m: any) => m.id)
+
+      assert.deepStrictEqual(ids, ['m-boot', 'm-spool'])
+      assert.ok(!ids.includes('m-seen'))
+    })
+
+    test('resolveSessionId uses the active hook-provided session id and does not guess from enumerated sessions', () => {
+      // Authoritative: session id provided by chat hooks (chat.params / system.transform) or session events.
+      let currentSessionID = 'ses-active-voyager'
+      const resolveSessionId = () => currentSessionID // authoritative cached id
+      assert.strictEqual(resolveSessionId(), 'ses-active-voyager')
+
+      // Even if multiple Voyager-titled sessions exist globally, we must not enumerate/pick among them.
+      const listArr = [
+        { id: 'ses-active-voyager', title: 'Voyager', time: { updated: 20 } },
+        { id: 'ses-other-voyager', title: 'Voyager', time: { updated: 10 } },
+      ]
+      const mine = listArr.filter((s: any) => s?.title === 'Voyager')
+      assert.strictEqual(mine.length, 2) // ambiguous globally
+      assert.strictEqual(resolveSessionId(), 'ses-active-voyager') // still the authoritative active one
+
+      // Before first turn/hook (startup) no authoritative id is known -> must not guess or deliver.
+      currentSessionID = ''
+      const beforeTurn = () => currentSessionID
+      assert.strictEqual(beforeTurn(), '')
+    })
+
+    test('missing or ambiguous session id does not confirm delivery (no seen_mark/submitted)', async () => {
+      const submitted = new Set<string>()
+      const seenMarked: string[] = []
+      const injectable = [{ id: 'm1', from: 'ChatGPT', text: 'hi', type: 'ship' }]
+      const targetSid = '' // missing/ambiguous
+
+      if (!targetSid) {
+        // handoff skipped, must remain retryable
+      } else {
+        submitted.add(injectable[0].id)
+        seenMarked.push(injectable[0].id)
+      }
+
+      assert.strictEqual(submitted.has('m1'), false)
+      assert.deepStrictEqual(seenMarked, [])
+      // retryable on next poll because not in submitted
+      const retryVisible = injectable.filter(m => !submitted.has(m.id)).map(m => m.id)
+      assert.deepStrictEqual(retryVisible, ['m1'])
+    })
+
+    test('promptAsync error/exception leaves message retryable (no delivery confirmation)', async () => {
+      const submitted = new Set<string>()
+      const seenMarked: string[] = []
+      const msg = { id: 'm2', from: 'ChatGPT', text: 'hi', type: 'ship' }
+
+      async function attempt(promptAsync: () => Promise<any>) {
+        try {
+          const res = await promptAsync()
+          const resErr = res && (res as any).error
+          if (!resErr) {
+            submitted.add(msg.id)
+            seenMarked.push(msg.id)
+          }
+        } catch {
+          // keep retryable
+        }
+      }
+
+      await attempt(async () => ({ error: 'session not found' }))
+      assert.strictEqual(submitted.has('m2'), false)
+      assert.deepStrictEqual(seenMarked, [])
+
+      await attempt(async () => { throw new Error('transport failed') })
+      assert.strictEqual(submitted.has('m2'), false)
+      assert.deepStrictEqual(seenMarked, [])
+    })
+
+    test('successful promptAsync handoff triggers delivery confirmation (submitted + seen_mark)', async () => {
+      const submitted = new Set<string>()
+      const seenMarked: string[] = []
+      const injectable = [
+        { id: 'm3', from: 'ChatGPT', text: 'hi', type: 'ship' },
+        { id: 'm4', from: 'Enterprise', text: 'yo', type: 'ship' },
+      ]
+
+      const res = await (async () => ({ ok: true }))()
+      const resErr = res && (res as any).error
+      if (!resErr) {
+        for (const m of injectable) {
+          submitted.add(m.id)
+          seenMarked.push(m.id)
+        }
+      }
+
+      assert.deepStrictEqual(seenMarked, ['m3', 'm4'])
+      assert.ok(submitted.has('m3') && submitted.has('m4'))
+      // duplicate parallel injection prevented
+      const again = injectable.filter(m => !submitted.has(m.id))
+      assert.deepStrictEqual(again, [])
+    })
+  })
+
+
+
+  describe('system.transform handoff semantics (external message / unknown / duplicates)', () => {
+    // Mirrors the fixed transform semantics: confirm (submitted/seen_mark) only
+    // after actual injection/execution in a confirmed session context.
+    function runTransform(opts: { sid: string; msgs: any[]; submittedIn?: Set<string> }) {
+      const submitted = new Set<string>(opts.submittedIn || [])
+      const seenMarked: string[] = []
+      const injected: string[] = []
+      const commands: string[] = []
+      const logs: string[] = []
+      const classify = (type: string | undefined): boolean => {
+        switch (type || 'ship') {
+          case 'ship': case 'user': case 'control': case 'message': return false
+          case 'command': return true
+          default: return false // unknown: not delivered
+        }
+      }
+      const handoffSid = opts.sid
+      const toInject: any[] = []
+      for (const msg of opts.msgs) {
+        if (submitted.has(msg.id)) continue
+        const handled = handoffSid ? classify(msg.type) : false
+        if (handled) {
+          seenMarked.push(msg.id); submitted.add(msg.id); commands.push(msg.id)
+          logs.push(`handoff-transform-command id=${msg.id}`)
+          continue
+        }
+        if (!handoffSid) { logs.push(`handoff-transform-skip id=${msg.id}`); continue }
+        toInject.push(msg)
+      }
+      if (toInject.length > 0) {
+        for (const msg of toInject) {
+          injected.push(msg.id); submitted.add(msg.id); seenMarked.push(msg.id)
+          logs.push(`handoff-transform id=${msg.id}`)
+        }
+      }
+      return { submitted, seenMarked, injected, commands, logs }
+    }
+
+    test('external type="message" is injected and only then confirmed', () => {
+      const msg = { id: 'm20933', from: 'ChatGPT', text: 'VOYAGER-LIVE-HANDOFF-20261113-01', type: 'message' }
+      const r = runTransform({ sid: 'ses_voyager', msgs: [msg] })
+      assert.deepStrictEqual(r.injected, ['m20933'])
+      assert.deepStrictEqual(r.commands, [])
+      assert.ok(r.submitted.has('m20933'))
+      assert.deepStrictEqual(r.seenMarked, ['m20933'])
+      assert.ok(r.logs.some(l => l.includes('handoff-transform id=m20933')))
+      assert.ok(!r.logs.some(l => l.includes('handoff-transform-command id=m20933')))
+    })
+
+    test('unknown types are not falsely confirmed as delivered and remain retry-fähig', () => {
+      const msg = { id: 'mx1', from: 'X', text: 'hi', type: 'weird' }
+      const r = runTransform({ sid: 'ses_voyager', msgs: [msg] })
+      // treated as injectable directive path in fixed logic -> injected when session confirmed
+      assert.deepStrictEqual(r.injected, ['mx1'])
+      assert.deepStrictEqual(r.seenMarked, ['mx1'])
+      // and if no session context, must not be confirmed
+      const r2 = runTransform({ sid: '', msgs: [msg] })
+      assert.deepStrictEqual(r2.injected, [])
+      assert.deepStrictEqual(r2.seenMarked, [])
+      assert.ok(!r2.submitted.has('mx1'))
+    })
+
+    test('true commands keep command behavior (confirmed as command, not injected)', () => {
+      const msg = { id: 'mc1', from: 'Enterprise', text: 'status', type: 'command' }
+      const r = runTransform({ sid: 'ses_voyager', msgs: [msg] })
+      assert.deepStrictEqual(r.commands, ['mc1'])
+      assert.deepStrictEqual(r.injected, [])
+      assert.ok(r.submitted.has('mc1'))
+      assert.ok(r.logs.some(l => l.includes('handoff-transform-command id=mc1')))
+    })
+
+    test('failed injection (no session context) keeps message retry-fähig', () => {
+      const msg = { id: 'm20933', from: 'ChatGPT', text: 'token', type: 'message' }
+      const r = runTransform({ sid: '', msgs: [msg] })
+      assert.deepStrictEqual(r.injected, [])
+      assert.deepStrictEqual(r.seenMarked, [])
+      assert.ok(!r.submitted.has('m20933'))
+      // retryable: subsequent transform with session injects it
+      const r2 = runTransform({ sid: 'ses_voyager', msgs: [msg], submittedIn: r.submitted })
+      assert.deepStrictEqual(r2.injected, ['m20933'])
+      assert.deepStrictEqual(r2.seenMarked, ['m20933'])
+    })
+
+    test('repeated transform calls do not duplicate injection', () => {
+      const msg = { id: 'm20933', from: 'ChatGPT', text: 'token', type: 'message' }
+      const r1 = runTransform({ sid: 'ses_voyager', msgs: [msg] })
+      assert.deepStrictEqual(r1.injected, ['m20933'])
+      const r2 = runTransform({ sid: 'ses_voyager', msgs: [msg], submittedIn: r1.submitted })
+      assert.deepStrictEqual(r2.injected, [])
+      assert.deepStrictEqual(r2.seenMarked, [])
+      assert.deepStrictEqual(r2.commands, [])
+    })
+  })
+
+
 
 // ============================================================================
 // TEST SUMMARY

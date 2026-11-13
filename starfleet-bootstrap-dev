@@ -1,0 +1,49 @@
+#!/usr/bin/env bash
+# SPDX-License-Identifier: AGPL-3.0-or-later
+#
+# starfleet-bootstrap-dev — deploy starfleetctl from a local dev clone/worktree
+# (current branch) into this workspace, without pulling origin/master.
+#
+# Usage: ./starfleet-bootstrap-dev [dev-clone-path]
+#   dev-clone-path  path to starfleetctl source (default:
+#                   _WORK_/starfleetctl/sources/starfleetctl)
+set -euo pipefail
+
+ROOT="$(cd "$(dirname "$0")" && pwd)"
+cd "$ROOT"
+
+DEV="${1:-$ROOT/_WORK_/starfleetctl/sources/starfleetctl}"
+BIN="$ROOT/.starfleet-ai/bin/starfleetctl"
+SRC_BIN="$ROOT/.starfleet-ai/src/starfleetctl/starfleetctl"
+
+for t in git go; do
+    command -v "$t" >/dev/null 2>&1 || { echo "missing: $t" >&2; exit 1; }
+done
+[[ -d "$DEV/.git" || -f "$DEV/.git" ]] || { echo "starfleet-bootstrap-dev: not a git checkout: $DEV" >&2; exit 1; }
+
+echo "-- dev source: $DEV --"
+echo "-- branch: $(git -C "$DEV" rev-parse --abbrev-ref HEAD) @ $(git -C "$DEV" rev-parse --short HEAD) --"
+
+echo "-- building starfleetctl (dev) --"
+(
+    cd "$DEV"
+    go build -o starfleetctl ./cmd/starfleetctl
+)
+
+mkdir -p "$ROOT/.starfleet-ai/bin" "$ROOT/.starfleet-ai/src/starfleetctl"
+
+# rm (not overwrite) to avoid text-file-busy on running binaries
+echo "-- deploying binary --"
+rm -f "$BIN" "$SRC_BIN"
+cp "$DEV/starfleetctl" "$BIN"
+cp "$DEV/starfleetctl" "$SRC_BIN"
+chmod +x "$BIN" "$SRC_BIN"
+
+SB="$ROOT/.starfleet-ai/bin/starfleetctl"
+echo "-- starfleetctl bootstrap --fix --"
+"$SB" bootstrap --fix
+
+echo "-- starfleetctl sop reindex --"
+MPBT_WORKSPACE_ROOT="$ROOT" "$SB" sop reindex
+
+echo "starfleet-bootstrap-dev: done — deployed $(git -C "$DEV" rev-parse --short HEAD) from $DEV"

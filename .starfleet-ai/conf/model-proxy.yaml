@@ -147,10 +147,6 @@ model_proxy:
           provider: "zen-proxy"
 #          context_window: 200000
           priority: 90
-        - id: "nemotron-3-ultra-free"
-          provider: "zen-proxy"
-#          context_window: 1000000
-          priority: 99
       strategy: "fallback"
 
     - id: nim-primary
@@ -177,10 +173,6 @@ model_proxy:
           provider: "zen-proxy"
           context_window: 200000
           priority: 90
-        - id: "nemotron-3-ultra-free"
-          provider: "zen-proxy"
-          context_window: 1000000
-          priority: 99
       strategy: "fallback"
       # Effective limit: min(131072, ...) = 65536 (nano) / 131072 sonst
       # Reihenfolge: NIM-direct zuerst (verifiziert tool-call-faehig), Zen erst
