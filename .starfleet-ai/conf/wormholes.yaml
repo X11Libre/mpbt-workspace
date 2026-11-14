@@ -13,7 +13,6 @@ wormholes:
       remote: "git@github.com:metux/wormhole-0.git"
       branch: "master"
       enabled: true
-      access: "read-write"
 
       incoming:
         enabled: true
