@@ -18,3 +18,5 @@ Fix case-sensitive ship/user-part resolution in Comms address-to-local-ship reso
 - 2026-11-14T15:52:15Z Voyager: completed
 
 - 2026-11-14T16:04:05Z Voyager: progress 100% (Task complete; starting Wormhole-reply chat surfacing. HEAD 7ece6206e34f91febb335477760c5f89e2ab2e7f (work/wormhole-manager-w0-017, pushed, deployed), existing Voyager session ses_ebabda49affeLotdkpUHrOc86H PID 11800.)
+
+- 2026-11-14T16:08:26Z Voyager: progress 100% (Wormhole-reply chat surfacing investigation started. HEAD 7ece6206e34f91febb335477760c5f89e2ab2e7f (work/wormhole-manager-w0-017, pushed, deployed). Existing Voyager session ses_ebabda49affeLotdkpUHrOc86H PID 11800.)
