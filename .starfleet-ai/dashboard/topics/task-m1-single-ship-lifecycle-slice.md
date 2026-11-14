@@ -1,7 +1,7 @@
 Title: "M1 single-ship lifecycle slice"
 Category: active
 Kind: "task"
-Status: "in-progress"
+Status: "done"
 Assigned-To: "Voyager"
 Created-By: "Voyager"
 Created: "2026-11-14T12:21:18Z"
@@ -12,3 +12,5 @@ Bounded M1 package: ship receives a task (capture), works it (in-progress), ends
 - 2026-11-14T12:21:33Z Voyager: began work
 
 - 2026-11-14T12:29:20Z Voyager: progress 100% (M1 slice implemented: done/blocked/yielded terminal outcomes via plugin task command + Go dispatchTask + tests; deployed db0f47e (Plugin 2.5.15))
+
+- 2026-11-14T12:29:22Z Voyager: completed
