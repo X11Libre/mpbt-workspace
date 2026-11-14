@@ -12,3 +12,5 @@ Fix case-sensitive ship/user-part resolution in Comms address-to-local-ship reso
 - 2026-11-14T15:13:29Z Voyager: began work
 
 - 2026-11-14T15:29:12Z Voyager: completed
+
+- 2026-11-14T15:45:06Z Voyager: progress 75% (Adding focused tests: BeTa@LOCAL mixed-case local lookup, remote-domain bob@peer.example with colliding local bob mailbox (must reach transport, no local write), unknown/unavailable remote domain remains error)
