@@ -327,3 +327,10 @@ Zen akzeptiert `x-opencode-request` nur wenn Wert `^msg_[0-9a-f]{12}[0-9A-Za-z]{
 ### Model-Proxy Fallback Fixes (2026-10-15)
 
 5xx Fallback, Streaming Fallback, Response Header Timeout per Provider gefixt (Commits `fe386a5`, `a2510d0`, `18e56f7`, `a408f59`). Deploy: `./starfleet-bootstrap` + `model-proxy restart`.
+
+### Git lessons 2026-11-15 (LaForge, W0-134 work on `work/wormhole-manager-w0-017`)
+
+- **`git commit -s` + manueller `Signed-off-by:`-Eintrag im Message-Body = doppelte Trailer** (gezählt: 2). Mit `-s` NIEMALS die Sign-off-Zeile selbst in die Message schreiben. Prüfung nach dem Commit: `git log -1 --format=%B <sha> | grep -c '^Signed-off-by'` muss genau 1 sein. Korrektur ohne Amend: `git reset --soft HEAD~1` + erneuter Commit mit nur den gewünschten Pfaden.
+- **`git commit -- <paths>` committet den Working-Tree-Stand genau dieser Pfade** und lässt andere gestagete Änderungen im Index liegen — das Mittel, fremde/gestagete Arbeit aus einem scoped Commit herauszuhalten (gemessen: 4 Dateien im Commit, gestagte comms-Änderungen blieben gestaged).
+- **`git push` kann lautlos hängen** (interaktiver SSH-Prompt / langsamer Connect, >120s Timeout ohne Output). Abhilfe: `GIT_SSH_COMMAND="ssh -o BatchMode=yes -o ConnectTimeout=30" git push --verbose origin <branch>` — fail-fast statt hängt. Receipt danach: `git ls-remote origin <branch>` + `git rev-list --count origin/<branch>..HEAD` (0) und `HEAD..origin/<branch>` (0).
+- **SOP-Quellbaum ist `./sop.d` am Workspace-Root**, nicht `.starfleet-ai/var/sop.d/` (das ist die gitignored, regenerierte Kopie — `var/` ist ephemeral und wurde beim Wipe bereits einmal geleert; `sop reindex` baut `var/sop.d/index.md` aus `./sop.d/**/*.md` neu).
