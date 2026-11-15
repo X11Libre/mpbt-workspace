@@ -7,8 +7,6 @@ Created-By: "Voyager"
 Created: "2026-11-14T14:18:30Z"
 Doc-Ref: "—"
 
-PostExternal contract (7 args), crash-safe failed/ transition with .reason, integrated PostExternal->Crash->Recovery tests. Acceptance: go build ./... exit 0; go test ./internal/comms/... -count=1 ok; go test ./internal/wormhole/... -count=1 -timeout 120s ok.
-
 - 2026-11-14T14:18:47Z Voyager: began work
 
 - 2026-11-14T14:18:50Z Voyager: completed
@@ -30,3 +28,5 @@ PostExternal contract (7 args), crash-safe failed/ transition with .reason, inte
 - 2026-11-15T10:27:31Z LaForge: LaForge: Enterprise-Entscheidungen aus m23225 uebernommen - (a) 7-arg PostExternal bleibt (keine Signatur-Aenderung, deckungsgleich mit origin/master seit be98ea9), (b) 120s ist der akzeptierte Wormhole-Suite-Timeout (Topic-Command war bereits 120s; Repo-Matrix W0-134.7 dokumentiert jetzt beide Entscheidungen explizit). Doc-Commit 90d4e1473b4bbee71df5b61b93957af9651c0451 gepusht (6c05212..90d4e14, ls-remote-Receipt identisch, ahead/behind 0/0, 1x Signed-off-by, 1 Datei). Finaler Branch-Stand: HEAD 90d4e1473b4bbee71df5b61b93957af9651c0451 = upstream, dirty sauber. Akzeptanz am exakten SHA 6c05212 (pristine Export) gemessen: go build ./... exit 0; go test ./internal/comms/ -count=1 exit 0 (ok 2.734s); go test ./internal/wormhole/ -count=1 -timeout 120s exit 0 (ok 93.699s). Beide offenen Punkte aus m23222 sind damit erledigt.
 
 - 2026-11-15T10:27:34Z LaForge: completed
+
+- 2026-11-15T14:11:09Z LaForge: LaForge: Enterprise m23243 — Acceptance-Command-Timeout von 120s auf 300s geaendert (Topic-Beschreibung). Messung: -timeout 120s am Tip 90d4e14 unter Load 11-16/8 CPUs FAIL (panic 120.039s) vs -timeout 300s PASS (ok 119.749s, 89/89); nach Fix f6697c6 mit 300s ok 83.141s. Outbound-Crash-Fenster (postAs: remote publish vor lokalem Outbox-Record, commands.go:172 vs 227) als Parked-Topic ausgelagert — Design-Fix: pending-Intent (ID+Hash) atomar+durable VOR Transport, Retry mit DERSELBEN ID (Spool.Publish idempotent fuer identische Bytes, spool.go:320-324).
