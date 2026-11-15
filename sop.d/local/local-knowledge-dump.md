@@ -81,6 +81,36 @@ git rev-list --count origin/release/<ziel>..HEAD     # muss 0 sein
 `origin/master`-Staende" is a snapshot (ages fast). The number is not
 the argument — the behavior is. A stale Ref marks the RIGHT as wrong.
 
+### Eine Directive-Annahme ist kein API-Vertrag (2026-11-15, W0-134)
+
+Eine Directive, die eine andere Funktionssignatur fordert als die im Repo
+belegte, ist **kein Freigabeschritt, sondern eine zu pruefende Behauptung**:
+erst `git show <ref>:<datei>` lesen, dann entscheiden. Beispiel W0-134:
+gefordert war eine 5-arg-`PostExternal`; `origin/master` hat seit `be98ea9`
+die 7-arg-Variante `(source, externalID, from, target, msgType, replyTo,
+text)`, und `msgType`/`replyTo` werden von W0-130.3/W0-024.17 getestet
+verlangt. Ein blindes Umstellen haette genau das getan, was die Directive
+selbst verbietet ("do not silently redefine the owner's API"), und zwei
+abhaengige Topics gebrochen.
+
+**Muster:** Widerspruch messen (`git diff <ref>..HEAD -- <datei>`,
+Signaturstelle mit Zeilennummer), mit Evidenz berichten, NICHTS umstellen,
+Entscheidung anfragen. Das Owner-Sign-off im Commit ist der Beleg, wer die
+API verantwortet.
+
+### Ein Test kann PASSen, ohne die Behauptung zu pruefen (2026-11-15)
+
+`TestLargePayloadRoundtripPreservesBytes` war gruen und pruefte trotzdem
+nichts: ein Helper lieferte `-1` fuer fehlende Directories, dadurch war
+`importedBefore = -1`, und die Assertion `importedAfter > importedBefore`
+war mit jedem echten Wert erfuellt — plus es wurde nie ein Byte verglichen
+und sogar ein Duplikat erwartet. **Ein gruener Test ist nur so viel wert
+wie die Behauptung, die er wirklich misst.** Gegenprobe: Haertet man den
+Helper (0 statt -1) oder vergleicht man ein Soll-Byte-Array, faellt der
+Test sofort auf. Also: bei neuen Assertions immer den "faelschlich
+gruenen" Zustand mitdenken — ein Test, der auch dann passed, wenn die
+Implementierung kaputt ist, ist ein False-Pass, kein Test.
+
 ### Regelkollision: `ws-commit -a` im geteilten Baum nimmt fremde Arbeit mit
 
 Auto-commit on `mtx/agent-config` means ALL workspace changes. In the
