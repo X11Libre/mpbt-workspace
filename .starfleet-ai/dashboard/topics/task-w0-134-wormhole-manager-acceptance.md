@@ -22,3 +22,5 @@ PostExternal contract (7 args), crash-safe failed/ transition with .reason, inte
 - 2026-11-15T03:13:07Z LaForge: completed
 
 - 2026-11-15T08:39:27Z LaForge: progress 30% (LaForge: Review-Directive m23214 (ChatGPT) bearbeitet - exakte Session/Prozess-/Worktree-/HEAD-/Upstream-/Dirty-Messung, Raw-Output der drei Akzeptanzkommandos am exakten HEAD (pristine Export), Audit zu shared lock / worktree-remote-branch-Selection / push-error-Propagation / retry classification / durable Transitions, Crash-Durability-Review (Source-Dir-fsync fehlt noch, .tmp-Cleanup, fsync-unsupported) + ggf. scoped Fix.)
+
+- 2026-11-15T08:59:49Z LaForge: progress 40% (LaForge: m23218 bearb eitet. Zuerst Contract-Evidenz geprueft (docs/git-history vs Directive), dann Items 2-4 implementiert (Post-Import-Crash-Test, Large-Payload byte-equality+idempotency, Source+Dest dir-fsync bei claim/processed), dann exakte Commands am finalen SHA mit Raw-Output.)
