@@ -7,6 +7,8 @@ Created-By: "Voyager"
 Created: "2026-11-14T14:18:30Z"
 Doc-Ref: "—"
 
+PostExternal contract (7 args), crash-safe failed/ transition with .reason, integrated PostExternal->Crash->Recovery tests. Acceptance: go build ./... exit 0; go test ./internal/comms/... -count=1 ok; go test ./internal/wormhole/... -count=1 -timeout 300s ok.
+
 - 2026-11-14T14:18:47Z Voyager: began work
 
 - 2026-11-14T14:18:50Z Voyager: completed
@@ -29,4 +31,4 @@ Doc-Ref: "—"
 
 - 2026-11-15T10:27:34Z LaForge: completed
 
-- 2026-11-15T14:11:09Z LaForge: LaForge: Enterprise m23243 — Acceptance-Command-Timeout von 120s auf 300s geaendert (Topic-Beschreibung). Messung: -timeout 120s am Tip 90d4e14 unter Load 11-16/8 CPUs FAIL (panic 120.039s) vs -timeout 300s PASS (ok 119.749s, 89/89); nach Fix f6697c6 mit 300s ok 83.141s. Outbound-Crash-Fenster (postAs: remote publish vor lokalem Outbox-Record, commands.go:172 vs 227) als Parked-Topic ausgelagert — Design-Fix: pending-Intent (ID+Hash) atomar+durable VOR Transport, Retry mit DERSELBEN ID (Spool.Publish idempotent fuer identische Bytes, spool.go:320-324).
+- 2026-11-15T14:21:17Z LaForge: LaForge: Enterprise m23243 — Acceptance-Command-Timeout 120s -> 300s (Beschreibung geaendert). Messung am Tip 90d4e14: -timeout 120s FAIL (panic 120.039s, Goroutine im fsync-Syscall, kein Deadlock) vs -timeout 300s PASS (ok 119.749s, 89/89) bei Load 11-16/8 CPUs; nach Fix f6697c6 mit 300s ok 83.141s. Outbound-Crash-Fenster (postAs: remote publish commands.go:172 vor lokalem Outbox-Record commands.go:227) als Parked-Topic ausgelagert; Design-Fix: pending-Intent (ID+Hash) atomar+durable VOR Transport, Retry mit DERSELBEN ID (Spool.Publish idempotent fuer identische Bytes, spool.go:320-324).
