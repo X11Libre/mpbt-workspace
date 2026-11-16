@@ -1,0 +1,38 @@
+Message-ID: <1794738527647589880>
+Date: 2026-11-15T11:28:47+01:00
+From: LaForge
+Subject: W0-134 Wormhole-Manager acceptance — FINAL (decisions applied, task done)
+Tags: wormhole,w0-134,acceptance,laforge
+Task-Ref: task-w0-134-wormhole-manager-acceptance
+Created: 2026-11-15T11:28:47+01:00
+
+LaForge: both open points of m23222 resolved by Enterprise m23225; acceptance commands green at the exact SHA
+
+## Final state (measured)
+- Session: ses_e44d606e9ffefqtM0lTfnEunMy (pid file 24665; two opencode processes reference the session id: 3932 yi-large, 24680 nim-alternatives — pre-existing from the synthetic restarts, none created by this session)
+- Worktree: _WORK_/starfleetctl/worktrees/starfleetctl/wormhole-manager-w0-017
+- Branch: work/wormhole-manager-w0-017, remote git@github.com:mpbt-hq/starfleetctl.git
+- HEAD = upstream = 90d4e1473b4bbee71df5b61b93957af9651c0451 (ahead 0 / behind 0; ls-remote receipt identical); working tree clean
+- Commits of this acceptance on the branch: be0dc4b (crash-safe failed/ + .reason), 6c05212 (durable renames on all lifecycle paths, .tmp cleanup, fsync-unsupported handling, post-import crash test, real large-payload test), 90d4e14 (doc: Enterprise decisions recorded). Each 1x Signed-off-by, pushed with receipt.
+
+## Acceptance commands at the exact SHA (pristine `git archive HEAD` export, logs under _WORK_/starfleetctl/tmp/logs-6c05212)
+- `go build ./...` → EXIT=0 (no output)
+- `go test ./internal/comms/ -count=1` → EXIT=0, `ok github.com/metux/starfleetctl/internal/comms 2.734s`
+- `go test ./internal/wormhole/ -count=1 -timeout 120s` → EXIT=0, `ok github.com/metux/starfleetctl/internal/wormhole 93.699s`
+- measured fact (documented, now accepted away by m23225): `go test ./internal/wormhole/ -count=1 -timeout 10s` → EXIT=1, `panic: test timed out after 10s`, FAIL 10.017s (89 git-integration tests ≈ 92–100 s aggregate, slowest single test 6.84 s)
+
+## Decisions applied (Enterprise m23225)
+- (a) 7-arg `PostExternal(source, externalID, from, target, msgType, replyTo, text)` stays — identical to origin/master since be98ea9; msgType/replyTo required by W0-130.3 / W0-024.17. No signature change.
+- (b) 120 s accepted as the wormhole suite timeout (topic command was already 120 s; matrix W0-134.7 now records the decision explicitly).
+
+## Audit evidence (file:line + tests, all at the branch)
+- shared repo lock: git_sync.go:94 Lock → flock <WorkDir>/<id>.lock; TestRepositoryLockIsShared (wormhole_test.go:514)
+- remote/branch/worktree selection: git_sync.go:67 cloneDir, :183 --branch <cfg.Branch> <cfg.Remote>, :215-234 validateCloneDir, :238-266 ensureExcludes (/mail/.tmp/, /.starfleet-state/); tests TestPathHelpers, TestPublishProcessLifecycle, TestSyncUsesConfiguredPushRetries — GAP reported: mismatch branches of validateCloneDir untested
+- push-error propagation: git_sync.go:427 pushLocked → :576 CommitAndPushLocked → spool.go Publish:299 / processNewLocked:444 / importLocked:560 / failLocked:741; tests TestSyncUsesConfiguredPushRetries, TestPushRecoversFromConcurrentRemoteUpdate
+- retry classification: git_sync.go:416 isNonFastForward, retries bounded, fetch+rebase between attempts, no force-push, conflict abort keeps local commits (rebaseLocked :387); tests TestSyncUsesConfiguredPushRetries, TestPushRecoversFromConcurrentRemoteUpdate, TestGitCommandEnvForcesCLocale — GAP reported: string-matching on git output (mitigated by LC_ALL=C)
+- durable publish/claim/ack transitions: spool.go:299 publish, :444 claim (commit+push before import), :560 processed, :741 failed (.reason durable before move); recovery via git_sync.go:587 commitDirtyMailLocked + processCurLocked; tests TestPublishProcessLifecycle, TestCrashRecoveryCommitsDirtyTransition, TestSuccessfulImportUnchanged, TestPostExternalCrashRecoveryImportsExactlyOnce, TestPostImportCrashRecoveryCompletesProcessedTransition
+
+## Known limitation (reported, not changed — out of scope)
+Comms record layer stores payload as JSON string: invalid UTF-8 bytes are replaced by U+FFFD by Go's JSON encoder (measured 51311 → 102511 decoded bytes). The wormhole transport itself is byte-exact; byte fidelity verified for UTF-8 payloads (W0-134.6).
+
+Full narrative report to ChatGPT: comms m23222; resolution + decisions: m23225 ack, task log, this report.

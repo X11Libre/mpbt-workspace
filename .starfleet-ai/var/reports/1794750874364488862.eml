@@ -1,0 +1,50 @@
+Message-ID: <1794750874364488862>
+Date: 2026-11-15T14:54:34+01:00
+From: LaForge
+Subject: W0-134 branch-tip review: 2 defects found+fixed (f6697c6), 120s acceptance timeout is load-flaky
+Tags: wormhole,review,w0-134,laforge
+Task-Ref: starfleet/task-review-w0-134-branch-tip-evidence
+Created: 2026-11-15T14:54:34+01:00
+
+ChatGPT m23231/m23235: exact state + raw outputs, audit per requested point, outbound intent/idempotency judgment
+
+## Exact state (measured)
+- Session ses_e44d606e9ffefqtM0lTfnEunMy; pid file 24665; session processes 3926/3932 (stale from synthetic restarts), 24665 (wrapper), 24680, 27826 — no restart/duplicate created in this session.
+- Worktree _WORK_/starfleetctl/worktrees/starfleetctl/wormhole-manager-w0-017; branch work/wormhole-manager-w0-017; remote git@github.com:mpbt-hq/starfleetctl.git.
+- Before fixes: HEAD = upstream = 90d4e1473b4bbee71df5b61b93957af9651c0451, ahead 0/behind 0, tree clean. Diff 6c05212..90d4e14 = doc/wormhole-requirement-matrix.md only (1 line) → identical code.
+- After fixes: HEAD = upstream = f6697c67c2f8017e79882a994c2682ee72166fc8 (ls-remote receipt identical), ahead 0/behind 0, tree clean, 1× Signed-off-by, 2 files.
+
+## Raw outputs (pristine git-archive exports; logs in _WORK_/starfleetctl/tmp/logs-90d4e14/, logs-review/)
+- `go build ./...` → EXIT=0
+- `go test ./internal/comms/ -count=1` → EXIT=0, ok 2.841s
+- `go test ./internal/wormhole/ -count=1 -timeout 120s` → EXIT=1, `panic: test timed out after 2m0s`, running TestCentralProcessingFlagshipAndWorkers (3s), FAIL 120.039s; goroutine dump shows [syscall] in syncDir → no deadlock, the 120s wall hit during an fsync
+- `go test ./internal/wormhole/ -count=1 -timeout 300s -v` → EXIT=0, ok 119.749s, 89/89 PASS; slowest: 7.31s/6.39s/6.20s/5.15s/4.97s
+- load average during measurement: 11.52 / 15.92 / 16.44 on 8 CPUs; earlier runs of the same code: 93.699s, 99.697s
+- After fixes: comms ok 2.357s EXIT=0; wormhole -timeout 300s ok 83.141s EXIT=0; go vet clean; gofmt clean on changed files
+
+**Acceptance-timeout finding (medium, decision needed):** `-timeout 120s` is a knife-edge under load (FAIL 120.039s vs PASS 119.749s with 300s). 89 sequential git-integration tests scale with machine load. Recommendation: 300s; not changed unilaterally because Enterprise fixed 120s in m23225.
+
+## Audit findings
+| Area | Result | Evidence |
+|---|---|---|
+| dir-fsync degradation | **Defect fixed** | EBADF was classified "unsupported" → would swallow a missing fsync caused by our own bug. Removed; EOPNOTSUPP/ENOTSUP compared separately (identical value 95 on Linux → duplicate case/map key would not compile). EINVAL/ENOSYS/EPERM stay tolerated (capability errors), EIO etc. stay fatal. TestDirSyncUnsupportedClassification |
+| lifecycle renames | **Defect fixed** | All mail renames go through renameDurableLocked (spool.go:647, only os.Rename in spool.go:648) = rename + fsync dst dir + fsync src dir, also for cross-dir moves. Publish wrote the staging file with plain os.WriteFile → no content fsync before rename (failLocked already used writeFileDurableLocked). Publish now uses writeFileDurableLocked. TestPublishDurableWrite (new), TestPublishProcessLifecycle |
+| cleanupStagingLocked | safe | Staging is per-repo (<clone>/mail/.tmp); every staging writer holds the same repo flock (<WorkDir>/<id>.lock): Publish locks at spool.go:305 before writing, writeFileDurableLocked only used by failLocked under the cycle lock, cleanup only via ensureLayoutLocked (spool.go:293) from Publish (333) and processLocked (356, lock from RunCycleForShips:244). Cross-repo: separate cloneDir+lock. Only removes crashed predecessors' files; never real spool content. Tests TestStagingCleanupRemovesLeftovers, TestFailedTransitionLeavesNoStagingFiles, TestRepositoryLockIsShared. Gap (low): no cross-process (exec) lock test |
+| lock scope / multi-process | correct | flock per repo (git_sync.go:66,94), 60s timeout, used by Sync:109, Publish:305, RunCycleForShips:244; all git ops + transitions under it. Lock order wormhole→bus (processLocked→PostExternal takes bus lock); postAs calls publishRemote before taking the bus lock → no bus→wormhole nesting → no deadlock cycle. Observation (low): remote PostExternal under repo lock can make a second process hit its 60s lock timeout → error, fail-safe |
+| failed/blocked/processed | correct | claim new→cur committed+pushed before import (481-491); processCurLocked re-asserts claim (524-530); cur→processed only after successful PostExternal (577-596); transient errors stay in cur/ (584); permanent errors typed via comms.IsPermanentPostExternalError → fail/ with durable .reason before the move (741-777) |
+| retry classification | correct, noted | isNonFastForward (git_sync.go:416) string-matches git output; retry only then, fetch+rebase between attempts, bounded by push_retries, never force-push, conflict abort keeps local commits (rebaseLocked:387); LC_ALL=C enforced. Tests TestSyncUsesConfiguredPushRetries, TestPushRecoversFromConcurrentRemoteUpdate, TestGitCommandEnvForcesCLocale. Gap (low): string matching, not structural |
+| error propagation | correct | pushLocked:427 → CommitAndPushLocked:576 → callers → errs → cycle result |
+| workdir/remote/branch | correct | NewGitSync:62-70 (cloneDir/lockFile/stateDir), clone --branch cfg.Branch cfg.Remote:183, validateCloneDir:215-234 enforces remote+branch, ensureExcludes:238-266 excludes /.starfleet-state/ and /mail/.tmp/. Gap (low): mismatch branches untested |
+| crash window before/after remote PostExternal | correct | claim durable before import; after import before cur→processed the replay hits the comms tombstone (source,externalID)→same CommsID, no second record, then processed/ is completed. Tests TestPostExternalCrashRecoveryImportsExactlyOnce, TestPostImportCrashRecoveryCompletesProcessedTransition, TestCrashRecoveryCommitsDirtyTransition, TestSuccessfulImportUnchanged. Inbound idempotency design (create-if-absent, hash check, per-recipient content check, crash-resumption tests) is sound |
+| outbound crash window (Voyager/Discovery scope) | **finding, not modified** | postAs (commands.go:146) publishes remote first (172 → routing.go:213 → comms_transport.go:27 → messages.go:99 random ID → Spool.Publish push) and only then writes the local outbox record (commands.go:227) with plain os.WriteFile (no tmp/fsync/rename/dirsync). Crash in that window → remote holds w0-X, local has no record → reply correlation dangles; a retry creates a NEW random ID → duplicate remote message, both imported inbound. Severity medium. Design verdict: outbound exactly-once needs a pending-intent record (ID + payload hash) persisted atomically+durably BEFORE the transport call, marked sent after, and resumed on startup with the SAME ID — Spool.Publish is already idempotent for identical bytes and fails closed on differing bytes (spool.go:320-324), so no transport change is needed |
+
+## Fixes shipped
+f6697c67c2f8017e79882a994c2682ee72166fc8 — "fix(wormhole): publish via durable write path; EBADF stays a fatal dir-fsync error"
+- internal/wormhole/spool.go (Publish → writeFileDurableLocked; isDirSyncUnsupported without EBADF, portable EOPNOTSUPP/ENOTSUP)
+- internal/wormhole/wormhole_test.go (TestDirSyncUnsupportedClassification updated, TestPublishDurableWrite added)
+Push 90d4e14..f6697c6 exit 0; receipt f6697c67c2f8017e79882a994c2682ee72166fc8; ahead/behind 0/0; tree clean; 1× Signed-off-by; no unrelated files touched.
+
+## Not fixed on purpose (low severity, self-healing, reported)
+git_sync.go:194 clone move without parent dir fsync; wormhole.go:350/388 PID/state files without content fsync; untested validateCloneDir mismatch branches; string-based retry classification.
+
+Full narrative report to ChatGPT: comms m23238.

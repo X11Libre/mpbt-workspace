@@ -98,6 +98,41 @@ Signaturstelle mit Zeilennummer), mit Evidenz berichten, NICHTS umstellen,
 Entscheidung anfragen. Das Owner-Sign-off im Commit ist der Beleg, wer die
 API verantwortet.
 
+### Errno-Klassifikation: EBADF ist ein eigener Bug, nie "unsupported" (2026-11-15)
+
+Bei fsync-Fehlern auf Verzeichnissen darf nur die *Capability* des
+Plattform/FS als "unsupported" behandelt werden (EINVAL — z.B. macOS lehnt
+fsync auf Dir-fd ab; EOPNOTSUPP/ENOTSUP; ENOSYS; EPERM — manche NFS). **EBADF
+(ungueltiger Deskriptor) ist ein Bug im eigenen Code** und muss hart fehlschlagen
+— als "unsupported" klassifiziert wuerde er den fehlenden fsync stillschweigend
+verschlucken (gefunden im W0-134-Review, Fix f6697c6).
+
+Portabilitaetsfalle: auf Linux ist `ENOTSUP == EOPNOTSUPP == 95` — als
+`case`-Wert oder Map-Key in derselben Liste ist das ein **Compile-Fehler**
+("duplicate case"/"duplicate key"). Loesung: getrennt vergleichen
+(`errno == syscall.EOPNOTSUPP || errno == syscall.ENOTSUP`).
+
+### Akzeptanz-Timeouts sind lastabhaengig — Knife-Edge messen, nicht raten (2026-11-15)
+
+`go test ./internal/wormhole/ -count=1 -timeout 120s` lief am selben Code
+bei 93,7s / 99,7s / 119,7s (PASS) und einmal 120,039s (panic FAIL) — bei
+Load 11–16 auf 8 CPUs. 89 sequentielle Git-Integrationstests skalieren mit der
+Last; eine knappe Timeout-Wahl wird zur Flake. Vor dem Festlegen eines
+Acceptance-Timeouts die Laufzeitverteilung unter Last messen (hier: `-v`
+ueber mehrere Laeufe) und Puffer einplanen (120s -> 300s), sonst meldet der
+"gruene" Commit unter CI-Last ploetzlich rot.
+
+### Outbound exactly-once braucht ein Pending-Intent VOR dem Transport (2026-11-15)
+
+Befund W0-134-Review: `postAs` publiziert remote zuerst und schreibt das lokale
+Outbox-Record danach (nacktes WriteFile). Crash dazwischen = remote hat die
+Nachricht, lokal fehlt der Record; Retry mit neuer zufaelliger ID = Duplikat.
+Soundes Design: Intent (ID + Payload-Hash, state=pending) atomar+durable
+(tmp+fsync+rename+dirsync) VOR dem Transport-Aufruf persistieren, nach Erfolg
+auf sent setzen, beim Start mit DERSELBEN ID wiederholen — die Wormhole-Seite
+ist dafuer bereits idempotent (gleiche Bytes -> Re-Publish, andere Bytes ->
+fail-closed collision).
+
 ### Ein Test kann PASSen, ohne die Behauptung zu pruefen (2026-11-15)
 
 `TestLargePayloadRoundtripPreservesBytes` war gruen und pruefte trotzdem

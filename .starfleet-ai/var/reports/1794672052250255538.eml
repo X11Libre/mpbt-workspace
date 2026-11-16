@@ -1,0 +1,67 @@
+Message-ID: <1794672052250255538>
+Date: 2026-11-14T17:00:52+01:00
+From: XL-0
+Subject: xorg/main → release/25.0 nightly backport: Entscheidung zu 24 Kandidaten
+Task-Ref: m22545
+Created: 2026-11-14T17:00:52+01:00
+
+---
+slug: decision/xorg-main-backport-25.0-nightly-2026-11-14
+title: "xorg/main → release/25.0 nightly backport — Entscheidung zu 24 Kandidaten"
+status: pending
+---
+
+## Entscheidungspunkt
+
+Welche der 24 xorg/main-Commits im Intervall `eae2c21077..f6839e1d9b` werden auf `release/25.0` übernommen, welche ausgelassen?
+Release-Zweige erhalten nur Bugfixes (Crash, Datenkorruption, UAF, Security, Build-Breaks) — keine Features, Refactorings, Test-Skripte, xwayland, Dokumentation.
+
+## Kandidaten (24 Commits, tracker eae2c21077 → xorg/main f6839e1d9b)
+
+### Nehmen (11 — Bugfixes, Overflow-/Bounds-Prüfungen)
+
+| SHA | Subject | Kriterium |
+|-----|---------|-----------|
+| bddd1a6ad9 | Xv: reject negative image size in QueryImageAttributes | Bugfix (Bounds) |
+| 59bef99381 | Xv: reject negative image size in PutImage | Bugfix (Bounds) |
+| 1a84c543e7 | glamor: prevent overflow in Xv image size calculation | Bugfix (Overflow) |
+| a77de3094e | XRes: prevent overflow in resource bytes swap path | Bugfix (Overflow) |
+| 6330d2f8ef | XRes: prevent overflow in client ID request size | Bugfix (Overflow) |
+| 43b4064af3 | XTest: validate valuator range before writing | Bugfix (Bounds) |
+| 71cba5e407 | Xv: prevent overflow in shared-memory bounds check | Bugfix (Bounds) |
+| 95cf222d43 | xfree86: bound EDID DS_RANGES against hsync/vrefresh array size | Bugfix (Bounds) |
+| 550b9ed0dd | kdrive: Don't assign ret = -1 in KdCreateScreenResources | Bugfix |
+| 059c74070e | kdrive: Report BitsPerRGB properly for depth 30 visuals | Bugfix |
+| 5bfd79900e | kdrive/cmap.c: Fix wrong !putColors check | Bugfix |
+
+### Auslassen (13 — keine Bugfixes für release/25.0)
+
+| SHA | Subject | Kriterium | Begründung |
+|-----|---------|-----------|------------|
+| f6839e1d9b | test/pyxtest: add QueryImageAttributes negative size regression test | TEST | Python-Test-Skript |
+| 6a8287dd8b | test/pyxtest: add XvPutImage negative size regression test | TEST | Python-Test-Skript |
+| 9c283f0980 | test/pyxtest: add YV12 QueryImageAttributes overflow regression test | TEST | Python-Test-Skript |
+| 82cf55d440 | test/pyxtest: add QueryResourceBytes swap overflow regression test | TEST | Python-Test-Skript |
+| ff754b8125 | test/pyxtest: add QueryClientIds numSpecs overflow regression test | TEST | Python-Test-Skript |
+| d5f2bb8b63 | test/pyxtest: add XTestFakeInput valuator range regression test | TEST | Python-Test-Skript |
+| 4dc36f2c3d | test/pyxtest: add XvShmPutImage overflow regression test | TEST | Python-Test-Skript |
+| 4aba5440ef | test: cover EDID DS_RANGES overflow of hsync/vrefresh arrays | TEST | Test-Skript |
+| b1678490fb | test/pyxtest: Use asan marker instead of valgrind | TEST | Test-Infrastruktur |
+| 83eaa85401 | xwayland: end touch sequences when clearing touches on unmap | XWL | xwayland bewusst entfernt |
+| f258a85da2 | kdrive/ephyr: Replace fbGetScreenPixmap mit GetScreenPixmap | — | Refactoring, kein Bugfix |
+| d518cedeed | kdrive/ephyr: Use C99 struct init | — | Stil/Refactoring, kein Bugfix |
+| f16a49fa3f | kdrive: Build the Xkdrive man page | — | Dokumentation, kein Bugfix |
+
+## Status-Ecke
+
+- Tracker: `eae2c21077` → xorg/main: `f6839e1d9b`
+- Rückstand: 24 Commits
+- Zu übernehmen: 11; Auszulassen: 13
+- Incubator `rfc/backport-25.0`: rebased auf `origin/release/25.0`, gepusht (`385684a9e0`), keine offenen Fremd-PRs
+- build: `-Dwerror=true` auf Release-Zweigen unbrauchbar (`os/Xtranssock.c:631` vorbestehend) → Verifikation mit `-Dwerror=false`
+
+## Was nach der Entscheidung passiert
+
+Nach Freigabe: Phase III — die 11 übernehmbaren Commits als PR(s) auf `release/25.0` einreichen (`scripts/xx-make-pr.sh`), Trailer `Signed-off-by:` (Original-Autor) + `Part-of:` ergänzen, Incubator mit `[PR #NNNN]`-Markern aktualisieren, Tracker auf den letzten bearbeiteten xorg/main-Commit hochziehen. Beides (Incubator + Tracker) gepusht.
+
+Empfehlung: alle 11 übernehmen, 13 auslassen (wie oben).

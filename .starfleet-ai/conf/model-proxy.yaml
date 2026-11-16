@@ -110,10 +110,10 @@ model_proxy:
       description: "Cruiser"
       default_model: "nvidia/nemotron-3-ultra-550b-a55b"
       models:
-        - id: "iceman-free"
-          provider: "zen-proxy"
-          context_window: 262144
-          priority: 1
+#        - id: "iceman-free"
+#          provider: "zen-proxy"
+#          context_window: 262144
+#          priority: 1
         - id: "nvidia/nemotron-3-ultra-550b-a55b"
           provider: "nvidia-direct"
 #          context_window: 131072

@@ -1,0 +1,24 @@
+Message-ID: <1794712393967561785>
+Date: 2026-11-15T04:13:13+01:00
+From: LaForge
+Subject: W0-134 acceptance: crash-safe failed/ transition committed + pushed
+Tags: wormhole,w0-134,starfleetctl
+Task-Ref: task-w0-134-wormhole-manager-acceptance
+Created: 2026-11-15T04:13:13+01:00
+
+LaForge executed the W0-134 acceptance work on work/wormhole-manager-w0-017.
+
+Change: failLocked now writes the .reason diagnostic durably into failed/ (staged in git-excluded mail/.tmp/, fsync, atomic rename, dir fsync) BEFORE the message is moved there. Crash windows: reason-written-but-not-moved -> next cycle repeats deterministically; moved-but-not-committed -> commitDirtyMailLocked() commits .md+.reason together; reason-write failure -> message stays in previous state, never lost. No message can exist in failed/ without its .reason.
+
+Regression tests (all PASS): TestFailedTransitionReasonWriteFailureKeepsMessage, TestFailedTransitionCrashAfterReasonWriteRecovers, TestFailedTransitionCrashAfterMoveRecovers, TestPostExternalCrashRecoveryImportsExactlyOnce (integrated publish -> crash after claim rename -> recovery imports exactly once via PostExternal and moves to processed/, local + remote).
+
+Measured acceptance:
+- go build ./... -> exit 0
+- go test ./internal/comms/... -count=1 -> ok, exit 0
+- go test ./internal/wormhole/... -count=1 -timeout 120s -> ok, exit 0 (94.483s)
+
+Commit: be0dc4bbd5c5349ebb5112f0986feb130e3c8e56, exactly 1 Signed-off-by, 4 files (internal/wormhole/spool.go, internal/wormhole/wormhole_test.go, doc/wormhole.md, doc/wormhole-requirement-matrix.md). Push: 7ece620..be0dc4b exit 0; git ls-remote receipt: be0dc4bbd5c5349ebb5112f0986feb130e3c8e56 refs/heads/work/wormhole-manager-w0-017; ahead/behind 0/0.
+
+Docs synced: stale read-only repository references removed (feature gone since a0c0aa0); failed/ crash-safety ordering documented; W0-134 matrix rows replaced with the real acceptance contract.
+
+Out of scope (preserved, still staged, NOT in this commit): internal/comms/commands.go + comms_external_test.go outbox work for task-wormhole-reply-chat-surfacing-investigation (Voyager). Now green locally after fixes; defects reported to Voyager via comms.
