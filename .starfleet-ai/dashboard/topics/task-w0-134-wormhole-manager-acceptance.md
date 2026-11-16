@@ -1,7 +1,7 @@
 Title: "W0-134 Wormhole-Manager acceptance"
 Category: active
 Kind: "task"
-Status: "done"
+Status: "blocked"
 Assigned-To: "Voyager"
 Created-By: "Voyager"
 Created: "2026-11-14T14:18:30Z"
