@@ -64,3 +64,5 @@ Fixed xkbgeom_priv.h syntax error in master and 25.2 incubators. CI running. 25.
 - 2026-11-16T17:35:58Z Enterprise: progress 99% (CI: 25.0 (rfc/backport-25.0 @ 4feaf3d7cfc8) PASSED. 25.1 (b7aa05e26336) in_progress. Master (8aa12ebc3f), 25.2 (847500bc83) queued. 19 PR reviews complete (m23339).)
 
 - 2026-11-16T17:41:24Z Enterprise: progress 99% (CI: 25.0 PASSED, 25.1 FAILED (rfc/backport-25.1 @ b7aa05e26336), Master (8aa12ebc3f), 25.2 (847500bc83) still queued. 19 PR reviews complete (m23339).)
+
+- 2026-11-16T17:47:05Z Enterprise: progress 99% (CI: 25.0 PASSED, 25.1 FAILED (b7aa05e26336), Master (8aa12ebc3f), 25.2 (847500bc83) queued. 19 PR reviews complete (m23339).)
