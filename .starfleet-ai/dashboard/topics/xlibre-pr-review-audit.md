@@ -36,3 +36,12 @@ Review open X11Libre backport PRs for correctness, risk, and exact-head CI. Avoi
 - 2026-11-16T19:11:26Z Enterprise: progress 75% (Byte-swap PRs (#4081-#4092) all mechanically correct: field-by-field swaps match wire format, EventSwapVector updated, intern.h pattern consistent. No CI runs exist for these PRs. CI status for incubators: 25.0 PASSED (run 43901848706, 3 jobs: ubuntu, macos, drivers). 25.1 FAILED (run 43901895497, multiple failures including ubuntu build - pre-existing missing backports, not my xkbgeom.h fix). Master FAILED (run 43901803796, widespread platform failures). 25.2 FAILED (run 43901939950, drivers-prepare + widespread). Nightly pipeline fix: 25.0 done, master/25.2 queued with fixes pushed, 25.1 blocked by draft PR #4062. Continuing audit on earlier PRs (#4119, #4154, #4123, #4146, #4158).)
 
 - 2026-11-16T19:13:56Z Enterprise: progress 90% (Final audit phase: 19 exact-head PRs reviewed via bot-review (17 PASS, 2 CHANGES_REQUESTED). Detailed diff verification completed for all 8 byte-swap PRs (#4081-#4092) - mechanically correct. Additional 5 PRs diff-inspected: #4119/#4154 IDENTICAL (duplicate EDID test), #4123 correct Kdrive fix, #4146 BUGGY (duplicate AddScreen + syntax error), #4158 correct TearFree fix. 25.0 CI PASSED (run 43901848706). 25.1 blocked by PR #4062 + pre-existing build gaps. Master/25.2 CI running. Compiling final evidence table.)
+
+- 2026-11-16T19:15:13Z Enterprise: progress 100% (AUDIT COMPLETE. 19 PRs reviewed across XL-0 (8 on 25.0), XL-1 (3 on 25.1), XL-2 (8 on 25.2). Bot-review labels: 17 PASS, 2 CHANGES_REQUESTED (#4119, #4107). Detailed findings:
+- #4019 (CVE/security, 25.2): 7 commits - NOT MERGEABLE, no CI. Resource type fix, barrier bounds, fallthrough, UAF, display-socket flock, protocol builders. KEEP with CI.
+- #4081-#4092 (byte-swap series, 25.2): All 8 MERGEABLE, no CI. Pattern: extension-internal byteswap.c, field-by-field swaps (cpswaps/cpswapl/swaps/swapl), intern.h public functions, EventSwapVector updated. MECHANICALLY CORRECT. KEEP.
+- #4119/#4154 (25.0/25.2): IDENTICAL EDID DS_RANGES test. MERGEABLE. DUPLICATE BACKPORT. Keep one, close other.
+- #4123 (25.0): Kdrive BitsPerRGB 30-bit fix. MERGEABLE. CORRECT. KEEP.
+- #4146 (25.1): BUGGY - duplicate AddScreen + stray brace + duplicate kdCurrentScreen. MERGEABLE but BROKEN. NEEDS FIX.
+- #4158 (master): TearFree CRTC null-check fix. MERGEABLE. CORRECT. KEEP.
+Nightly backport: 25.0 CI PASSED. Master/25.2 CI queued. 25.1 blocked by PR #4062 + pre-existing build gaps.)
