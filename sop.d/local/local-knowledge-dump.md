@@ -399,3 +399,69 @@ Zen akzeptiert `x-opencode-request` nur wenn Wert `^msg_[0-9a-f]{12}[0-9A-Za-z]{
 - **`git commit -- <paths>` committet den Working-Tree-Stand genau dieser Pfade** und lässt andere gestagete Änderungen im Index liegen — das Mittel, fremde/gestagete Arbeit aus einem scoped Commit herauszuhalten (gemessen: 4 Dateien im Commit, gestagte comms-Änderungen blieben gestaged).
 - **`git push` kann lautlos hängen** (interaktiver SSH-Prompt / langsamer Connect, >120s Timeout ohne Output). Abhilfe: `GIT_SSH_COMMAND="ssh -o BatchMode=yes -o ConnectTimeout=30" git push --verbose origin <branch>` — fail-fast statt hängt. Receipt danach: `git ls-remote origin <branch>` + `git rev-list --count origin/<branch>..HEAD` (0) und `HEAD..origin/<branch>` (0).
 - **SOP-Quellbaum ist `./sop.d` am Workspace-Root**, nicht `.starfleet-ai/var/sop.d/` (das ist die gitignored, regenerierte Kopie — `var/` ist ephemeral und wurde beim Wipe bereits einmal geleert; `sop reindex` baut `var/sop.d/index.md` aus `./sop.d/**/*.md` neu).
+
+### Owner-Mandate liegen in einem ANDEREN Repo (2026-11-16, W0-134-Review)
+
+Contract-Mandate, Akzeptanz-Commands und Freigaben stehen **nicht** im Code-Repo,
+sondern in `metux/wormhole-0`:
+- `decisions/*.md` — Owner-Entscheidungen (Status `OWNER-APPROVED` / `ADOPTED`),
+  vom Owner committed. Im Repo liegen genau 3 davon.
+- `inbox/*.md` — Frozen Legacy-Archiv mit **owner-authored Task-Directives**
+  (W0-…-Task-Texte). Das Archiv ist eingefroren, aber die Direktiven sind
+  authoritative fuer den Auftrag.
+
+Im Code-Repo (`starfleetctl`) gibt es nur **fleet-autorisierte** Doku, z.B.
+`doc/wormhole-requirement-matrix.md` — sie dokumentiert, was die *Flotte*
+beschlossen hat, **keine** Owner-Entscheidung. Beim Vergleich beide Seiten
+benennen, sonst "bestaetigt" man die Flotten-Version durch Zitat der eigenen
+Doku.
+
+### Autor-Feld ist kein Autoritaetsbeleg (2026-11-16)
+
+Alle Workspace-Commits laufen unter derselben Git-Identitaet
+(`Enrico Weigelt <info@metux.net>`). Ein Commit-Autor beweist daher **nicht**,
+dass der Owner die Entscheidung getroffen hat — weder in `starfleetctl`
+(Flotten-Arbeit) noch in `wormhole-0`. Autoritaet entsteht ausschliesslich aus
+`decisions/*` (OWNER-APPROVED) bzw. owner-authored Directives in `inbox/`.
+Zusaetzlich Datumsvergleich: Code, der **vor** der Decision entstand (7-arg
+`PostExternal` seit `be98ea9`, 2026-11-06; Decision 2026-11-08), belegt den
+Contract nicht — die spaetere Decision spricht fuer die 5-arg-Form.
+
+### `check-runs: 0` ist nicht "gruen" (2026-11-16)
+
+Exact-head-CI-Nachweis braucht **drei** Messungen: (1) `check-runs`
+total_count, (2) `status` total_count, (3) `actions/workflows`. Bei (1)=0 und
+(2)=0 kann "gruen" nur bedeuten: **es laeuft gar keine CI**.
+`mpbt-hq/starfleetctl` hat ausschliesslich "Dependency Graph" (Dependabot,
+`dynamic/dependabot/update-graph`) — also **kein** Build-/Test-Workflow. Ohne
+Workflow-Check meldet man faelschlich "keine CI-Fehler"; die richtige Aussage
+lautet: exact-head CI ist nicht produzierbar (Infrastruktur-Gap, kein roter
+Lauf). Ebenso: 0 PRs auf dem Branch ist ein Factsheet, kein Defekt.
+
+### Ein Agent-Entscheid ersetzt keine Owner-Freigabe (2026-11-16)
+
+Ein per Enterprise-Comms verbreiteter Wert (hier: Acceptance-Timeout 300s aus
+m23243) ersetzt eine Owner-Anforderung (10s in `inbox/W0-20261108-134:109`,
+`...-135:42`, `W0-20261111-142:46`) **nicht**. Beleglage pruefen:
+`git grep "300s|timeout 300" origin/master` im Owner-Repo traf NUR
+`mail/`-Agentenverkehr und nie `decisions/` — der Wert kursiert also nur auf dem
+Agent-Kanal. Ein Review, das die Flotten-Entscheidung als Freigabe zitiert,
+bestaetigt die eigene Doku gegen sich selbst.
+
+### Read-only-Review: Contract-Dispute ist "blocked", nicht "completed" (2026-11-16)
+
+Wenn ein read-only-Auftrag einen Vertragskonflikt zwischen Owner-Mandat und
+Code offenbart, ist das Review-Ergebnis `blocked` — auch wenn Build und Suites
+gruen sind. Test-Ergebnis und Contract-Ergebnis sind zwei verschiedene
+Fragen. Der belastbare Review-Abschluss trennt drei Evidenzklassen: (a) roher
+Command-Output inkl. Exitcode, (b) Commit-Message-Claims, (c) GitHub-CI-
+Kontexte. Nur (a) und (c) sind Messungen; (b) ist eine Behauptung im Repo.
+
+### Acceptance-Fenster vs Suite-Design (2026-11-16)
+
+89 sequentielle Git-Integrationstests brauchen unter Last (Load ~11 auf
+8 CPUs) 83–146s (gemessen 83.141s / 119.749s / 145.697s). Ein 10s-Fenster ist
+damit **strukturell** unerreichbar — das ist keine Timeout-Wahl, sondern
+Suite-Design (Parallelisierung der Git-Integrationstests). Wer nur den Timeout
+anhebt, loest die Anforderung nicht; das gehoert als eigener Blocker in die
+Akzeptanz.
