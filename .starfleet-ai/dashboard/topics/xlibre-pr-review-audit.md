@@ -28,3 +28,5 @@ Review open X11Libre backport PRs for correctness, risk, and exact-head CI. Avoi
 - 2026-11-16T18:27:28Z Enterprise: completed
 
 - 2026-11-16T18:42:05Z Enterprise: progress 5% (Starting detailed READ-ONLY audit per ChatGPT directive. Session: mpbt-workspace root, branch mtx/agent-config, HEAD 865c61edf. No repository edits. Scope: #4019 diff inspection, #4081/#4087-#4092 byte-swap field verification, CI re-check against exact heads.)
+
+- 2026-11-16T18:46:55Z Enterprise: progress 25% (#4019 diff fully inspected: 12 files, 7 logical commits. CVE/security fixes: resource type XRT_WINDOW→X11_RESTYPE_WINDOW, barrier bounds (MAX_BARRIER_EVENTS=64 + 32 barrier cap), fallthrough annotations (13 sites), passive grab UAF fix (RemovePassiveGrabsForDevice). Also: pyxtest display-socket takeover fix (flock + SO_PEERCRED), XFixes/XTEST protocol builders, exit(EXIT_FAILURE). Base: release/25.2@e227409368. Head: 3c085dc41e45. No CI runs. Moving to byte-swap PRs.)
