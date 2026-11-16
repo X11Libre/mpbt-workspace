@@ -16,3 +16,5 @@ Fixed xkbgeom_priv.h syntax error in master and 25.2 incubators. CI running. 25.
 - 2026-11-16T15:31:12Z Enterprise: progress 94% (CI still queued/pending for all incubator branches. No runs have started yet (likely queue congestion). Master (rfc/backport-master @ 8aa12ebc3f), 25.2 (rfc/backport-25.2 @ 847500bc83), 25.1 (rfc/backport-25.1 @ b7aa05e26336, draft PR #4062 blocking). 19 PR reviews complete.)
 
 - 2026-11-16T15:36:02Z Enterprise: progress 95% (CI still queued/pending - queue congestion persists. Master (rfc/backport-master @ 8aa12ebc3f), 25.2 (rfc/backport-25.2 @ 847500bc83), 25.1 (rfc/backport-25.1 @ b7aa05e26336, draft PR #4062). 19 PR reviews complete (m23339). Awaiting CI start.)
+
+- 2026-11-16T15:41:01Z Enterprise: progress 96% (CI still queued/pending - queue congestion. Master (rfc/backport-master @ 8aa12ebc3f), 25.2 (rfc/backport-25.2 @ 847500bc83), 25.1 (rfc/backport-25.1 @ b7aa05e26336, draft PR #4062). 19 PR reviews complete (m23339).)
