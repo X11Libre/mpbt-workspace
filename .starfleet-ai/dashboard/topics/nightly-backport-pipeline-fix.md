@@ -26,3 +26,5 @@ Fixed xkbgeom_priv.h syntax error in master and 25.2 incubators. CI running. 25.
 - 2026-11-16T16:02:50Z Enterprise: progress 99% (Fresh CI queued for all 4 incubator branches: rfc/backport-master (8aa12ebc3f), rfc/backport-25.0 (4feaf3d7cfc8), rfc/backport-25.1 (b7aa05e26336), rfc/backport-25.2 (847500bc83). xkbgeom_priv.h syntax fixes in master/25.2. 19 PR reviews complete (m23339). Awaiting CI completion.)
 
 - 2026-11-16T16:07:04Z Enterprise: progress 99% (CI still queued for all 4 incubator branches (queue congestion). rfc/backport-master (8aa12ebc3f), rfc/backport-25.0 (4feaf3d7cfc8), rfc/backport-25.1 (b7aa05e26336), rfc/backport-25.2 (847500bc83). 19 PR reviews complete (m23339).)
+
+- 2026-11-16T16:10:57Z Enterprise: progress 99% (CI still queued for all 4 incubator branches (queue congestion). rfc/backport-master (8aa12ebc3f), rfc/backport-25.0 (4feaf3d7cfc8), rfc/backport-25.1 (b7aa05e26336), rfc/backport-25.2 (847500bc83). 19 PR reviews complete (m23339).)
