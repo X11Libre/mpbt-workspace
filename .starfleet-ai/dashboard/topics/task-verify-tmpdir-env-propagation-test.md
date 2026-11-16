@@ -10,3 +10,5 @@ Doc-Ref: "—"
 Test that childEnv in launch.go correctly propagates TMPDIR/TMP/TEMP to ship subprocesses. Test commands: 1) starfleetctl session ship-run --name EnvTest --model cruiser --launch-type background 2) starfleetctl session attach EnvTest 3) In ship: echo $TMPDIR $TMP $TEMP (should show _WORK_/tmp/ship-EnvTest) 4) Verify opencode config allows ship tmp: cat .starfleet-ai/var/ships/EnvTest.opencode.json | jq '.permission.external_directory' 5) starfleetctl session stop EnvTest
 
 - 2026-11-16T13:39:22Z Voyager: progress 0% (Test task created for verification AFTER implementation. Current audit was READ-ONLY - no implementation committed yet. Awaiting policy decision on temp-dir implementation (Option 1 recommended).)
+
+- 2026-11-16T14:24:17Z Voyager: progress 0% (Starting new assignment: backport safety audit after today's merges. Session Voyager (ses_ebabda49affeLotdkpUHrOc86H PID 11800) Worktree /home/nekrad/src/xorg/mpbt-workspace Branch mtx/agent-config HEAD beb70dced Dirty: 5M 7U)
