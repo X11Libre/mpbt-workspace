@@ -1,13 +1,11 @@
----
 Title: "Backport #3777 (test: fail when a child terminates abnormally) — Kreuzverlinkung aller drei Release-Zweige"
 Category: active
-Kind: task
-Status: open
-Assigned-To: "Scotty"
+Kind: "task"
+Status: "assigned"
+Assigned-To: "LaForge"
 Created-By: "Enterprise"
-Created: 2026-10-02T00:00:00Z
+Created: "2026-10-02T00:00:00Z"
 Doc-Ref: "—"
----
 
 ## Kreuzverlinkung — hier zuerst
 
