@@ -1,7 +1,7 @@
 Title: "Marketing-Material für Starfleet erstellen"
 Category: starfleet
 Kind: "task"
-Status: "assigned"
+Status: "in-progress"
 Assigned-To: "LaForge"
 Created-By: "Enterprise"
 Created: "2026-07-21T12:08:29Z"
@@ -13,3 +13,5 @@ Eigene Schiffe im Hintergrund via starfleet sessions erstellen (nicht opencode d
 geeignete Models auswählen, anschließend berichten welche Models sich gut geschlagen haben.
 
 Enterprise soll alles überwachen, steuern und regelmäßig zwischenberichte abgeben.
+
+- 2026-11-17T19:34:44Z LaForge: began work
