@@ -1,11 +1,11 @@
 Title: "M1 outbox fixes complete"
 Category: active
-Kind: task
-Status: "open"
+Kind: "task"
+Status: "done"
+Assigned-To: "—"
 Created-By: "Voyager"
 Created: "2026-11-17T19:23:56Z"
-Assigned-To: "—"
 Doc-Ref: "—"
-Slug: task-m1-outbox-fixes-complete
 
 
+- 2026-11-17T19:26:41Z Voyager: completed
