@@ -2,7 +2,7 @@ Title: "starfleet: bug: web: nach ship-launch ist das formularfeld für model ni
 Category: starfleet
 Kind: "task"
 Status: "assigned"
-Assigned-To: "Scotty"
+Assigned-To: "LaForge"
 Created-By: "Aeon"
 Created: "2026-09-04T17:27:30Z"
 Doc-Ref: "—"
