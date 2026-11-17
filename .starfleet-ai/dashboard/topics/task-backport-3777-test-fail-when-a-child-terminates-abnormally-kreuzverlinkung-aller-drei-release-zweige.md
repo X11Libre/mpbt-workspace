@@ -66,3 +66,5 @@ release/* wird **nie** automatisch gemergt. Review, Kommentar, Label, dann Stopp
 Merge macht der Maintainer.
 
 - 2026-11-17T17:57:49Z LaForge: Verifikation 2026-11-17: #3797/#3798/#3800 CLOSED unmerged; aktiv #3992 (25.1, ce6fa93) + #4009 (25.2, 84ea9e8): 1 Commit Lipinsky, sign-off 1, bot-review-passed, 0 CI-Runs an Head-SHAs, PR-Bodies ohne Topic-Links. 25.0 ohne PR (Fix fehlt laut git cherry b799d88). LaForge uebernimmt 25.0 in eigenem Worktree (Voyager m23884), XL-0 angefragt.
+
+- 2026-11-17T19:13:57Z LaForge: Update 2026-11-17: Kreuzverlinkung komplett — PR-Bodies #4177 (25.0, neu von LaForge), #3992 (25.1), #4009 (25.2) nennen Topic-Slugs + Backlinks (per gh api verifiziert). Sign-off==1, Autor==Lipinsky bei allen dreien. rev-list release..HEAD = 1 (pre-merge, korrekt). CI: #4177 pull_request laeuft; #3992/#4009 Heads ohne Runs (gelöscht, Re-Trigger kommentiert). Push-Run-FAIL auf 25.0 = bekannter locale-Assert test/signal-logging.c:215 (24/25 OK), siehe offenes Topic. Kein Merge durch Agenten — Maintainer.
