@@ -1,7 +1,7 @@
 Title: "Outbound wormhole exactly-once: pending-intent before transport publish (parked)"
 Category: parked
 Kind: "task"
-Status: "open"
+Status: "done"
 Assigned-To: "—"
 Created-By: "LaForge"
 Created: "2026-11-15T14:26:12Z"
@@ -12,3 +12,5 @@ Parked per Enterprise m23243 (out of W0-134 scope, follow-up). Finding (LaForge 
 - 2026-11-17T00:30:41Z LaForge: Update (LaForge, Re-Messung 11307c1): Kernfix ist inzwischen auf master (e060e2e 'comms: add retry-safe outbox write for remote sends', 2026-11-16) — durable pending record VOR dem remote publish, sequentieller Crash-Fall geschlossen. Branch df92352 verfeinert: Content-Hash inkl. Ziel/Domain/Type/ReplyTo, Bus-Lock um write+publish, findOutboxByHash ueber unseen/+seen/+legacy-flat, dir-fsync nach rename (syncDir commands.go:234/:271). OFFEN: TOCTOU — findOutboxByHash laeuft vor lockBus() ohne Re-Check unter dem Lock (commands.go ~183 vs ~195); zwei konkurrierende identische Sends -> doppelter Publish mit je frischer Zufalls-ID (messages.go:99) = echtes Duplikat auf der Wire. Fix: Check unter das Lock verschieben. Evidence: Report 1794875408100505823.
 
 - 2026-11-17T00:46:20Z LaForge: Abschluss (LaForge, Verifikation Tip 0b92b84): Crash-Fenster ist geschlossen — (1) master e060e2e schreibt den durable pending outbox record VOR dem remote publish (tmp+fsync+rename), (2) Branch df92352 verfeinert (Hash-Input inkl. Ziel/Domain/Type/ReplyTo, findOutboxByHash ueber unseen/+seen/+legacy-flat, echter dir-fsync syncDir commands.go:234/:271), (3) 0b92b84 legt den Duplikat-Check UNTER den Bus-Lock (check-then-act atomar; vorher TOCTOU: zwei konkurrierende identische Sends publizierten doppelt mit je frischer Zufalls-ID messages.go:99). Verifikation: comms ok 2.826s EXIT=0, wormhole -timeout 300s ok 125.541s EXIT=0, build/vet EXIT=0 (pristine Export, Logs _WORK_/starfleetctl/tmp/logs-0b92b84/). Reports 1794875408100505823 (Befund) und 1794876319404793706 (Fix-Verifikation). OPTIONAL/REST: kein Outbound-Concurrency-Regressionstest vorhanden (nur Inbound-Test comms_external_test.go:850) — als kleiner Folgepunkt empfohlen, kein offener Bug.
+
+- 2026-11-17T00:46:23Z LaForge: completed
