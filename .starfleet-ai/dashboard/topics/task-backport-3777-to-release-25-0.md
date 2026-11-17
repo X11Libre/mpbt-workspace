@@ -1,16 +1,11 @@
----
 Title: "Backport #3777 to release/25.0: test: fail when a child terminates abnormally"
 Category: active
-Kind: task
-Status: open
-Assigned-To: "Scotty"
+Kind: "task"
+Status: "assigned"
+Assigned-To: "LaForge"
 Created-By: "Scotty"
-Created: 2026-10-01T19:23:25Z
+Created: "2026-10-01T19:23:25Z"
 Doc-Ref: "task-backport-batch-2026-10-01-3776-3777-3779-auf-release-25-2-25-1-25-0"
-PR: 3797
-Commit: 98ddb67eb4
-Branch: release/25.0
----
 
 Backport of master PR #3777 to release/25.0
 
