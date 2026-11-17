@@ -19,3 +19,5 @@ Links:
 - PR: https://github.com/X11Libre/xserver/pull/3797
 
 - 2026-11-17T17:57:45Z LaForge: began work
+
+- 2026-11-17T19:13:43Z LaForge: Update 2026-11-17 (LaForge): PR #4177 OPEN (base release/25.0, head pr/release/25.0-test-fail-when-a-child-terminates-abnormally_2026-11-17_18-11-49 = ceb01b9e90, cherry-pick ce6fa93, 1 Commit Lipinsky, Signed-off-by==1, rev-list origin/release/25.0..HEAD=1, diff 1 file/1 line). PR-Body enthaelt Topic-Slug + Backlinks. CI pull_request auf #4177 laeuft. KEIN Merge (Maintainer).
