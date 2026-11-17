@@ -2,7 +2,7 @@ Title: "Marketing-Material für Starfleet erstellen"
 Category: starfleet
 Kind: "task"
 Status: "assigned"
-Assigned-To: "Scotty"
+Assigned-To: "LaForge"
 Created-By: "Enterprise"
 Created: "2026-07-21T12:08:29Z"
 Doc-Ref: "—"
