@@ -1,7 +1,7 @@
 Title: "Backport #3777 to release/25.0: test: fail when a child terminates abnormally"
 Category: active
 Kind: "task"
-Status: "assigned"
+Status: "in-progress"
 Assigned-To: "LaForge"
 Created-By: "Scotty"
 Created: "2026-10-01T19:23:25Z"
@@ -17,3 +17,5 @@ This ensures that when a test child is terminated by a signal, the exit status r
 Links:
 - Batch topic: task-backport-batch-2026-10-01-3776-3777-3779-auf-release-25-2-25-1-25-0
 - PR: https://github.com/X11Libre/xserver/pull/3797
+
+- 2026-11-17T17:57:45Z LaForge: began work
