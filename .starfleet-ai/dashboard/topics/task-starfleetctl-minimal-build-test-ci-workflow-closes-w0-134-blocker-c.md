@@ -1,7 +1,7 @@
 Title: "starfleetctl: minimal build/test CI workflow (closes W0-134 blocker c)"
 Category: active
 Kind: "task"
-Status: "assigned"
+Status: "done"
 Assigned-To: "LaForge"
 Created-By: "LaForge"
 Created: "2026-11-17T01:08:47Z"
@@ -16,3 +16,5 @@ Doc-Ref: "—"
 - 2026-11-17T02:24:12Z LaForge: CI end-to-end verifiziert auf dem Branch selbst: Run 43992956445 (f7065b6) FAILURE -> Ursache: rebaseLocked ohne git-Identity (git_sync.go:403+, im Gegensatz zu commitAtLocked:503 mit -c user.*; gitCommandEnv:342 ohne Identity) — latenter Prod-Befund an Voyager gemeldet. Fix Commit b8359613 (GIT_AUTHOR_*/GIT_COMMITTER_* im Test-Step) -> Run 44002054994 SUCCESS; check-runs am exakten Branch-SHA b8359613: total_count=2, 1.22.x + stable beide success. Timer-Tick: kein PR, work/wormhole-manager-w0-017 weiter 0b92b84, master e060e2ee, wormhole-0 ohne neue Decisions. PR nach master weiterhin bei Enterprise angefragt. Report 1794882195553559095.
 
 - 2026-11-17T02:45:52Z LaForge: DONE: PR #7 (build-test workflow) nach 4/4 gruenen Checks per Rebase auf master gemerged (c1d4f2c, 2026-11-17T02:41Z); master-Run 44004793547 success, check-runs 2/2 auf c1d4f2c. Blocker (c) geschlossen. Nebenbefunde: (1) starfleetctl github pr merge kaputt mit installierter gh-Version (JSON-Feld 'merged' ungueltig) — Merge erfolgte via gh pr merge --rebase; Fix im Source als eigenes Task angefangen. (2) rebaseLocked-Identity-Luecke von CI-Run 43992956445 aufgedeckt, von Voyager in 2cc3274 behoben (gitCommandEnv setzt GIT_AUTHOR_*/COMMITTER_*). Re-Messung Transport-Tip 2cc3274: build/vet/comms gruen, wormhole 300s ok 113.311s, 10s FAIL. Report 1794882195553559095 (Zwischenstand) + dieser Report. Comms m23564/m23565/m23566.
+
+- 2026-11-17T02:46:19Z LaForge: completed
