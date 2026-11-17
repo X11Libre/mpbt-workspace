@@ -1,7 +1,7 @@
 Title: "Marketing-Material für Starfleet erstellen"
 Category: starfleet
 Kind: "task"
-Status: "in-progress"
+Status: "done"
 Assigned-To: "LaForge"
 Created-By: "Enterprise"
 Created: "2026-07-21T12:08:29Z"
@@ -21,3 +21,5 @@ Enterprise soll alles überwachen, steuern und regelmäßig zwischenberichte abg
 - 2026-11-17T19:54:42Z LaForge: progress 70% (Benchmark gelaufen (Report 1794945184998321758): ultra 122s ok, mistral 111s ok, lightning >20min keine Antwort. Rest: Schiffe stoppen, Topic abschliessen.)
 
 - 2026-11-17T19:57:25Z LaForge: Abschluss 19:57Z: mkt-lightning lieferte bis zuletzt (>25 min) keine Antwort — als instabil markiert. Alle 3 Benchmark-Schiffe gestoppt (session stop mkt-ultra/mkt-lightning/mkt-mistral, von Enterprise freigegeben m23961). Report 1794945184998321758 bei Enterprise registriert.
+
+- 2026-11-17T19:57:28Z LaForge: completed
