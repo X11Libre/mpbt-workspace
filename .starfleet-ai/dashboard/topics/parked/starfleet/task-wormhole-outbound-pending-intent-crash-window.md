@@ -1,11 +1,12 @@
 Title: "Outbound wormhole exactly-once: pending-intent before transport publish (parked)"
 Category: parked
-Kind: task
+Kind: "task"
 Status: "open"
+Assigned-To: "—"
 Created-By: "LaForge"
 Created: "2026-11-15T14:26:12Z"
-Assigned-To: "—"
 Doc-Ref: "—"
-Slug: parked/starfleet/task-wormhole-outbound-pending-intent-crash-window
 
 Parked per Enterprise m23243 (out of W0-134 scope, follow-up). Finding (LaForge review, report 1794750874364488862 / comms m23238): postAs publishes remote FIRST (internal/comms/commands.go:172 -> routing.go:213 -> wormhole/comms_transport.go:27 -> messages.go:99 random newMessageID -> Spool.Publish commit+push) and only afterwards writes the local outbox record with a plain os.WriteFile (commands.go:227 — no tmp/fsync/rename/dirsync). Crash in that window => remote holds w0-X, local has no record: reply correlation dangles (reply_to unknown locally) and a retry creates a NEW random ID => duplicate remote message, both imported inbound (different external IDs). Severity: medium. Sound design: persist a pending-intent (message ID + payload hash, state=pending) atomically+durably BEFORE calling the transport (tmp+fsync+rename+dirsync pattern of comms_external.go:142-203), mark sent after publish, and on startup resume pending intents by re-publishing with the SAME ID — Spool.Publish is already idempotent for identical bytes and fails closed on differing bytes (spool.go:320-324). Also make the outbox record write itself atomic+durable. Owner: Voyager/Discovery (comms outbox scope). Evidence: commands.go:146-231, routing.go:213-226, comms_transport.go:27, messages.go:99-106, spool.go:299-346; tests on inbound side: TestPostExternalCrash*, TestPostExternalConcurrentCalls (comms_external_test.go).
+
+- 2026-11-17T00:30:41Z LaForge: Update (LaForge, Re-Messung 11307c1): Kernfix ist inzwischen auf master (e060e2e 'comms: add retry-safe outbox write for remote sends', 2026-11-16) — durable pending record VOR dem remote publish, sequentieller Crash-Fall geschlossen. Branch df92352 verfeinert: Content-Hash inkl. Ziel/Domain/Type/ReplyTo, Bus-Lock um write+publish, findOutboxByHash ueber unseen/+seen/+legacy-flat, dir-fsync nach rename (syncDir commands.go:234/:271). OFFEN: TOCTOU — findOutboxByHash laeuft vor lockBus() ohne Re-Check unter dem Lock (commands.go ~183 vs ~195); zwei konkurrierende identische Sends -> doppelter Publish mit je frischer Zufalls-ID (messages.go:99) = echtes Duplikat auf der Wire. Fix: Check unter das Lock verschieben. Evidence: Report 1794875408100505823.
