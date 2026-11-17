@@ -521,3 +521,28 @@ mpbt-workspace ist das `X11Libre/xserver` — PRs im starfleetctl-Repo
 brauchen deshalb weiterhin `gh pr merge <n> --repo mpbt-hq/starfleetctl`.
 Und: `gh pr list --head <branch>` liefert `[]`, wenn der PR auf einem
 Push-Branch lief (`pr/master-*`); PR-Status ueber `gh pr view <n>` pruefen.
+
+### Authority-Claims im Owner-Repo greppen, nicht aus Agenten-Notizen (2026-11-17, W0-134)
+
+Die Behauptung "W0-130.3/W0-024.17 verlangen msgType/replyTo an
+PostExternal" stammte aus Agenten-Notizen (Topic/Comms) — `git grep` ueber
+das GESAMTE Owner-Repo (metux/wormhole-0: decisions/ + inbox/ + mail/)
+zeigte: KEIN Owner-Artefakt fordert die 7-arg-Form; decisions/2026-11-08
+(OWNER-APPROVED), inbox W0-130:24, W0-134:54, W0-142:30 fordern einstimmig
+die 5-arg-Form `PostExternal(source, externalID, from, target, text)`.
+Die 7-arg-Form war ein Agenten-Commit (cd42366, zitiert Enterprise m23225 —
+Agent-Kanal, kein decisions/-File). **Muster:** Behauptungen ueber
+Owner-Anforderungen immer per `git grep` im Owner-Repo gegenchecken
+(alle Verzeichnisse, nicht nur decisions/), bevor man eine Signatur aendert
+oder bestaetigt. Umgekehrt gilt weiter: Directive-Annahmen sind keine
+API-Vertraege — messen, dann entscheiden.
+
+### Edit-replaceAll kann Kollateralschaeden treffen (2026-11-17)
+
+Beim mechanischen Ersetzen von 54 Test-Calls per replaceAll griff das Muster
+`, "ship", "", ` auch eine NICHT-PostExternal-Zeile (`NewMessage(...)`).
+Danach: `go vet ./...` fing es sofort (missing ',' in argument list) —
+Build allein (`go build`) kompiliert _test.go nicht und sah nichts.
+**Muster:** nach replaceAll immer `go vet ./...` (nicht nur build) laufen
+lassen und die ersetzten Stellen per grep gegen die gewuenschte Signatur
+pruefen (`grep -c '"ship", '` muss 0 sein).
