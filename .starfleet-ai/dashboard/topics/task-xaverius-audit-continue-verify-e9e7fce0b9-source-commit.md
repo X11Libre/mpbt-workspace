@@ -1,8 +1,8 @@
 Title: "xaverius audit continue: verify e9e7fce0b9 source commit"
 Category: active
 Kind: "task"
-Status: "open"
-Assigned-To: "—"
+Status: "assigned"
+Assigned-To: "Defiant"
 Created-By: "Defiant"
 Created: "2026-11-16T15:59:52Z"
 Doc-Ref: "—"
