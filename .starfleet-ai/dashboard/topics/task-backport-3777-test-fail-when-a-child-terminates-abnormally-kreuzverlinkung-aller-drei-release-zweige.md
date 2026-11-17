@@ -64,3 +64,5 @@ Dieser Backport behebt ihn nicht und behauptet es nicht.
 
 release/* wird **nie** automatisch gemergt. Review, Kommentar, Label, dann Stopp.
 Merge macht der Maintainer.
+
+- 2026-11-17T17:57:49Z LaForge: Verifikation 2026-11-17: #3797/#3798/#3800 CLOSED unmerged; aktiv #3992 (25.1, ce6fa93) + #4009 (25.2, 84ea9e8): 1 Commit Lipinsky, sign-off 1, bot-review-passed, 0 CI-Runs an Head-SHAs, PR-Bodies ohne Topic-Links. 25.0 ohne PR (Fix fehlt laut git cherry b799d88). LaForge uebernimmt 25.0 in eigenem Worktree (Voyager m23884), XL-0 angefragt.
