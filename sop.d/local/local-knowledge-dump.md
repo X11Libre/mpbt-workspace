@@ -465,3 +465,16 @@ damit **strukturell** unerreichbar — das ist keine Timeout-Wahl, sondern
 Suite-Design (Parallelisierung der Git-Integrationstests). Wer nur den Timeout
 anhebt, loest die Anforderung nicht; das gehoert als eigener Blocker in die
 Akzeptanz.
+
+### Check-then-act gehoert INSIDE das Lock, nicht davor (2026-11-17, W0-134 Re-Messung)
+
+Im Outbox-Pfad (`internal/comms/commands.go`, postAs) lief `findOutboxByHash`
+VOR `b.lockBus()`, ohne Re-Check unter dem Lock: zwei konkurrierende
+identische Sends finden beide keinen Record, und das zweite ueberschreibt den
+pending-Record des ersten (deterministische ID = gleicher Pfad) und publisht
+erneut -> echtes Duplikat (je Publish frische Zufalls-ID). Das Lock serialisiert
+nur, es verhindert die Duplikate nicht, weil die Duplikat-Erkennung davor
+stattfand. **Muster:** doppelte Erkennung (find/lookup) immer nach dem Lock
+wiederholen oder gleich in den gelockten Abschnitt legen; Kommentar allein
+("fsync directory") ist kein Beweis — Code pruefen (`syncDir` an der Call-Site
+verifizieren).
