@@ -478,3 +478,46 @@ stattfand. **Muster:** doppelte Erkennung (find/lookup) immer nach dem Lock
 wiederholen oder gleich in den gelockten Abschnitt legen; Kommentar allein
 ("fsync directory") ist kein Beweis — Code pruefen (`syncDir` an der Call-Site
 verifizieren).
+
+### gh --json-Felder sind version-gebunden (2026-11-17)
+
+`gh pr view --json <felder>` schlaegt mit "Unknown JSON field" fehl, wenn ein
+Feld in der installierten gh-Version nicht existiert — hier fehlte
+`baseRepository` in gh 2.46.0, wodurch `starfleetctl github pr merge` fuer
+ALLE PRs tot war ("failed to get PR info"). Zwei Lehren: (1) jedes
+`--json`-Feld gegen die **deployte** gh-Version pruefen, nicht gegen die
+Doku des neuesten gh; (2) die Fehlermeldung des CLI-Toolings ist nicht
+selbstverstaendlich — sie nennt das JSON-Feld, der Aufrufer sah nur
+"exit status 1". Beim Beleg immer beide Seiten zeigen: alte Feldliste ->
+Fehler, neue Feldliste -> Ergebnis.
+
+### Ambient Env leakt in Kind-Prozesse -> fleet-wide false-red (2026-11-17)
+
+`runClientEnv()` baute die Client-Env als `append(os.Environ(), …)`. Eine
+Ship-Shell exportiert `STARFLEET_SHIP_ID/ROLE/LAUNCH_TYPE/TARGET`; der
+Client erbte diese Identitaet ZUSAETZLICH zu den expliziten Werten —
+doppelte Env-Keys, bei denen der geerbte Wert gewinnt. Flottenwirksam:
+`make all` war in **jeder** Ship-Shell rot (Test prüft "kein
+STARFLEET_TARGET bei role=flagship"), in CI gruen (dort ambient leer).
+**Muster:** Env fuer Kind-Prozesse immer aus `os.Environ()` filtern statt
+anzuhaengen, und Tests in der ENV laufen lassen, in der die Flotte laeuft —
+CI-Umgebung != Ship-Shell.
+
+### Negative Kontrolle: der neue Test muss am ALTEN Code rot sein (2026-11-17)
+
+Ein neuer Regressionstest ist erst ein Test, wenn er am ungepatchten Code
+fehlschlaegt. Beim Env-Leck-Fix war der Test gegen das ungepatchte
+`runClientEnv` rot (alter und neuer Test), mit Fix gruen — erst das macht
+den PR belastbar. Verwandt mit "Ein Test kann PASSen, ohne die Behauptung zu
+pruefen": dort war der Test gruen, aber nutzlos; hier war er gruen und
+nutzlos, WEIL der Fix fehlte. Kontrolle: Original-Code einspielen
+(`git show <base>:<datei>`), Test laufen lassen, Ergebnis dokumentieren.
+
+### Tooling-Repo-Aufloesung: project.yaml schlaegt Env (2026-11-17)
+
+`github pr merge` nimmt zuerst `project.yaml:upstream_repo` aus dem
+Workspace-Root, erst danach `STARFLEET_GITHUB_REPO`/Auto-Detect. Im
+mpbt-workspace ist das `X11Libre/xserver` — PRs im starfleetctl-Repo
+brauchen deshalb weiterhin `gh pr merge <n> --repo mpbt-hq/starfleetctl`.
+Und: `gh pr list --head <branch>` liefert `[]`, wenn der PR auf einem
+Push-Branch lief (`pr/master-*`); PR-Status ueber `gh pr view <n>` pruefen.
