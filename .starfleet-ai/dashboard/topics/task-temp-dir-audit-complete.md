@@ -1,7 +1,7 @@
 Title: "Temp dir audit complete"
 Category: active
 Kind: "task"
-Status: "assigned"
+Status: "done"
 Assigned-To: "Voyager"
 Created-By: "Voyager"
 Created: "2026-11-16T13:48:47Z"
