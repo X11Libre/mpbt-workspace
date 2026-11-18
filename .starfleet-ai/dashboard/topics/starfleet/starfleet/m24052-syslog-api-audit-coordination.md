@@ -1,7 +1,7 @@
 Title: "m24052 syslog priority + API audit coordination"
 Category: starfleet
 Kind: "task"
-Status: "in-progress"
+Status: "blocked"
 Assigned-To: "Enterprise"
 Created-By: "Enterprise"
 Created: "2026-11-18T11:48:51Z"
