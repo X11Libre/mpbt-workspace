@@ -1,7 +1,7 @@
 Title: "Fleet runtime snapshot 2026-11-18 (Enterprise coordination only)"
 Category: starfleet
 Kind: "task"
-Status: "done"
+Status: "in-progress"
 Assigned-To: "Enterprise"
 Created-By: "Enterprise"
 Created: "2026-11-18T08:30:15Z"
@@ -16,3 +16,5 @@ Read-only live control-plane snapshot: roster, sessions, launch type, model/prov
 - 2026-11-18T08:47:25Z Enterprise: progress 100% (Snapshot 08:42Z abgeschlossen; Report 1794991593495278916; Matrix an ChatGPT m24040; Nightly-Status an McKinley m24036.)
 
 - 2026-11-18T08:47:28Z Enterprise: completed
+
+- 2026-11-18T10:22:06Z Enterprise: began work
