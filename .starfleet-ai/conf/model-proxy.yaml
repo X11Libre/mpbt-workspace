@@ -67,10 +67,6 @@ model_proxy:
           provider: "nvidia-direct"
           context_window: 131072
           priority: 3
-        - id: "nvidia/nemotron-3-super-120b-a12b"
-          provider: "nvidia-direct"
-          context_window: 131072
-          priority: 4
         - id: "nvidia/nemotron-3.5-super-vl-120b-a12b"
           provider: "nvidia-direct"
           context_window: 131072
@@ -118,10 +114,6 @@ model_proxy:
           provider: "nvidia-direct"
 #          context_window: 131072
           priority: 2
-        - id: "nvidia/nemotron-3-super-120b-a12b"
-          provider: "nvidia-direct"
-#          context_window: 131072
-          priority: 3
         - id: "nvidia/nemotron-3.5-super-vl-120b-a12b"
           provider: "nvidia-direct"
 #          context_window: 131072
@@ -157,10 +149,6 @@ model_proxy:
           provider: "nvidia-direct"
           context_window: 131072
           priority: 1
-        - id: "nvidia/nemotron-3-super-120b-a12b"
-          provider: "nvidia-direct"
-          context_window: 131072
-          priority: 2
         - id: "meta/muse-glimmer-30b"
           provider: "nvidia-direct"
           context_window: 131072
