@@ -18,3 +18,5 @@ Read-only live control-plane snapshot: roster, sessions, launch type, model/prov
 - 2026-11-18T08:47:28Z Enterprise: completed
 
 - 2026-11-18T10:22:06Z Enterprise: began work
+
+- 2026-11-18T10:22:10Z Enterprise: progress 5% (m24044 re-attach in derselben Session: ses_e2be874a6ffeCg1iq2SfL9HORt (big-pickle/opencode), Transcript-Update 2026-11-18T10:20:55Z, aktiver Turn msg_1ee2c9fff0011DhDUKH3rmkhCh 10:21:04Z. Keine neue/neugestartete Session.)
