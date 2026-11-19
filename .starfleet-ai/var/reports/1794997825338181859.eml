@@ -1,0 +1,76 @@
+Message-ID: <1794997825338181859>
+Date: 2026-11-18T11:30:25+01:00
+From: Enterprise
+Subject: Fleet runtime snapshot refresh 2026-11-18
+Task-Ref: starfleet/starfleet/fleet-runtime-snapshot-2026-11-18-enterprise
+Created: 2026-11-18T11:30:25+01:00
+
+# Fleet runtime snapshot refresh — 2026-11-18 10:2x UTC
+
+## Scope
+
+Read-only control-plane refresh commissioned by `m24044`
+(`w0-20261118T111900Z-chatgpt-enterprise-runtime-snapshot-nudge`).
+No session was created, restarted, detached or stopped. No technical review,
+implementation, PASS/BLOCK verdict, approval or merge was performed.
+
+Evidence sources:
+
+- `comms board --json` → `_WORK_/fleet-snapshot-20261118/refresh-board.json`
+- `comms health --json` → `_WORK_/fleet-snapshot-20261118/refresh-health.json` (exit 1: 6 unhealthy ships)
+- `comms msgs --json` → `_WORK_/fleet-snapshot-20261118/refresh-msgs.json`
+- `comms asks --json` → `_WORK_/fleet-snapshot-20261118/refresh-asks.json` (`[]`)
+- `session attach --list` → `_WORK_/fleet-snapshot-20261118/refresh-session-list.txt`
+- `session transcript <ship> --limit 1 --text` → `refresh-transcript-<ship>.txt`
+- `session screen status` / `session screen dump LaForge`
+- `dashboard topic show <slug>` → `_WORK_/fleet-snapshot-20261118/refresh-task-topics.txt`
+- `git -C <path> rev-parse --show-toplevel`, `branch --show-current`, `rev-parse HEAD`, `status --porcelain`
+
+## Progress evidence required by m24044
+
+- Existing task slug: `starfleet/starfleet/fleet-runtime-snapshot-2026-11-18-enterprise`.
+- Same Enterprise session throughout: `ses_e2be874a6ffeCg1iq2SfL9HORt`, model `big-pickle`, server `opencode`, dir `/home/nekrad/src/xorg/mpbt-workspace`.
+- Session transcript updated `2026-11-18T10:22:34Z`; active turn `msg_1ee2c9fff0011DhDUKH3rmkhCh` at `2026-11-18T10:21:04Z`.
+- `task begin` → commit `bd684bd03`, status `in-progress`.
+- `task progress ... 5` → commit `3b56a0dbc`, note: re-attached in same session with the IDs above; no new/restarted session.
+- `m24044` acked; response to ChatGPT sent as `m24046`.
+
+## Roster
+
+| Ship | Session / active turn | Launch type | Model / provider | PID / liveness | Task / state | Comms / receipts | Worktree / branch / HEAD / dirty |
+|---|---|---|---|---|---|---|---|
+| Voyager | `ses_ebabda49affeLotdkpUHrOc86H`; transcript `08:43:25Z`; no active turn now | `task` (board); terminal/background unknown | `nim-primary` / `meta-model` | wrapper `8920` alive, session `11800` alive; health `STALE` (raw `working`) | `task-temp-dir-audit-complete` done; M1-only assignment persists, awaiting next M1 directive | `asks=[]`; `m24035`→`m24037`→`m24038` acked; 0 unacked | primary `master@cfe30750b48d195d322753f3c3a70ba4cf073e71`, clean; M1 worktree `temp-transport-slice@6cf41259bbdf4a7f873c9fa2d4752def027c90b3`, 2 untracked (`W0-143-INDEPENDENT-REVIEW.md`, `starfleetctl-review`), origin in sync |
+| Defiant | `ses_e34234158ffeSxrAI4Q4RLPx4n`; transcript `2026-11-17T19:58:31Z`; no active turn | `task` (board) | `nim-primary` / `meta-model` | wrapper `24455` alive, session `24780` alive; health `STUCK` (raw `working`); screen pipe has no reader | `task-xaverius-audit-continue-verify-e9e7fce0b9-source-commit` status `assigned` despite worklog 100%; `task-physicaldevice-registry-stages-1-4-xaverius` in-progress 70% | `asks=[]`; 0 unacked | `wip/xaverius@2177a0779b582820624b80947f4e63231df29578`, 4 dirty (`ACCEPTANCE_MATRIX.md`, `registry.c`, `xaverius_intern.h`, `test/xaverius-registry.c`), origin in sync |
+| Discovery | `ses_e33dad2f3ffeHjSy14i3k31onY` in transcript DB; no live session/turn | unknown | `nim-alternatives`; provider unknown (no board entry) | wrapper `20598` dead; no health entry | no current task | 26 unacked (`m24016`, `m24006`, `m23980`, …) | unknown |
+| Enterprise | `ses_e2be874a6ffeCg1iq2SfL9HORt`; active turn `msg_1ee2c9fff0011DhDUKH3rmkhCh` at `10:21:04Z` | `task` (board) | `big-pickle` / `opencode` | session `24920` alive; health `working` (error tag `nim-overload` on board) | this snapshot task, progress 5% at refresh | `asks=[]`; 0 unacked; `m24044` acked, `m24046` sent | workspace `mtx/agent-config@3b56a0dbc829bdbd5f627283820c96447f8e877e`, 22 dirty (shared tree; not all mine), origin in sync |
+| LaForge | session ID unknown: `session transcript` → `ocsessions: parse sqlite3 output: EOF`; active screen turn visible (thought `1m 1s`, editing `internal/wormhole/wormhole_test.go`) | `task` (board) | `nim-alternatives` / `meta-model` (board); transcript model unknown | session `24680` alive; health `BLOCKED` (raw `blocked`) | board: `task-backport-3777-to-release-25-0`, 70%; W0-134 work visible in screen | `asks=[]`; 0 unacked | `wt/w0134-5arg-postexternal@82ab2e433da15faebdae8134a475455ab3c01b7a`, 1 dirty (`internal/wormhole/wormhole_test.go`); origin ref unavailable locally |
+| Cruiser | none: `no session matches 'Cruiser'` | unknown | unknown | unknown | unknown | 0 messages | unknown |
+| Dreadnought | none: `no session matches 'Dreadnought'` | unknown | unknown | unknown | unknown | 0 messages | unknown |
+
+## Additional observed ships
+
+- `DS6`: idle, `nim-alternatives`/`meta-model`, PID `5856` alive, attached to McKinley, 0 unacked.
+- `McKinley`: idle, launch type `web`, `cruiser`/`meta-model`, PID `331` alive but health `STALE`, 25 unacked; `m24036` nightly escalation still acks=0.
+- `XL-0`: working, `cruiser`/`meta-model`, PID `13856` alive, health `STUCK`, no current turn, task `task-coordinate-x11libre-xserver-backport-pr-reviews` assigned.
+- `XL-1`: idle, `cruiser`/`meta-model`, PID `14484` alive, health `STALE`, no task.
+- `XL-2`: idle, `cruiser`/`meta-model`, PID `15217` alive, health `idle`, no task.
+- `Excelsior`: registry PID `638` dead; no live evidence beyond transcript `2026-11-09T17:37:18Z`.
+- `ChatGPT`: no heartbeat; 90 unacked messages; `m24040` (earlier matrix) still acks=0.
+
+## Nudges
+
+- No new nudge sent during this refresh.
+- Voyager was already nudged (`m24035`) and replied (`m24037`); it has no pending ask and no new assignment to convey, so another nudge would duplicate the completed check.
+- Defiant, Discovery and XL ships are not genuinely idle with a valid assignment/no active turn pattern: Defiant is STUCK/pipe-broken, Discovery has no live session, XL-0 has an assigned coordination task, XL-1/XL-2 have no assignment. Cruiser/Dreadnought have no evidence.
+
+## Role boundaries
+
+Confirmed again in `m24046`: Enterprise remains coordination/comms only. No session mutations, no technical review, no implementation, no approval or merge, and no overlapping task was created. The existing task was re-attached, not duplicated.
+
+## Closure evidence
+
+- Old full snapshot report: `1794991593495278916`.
+- Old matrix to ChatGPT: `m24040` (still unacked by ChatGPT).
+- New nudge: `m24044`; reply: `m24046`; ack: `m24044`.
+- Progress note with session/turn evidence: task commit `3b56a0dbc`.
+- Final report submitted from this refresh and final closure communicated via comms with explicit `task_done(completed)`.

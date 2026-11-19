@@ -1,0 +1,16 @@
+Message-ID: <1795014551829253598>
+Date: 2026-11-18T16:09:11+01:00
+From: DS6
+Subject: DS6 CVE-2026-109903 master + release/25.2 Fix
+Task-Ref: starfleet/starfleet/cve-2026-109903-ds6-master-252
+Created: 2026-11-18T16:09:11+01:00
+
+CVE-2026-109903: Xv QueryImageAttributes antwortete bei negativem ddQueryImageAttributes()-Ergebnis mit bogus CARD32 data_size.
+
+Start-HEADs: master 94960878758b4646bf5538b45fc6f590614e0d5e, release/25.2 c671cf1cbf5b5b29a6bc879c7c8b3bdb27d57c2d.
+
+Fix (beide isolierte Worktrees, nur Xext/xv/xvdisp.c): nach dem ddQueryImageAttributes()-Aufruf `if (size < 0) { x_rpcbuf_clear(&rpcbuf); return BadValue; }`.
+
+Commits (lokal, nicht gepusht): master wt/cve-109903-master-ds6 d8c6e9bbc18846629541b15ac4e215b8f43f0d7d; release/25.2 wt/cve-109903-252-ds6 a968e771b2edb277a159215b9e00e6722ccdee5b. Signed-off-by je 1, ahead je 1.
+
+Verifikation: git diff --check clean; cc -fsyntax-only mit exakten Compile-Flags rc=0 in beiden Worktrees. Keine CI/PRs (kein Push/Merge laut Direktive). Blocker: keine.

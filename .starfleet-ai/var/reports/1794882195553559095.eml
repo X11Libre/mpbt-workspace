@@ -1,0 +1,40 @@
+Message-ID: <1794882195553559095>
+Date: 2026-11-17T03:23:15+01:00
+From: LaForge
+Subject: CI workflow wt/ci-build-test now green: run 44002054994 success, check-runs 2/2 success on exact branch SHA b8359613; first run failed (missing git identity) -> root cause + fix; latent prod gap in rebaseLocked reported
+Tags: ci,starfleetctl,w0-134,github-actions,verification,laforge
+Task-Ref: task-starfleetctl-minimal-build-test-ci-workflow-closes-w0-134-blocker-c
+Created: 2026-11-17T03:23:15+01:00
+
+build-test workflow verified end-to-end on the branch itself (push event uses the workflow file from the pushed ref)
+
+## Timer tick + follow-up verification (2026-11-17 ~02:20Z)
+- PR for wt/ci-build-test: still none (gh pr list --head wt/ci-build-test --state all → []). Awaiting Enterprise approval.
+- work/wormhole-manager-w0-017 still at 0b92b84a4318bc86af4fd4acfc481e4a84e4f0ef; master still e060e2eed70817e78c3686d0a4960e1d180f7336.
+- Owner repo metux/wormhole-0 unchanged (origin/master still cddbf8cd6d25b0cee52f0d8970c85213fec9f932; no new decisions/, no new inbox/ files) → owner decisions (a) 5-arg/7-arg and (b) 10s still pending.
+
+## Key discovery: a workflow file on a pushed branch DOES trigger CI
+Push events use the workflow file from the pushed ref, so wt/ci-build-test already produced runs without being merged to master:
+- run 43992956445 (head f7065b6, event push, head_branch wt/ci-build-test): conclusion **failure**
+- run 44002054994 (head b8359613, event push): conclusion **success**
+- check-runs at the exact branch SHA b83596139c49fc0837220890bfab02d14bd2ca1c: total_count 2, both runs "build-test (1.22.x)" and "build-test (stable)" → status completed, conclusion **success**
+  (the legacy combined status API still shows total_count 0 — only check-runs carry the result here)
+
+## Failure root cause (run 43992956445) — a latent PRODUCTION gap, not just CI config
+Failing tests (internal/wormhole): TestPushRecoversFromConcurrentRemoteUpdate, TestReadOnlyMultiCycleImport, TestDaemonRestartMultiCycleReadOnly — all with:
+  fatal: empty ident name (for <runner@...>) not allowed / Committer identity unknown (during "git rebase")
+Code evidence (master e060e2e / branch):
+- internal/wormhole/git_sync.go:342-352 `gitCommandEnv()` passes os.Environ() through (minus LC_ALL) and adds only LC_ALL=C + GIT_TERMINAL_PROMPT=0 — **no identity**.
+- git_sync.go:503-510 `commitAtLocked()` adds `-c user.name=starfleetctl -c user.email=starfleetctl@localhost` → commits are self-contained.
+- `rebaseLocked()` (git_sync.go:403+) calls gitLocked("rebase", ...) **without** those flags → on any machine without a global git identity (bare CI runner, minimal container), the push-recovery rebase fails.
+Locally this is masked by the developer's global git config (user.name=Enrico Weigelt …), which is why the suite passed in my ship shell.
+Consequence for the fleet: wormhole push recovery (non-fast-forward rebase) breaks on any host without a preconfigured git identity. Reported to Voyager (implementation owner of the wormhole branch); suggested fix: give rebaseLocked the same -c user.* flags as commitAtLocked, or set GIT_AUTHOR_*/GIT_COMMITTER_* in gitCommandEnv().
+
+## Workflow fix (commit b83596139c49fc0837220890bfab02d14bd2ca1c)
+The test step now sets GIT_AUTHOR_NAME/EMAIL and GIT_COMMITTER_NAME/EMAIL (starfleetctl CI <ci@starfleetctl.local>), so CI is deterministic and independent of runner git config. Verified locally with git configs disabled: the three previously failing tests pass (ok internal/wormhole 14.367s). YAML re-validated.
+
+## Branch state
+wt/ci-build-test = b8359613 (2 commits: f7065b6 workflow + b835961 identity fix), pushed, ahead 0 / behind 0, 1× Signed-off-by each. Both commits verified by live CI runs on the branch itself.
+
+## What this unblocks for W0-134
+Once this workflow reaches master (PR, pending approval) — or is cherry-picked onto work/wormhole-manager-w0-017 (needs Voyager's OK, it is his branch) — every push to that branch produces exact-head check-runs, which is precisely the acceptance gap named in owner directive W0-20261110-140 ("GitHub Actions currently has no run for the current work branch/tip").

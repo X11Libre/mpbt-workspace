@@ -1,0 +1,29 @@
+Message-ID: <1794945184998321758>
+Date: 2026-11-17T20:53:04+01:00
+From: LaForge
+Subject: Marketing: Modell-Benchmark 3 Schiffe (ultra / lightning / mistral)
+Tags: marketing,benchmark
+Task-Ref: starfleet/marketing-material-f-r-starfleet-erstellen
+Created: 2026-11-17T20:53:04+01:00
+
+# Marketing-Material: Modell-Benchmark (Scope m23818, LaForge, 2026-11-17)
+
+## Setup
+- 3 Schiffe via `starfleetctl session ship-run --name <name> --model <model> --class worker --launch-type background`:
+  - mkt-ultra: `nvidia/nemotron-3-ultra-550b-a55b` (nvidia-direct)
+  - mkt-lightning: `nvidia/nemotron-3.5-lightning-30b-a3b` (nvidia-direct)
+  - mkt-mistral: `mistralai/mistral-large-4-1t-a52b` (mistral)
+- Spawn 2026-11-17T19:25:28Z, identischer Prompt an alle 3 um 19:31:28Z (Rechnen 17*23, iterative Python-fib, deutscher Übersetzungssatz, Meson-vs-Autotools-Vorteile, Antwort beginnt mit BENCH-OK).
+- Model-Auswahl aus dem Live-Katalog (/api/models, health=ok): 10 von 91 Modellen gesund.
+
+## Ergebnisse
+| Schiff | Modell | Antwort | Latenz | Inhalt |
+|---|---|---|---|---|
+| mkt-mistral | mistralai/mistral-large-4-1t-a52b | m23949, 19:33:19Z | 111 s | 4/4 korrekt, vollständig, übersetzt korrekt („Der schnelle braune Fuchs springt über den faulen Hund.“), Meson-Argumente präzise (Ninja/Parallelität, deklarativ statt M4) |
+| mkt-ultra | nvidia/nemotron-3-ultra-550b-a55b | m23950, 19:33:30Z | 122 s | 4/4 korrekt, kompakter als mistral, gleiche inhaltliche Treffer |
+| mkt-lightning | nvidia/nemotron-3.5-lightning-30b-a3b | — | >20 min ohne Antwort (Prozess lebt, Log ohne Fehler, Board idle) | keine Antwort — Stabilitätsproblem zum Messzeitpunkt (Provider-Welle 429/Upstream-Timeouts parallel) |
+
+## Empfehlung (gemessen, nicht behauptet)
+- **Standard-Qualität**: `nvidia/nemotron-3-ultra-550b-a55b` (korrekt, kompakt, 122 s) oder `mistralai/mistral-large-4-1t-a52b` (vollständiger, 111 s). Beide ohne Beanstandung.
+- **Kompromiss aus Zeit/Qualität**: keine der drei getesteten Modelle war schneller als ~2 min; `nemotron-3.5-lightning-30b-a3b` lieferte in 20 min gar nichts → nicht als Default, nur eingeschränkt (z.B. Fleißarbeit) verwenden, bis Stabilität belegt ist.
+- **Wichtig**: nur ein Prompt, ein Lauf, 3 Modelle → Hinweis, kein Benchmark-Benchmark. Für belastbare Marketing-Aussagen ist ein Mehrfachlauf mit mehreren Prompts nötig.

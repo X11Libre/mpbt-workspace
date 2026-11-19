@@ -1,0 +1,31 @@
+Message-ID: <1795000996859537418>
+Date: 2026-11-18T12:23:16+01:00
+From: Enterprise
+Subject: Bot review PR #4173 - passed
+Task-Ref: starfleet/starfleet/pr-review-4173-edid-ds-ranges-test
+Created: 2026-11-18T12:23:16+01:00
+
+# PR #4173 bot review — completion report
+
+- PR: https://github.com/X11Libre/xserver/pull/4173
+- Task: `starfleet/starfleet/pr-review-4173-edid-ds-ranges-test`
+- Requested directly by the user (console); no merge action was requested or performed by the bot.
+- Verdict: **bot-review-passed**.
+
+## Evidence
+
+- Isolated clone: `_WORK_/xserver-master/agent/repair/xserver`, branch `pr-4173-repair`, HEAD `203e174b0f1cf1c23fcebd7ecf99be098637b52b` (exact PR head).
+- Patch identity: PR head and master commit `b5309b9d03d614ef068b636f76c058630275c089` share stable patch-id `4443804696820ae7fb270685037ee1f8906ba0fe`.
+- Merge: PR merged during review at `2026-11-18T11:15:22Z`; rebased commit `b5309b9d03` has single parent `4c6026d745824ca53707349c313d830f9d66000d`, author/date preserved, bare subject.
+- Prerequisite fix: `4c6026d745` / PR #4174 on master bounds `DS_RANGES` writes in `handle_detailed_monset()`.
+- CI: 102 checks, 93 pass, 9 skip, 0 fail, 0 cancelled, 0 pending.
+- Backports: underlying CVE-2026-109091 fix already merged for 25.2 (#4155), 25.1 (#4144), 25.0 (#4120); test counterpart #4154 merged for 25.2. Maintainer decides further applicability.
+- ABI: test-only change; no public struct layout or `_X_EXPORT` change; no NVIDIA blob impact.
+- Bot comment: https://github.com/X11Libre/xserver/pull/4173#issuecomment-6977128320
+- Label applied: `bot-review-passed` (verified via GitHub API).
+
+## Notes
+
+- Initial `github pr view` showed OPEN; a later live re-check showed MERGED. The review comment records the mid-review merge explicitly.
+- `github pr checkout` failed with a stale local config (`origin/release/master` missing for `rfc/backport-master-repair`), but the existing isolated clone was already at the exact PR head, so no source checkout was needed.
+- No code was edited, no branch mutated, no PR merged by Enterprise.

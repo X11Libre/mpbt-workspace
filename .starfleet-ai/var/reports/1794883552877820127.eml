@@ -1,0 +1,36 @@
+Message-ID: <1794883552877820127>
+Date: 2026-11-17T03:45:52+01:00
+From: LaForge
+Subject: W0-134 blocker (c) CLOSED: PR #7 (build/test CI) merged to master c1d4f2c, master CI green 2/2; transport tip 2cc3274 re-measured (300s ok 113.311s, 10s FAIL); rebaseLocked identity gap fixed by Voyager (2cc3274)
+Tags: ci,w0-134,merged,pr7,laforge
+Task-Ref: task-starfleetctl-minimal-build-test-ci-workflow-closes-w0-134-blocker-c
+Created: 2026-11-17T03:45:52+01:00
+
+PR #7 merged after 4/4 green checks; exact-head CI now producible on every branch/PR
+
+## CI blocker (c) closed
+- Directive: Enterprise m23558 ("PR RELEASE CONFIRMED … Create PR from wt/ci-build-test (b8359613) → master. Merge after CI passes.")
+- Branch squashed to one commit (repo merges by rebase; `github pr make` requires a single commit): c620aa3 on wt/ci-build-test, force-pushed (b835961 → c620aa3, receipt 0/0).
+- `github pr make` pushed the PR branch but `gh pr create` failed 5× because reviewer `mpbt-hq/dev` does not resolve → PR created manually: **PR #7** https://github.com/mpbt-hq/starfleetctl/pull/7 (head pr/master-ci-add-minimal-build-test-workflow-for-all-branches-and-prs_2026-11-17_03-28-55, head SHA 57bf8def).
+- PR checks: 4/4 SUCCESS (build-test 1.22.x + stable × push-run 44003429767 and pull_request-run 44004360949).
+- Merged 2026-11-17T02:41:07Z via rebase (repo policy: allow_merge_commit=false, allow_rebase_merge=true) → master commit **c1d4f2c254c4d0a492c0c1098ddb06bbe6bc4cd6**.
+- Note: `starfleetctl github pr merge` is broken with the installed gh version ("merge: failed to get PR info" — gh rejects the JSON field `merged`); merged via `gh pr merge 7 --rebase` instead. Tool bug captured for a starfleetctl-source fix (LaForge domain).
+- Post-merge: master push-run 44004793547 conclusion **success**; check-runs at c1d4f2c: total_count=2, `build-test (1.22.x)` + `build-test (stable)` both success. `.github/workflows/build-test.yml` is on master.
+- Transport branch (work/wormhole-manager-w0-017) gets its own push-runs only after it carries the workflow file (rebase onto new master) or via a PR (pull_request runs use the merge ref).
+
+## Latent production bug found by CI and fixed upstream
+Run 43992956445 (branch, before identity env) failed in internal/wormhole with "Committer identity unknown": `rebaseLocked` (git_sync.go:403+) ran plain `git rebase` without the `-c user.*` flags that `commitAtLocked` (git_sync.go:503) has, and `gitCommandEnv()` (git_sync.go:329) set no identity → push-recovery broken on hosts without a global git identity (bare CI runners, minimal containers). Fixed by Voyager in **2cc3274**: `gitCommandEnv()` now appends GIT_AUTHOR_NAME/EMAIL and GIT_COMMITTER_NAME/EMAIL (starfleetctl@localhost) — verified in the source at the tip (git_sync.go:337-339).
+
+## Re-measurement of the transport tip 2cc32741ccdd951e6cddfefe2233d1cc9dc5a5b7 (pristine export, logs _WORK_/starfleetctl/tmp/logs-2cc3274/)
+| command | result | exit |
+|---|---|---|
+| go build ./... | (no output) | 0 |
+| go vet ./internal/... | (no output) | 0 |
+| go test ./internal/comms/ -count=1 | ok … 2.518s | 0 |
+| go test ./internal/wormhole/ -count=1 -timeout 10s | panic: test timed out after 10s; running TestInitialScanCrashAfterMoveBeforeMarker; FAIL | 1 |
+| go test ./internal/wormhole/ -count=1 -timeout 300s | ok … 113.311s | 0 |
+- Branch: 11 commits on top of master, includes 0b92b84 (TOCTOU fix) and 2cc3274 (identity fix); merge-base with master still e060e2e.
+- Contract unchanged: 7-arg PostExternal (comms_external.go:360, spool.go:575) vs owner-mandated 5-arg.
+
+## Remaining W0-134 blockers (owner decisions)
+(a) 5-arg vs 7-arg PostExternal; (b) 10s acceptance window (structurally unreachable: suite 83–168s; 10s measured FAIL at every tip). (c) is now closed. Optional: outbound concurrency regression test.

@@ -1,0 +1,53 @@
+Message-ID: <1794907763273653374>
+Date: 2026-11-17T10:29:23+01:00
+From: LaForge
+Subject: W0-134 checkpoint: 5-arg PostExternal restored at 82ab2e4; exact acceptance commands measured (10s FAIL structural, 300s 90/90 PASS); exact-head CI run 44054309610 2/2 success
+Tags: w0-134,wormhole,acceptance
+Task-Ref: task-w0-134-wormhole-manager-acceptance
+Attachments: /api/store/build.log
+Created: 2026-11-17T10:29:23+01:00
+
+# W0-134 checkpoint — 5-arg PostExternal restored, acceptance commands measured at exact HEAD
+
+Follow-up w0-20261117T081000Z (wormhole-0, verified in spool: claim b81c86d, processed 4b20908) executed.
+
+## Exact HEAD
+
+- Branch: `work/wormhole-manager-w0-017`
+- HEAD: `82ab2e433da15faebdae8134a475455ab3c01b7a` (pushed, ls-remote receipt identical)
+- Parent: `26245944f88d683562fbfd7a2a4e6f519d0d1b53` (previous tip, preserved; branch is now 12 ahead of merge-base c1d4f2c)
+- 1x Signed-off-by, single atomic commit, exact-path staging.
+
+## Changed paths (commit 82ab2e4)
+
+- `internal/comms/comms_external.go` — PostExternal signature restored to the owner 5-arg contract `Bus.PostExternal(source, externalID, from, target, text)`; external record no longer takes Type/ReplyTo from parameters (type defaults to "ship" at publish, reply_to empty).
+- `internal/wormhole/spool.go` — importLocked calls the 5-arg form; payload front matter (type/reply_to) passed verbatim inside `text`.
+- `internal/comms/comms_external_test.go`, `internal/wormhole/wormhole_test.go` — all 54 call sites updated; `TestTypeAndReplyToRoundtrip` now asserts the 5-arg semantics (record type "ship", empty reply_to, front matter `type: control` / `reply_to: …` preserved byte-exactly in the payload).
+- `doc/wormhole-requirement-matrix.md` — W0-130.3 / W0-134.1 / W0-134.7 rows synced to the owner contract and measured reality.
+
+## Authority evidence for the 5-arg contract
+
+- `decisions/2026-11-08--wormhole-is-comms-transport.md` (Status: OWNER-APPROVED — 2026-11-08), lines 37 and 66: `Bus.PostExternal(source, externalID, from, target, text)`.
+- `inbox/W0-20261108-130-comms-transport-integration.md:24` — same 5-arg signature, "pass the complete exact message payload, without truncation or normalization".
+- `inbox/W0-20261108-134-...md:54` — same 5-arg signature.
+- `inbox/W0-20261111-142-...md:30` — "Do not silently extend the W0-134 API contract."
+- `git grep msgType|replyTo` over the whole wormhole-0 repo (decisions/, inbox/, mail/): the only owner-artifact hit is W0-142:30 *describing* the 7-arg variant as a deviation. No owner artifact requires the extra parameters. The 7-arg form came from agent commit cd42366 citing Enterprise m23225 (agent channel, not a decisions/ file).
+
+## Exact acceptance commands at HEAD 82ab2e4 (pristine `git archive` export; full logs in `_WORK_/starfleetctl/tmp/head-export-82ab2e4/logs/`)
+
+1. `go build ./...` → **exit 0** (no output). Log: logs/build.log
+2. `go test ./internal/comms/ -count=1` → **exit 0**, `ok github.com/metux/starfleetctl/internal/comms 2.703s`. Log: logs/comms.log
+3. `go test ./internal/wormhole/ -count=1 -timeout 10s` (owner-required) → **exit 1**: `panic: test timed out after 10s` … `FAIL github.com/metux/starfleetctl/internal/wormhole 10.025s`; the panic dump shows the suite was inside `TestInitialScanCrashDuringBaselineMove` (a git-integration test running `git` subprocesses). Complete unabridged output: logs/wormhole-10s.log
+4. `go test ./internal/wormhole/ -count=1 -timeout 300s -v` → **exit 0**, **90/90 tests PASS, 0 FAIL/SKIP**, `ok … 158.097s`. Full verbose log: logs/wormhole-300s-v.log
+5. Focused crash/retry/idempotency/lifecycle/locking tests at HEAD, `-v`: all PASS (logs/focused.log):
+   TestPublishProcessLifecycle, TestPushRecoversFromConcurrentRemoteUpdate, TestTypeAndReplyToRoundtrip, TestConcurrentCyclesImportExactlyOnce, TestLargePayloadRoundtripPreservesBytes, TestFailedTransitionReasonWriteFailureKeepsMessage, TestFailedTransitionCrashAfterReasonWriteRecovers, TestFailedTransitionCrashAfterMoveRecovers, TestFailedTransitionLeavesNoStagingFiles, TestPostExternalCrashRecoveryImportsExactlyOnce, TestPostImportCrashRecoveryCompletesProcessedTransition — `ok … 9.553s`
+
+## Exact-head CI
+
+Push of 82ab2e4 triggered the workflow: run **44054309610** (https://github.com/mpbt-hq/starfleetctl/actions/runs/44054309610) — check-runs at commit 82ab2e4: total_count=2, `build-test (1.22.x)` success, `build-test (stable)` success (job URLs in the check-runs response).
+
+## Remaining blockers
+
+- **(a) PostExternal contract**: IMPLEMENTED at 82ab2e4 per the owner-approved 5-arg contract. Awaiting owner confirmation that this satisfies W0-134.1. Behavior note: inbound wormhole type/reply_to now live in the payload front matter (preserved verbatim); the Comms record uses default type "ship" and empty reply_to.
+- **(b) 10s acceptance window**: still FAIL at the exact HEAD (command 3 above). Structural: the wormhole suite is 90 sequential tests, dominated by git-integration tests spawning real `git` subprocesses (full suite 158.097s at `-timeout 300s` under current load; minimum observed ~83s). `git grep` over wormhole-0 shows NO owner decision relaxing the 10s requirement (wormhole-0 master advanced to 19d478a but only mail/ spool traffic changed; decisions/ and inbox/ unchanged since cddbf8cd). Needs either an owner-approved relaxation of the acceptance timeout or a separate suite-parallelization task — I did not silently replace the 10s command.
+- Adjacent Comms outbox/routing changes (commands.go, comms_external_test.go, routing_test.go) remain in the branch compare, kept separate from this W0-134 acceptance commit; no plugin/poller additions.

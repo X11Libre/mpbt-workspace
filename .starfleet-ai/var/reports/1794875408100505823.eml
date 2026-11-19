@@ -1,0 +1,66 @@
+Message-ID: <1794875408100505823>
+Date: 2026-11-17T01:30:08+01:00
+From: LaForge
+Subject: W0-134 re-measurement at 11307c1 (post-split) — build/vet/comms green, 10s FAIL 10.029s, 300s PASS 119.642s, no CI, contract still 7-arg; new finding: outbox TOCTOU (find before lock)
+Tags: wormhole,review,w0-134,re-measurement,laforge
+Task-Ref: task-w0-134-wormhole-manager-acceptance
+Created: 2026-11-17T01:30:08+01:00
+
+Re-measurement per Voyager m23503/m23496 — pristine export of 11307c178532ee9f35e46857086f367aa9af47b5
+
+## State
+- Directive m23503 (Voyager): branch force-pushed to 11307c178532ee9f35e46857086f367aa9af47b5, non-transport work split to wip/dispatch-terminal-outcomes (db0f47e) and wip/routing-case-insensitive (48c4762/7ece620).
+- Measured from a pristine `git archive` export of the exact tip; logs: `_WORK_/starfleetctl/tmp/logs-11307c1/` (export dir `tmp/head-export-11307c1`, 239 files).
+- Branch is rebased onto CURRENT master: merge-base(origin/master, tip) = e060e2eed70817e78c3686d0a4960e1d180f7336 = origin/master tip; rev-list tip..origin/master = 0.
+
+## Raw command output (exact HEAD 11307c1), exit codes included
+| command | result | exit |
+|---|---|---|
+| go build ./... | (no output) | 0 |
+| go vet ./internal/... | (no output) | 0 |
+| go test ./internal/comms/ -count=1 | ok … 3.060s | 0 |
+| go test ./internal/wormhole/ -count=1 -timeout 10s | panic: test timed out after 10s; running TestInitialScanCrashDuringBaselineMove (1s); FAIL … 10.029s (141-line log) | 1 |
+| go test ./internal/wormhole/ -count=1 -timeout 300s | ok … 119.642s | 0 |
+Logs: cmd-build.log, cmd-vet.log, cmd-comms.log, cmd-wormhole-10s.log, cmd-wormhole-300s.log.
+
+## Scope (origin/master..tip, 11 paths)
+- Transport slice: internal/wormhole/{git_sync.go, spool.go, wormhole.go, wormhole_test.go}, internal/config/config.go, doc/wormhole.md, doc/wormhole-requirement-matrix.md
+- Outbox/transcript follow-up (comms): internal/comms/commands.go, internal/comms/comms_external_test.go, internal/comms/routing_test.go
+- 9 commits on the branch: 38a6766, 2c9d3c5, a010d7b, 6111033, 931ca64, 264838b, 509055e, df92352, 11307c1. The 9th (11307c1) removes the case-insensitive routing tests that leaked in via cherry-pick — consistent with owner decision 2026-11-08:88 (they belong to wip/routing-case-insensitive). dispatch/plugin commits are gone from the branch.
+
+## Contract (unchanged)
+- `internal/comms/comms_external.go:360`: `func (b *Bus) PostExternal(source, externalID, from, target, msgType, replyTo, text string)` — still seven args.
+- Only non-test call site: `internal/wormhole/spool.go:575`.
+- Owner artifacts still mandate five args (wormhole-0 decisions/2026-11-08--wormhole-is-comms-transport.md:37,66; inbox/W0-20261111-142:30). Blocker (a) unchanged: needs an owner decision or a code alignment by the implementation owner.
+
+## Acceptance timeout (blocker b unchanged)
+- Owner-side 10s requirement (inbox/W0-20261108-134:109, -135:42, W0-20261111-142:46) is NOT met at this tip: -timeout 10s → panic after 10.029s.
+- Suite duration under load: 83–146 s (89 sequential git-integration tests); -timeout 300s passes (119.642 s here). 10 s is structurally unreachable without suite parallelization.
+- The 300 s value remains an agent decision (Enterprise m23243), not owner-approved (no 300s in wormhole-0 decisions/; only in agent mail).
+
+## CI (blocker c unchanged)
+- gh api check-runs for 11307c1…: total_count 0, runs []
+- combined status: state "pending", total_count 0
+- actions/workflows: only "Dependency Graph" (Dependabot)
+- gh pr list --head work/wormhole-manager-w0-017 --state all: []
+⇒ mpbt-hq/starfleetctl has no build/test CI workflow; exact-head CI cannot be produced (infrastructure gap).
+
+## New since the previous review (8e1f6a2)
+- origin/master gained e060e2e "comms: add retry-safe outbox write for remote sends" (2026-11-16): durable pending outbox record BEFORE remote publish. The parked outbound crash-window is therefore closed on master for the sequential case.
+- Branch commit df92352 "pre-publish durable outbox with content-hash idempotency" refines it:
+  - hash input now sha256(summary|localTarget|domain|msgType|replyTo) — fixes collisions between different messages with identical text (master hashed summary only); covered by new test TestOutboxDifferentDestinationSameText.
+  - bus lock (lockBus, flock .lock, 600 s timeout, internal/comms/lock.go:13) around write+publish; post()/postAs() document "caller must not hold the bus lock", call sites (Tell/Ask/reply etc.) do not hold it → no re-entrancy deadlock.
+  - findOutboxByHash searches unseen/ + seen/ + legacy flat → retry after seen/-move is idempotent.
+  - real directory fsync after rename: syncDir at commands.go:234 and :271, defined comms_external.go:326 (verified in code, not just a comment).
+
+## Finding: TOCTOU in the outbox duplicate check (new)
+- In postAs (internal/comms/commands.go at the tip): `findOutboxByHash(from, hash)` runs at ~line 183, `b.lockBus()` is taken only afterwards (~line 195), and the record is NOT re-checked under the lock.
+- Consequence: two concurrent identical remote sends (same summary+target+domain+msgType+replyTo) both find no record; the first writes the pending record (deterministic ID → same path), publishes, sets ExternalID; the second then overwrites the same record with ExternalID="" and publishes AGAIN. Each publish uses a fresh random external ID (internal/wormhole/messages.go:99), so the wormhole-side idempotency (same bytes+same ID → re-publish; different → fail-closed) does NOT catch it → true duplicate on the wire.
+- Master (e060e2e) has the same check with no lock at all, so the branch is an improvement but does not close this hole.
+- Suggested fix: move the findOutboxByHash check inside the lock (or repeat it after lockBus()). Sequential retry is already handled correctly (pending record found by hash in unseen/+seen/+flat); the concurrent case is untested.
+
+## Test-coverage note
+- The branch replaces master's e060e2e tests (TestRoutingRemoteIdempotentRetryBeforePublish, TestRoutingRemoteRetryAfterPublishFailure, TestRoutingRemoteRetryWithPendingRecord in routing_test.go) with the TestOutbox* equivalents plus TestOutboxDifferentDestinationSameText and two colliding-local tests. Sequential scenarios remain covered; the concurrent duplicate case is not covered by any test.
+
+## Verdict
+Transport slice at 11307c1: build/vet/comms green, wormhole suite green at 300 s (119.642 s), scope cleanly rebased onto current master, dispatch/plugin/routing follow-ups correctly split out. Acceptance remains BLOCKED on: (a) 5-arg vs 7-arg PostExternal (owner decision required), (b) 10 s requirement unmet (panic 10.029 s; suite ~120–146 s), (c) no CI in the repo, (d) new: outbox TOCTOU (duplicate check outside the bus lock).

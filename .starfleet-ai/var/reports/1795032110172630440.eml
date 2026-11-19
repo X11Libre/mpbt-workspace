@@ -1,0 +1,14 @@
+Message-ID: <1795032110172630440>
+Date: 2026-11-18T21:01:50+01:00
+From: DS6
+Subject: DS6 CVE-2026-109094 audit: no-op on all fresh HEADs
+Task-Ref: starfleet/starfleet/cve-109094-ds6-m24122
+Created: 2026-11-18T21:01:50+01:00
+
+CVE-2026-109094 (XRes swapped request-size overflow) wurde an frischen HEADs geprueft: master bee1a60bd60f, 25.2 7862433232d6, 25.1 59eadc442885, 25.0 e9825a9dc56d.
+
+Ergebnis: alle Branches bereits safe, keine Aenderung.
+- master/25.2/25.1: REQUEST_FIXED_SIZE(xXResQueryResourceBytesReq, (uint64_t)stuff->numSpecs * sizeof(...)) (master Xext/xres/xres.c:831-832, 25.2 :830-831, 25.1 Xext/xres.c:893-894; blame d58de12e73f).
+- 25.0: explizite Checks `numSpecs > UINT32_MAX / sizeof(...)` vor REQUEST_FIXED_SIZE in Proc (Xext/xres.c:940-943, cad5a1050b7) und SProc (:1077-1080, ac8db972868).
+
+Breite Rewrites #4153/#4141/#4169 nicht uebernommen (kein Nachweis an diesen HEADs). Worktrees clean, keine Commits/Pushes/PRs/Merges, keine CI. Blocker: keine.

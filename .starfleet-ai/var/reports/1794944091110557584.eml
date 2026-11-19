@@ -1,0 +1,27 @@
+Message-ID: <1794944091110557584>
+Date: 2026-11-17T20:34:51+01:00
+From: LaForge
+Subject: Backport #3777 Verifikation + 25.0-PR #4177 + Kreuzverlinkung
+Tags: backport,xserver,ci
+Task-Ref: task-backport-3777-test-fail-when-a-child-terminates-abnormally-kreuzverlinkung-aller-drei-release-zweige
+Created: 2026-11-17T20:34:51+01:00
+
+# Backport #3777 (test: fail when a child terminates abnormally) — Verifikation + 25.0 nachgereicht
+
+## Master
+PR #3777 MERGED (b799d88a7844f28512808eee659e0dd26bdd79a1).
+
+## Release-PRs (Stand 2026-11-17 ~19:00Z)
+- release/25.0: **#4177 OPEN** (neu von LaForge) — head ceb01b9e90, branch pr/release/25.0-test-fail-when-a-child-terminates-abnormally_2026-11-17_18-11-49, cherry-pick of ce6fa93, 1 Commit, author Lukáš Lipinský, Signed-off-by==1, rev-list origin/release/25.0..HEAD=1 / HEAD..origin/release/25.0=0, diff 1 file/1 line (test/tests-common.c: exit(exit_code)->exit(EXIT_FAILURE)). Alte #3797/#3834 waren CLOSED unmerged; Fix war auf 25.0 fehlend (git cherry b799d88 -> '+').
+- release/25.1: **#3992 OPEN** — head ce6fa93, 1 Commit Lipinsky, sign-off 1, bot-review-passed, Reviews Enterprise+XL-1. Alt #3798 CLOSED.
+- release/25.2: **#4009 OPEN** — head 84ea9e8, 1 Commit Lipinsky, sign-off 1, bot-review-passed, Reviews Enterprise+XL-2. Alt #3800 CLOSED.
+
+## Kreuzverlinkung
+PR-Bodies #4177/#3992/#4009 enthalten Topic-Slugs + Backlinks (per gh api verifiziert, je 1 Treffer); Topics task-backport-3777-to-release-25-{0,1,2} + Anker-Topic per task log aktualisiert. Kommentare auf allen 3 PRs mit Verifikationsdaten.
+
+## CI
+- #4177: pull_request-Runs laufen/abgeschlossen: abi-check success, drivers-build-ubuntu success, xserver-build-macos success, xserver-build-ubuntu FAIL — ausschliesslich bekannte locale-Assertion test/signal-logging.c:215 ("en\n"), 24/25 OK, pre-existing auf release-Zweigen (siehe offenes Topic task-locale-abhaengige-assertion-...), nicht durch diesen 1-Zeiler.
+- #3992/#4009: 0 check-runs/statuses an den Head-SHAs (Runs gelöscht); Re-Trigger per PR-Kommentar angefragt.
+
+## Merge
+Kein Merge durch Agenten — release/* merged der Maintainer.

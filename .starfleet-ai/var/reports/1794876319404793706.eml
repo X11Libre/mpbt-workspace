@@ -1,0 +1,48 @@
+Message-ID: <1794876319404793706>
+Date: 2026-11-17T01:45:19+01:00
+From: LaForge
+Subject: W0-134 verification at 0b92b84 (TOCTOU fix) — fix code-verified, build/vet/comms green, wormhole 300s ok 125.541s, 10s still FAIL 10.024s, no CI, contract still 7-arg
+Tags: wormhole,review,w0-134,toctou,laforge
+Task-Ref: task-w0-134-wormhole-manager-acceptance
+Created: 2026-11-17T01:45:19+01:00
+
+Third measurement pass — read-only verification of Voyager's TOCTOU fix (findOutboxByHash moved under bus lock)
+
+## State
+- Directive m23512 (Voyager): TOCTOU fix pushed as 0b92b84a4318bc86af4fd4acfc481e4a84e4f0ef; branch work/wormhole-manager-w0-017 now at 10 commits.
+- Measured from a pristine `git archive` export of the exact tip; logs `_WORK_/starfleetctl/tmp/logs-0b92b84/` (239 files exported).
+- Branch still rebased onto current master: merge-base(origin/master, tip) = e060e2eed70817e78c3686d0a4960e1d180f7336 = origin/master tip; rev-list tip..origin/master = 0.
+- Branch commits (10): 38a6766, 2c9d3c5, a010d7b, 6111033, 931ca64, 264838b, 509055e, df92352, 11307c1, 0b92b84.
+
+## Fix verification (code, not commit-message claim)
+In `internal/comms/commands.go` (postAs, remote branch) the order at the tip is:
+1. hash := sha256.Sum256(hashInput) (summary|localTarget|domain|msgType|replyTo) — ~line 178
+2. `lock, err := b.lockBus()` + `defer lock.Close()` — ~lines 181/185 (flock on `<BusDir>/.lock`, 600 s timeout, internal/comms/lock.go:13)
+3. `existing, err := b.findOutboxByHash(from, hash[:])` — ~line 192, explicitly UNDER the lock, with an explanatory comment naming the TOCTOU
+4. `if existing != nil && existing.ExternalID != ""` → return existing transport ID (idempotent short-circuit)
+5. pending record write → `syncDir(filepath.Dir(path))` → `publishRemote(...)` → record update with ExternalID → `syncDir(...)` → return — all within the same lock hold
+⇒ check-then-act is now atomic with respect to other senders; the reported duplicate-publish window is closed in the code path. Diff of the fix: 1 file, 9 insertions / 6 deletions (internal/comms/commands.go only).
+
+## Raw command output (exact HEAD 0b92b84)
+| command | result | exit |
+|---|---|---|
+| go build ./... | (no output) | 0 |
+| go vet ./internal/... | (no output) | 0 |
+| go test ./internal/comms/ -count=1 | ok … 2.826s | 0 |
+| go test ./internal/wormhole/ -count=1 -timeout 10s | panic: test timed out after 10s; running TestInitialScanCrashAfterMoveBeforeMarker (1s); FAIL … 10.024s (69-line log) | 1 |
+| go test ./internal/wormhole/ -count=1 -timeout 300s | ok … 125.541s | 0 |
+
+## Scope (origin/master..tip) — 11 paths, unchanged
+doc/wormhole-requirement-matrix.md, doc/wormhole.md, internal/comms/commands.go, internal/comms/comms_external_test.go, internal/comms/routing_test.go, internal/config/config.go, internal/wormhole/{git_sync.go, spool.go, wormhole.go, wormhole_test.go}
+
+## Contract — unchanged
+`internal/comms/comms_external.go:360` still declares `PostExternal(source, externalID, from, target, msgType, replyTo, text string)` (seven args); sole non-test call site `internal/wormhole/spool.go:575`. Owner artifacts mandate five args (wormhole-0 decisions/2026-11-08--wormhole-is-comms-transport.md:37,66; inbox/W0-20261111-142:30). Blocker (a) unchanged — requires an owner decision.
+
+## CI — unchanged
+check-runs total_count 0 / runs []; combined status state "pending", total_count 0; workflows: only "Dependency Graph" (Dependabot); no PR on the branch. mpbt-hq/starfleetctl still has no build/test CI workflow ⇒ exact-head CI not producible.
+
+## Residual (low): the fix has no regression test
+The comms package contains exactly one concurrency test — TestPostExternalConcurrentCalls (internal/comms/comms_external_test.go:850) — and it covers the INBOUND path. There is no test for the OUTBOUND outbox path asserting that two concurrent identical remote sends produce exactly one publish. The four TestOutbox* tests cover the sequential cases (IdempotentRetrySameContent, DifferentDestinationSameText, RetryAfterSeen, PublishFailureRetries). A goroutine test pinning publish count == 1 would lock in the "lock → find" ordering. Code-verified, but not test-protected.
+
+## Verdict
+Transport slice at 0b92b84: fix implemented correctly and verified in code; build/vet/comms green; wormhole suite green at 300 s (125.541 s); scope clean on current master. Still BLOCKED on (a) 5-arg vs 7-arg PostExternal (owner decision), (b) 10 s acceptance structurally unreachable (panic 10.024 s), (c) no CI in the repository. (d) recommended: outbound concurrency regression test.

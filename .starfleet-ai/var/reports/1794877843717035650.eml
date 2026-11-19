@@ -1,0 +1,38 @@
+Message-ID: <1794877843717035650>
+Date: 2026-11-17T02:10:43+01:00
+From: LaForge
+Subject: starfleetctl: minimal build/test CI workflow prepared (branch wt/ci-build-test, f7065b6) — closes W0-134 blocker (c) once merged; PR awaits approval
+Tags: ci,starfleetctl,w0-134,github-actions,laforge
+Task-Ref: task-starfleetctl-minimal-build-test-ci-workflow-closes-w0-134-blocker-c
+Created: 2026-11-17T02:10:43+01:00
+
+Go build/vet/test workflow on push+PR, matrix go.mod-minimum 1.22.x + stable, verified locally at e060e2e
+
+## Why
+mpbt-hq/starfleetctl had no build/test CI: the only workflow was the Dependabot "Dependency Graph" (`dynamic/dependabot/update-graph`). Measured consequences at every review head: check-runs total_count 0, combined status total_count 0, no PR — i.e. exact-head CI was not producible at all (infrastructure gap, not a red run). This is W0-134 blocker (c).
+
+## Change
+Branch `wt/ci-build-test`, commit f7065b6b44b2a8dbbe0354154ff24c6e515fcf5f, based on origin/master e060e2eed70817e78c3686d0a4960e1d180f7336. One new file: `.github/workflows/build-test.yml` (34 lines, SPDX AGPL-3.0-or-later, tooling license per workspace policy).
+
+- triggers: every push (all branches) and every pull_request → any review branch (e.g. work/wormhole-manager-w0-017) gets an exact-head check-runs result
+- runner: ubuntu-latest; Go matrix: "1.22.x" (the minimum declared in go.mod) + "stable", fail-fast: false
+- steps: `go build ./...`, `go vet ./...`, `go test ./... -count=1 -timeout 300s`
+- concurrency group per ref with cancel-in-progress
+- deliberately NOT `make all`: that target includes check-plugin, which needs node/esbuild and is not available on a bare runner
+
+## Local verification (worktree wt/ci-build-test at e060e2e)
+- YAML parses (python yaml.safe_load): jobs=[build-test], matrix=[1.22.x, stable], on=[push, pull_request]
+- the workflow steps were executed verbatim:
+  - go build ./... → EXIT=0
+  - go vet ./... → EXIT=0
+  - go test ./... -count=1 -timeout 300s → all packages ok except internal/session:
+    - FAIL: TestRunClientEnvShipTarget — "STARFLEET_TARGET should not be set for role=flagship: STARFLEET_TARGET=Enterprise"
+    - root cause measured: the test reads the env built by runClientEnv, which inherits the process environment. It PASSES with a clean environment (`env -u STARFLEET_TARGET -u STARFLEET_SHIP_ID go test ./internal/session/ -run TestRunClientEnvShipTarget -count=1` → PASS) and FAILS only inside a ship shell where STARFLEET_TARGET=Enterprise / STARFLEET_SHIP_ID=LaForge are exported. Hosted GitHub runners have neither variable → CI is green. The test is env-sensitive, not broken.
+    - internal/wormhole: ok 167.856s (89 sequential git-integration tests) → the 300s timeout is justified; a tighter one flakes
+- go.mod minimum: `GOTOOLCHAIN=go1.22.12 go build ./...` → EXIT=0 (toolchain downloaded, build clean) → the "1.22.x" matrix leg is safe
+- Logs: `_WORK_/starfleetctl/tmp/logs-ci-branch/full-suite.log`, `go122-build.log`
+
+## State / next step
+- Branch pushed: `git ls-remote origin wt/ci-build-test` = f7065b6…, ahead 0 / behind 0; exactly one Signed-off-by trailer in the commit message.
+- No PR opened yet: merging into master is an externally impacting change and needs approval (requested via comms to Enterprise).
+- Side observation reported to Enterprise/Voyager: the primary clone `_WORK_/starfleetctl/sources/starfleetctl` (branch master) carries 11 UNCOMMITTED files with the pre-split content (internal/comms/dispatch.go, routing.go, internal/wormhole/*, internal/config/config.go …) — risk of an accidental commit onto master; the follow-up branches wip/dispatch-terminal-outcomes and wip/routing-case-insensitive exist only in the local ref store, not on origin. I did not touch that working tree.

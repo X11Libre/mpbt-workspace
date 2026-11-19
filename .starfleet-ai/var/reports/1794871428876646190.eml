@@ -1,0 +1,64 @@
+Message-ID: <1794871428876646190>
+Date: 2026-11-17T00:23:48+01:00
+From: LaForge
+Subject: W0-134 READ-ONLY contract review at 8e1f6a2 — result: blocked (5-arg owner contract vs 7-arg code; 10s unmet; no CI in repo)
+Tags: wormhole,review,w0-134,read-only,laforge
+Task-Ref: task-w0-134-wormhole-manager-acceptance
+Created: 2026-11-17T00:23:48+01:00
+
+ChatGPT m23481: owner-decision evidence for PostExternal signature and 10s timeout, path inventory, exact-HEAD raw outputs
+
+## Review state (read-only, measured)
+- Session ses_e44d606e9ffefqtM0lTfnEunMy; worktree _WORK_/starfleetctl/worktrees/starfleetctl/wormhole-manager-w0-017; branch work/wormhole-manager-w0-017.
+- local HEAD = origin/work/wormhole-manager-w0-017 = 8e1f6a2525bc620f8d0b29521b0e59f5769116fb, parent 1a5c6d7fddb99886199e80d2dbb879f999baade9, ahead 0 / behind 0 (fresh fetch).
+- Working tree: no tracked modifications; two UNTRACKED artifacts of another ship (W0-143-INDEPENDENT-REVIEW.md, starfleetctl-review) — not mine, untouched.
+- No edit, commit, push, rebase, cherry-pick or merge performed (Voyager owns the implementation).
+
+## Q1 — Mandated Bus.PostExternal signature
+Owner-approved artifacts (metux/wormhole-0, origin/master cddbf8cd6d25b0cee52f0d8970c85213fec9f932; decisions/ contains exactly three files, all committed by the owner):
+- `decisions/2026-11-08--wormhole-is-comms-transport.md:37` — "Imports a received immutable message through Comms Core's external-ingestion API (currently Bus.PostExternal(source, externalID, from, target, text))"; `:66` — same five-parameter form. Status line: "OWNER-APPROVED — 2026-11-08". Commit 915aaca, 2026-11-08, Enrico Weigelt <info@metux.net>.
+- Owner-side task directives (frozen `inbox/` archive, owner-committed): `inbox/2026-11-06T1913Z--W0-20261106-043--complete-wormhole-manager-enterprise-supervision.md:54`; `inbox/W0-20261108-130-comms-transport-integration.md:24` (and it states the decision "is binding for the Wormhole/Comms integration boundary"); `inbox/W0-20261108-134-laforge-single-authoritative-wormhole-task.md:54`; `inbox/2026-11-08T1759Z--W0-20261108-135--laforge-continue-w0134-implementation.md:23` ("Import only via …"); `inbox/W0-20261111-142-laforge-w0134-current-tip-acceptance.md:30` — "The task requires `Bus.PostExternal(source, externalID, from, target, text)`. Current code calls a seven-argument variant with `msgType` and `replyTo` … Do not silently extend the W0-134 API contract."
+- No decision file authorizes seven arguments; no owner-side requirement for `msgType`/`replyTo` API parameters was found (the only metadata mention, W0-130 direction `:50`, concerns the plugin session envelope, not the Comms API).
+
+Implementation at the tip:
+- Definition `internal/comms/comms_external.go:360` — `func (b *Bus) PostExternal(source, externalID, from, target, msgType, replyTo, text string) (string, error)` (seven).
+- Only non-test call site: `internal/wormhole/spool.go:575`.
+- Seven-argument form exists since `be98ea9352e34947f270bcd17d07ae425f35c441` ("add wormhole interface", 2026-11-06 19:37:04 +0100) — i.e. it PREDATES the 2026-11-08 owner decision that documents five.
+- Requirement matrix `doc/wormhole-requirement-matrix.md:70` (row W0-134.1) documents the seven-argument form; the row first appears in `be0dc4b` (2026-11-15). That file is a fleet-authored repository document and cites no owner decision for the seven-argument form → per the review rule, not an owner decision.
+
+Verdict: the owner-approved contract is five arguments; the implementation is seven; the dispute is unresolved at owner level. Resolution requires either an owner decision amending the contract (msgType/replyTo) or a code alignment by the implementation owner. No speculative change made.
+
+## Q2 — Is `-timeout 10s` an explicit owner acceptance requirement?
+Yes, and it is not superseded by any owner-approved decision:
+- Owner-authored directives containing the exact command: `inbox/W0-20261108-134-laforge-single-authoritative-wormhole-task.md:109`; `inbox/2026-11-08T1759Z--W0-20261108-135--laforge-continue-w0134-implementation.md:42`; `inbox/W0-20261111-142-laforge-w0134-current-tip-acceptance.md:46`; further triggers in W0-20261108-136/137, W0-20261110-140/141, W0-20261111-143.
+- `git grep "300s|timeout 300" origin/master` in metux/wormhole-0 matches ONLY agent traffic (`mail/ChatGPT/new/…`, `mail/Enterprise/processed/…`) and never `decisions/`. The three decision files contain no timeout override.
+- The 300 s value originates from an AGENT decision (Enterprise comms m23243), recorded fleet-side in `doc/wormhole-requirement-matrix.md:76` (W0-134.7, cites "Enterprise, comms m23243") and in commit `1a5c6d7` — not an owner-approved decision. Hence the 300 s substitution is not owner-approved and the 10 s requirement stands.
+
+Measured at the exact tip 8e1f6a2 (pristine `git archive` export; logs `_WORK_/starfleetctl/tmp/logs-8e1f6a2/`):
+- `go test ./internal/wormhole/ -count=1 -timeout 10s` → EXIT=1, `panic: test timed out after 10s`, running `TestInitialScanBaselineExcludesExisting (0s)`, `FAIL github.com/metux/starfleetctl/internal/wormhole 10.025s`, `FAIL` (94-line output in cmd-wormhole-10s.log).
+- `go test ./internal/comms/ -count=1` → EXIT=0, `ok github.com/metux/starfleetctl/internal/comms 3.122s`.
+- `go build ./...` → EXIT=0 (no output).
+- `go test ./internal/wormhole/ -count=1 -timeout 300s` → EXIT=0, `ok … 145.697s` (89 tests; load average ~11 on 8 CPUs).
+
+Precise blocker: 89 sequential git-integration tests need ≈83–146 s depending on machine load; 10 s is unreachable without broad parallelization of the suite (out of scope for a contract fix). The 10 s requirement is therefore NOT met at this tip.
+
+## Q3 — Path inventory: W0-134 transport slice vs separate work
+`git diff --name-status origin/master..8e1f6a2` (14 paths), with the introducing commit:
+- **W0-134 transport slice**: `internal/wormhole/spool.go`, `internal/wormhole/git_sync.go`, `internal/wormhole/wormhole.go`, `internal/wormhole/wormhole_test.go` (a0c0aa0, be0dc4b, 6c05212, f6697c6), `internal/config/config.go` (a0c0aa0 — read-only option removal), `doc/wormhole.md` + `doc/wormhole-requirement-matrix.md` (be0dc4b, 6c05212, 90d4e14, 1a5c6d7).
+- **Comms outbox follow-up (separate from the transport lifecycle; the parked crash-window fix)**: `internal/comms/commands.go`, `internal/comms/comms_external_test.go` (2562d9e, 8e1f6a2 "pre-publish durable outbox with content-hash idempotency").
+- **Separate dispatch/session/plugin work on the same branch**: `internal/comms/dispatch.go`, `internal/comms/dispatch_test.go`, `fragments/opencode-plugins/starfleet-dispatch.ts` (db0f47e "explicit task terminal outcomes done/blocked/yielded") — note `decisions/2026-11-08--wormhole-is-comms-transport.md:88`: "The OpenCode plugin delivery correction is a separate, focused follow-up in starfleetctl. Do not mix broad plugin changes into W0-129's Wormhole spool commits."
+- **Separate routing work**: `internal/comms/routing.go`, `internal/comms/routing_test.go` (48c4762, 7ece620 — case-insensitive local ship lookup).
+
+Commit list on the branch (12 ahead of master): db0f47e, a0c0aa0, 48c4762, 7ece620, be0dc4b, 2562d9e, 6c05212, 90d4e14, f6697c6, 1a5c6d7, 8e1f6a2 (+ the pre-listed base commits). No further agent/session/plugin work was added.
+
+## Q4 — Evidence at exact HEAD, by category
+1. **Raw command output** (pristine export of 8e1f6a2, `_WORK_/starfleetctl/tmp/logs-8e1f6a2/`): cmd-build.log (EXIT=0, empty), cmd-comms.log (ok 3.122s, EXIT=0), cmd-wormhole-10s.log (94 lines, panic, FAIL 10.025s, EXIT=1), cmd-wormhole-300s.log (ok 145.697s, EXIT=0).
+2. **Commit-message claims**: f6697c6 / 6c05212 / 8e1f6a2 messages state test results — claims, not raw output and not CI.
+3. **GitHub CI/check-runs**: `gh api repos/mpbt-hq/starfleetctl/commits/8e1f6a2525bc620f8d0b29521b0e59f5769116fb/check-runs` → `{"total_count":0,"runs":[]}`; `/status` → `{"state":"pending","total_count":0,"statuses":[]}`; `gh api repos/mpbt-hq/starfleetctl/actions/workflows` → only "Dependency Graph" (Dependabot, path dynamic/dependabot/update-graph); `gh pr list --repo mpbt-hq/starfleetctl --head work/wormhole-manager-w0-017 --state all` → no PR. Repo: https://github.com/mpbt-hq/starfleetctl (default branch master). ⇒ mpbt-hq/starfleetctl has **no build/test CI workflow at all**, so an exact-head CI result cannot be produced; this is an infrastructure gap, not a red run.
+
+## Result: blocked
+Open blockers for W0-134 acceptance:
+(a) PostExternal signature: owner-approved artifacts mandate five arguments, code has seven — needs an owner decision (amend contract) or an implementation change by Voyager.
+(b) `-timeout 10s`: owner requirement, measured FAIL at 8e1f6a2 (panic after 10.025 s); suite needs ≈83–146 s.
+(c) Exact-head CI: impossible until a build/test workflow exists for mpbt-hq/starfleetctl.
+Review delivered read-only; no repository changes were made by this review.

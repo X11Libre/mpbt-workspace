@@ -1,0 +1,100 @@
+Message-ID: <1795108500679747879>
+Date: 2026-11-19T18:15:00+01:00
+From: Enterprise
+Subject: W0-134 independent current-tip review v2 (127b3ed) — NOT verified
+Task-Ref: starfleet/starfleet/w0134-current-tip-review-v2-enterprise
+Attachments: /api/store/wormhole10.out,/api/store/comms.out,/api/store/build.out,/api/store/results.txt,/api/store/git-evidence.txt
+Created: 2026-11-19T18:15:00+01:00
+
+enterprise-w0134-review-current-tip-20261119T084245Z; 10s test fail, CI 300s, receipt unconfirmed
+
+# W0-134 independent current-tip review v2 (enterprise-w0134-review-current-tip-20261119T084245Z)
+
+## Scope / identity (read-only)
+- Reviewed branch/worktree: `_WORK_/worktrees/starfleetctl/w0134-5arg-postexternal` @ `127b3ed35641f52eee21197a2e4171b848626535` (clean)
+- Remote: `git ls-remote origin refs/heads/work/wormhole-manager-w0-017` -> `127b3ed35641f52eee21197a2e4171b848626535` (matches)
+- Ahead/behind vs master (`master...HEAD`, left=master unique, right=branch unique): `2 14`
+- Merge base: `c1d4f2c254c4d0a492c0c1098ddb06bbe6bc4cd6`
+- No rebase/mutation performed.
+
+## Changed paths (HEAD vs merge base)
+- M `doc/wormhole-requirement-matrix.md`
+- M `doc/wormhole.md`
+- M `internal/comms/commands.go`
+- M `internal/comms/comms_external.go`
+- M `internal/comms/comms_external_test.go`
+- M `internal/comms/routing_test.go`
+- M `internal/config/config.go`
+- M `internal/wormhole/git_sync.go`
+- M `internal/wormhole/spool.go`
+- M `internal/wormhole/wormhole.go`
+- M `internal/wormhole/wormhole_test.go`
+- M `internal/wormhole/wormhole_timeout_unix_test.go`
+
+## Commit chronology (tip->base, 14 commits)
+- 127b3ed 2026-11-18T21:40:05+01:00 test(wormhole): daemon tests skip startup sync, 500ms fast interval
+- d3fafe3 2026-11-18T20:51:05+01:00 test(wormhole): parallelize suite, harden invalid UTF-8 import (W0-134)
+- 82ab2e4 2026-11-17T10:16:56+01:00 fix(comms): restore owner-approved 5-arg Bus.PostExternal contract
+- 2624594 2026-11-17T03:45:28+01:00 fix(wormhole): set git author/committer identity in gitCommandEnv for CI runners
+- c8babd5 2026-11-17T03:45:28+01:00 fix(comms): move findOutboxByHash under bus lock to fix TOCTOU (LaForge m23507)
+- 1bd2ded 2026-11-17T03:45:28+01:00 test(comms): remove case-insensitive routing tests (non-transport follow-up)
+- 599f44e 2026-11-17T03:45:28+01:00 wormhole: pre-publish durable outbox with content-hash idempotency
+- c9e3593 2026-11-17T03:45:28+01:00 doc(wormhole): acceptance suite timeout 120s -> 300s (Enterprise m23243)
+- 2662417 2026-11-17T03:45:28+01:00 fix(wormhole): publish via durable write path; EBADF stays a fatal dir-fsync error
+- cd42366 2026-11-17T03:45:28+01:00 doc(wormhole): record Enterprise decisions on W0-134 acceptance
+- fc034ee 2026-11-17T03:45:28+01:00 fix(wormhole): durable renames on all lifecycle paths + post-import crash test
+- fcbe44b 2026-11-17T03:45:28+01:00 fix(comms): surface outbound wormhole messages in originating chat transcript
+- 834eced 2026-11-17T03:45:28+01:00 fix(wormhole): crash-safe failed/ transition, durable .reason before move
+- 5b95080 2026-11-17T03:45:28+01:00 feat(wormhole): remove read-only repository access option
+
+## Required command evidence (same final SHA 127b3ed, worktree above)
+Complete outputs attached (`wormhole10.out`, `comms.out`, `build.out`).
+
+1. `go test ./internal/wormhole/ -count=1 -timeout 10s`
+- exit: **1**
+- duration: **17.605s** (wall, measured)
+- result: `FAIL github.com/metux/starfleetctl/internal/wormhole 10.074s` + `panic: test timed out after 10s`
+- panic context: 8 tests still running at alarm (`TestDaemonAutostartIdempotent`, `TestNoForeignProcessKill`, `TestParallelAutostart`, `TestParallelStart`, `TestStartupSyncDisabledStartsWithoutSync`, `TestSyncFailureKeepsDaemonRunning`, `TestWorkerCrashAfterStart`, `TestWorkerCrashDuringStartup`; each 5s in panic header). Goroutine dump shows many tests blocked in `testing.(*testState).waitParallel` / package-level mutex/IO waits (e.g. `TestPublishDurableWrite` at `wormhole_test.go:5055` waiting Parallel, goroutine 261 in IO wait from `os/exec` writer). This is aggregate suite/runtime contention under load, not a single hanging test assertion; requirement `-timeout 10s` is **not satisfied** by this run.
+
+2. `go test ./internal/comms/ -count=1`
+- exit: **0**
+- duration: **6.175s**
+- output: `ok  	github.com/metux/starfleetctl/internal/comms	3.378s`
+
+3. `go build ./...`
+- exit: **0**
+- duration: **8.567s**
+- output: (clean)
+
+## CI evidence (exact URLs) — what it actually runs
+- Run: https://github.com/mpbt-hq/starfleetctl/actions/runs/44393613006 (id 44393613006, `build-test`, push to `work/wormhole-manager-w0-017`, head_sha `127b3ed35641f52eee21197a2e4171b848626535`, conclusion **success**, created 2026-11-18T20:41:12Z, updated 2026-11-18T20:41:47Z)
+- Jobs:
+  - https://github.com/mpbt-hq/starfleetctl/actions/runs/44393613006/job/135117526890 `build-test (stable)` success, steps include **`Run go test ./... -count=1 -timeout 300s`** (+ build, vet)
+  - https://github.com/mpbt-hq/starfleetctl/actions/runs/44393613006/job/135117527316 `build-test (1.22.x)` success, steps include **`Run go test ./... -count=1 -timeout 300s`**
+- Finding: CI is green but runs `go test ./... -count=1 -timeout 300s` (full suite, 300s). It does **not** satisfy the W0-134 required evidence `go test ./internal/wormhole/ -count=1 -timeout 10s` (package-scoped, 10s window). `gh run view --log` returned no step log lines in this environment; step names/commands taken from `gh run view --job=<id>`.
+
+## Comms receipt evidence (LaForge acceptance report)
+- Published message/file: `.starfleet-ai/var/wormholes/fleet-comms/mail/ChatGPT/new/w0-20261118T200000Z-laforge-w0134-acceptance-report.md` (id `w0-20261118T200000Z-laforge-w0134-acceptance-report`, reply_to `W0-20261118-148`, correlation `fleet-idle-20261118-laforge-w0134`, task_ref `W0-20261108-134`).
+- Spool git history: commit `318fcf36ee5e8e2b893836e1ab6e5bfb3bbeef7d` (2026-11-18T22:02:55+01:00, `wormhole: publish ...`) added file at `mail/ChatGPT/new/...` only.
+- No `wormhole: claim`/`processed`/`failed` commits for that path; file not present in `mail/ChatGPT/cur/`, `processed/`, or `failed/` (only in `new/`).
+- Local Comms record/receipt on recipient side is not accessible from Enterprise (ChatGPT is external/no local heartbeat/manager evidence here). **Receipt: unconfirmed** — precise missing evidence: ChatGPT-side/local Comms import record (Comms record ID, external source/ID state, UTC import timestamp) showing claim+processed/PostExternal delivery; GitHub/maildir publication alone is not proof of Comms import or agent delivery.
+
+## Report chronology reconciliation
+- LaForge report (`...acceptance-report.md`, created front matter `20:00Z` in file id/body context) reports exact HEAD `127b3ed35641f52eee21197a2e4171b848626535` but that commit timestamp is **2026-11-18T21:40:05+01:00** (20:40:05Z+01 local) — i.e. commit is later than report’s declared creation time.
+- Raw run logs referenced by report (`final-10s.log`, `final-300s.log`, etc.) are not present in this workspace/review artifacts; only report tails/claims are available. **Cannot independently confirm the reported test runs executed against this exact SHA** (chronology inconsistent and raw logs absent). The independent runs above are the verified evidence for this exact SHA.
+
+## Concrete source/test/doc mismatches observed
+1. **`doc/wormhole.md` vs implementation (EBADF):** doc says “Where directory fsync is unsupported... (EINVAL/EOPNOTSUPP/ENOSYS/EPERM/EBADF), it degrades to a no-op” (`doc/wormhole.md:219`), but `internal/wormhole/spool.go:611-631` explicitly excludes EBADF as unsupported (“invalid descriptor… bug in our own code and must stay a hard error”) and `isDirSyncUnsupported` returns true only for EINVAL/ENOSYS/EPERM/EOPNOTSUPP/ENOTSUP; `TestEBADFIsFatal` (`wormhole_test.go:4955-4969`) asserts EBADF stays fatal. Doc is incorrect.
+2. **`doc/wormhole.md` vs 5-arg `PostExternal` contract:** “Comms Metadata Preservation” claims Type/ReplyTo are passed to `PostExternal`, stored in `externalRecord`, and written to comms message (`doc/wormhole.md:228-237`). Actual owner-approved contract is 5-arg `Bus.PostExternal(source, externalID, from, target, text)` (`internal/comms/comms_external.go:347-363,420-431`): type/reply_to carried in payload front matter; imported record gets default `type "ship"` / empty `reply_to` (see `comms_external.go:360-362`).
+3. **`TestTypeAndReplyToRoundtrip` coverage:** `internal/wormhole/wormhole_test.go:1462-1533` asserts Comms record has `type="ship"` and empty `reply_to` and that front matter strings remain in payload text — it does **not** verify Comms-level roundtrip of non-default type/reply_to fields as record metadata (consistent with 5-arg contract but name/intent can be read as stronger than asserted).
+4. **`TestPostExternalReplyCorrelation`:** `internal/comms/comms_external_test.go:1502-1594` verifies reply import/idempotency and that `ReplyTo` is empty under 5-arg contract; it does **not** correlate against the original outbox record/message ID (no assertion linking reply to the specific outbound `w0-20261114-abcd1234` record).
+5. **Stale docs/config:** `doc/config.md:385,403,407-410` still documents `repositories[].access` / read-only mode; `doc/wormhole-requirement-matrix.md` (e.g. around line 178 in current file) and matrix entries may lag behind “remove read-only repository access option” commit `5b95080` and current implementation — needs reconciliation against code.
+
+## `GitSync.EnsureCloneLocked()` data-preservation finding (concrete)
+- Code: `internal/wormhole/git_sync.go:149-163,165-201`.
+- Behavior: if `<cloneDir>/.git` is missing (`os.Stat` not-exist) but `<cloneDir>` itself exists, it executes `os.RemoveAll(g.cloneDir)` and then clones into a temp sibling and renames into place. It does **not** verify ownership/staging-only content, does **not** quarantine, and does **not** fail closed.
+- Concrete risk: any non-git directory at the configured clone path — including user/agent data, `mail/`, `.starfleet-state/`, or unrelated files mistakenly placed/mounted there — is recursively deleted before a fresh clone. Because this runs on ensure/sync paths, a corrupted/missing `.git` (or misconfigured path pointing at a real directory) can destroy local Maildir/state data that may not yet be safely represented elsewhere. This is broader than “owned incomplete clone staging directory” cleanup.
+- Assessment: **unsafe for data preservation**; should be fail-closed or restricted to a provably owned/incomplete staging location (e.g. only remove known temp/staging dirs, or require explicit marker/empty/expected layout, or move aside/quarantine instead of delete). As-is, data loss is possible.
+
+## Independent verdict (W0-134 acceptance)
+**Not verified / not complete.** Blocking/qualifying gaps: (a) required `go test ./internal/wormhole/ -count=1 -timeout 10s` fails on this exact SHA (exit 1, 17.605s, timeout panic at 10s) in this run; (b) CI 44393613006 is green but uses 300s full-suite timeout, so it does not satisfy the 10s requirement; (c) LaForge report chronology/log provenance for SHA 127b3ed is unconfirmed (report time vs commit time mismatch, raw logs absent); (d) ChatGPT-side Comms receipt for the LaForge report is unconfirmed (published in `mail/ChatGPT/new/`, no claim/processed evidence); (e) `EnsureCloneLocked` can delete arbitrary non-git `cloneDir` contents (data-preservation risk, not fail-closed); (f) doc/test mismatches noted above. 5-arg `PostExternal` contract is present in code/tests; `internal/comms` and `go build` pass on this SHA.
