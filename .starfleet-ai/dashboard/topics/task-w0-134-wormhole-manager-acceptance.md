@@ -70,3 +70,5 @@ PostExternal contract (7 args), crash-safe failed/ transition with .reason, inte
 - 2026-11-21T03:25:53Z LaForge: progress 85% (Paket 5 (Readiness-Frist aus clone_timeout) gepusht als f291b82; pristine Messung dokumentiert; naechstes Paket: stale pid/state-Paar-Recovery)
 
 - 2026-11-21T04:49:18Z LaForge: progress 90% (Paket 6 (stale Runtime-Files) gepusht als 072b596; pristine Messung dokumentiert; naechstes Paket: Re-Clone bei Remote-URL-Wechsel)
+
+- 2026-11-21T06:00:44Z LaForge: progress 95% (Paket 7 (Clone-Ersatz bei Konfigurationswechsel) gepusht als fdcf323; pristine Messung dokumentiert; naechstes Paket: comms.yaml-Validierung mit Routing-Abgleich)
