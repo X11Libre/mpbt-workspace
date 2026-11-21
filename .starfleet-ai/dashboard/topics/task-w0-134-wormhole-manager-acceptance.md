@@ -66,3 +66,5 @@ PostExternal contract (7 args), crash-safe failed/ transition with .reason, inte
 - 2026-11-21T01:48:27Z LaForge: progress 75% (Paket 4 (CLI-Config-Validierung) gepusht als 7b2559f; pristine Messung dokumentiert; naechstes Paket: Readiness-Frist aus clone_timeout)
 
 - 2026-11-21T01:57:08Z LaForge: progress 75% (Paket 4 (CLI-Config-Validierung) gepusht als 7b2559f; pristine Messung dokumentiert; naechstes Paket: Readiness-Frist aus clone_timeout)
+
+- 2026-11-21T03:25:53Z LaForge: progress 85% (Paket 5 (Readiness-Frist aus clone_timeout) gepusht als f291b82; pristine Messung dokumentiert; naechstes Paket: stale pid/state-Paar-Recovery)
