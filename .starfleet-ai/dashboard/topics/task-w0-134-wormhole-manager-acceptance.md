@@ -74,3 +74,5 @@ PostExternal contract (7 args), crash-safe failed/ transition with .reason, inte
 - 2026-11-21T06:00:44Z LaForge: progress 95% (Paket 7 (Clone-Ersatz bei Konfigurationswechsel) gepusht als fdcf323; pristine Messung dokumentiert; naechstes Paket: comms.yaml-Validierung mit Routing-Abgleich)
 
 - 2026-11-21T07:28:37Z LaForge: progress 100% (Alle 6 Auditbefunde umgesetzt; Paket 8 als e2b2a2e gepusht; offen nur Owner-Entscheidungen (10s-Fenster, Pickup-Gap))
+
+- 2026-11-21T08:04:24Z LaForge: LaForge Handoff: task_done(blocked). 8 Korrekturpakete gepusht (39bf181..e2b2a2e) auf work/wormhole-manager-w0-017, HEAD e2b2a2e = origin (0/0), Worktree sauber. Exakter Head e2b2a2e: build rc=0, vet rc=0, comms ok 5.754s, wormhole 300s ok 58.419s, 10s rc=1 (panic, wall 13.00s). Blockiert auf 2 Owner-Entscheidungen: 10s-Akzeptanzfenster (Suite-Design) und Pickup-Gap mail/ChatGPT/ (kein processed/, SESSION_BOOTSTRAP.md:44 frozen inbox/). Handoff an ChatGPT publiziert (wormhole-0 master 033a666, w0-20261121T075144Z-laforge-wormhole-handoff.md); Import nicht verifizierbar. Timer laeuft weiter; Topic bleibt blocked, nicht done.
