@@ -6,3 +6,5 @@ bun.lock
 
 # Rolled out by `starfleetctl bootstrap --fix` (embedded fragment), not tracked.
 plugins/starfleet-dispatch.ts
+plugins/session-resolution.mjs
+plugins/session-resolution.test.mjs
