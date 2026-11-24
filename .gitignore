@@ -1,9 +1,7 @@
 /_WORK_
-/.claude/hooks/
 /agents.d/starfleet/
 /.claude/skills/starfleet/
 /CLAUDE.md
-/.opencode/plugins/starfleet-dispatch.ts
 /tmp
 
 # Coredumps von Testlaeufen (z. B. Xvfb aus _WORK_/…/prefix-*)
@@ -11,3 +9,8 @@ core
 core.*
 /.starfleet-ai/var/prclaims/
 /.starfleet-ai/var/wormholes/
+/.claude/hooks/agent-permission-hook
+/.opencode/plugins/session-resolution.mjs
+/.opencode/plugins/session-resolution.test.mjs
+/.opencode/plugins/starfleet-dispatch.test.ts
+/.opencode/plugins/starfleet-dispatch.ts
