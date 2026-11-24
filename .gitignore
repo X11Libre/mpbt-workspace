@@ -4,8 +4,6 @@
 /.claude/skills/starfleet/
 /CLAUDE.md
 /.opencode/plugins/starfleet-dispatch.ts
-/.opencode/plugins/session-resolution.mjs
-/.opencode/plugins/session-resolution.test.mjs
 /tmp
 
 # Coredumps von Testlaeufen (z. B. Xvfb aus _WORK_/…/prefix-*)
