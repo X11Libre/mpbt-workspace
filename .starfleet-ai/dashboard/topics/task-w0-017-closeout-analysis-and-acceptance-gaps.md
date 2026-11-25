@@ -1,7 +1,7 @@
 Title: "W0-017 closeout analysis and acceptance gaps"
 Category: active
 Kind: "task"
-Status: "in-progress"
+Status: "done"
 Assigned-To: "Discovery"
 Created-By: "Discovery"
 Created: "2026-11-24T19:32:03Z"
@@ -33,3 +33,5 @@ Doc-Ref: "—"
 ❌ TASK w0-20261114T124100Z (chat history display): Outbox recording implemented+tested but no chat-history display/UI integration test exists.
 
 Evidence: go build ./... exit 0; go vet ./... exit 0; go test ./internal/comms/... ./internal/wormhole/... -count=1 PASS; doc/wormhole-requirement-matrix.md updated.)
+
+- 2026-11-25T10:14:36Z Discovery: completed
