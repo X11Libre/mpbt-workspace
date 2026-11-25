@@ -1,7 +1,7 @@
 Title: "Read-only review: Xserver PR #4170 XTestFakeInput valuator boundary"
 Category: active
 Kind: "task"
-Status: "in-progress"
+Status: "done"
 Assigned-To: "Discovery"
 Created-By: "Discovery"
 Created: "2026-11-25T19:26:14Z"
@@ -99,3 +99,5 @@ PR #4170 has a BLOCKER: test does not exercise the MAX_VALUATORS (36) stack boun
 3. A C unit test should be added that directly exercises the MAX_VALUATORS boundary with a mock device
 
 ADVISORY: Do not merge until test coverage of actual MAX_VALUATORS boundary is addressed.)
+
+- 2026-11-25T19:28:52Z Discovery: completed
