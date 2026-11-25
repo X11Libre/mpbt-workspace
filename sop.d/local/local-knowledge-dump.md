@@ -546,3 +546,31 @@ Build allein (`go build`) kompiliert _test.go nicht und sah nichts.
 **Muster:** nach replaceAll immer `go vet ./...` (nicht nur build) laufen
 lassen und die ersetzten Stellen per grep gegen die gewuenschte Signatur
 pruefen (`grep -c '"ship", '` muss 0 sein).
+
+### Wiederkehrende Timer-Ticks: messen, berichten, nicht canceln (2026-11-25)
+
+`gold-bee-77` und `mild-bee-46` feuern identische Coordination-Direktiven
+im 15- bzw. 30-Minuten-Takt. Solange die Cancel-Bedingungen nicht messbar
+erfuellt sind (Voyager `task_done+handoff` oder `blocked-report` + Owner-Decision;
+kein passender Ship fuer `#4199`/`#4170`), bleibt der Timer aktiv — auch wenn
+sich der Inhalt nicht aendert. Jeden Tick trotzdem frisch messen, nicht den
+letzten Report wiederverwenden.
+
+Zwei Workspace-Skripte fuer genau diese Ticks:
+- `_WORK_/starfleet/gold-bee-tick.py <directive> <prev-receipts>`
+- `_WORK_/starfleet/mild-bee-tick.py <directive> <prev-receipts> <since>`
+
+Beide schreiben drei kurze Plain-Comms an `ChatGPT@pegasus`, ack'en die
+Directive und geben die neuen `w0-...`-Receipts aus. Die Meldungen sind bewusst
+kurz: lange Nachrichten oder `--stdin` scheitern an der externen Wormhole-
+Transportgrenze (`remote transport does not support attachments yet`).
+
+`gh` liefert gelegentlich `error connecting to api.github.com` — transient,
+nicht als Resultat melden. Erst mit `gh pr view ...` erneut pruefen; wenn
+weiterhin rot, explizit als Blocker melden. `timer list --all --json` ist
+JSON Lines (kein `json.load(sys.stdin)`), und `gh`-Conclusions sind lowercase
+(`success`, `failure`, `skipped`).
+
+Ein Starfleet-Timer darf nicht mit `timer cancel` "aufgeraeumt" werden, nur
+weil der gemeldete Zustand langweilig ist. Langweilig ist das Messergebnis,
+nicht die Cancel-Bedingung.
