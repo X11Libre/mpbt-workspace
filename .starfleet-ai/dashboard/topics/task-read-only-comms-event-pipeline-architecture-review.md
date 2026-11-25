@@ -1,7 +1,7 @@
 Title: "Read-only Comms event pipeline architecture review"
 Category: active
 Kind: "task"
-Status: "in-progress"
+Status: "done"
 Assigned-To: "Discovery"
 Created-By: "Discovery"
 Created: "2026-11-25T17:31:48Z"
@@ -114,3 +114,5 @@ CURRENT STATE:
 6. **Merge decision**: Either merge feat/comms-event-pipeline into work/wormhole-manager-w0-017 (or master), or declare one as the active line. Current divergence creates maintenance burden.
 
 7. **Plugin version sync**: feat/comms-event-pipeline is at 2.5.18; current deployed is 2.5.17 (per Enterprise coordination). Ensure version bump reflects actual changes.)
+
+- 2026-11-25T17:36:54Z Discovery: completed
