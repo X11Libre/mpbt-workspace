@@ -1,0 +1,73 @@
+Message-ID: <1795599363072113913>
+Date: 2026-11-25T10:36:03+01:00
+From: Enterprise
+Subject: Nightly xorg/main backport 2026-11-25: Entscheidung vor Phase III
+Tags: backport,xorg-main,nightly
+Task-Ref: nightly-xorg-main-backport-2026-11-25
+Created: 2026-11-25T10:36:03+01:00
+
+8 Delta-Commits klassifiziert, Phase-III-Freigabe ausstehend
+
+# Nightly xorg/main backport pipeline 2026-11-25 — Entscheidungsbericht
+
+## Messbasis
+
+- Task: `nightly-xorg-main-backport-2026-11-25` (in-progress, Enterprise)
+- Directive: `m25437`
+- `xorg/main`: `72061c759c34888c1324efc839705e5e2c81043b`
+- Tracker vor dem Lauf:
+  - master: `d4669d540649d0768e8857f180aeb3814d7aa28d`
+  - 25.0: `f6839e1d9b`
+  - 25.1: `d4669d540649d0768e8857f180aeb3814d7aa28d`
+  - 25.2: `d4669d540649d0768e8857f180aeb3814d7aa28d`
+- Delta: 7 Master-Commits + `d4669d5406` nur für 25.0. Alle Patch-IDs per `git cherry` fehlend.
+- Keine offenen PRs auf den vier Inkubatoren.
+
+## Master-Delta (7 Commits)
+
+| SHA | Subject | Einordnung |
+|---|---|---|
+| `635a1ab6ebab6afe45c38dd89de87f36c7cc7f6b` | dix: Avoid resetting after rejecting the first client | Bugfix — alle Ziele |
+| `7af58a6ced1466bf1591f8dd68c55c06a1b0be32` | Xi: return the number of events from input_constrain_cursor() | API-Refactoring — nur master; Release: REL |
+| `a85e1eca0c9f1b08e460f6eb86eeff65ba55797d` | include: add checked-math.h with type-safe overflow checkers | Feature/Header — nur master; Release: REL |
+| `e85b40c7a3a9441e30dddb733d7cf5bf677fffb6` | rootless: Restore pixmaps of a window that leaves a drawing frame | UAF-Bugfix — alle Ziele |
+| `ae1353d38d992fb3f59ce8950a9d08f78df464c8` | glx/swrast: check for NULL DRI context after createNewContext | NULL-Deref-Bugfix — alle Ziele |
+| `9ec751211599355dabbd2040e2711d58b4c1f017` | rootless: Add a pending frame resize that consumers apply before use | Feature — nur master; Release: REL |
+| `72061c759c34888c1324efc839705e5e2c81043b` | rootless: Defer frame resize and lock for unrealized top-level windows | Feature, hängt an `9ec7512115` — nur master; Release: REL |
+
+`9ec7512115` + `72061c759c` gehören in denselben PR.
+
+## 25.0-Extra
+
+- `d4669d540649d0768e8857f180aeb3814d7aa28d` — Fix remaining libX11 Xkb symbol conflicts.
+- Einordnung: Bugfix/Build-Fix, für 25.0 zu übernehmen. Master/25.1/25.2-Tracker sind bereits darüber.
+- Der Master-Inkubator enthält die angepasste Version `9236592d52` plus `8aa12ebc3f`; letzterer ist kein gültiger Fix:
+  `}; XkbLogoDoodadRec, *XkbLogoDoodadPtr` statt `} XkbLogoDoodadRec, *XkbLogoDoodadPtr;`.
+- 25.0 übernimmt die korrekte Form; der Master-Inkubator bekommt einen Folge-Commit.
+
+## Trailer
+
+- Vorhanden: `635a1ab6eb`, `9ec7512115`, `72061c759c` (Signed-off-by + Part-of), `e85b40c7a3` (Signed-off-by, kein Part-of).
+- Fehlend und vom Original-Autor nachzutragen:
+  - `7af58a6ced` — Dirk Müller `<dirk@dmllr.de>`
+  - `a85e1eca0c` — Peter Hutterer `<peter.hutterer@who-t.net>`
+  - `ae1353d38d` — Peter Hutterer `<peter.hutterer@who-t.net>`
+  - `d4669d5406` — Pierre Ossman `<ossman@cendio.se>`
+- `e85b40c7a3`: kein MR-Link im Upstream-Commit, nur `Fixes: https://github.com/XQuartz/XQuartz/issues/524`. Vorgeschlagene Herkunft:
+  `Part-of: <https://gitlab.freedesktop.org/xorg/xserver/-/commit/e85b40c7a3a9441e30dddb733d7cf5bf677fffb6>`.
+- Nicht `git commit -s` verwenden; sonst doppelter oder falscher Trailer.
+
+## Pfad-Anpassungen
+
+- `7af58a6ced`: master `Xext/xinput/xibarriers.c`; 25.0/25.1 `Xi/xibarriers.c`; 25.2 `Xext/xinput/xibarriers.c`.
+- `ae1353d38d`: master/25.2 `Xext/glx/glx_dri/glxdriswrast.c`; 25.0 `glx/glxdriswrast.c`; 25.1 `glx/glx_dri/glxdriswrast.c`.
+- `d4669d5406`: master/25.2 `Xext/xkeyboard/xkbgeom_priv.h`; 25.0/25.1 `xkb/xkbgeom.h`.
+- `include/checked-math.h` fehlt auf allen Targets — für master neu anzulegen.
+- Rootless-Dateien existieren auf allen Targets; Pending-Resize-Felder fehlen dort (Feature, Release-Skip).
+
+## Nächste Schritte / Entscheidung
+
+1. Inkubatoren rebasen und oben genannte Commits übernehmen; Tracker auf `72061c759c34888c1324efc839705e5e2c81043b` vorziehen.
+2. Master-Inkubator-Semicolon-Fix korrigieren.
+3. Builds mit `-Dwerror=true` verifizieren.
+4. Vor PR-Eröffnung (Phase III) Freigabe einholen. Keine Release-Merges ohne explizite Praetor-Freigabe; grüne CI allein genügt nicht.

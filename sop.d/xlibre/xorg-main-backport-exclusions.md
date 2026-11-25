@@ -43,6 +43,7 @@ Rebase/Force-Push es nicht zerstören.
 | **WIP** | Bewusst auf einem WIP-Branch für später sichern | Inhalt erledigt, aber nicht im Incubator (Voraussetzung fehlt). Als bearbeitet zählen, nie als Lücke. |
 | **GHC** | GitHub-CI-Konfiguration (`.gitlab-ci/`, `.gitlab-ci.yml`) | Nur Commits auslassen, die **ausschließlich** `.gitlab-ci*` betreffen. Nicht-CI-Teil trotzdem übernehmen. |
 | **N-A** | Voraussetzungs-/Zielcode fehlt im Zielbaum | `git grep` nach Symbol **im Zielzweig** (`origin/<ziel>`), nicht auf master. Im Zweifel: parken und melden. |
+| **REL** | Nicht-Bugfix auf Release-Zweig (Feature/Refactoring/API-Änderung) | Release Rule: nur Crash, Data Corruption, UAF, Security, Build-Break. Master übernimmt dieselben Commits. |
 
 ## Ausgelassene Commits
 
@@ -185,3 +186,62 @@ verworfen), `f8af92cac4` (fdi2iclass.py entfernt; `COPYING` = ours, Lizenzliste 
 **Konsequenz:** Tracker `tracking/xorg/main-on-master` kann auf `ad26c26bf7`
 gezogen werden (alle 39 bearbeitet). **Push von `rfc/backport-master` und Tracker
 erst nach expliziter Praetor-Freigabe** (Option b: kein Push ohne Freigabe).
+
+## Lauf 2026-11-25 — Nightly-Pipeline (`m25437`)
+
+`xorg/main` = `72061c759c34888c1324efc839705e5e2c81043b`. Tracker: master/25.1/25.2
+= `d4669d5406`, 25.0 = `f6839e1d9b`. Delta: 7 Master-Commits + `d4669d5406`
+nur für 25.0. Alle Patch-IDs per `git cherry` fehlend.
+
+**Aufgenommen:** `635a1ab6eb`, `e85b40c7a3`, `ae1353d38d` auf allen vier Zielen;
+`7af58a6ced`, `a85e1eca0c`, `9ec7512115`, `72061c759c` zusätzlich auf master;
+`d4669d5406` zusätzlich auf 25.0 (alte Master-Inkubator-Anpassung `9236592d52`
+mit Korrektur, siehe unten). `9ec7512115` + `72061c759c` sind ein
+zusammenhängendes Rootless-Feature und gehören in denselben PR.
+
+| SHA | Subject | Ziel | Kriterium | Kurze Begründung |
+|---|---|---|---|---|
+| `7af58a6ced` | Xi: return the number of events from input_constrain_cursor() | 25.0/25.1/25.2 | REL | API-/Return-Wert-Refactoring, kein Bugfix. Master übernimmt. |
+| `a85e1eca0c` | include: add checked-math.h with type-safe overflow checkers | 25.0/25.1/25.2 | REL | Neuer Header + Tests, kein Bugfix. Master übernimmt. |
+| `9ec7512115` | rootless: Add a pending frame resize that consumers apply before use | 25.0/25.1/25.2 | REL | Neues Pending-Resize-Feature, kein Bugfix. Master übernimmt mit `72061c759c`. |
+| `72061c759c` | rootless: Defer frame resize and lock for unrealized top-level windows | 25.0/25.1/25.2 | REL | Hängt an `9ec7512115`; Performance-/Locking-Feature, kein Bugfix. Master übernimmt. |
+| `d4669d5406` | Fix remaining libX11 Xkb symbol conflicts | master/25.1/25.2 | DUP | Tracker bereits über `d4669d5406`; 25.0 übernimmt den Patch mit vollständigem `SrvXkb*`-Block. |
+
+**Trailer-Hinweise:** `635a1ab6eb`/`9ec7512115`/`72061c759c` haben
+`Signed-off-by` + `Part-of`; `e85b40c7a3` hat `Signed-off-by`, aber kein
+`Part-of` im Upstream-Commit (nur `Fixes: XQuartz#524`) — als Herkunft wird
+`Part-of: <https://gitlab.freedesktop.org/xorg/xserver/-/commit/e85b40c7a3a9441e30dddb733d7cf5bf677fffb6>`
+gesetzt. `7af58a6ced` (Dirk Müller), `a85e1eca0c` (Peter Hutterer),
+`ae1353d38d` (Peter Hutterer) und `d4669d5406` (Pierre Ossman) haben kein
+`Signed-off-by`; bei Übernahme vom Original-Autor nachtragen, nicht mit
+`git commit -s` (sonst doppelter/ falscher Trailer).
+
+**Master-Inkubator-Defekt:** `rfc/backport-master` enthält `9236592d52`
+(angepasste `d4669d5406`) und `8aa12ebc3f` als angeblichen Semicolon-Fix.
+`8aa12ebc3f` erzeugt aber `}; XkbLogoDoodadRec, *XkbLogoDoodadPtr` statt
+`} XkbLogoDoodadRec, *XkbLogoDoodadPtr;` — weiterhin Syntaxfehler. Die
+Nightly-Pipeline korrigiert das mit einem Folge-Commit auf dem Inkubator;
+25.0 übernimmt die korrekte Form direkt.
+
+### Abschlussstand der Pipeline (lokal)
+
+Inkubator-Heads: master `9d19c6cc05`, 25.0 `3a678c588b`, 25.1 `6168a5b13c`,
+25.2 `dd83f9d708`. Die vier lokalen Tracker
+`tracking/xorg/main-on-{master,25.0,25.1,25.2}` stehen auf
+`72061c759c34888c1324efc839705e5e2c81043b`. **Kein Push, kein PR, kein
+Merge** — Freigabe steht aus.
+
+Builds (`-Dbuildtype=debug`, `ninja -k 0`): master und 25.2 grün mit
+`-Dwerror=true`. 25.0 hat einen vorbestehenden, nicht durch die Picks
+verursachten Fehler `hw/vfb/InitOutput.c:752 -Werror=format-truncation`
+(Datei identisch zu `origin/release/25.0`); mit `-Dwerror=false` grün.
+25.1 hat einen vorbestehenden Inkubator-Testfehler
+`test/xkb/protocol-xkbgetkbdbyname.c:131: _XkbClientInitialized undeclared`
+aus `12aee9e45e` (Datei identisch zu `origin/rfc/backport-25.1`); mit
+`-Dtests=false` grün.
+
+**Rerere-Falle:** Beim 25.0-Pick von `d4669d5406` lieferte die gespeicherte
+Konfliktauflösung eine verdorbene Datei (Semikolons wurden zu Punkten).
+Der Commit wurde lokal verworfen; stattdessen wurden nur die 48 `#define`-
+Zeilen manuell nach `#include "xkbstr.h"` eingefügt. Bei `d466` nie eine
+rerere-Auflösung ungeprüft übernehmen.
