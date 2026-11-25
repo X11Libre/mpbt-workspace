@@ -1,7 +1,7 @@
 Title: "starfleetctl Plugin-Integrationstests gegen Comms-/Session-Handoff-Regressionen"
 Category: active
 Kind: "task"
-Status: "in-progress"
+Status: "done"
 Assigned-To: "Discovery"
 Created-By: "Discovery"
 Created: "2026-11-25T15:17:37Z"
@@ -28,3 +28,5 @@ SUMMARY:
 ✅ Production gaps documented: seen_mark failure after submitted.add loses message; command handling lacks submitted check
 
 Tests are deterministic: no real network, ships, Comms data, or restarts. Use fake timers and controllable promises. Test names follow queued/accepted/injected/seen convention (no 'model completed' claims).)
+
+- 2026-11-25T15:29:01Z Discovery: completed
