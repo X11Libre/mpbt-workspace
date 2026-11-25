@@ -1,7 +1,7 @@
 Title: "Read-only review: wormhole-communication, xaverius-implementation, SESSION_BOOTSTRAP, COLLABORATION"
 Category: active
 Kind: "task"
-Status: "in-progress"
+Status: "done"
 Assigned-To: "Discovery"
 Created-By: "Discovery"
 Created: "2026-11-25T15:35:35Z"
@@ -99,3 +99,5 @@ Severity: MAJOR - Multiple mismatches
 4. COLLABORATION.md: Add note about mail/.tmp/ staging directory and ExternalHash correlation fields. Document 5-arg PostExternal contract.
 
 5. Skill loading: Verify .claude/skills/ is in skill loader search path. If not, document manual load requirement or move to sop.d/starfleet-instructions/ (tool-owned).)
+
+- 2026-11-25T15:39:23Z Discovery: completed
