@@ -1,6 +1,6 @@
 Title: "HDR (High Dynamic Range) display support"
-Category: done
-Status: "**Analysis done, first prep extraction built and pushed** — `wip/hdr-prep` has 2 build-verified commits pulled out of cepelinas9000's WIP, pushed to `X11Libre/xserver` (plain branch, no PR yet) for cross-clone review; the actual rendering pipeline is **not** extracted (see why below)"
+Category: active
+Status: "**EDID parser merged; HDR runtime/rendering pipeline still unimplemented.** Resume from a design review, not by rebasing the stale PoC."
 Doc-Ref: "Discussion `X11Libre/misc#251`; external WIP fork `cepelinas9000/xserver@wip/x11hdrV2`; branch `wip/hdr-prep` **pushed to `X11Libre/xserver`** (https://github.com/X11Libre/xserver/tree/wip/hdr-prep), tracked locally in agent clone `_WORK_/xserver-master/agent/hdr-prep/xserver` (remote `cepelinas` added there for fetching his branches; extraction base was master commit `cb5f2cd67e`, Feb 17 2026, 871 commits behind current master when analyzed)"
 Migrated-From: 8cf8692b9f0057ffe44e793b35bcf7329da83d3f
 Slug: hdr-display-support
@@ -66,3 +66,33 @@ reproduction" — flagging instead): `drmmode_output_get_modes()` in `drmmode_di
 actually guarded by the `if`**, so it runs even when `xf86InterpretEDID()` returned NULL for a malformed EDID, and
 `xf86DoInterpretHDRMetadata()` dereferences unconditionally — a likely NULL-deref crash on a bad EDID. Caught by GCC's
 `-Wmisleading-indentation` while building the modesetting driver.
+
+
+## 2026-11-26 live-state refresh
+
+Verified against current GitHub state:
+
+- X11Libre/xserver master HEAD at inspection: 8f47e0e2dd7a9f2dec43acffb2cf0f80b68e5b8e.
+- PR [#3216](https://github.com/X11Libre/xserver/pull/3216) is merged (2026-08-24; merge commit 2d72f9e1921a6a0f8d975845c07d7040f6fa8379). Its CTA-861-G Colorimetry (extended tag 5) and HDR Static Metadata (extended tag 6) parsing, xf86Monitor::hdr data and test/ddc-tests.c are present on master.
+- xf86DoInterpretHDRMetadata() is declared and implemented, but current code search finds only its declaration, definition and calls from test/ddc-tests.c. There is no production call from the DDC or modesetting EDID path. The old placeholder comment in interpret_edid.c remains. Thus the parser is merged but not integrated into normal server operation.
+- No HDR_OUTPUT_METADATA property/API implementation was found in the current X11Libre/xserver source search.
+- Remote wip/hdr-prep currently points at 34ad4284c98c8eb3bf049bc762382effb194a14d; it is stale/diverged (2 commits ahead, 587 behind master) and must not be used as a current base without reconciliation.
+- The prior wip/hdr-full reconstruction was recorded as local-only on 2026-07-02. No corresponding remote branch exists in X11Libre/xserver now, so it cannot be resumed from the public remote as-is.
+- External PoC cepelinas9000/xserver:wip/x11hdrV2 remains at 159a6f484a2a92769787995198f38d80208ec59b (2026-03-14), a single 271-file / +46.5k-line commit against an old base. Its own commit message calls it rough and reports incomplete glamor operation coverage, dark windows and artifacts. Treat as design/source reference only, not a merge candidate.
+
+### Confirmed blockers and design gates
+
+1. **Client protocol:** the PoC repurposes core opcode 125 for a private visual/depth latch. Reject this approach. Design a versioned X extension with explicit capability discovery and request/reply semantics. Define whether colorimetry/transfer metadata attaches to windows, pixmaps or both, inheritance, validation, lifetime and redraw behavior.
+2. **RandR/output contract:** define output colorspace selection, HDR static metadata submission, connector capability discovery, hotplug/reconfiguration and SDR fallback. The PoC itself notes its RandR switching support is missing.
+3. **Compositing correctness:** the PoC only supports selected glamor operations and reports artifacts/dark windows. Define the complete rendering contract across Render/composite, copy, text, GL/Vulkan clients, and fallback paths. No partial path may silently misrender HDR/SDR content.
+4. **Compatibility:** do not accept the PoC's ABI-breaking MAXFORMATS growth, undocumented OpenGL 4.6 minimum, or mandatory Vulkan-header dependency as-is. Keep the existing GL baseline and make any optional backend/build/runtime enablement explicit.
+5. **EDID integration safety:** integrate the existing parser only with a non-NULL, complete EDID object. The old local-only reconstruction had a missing-braces path that could call the parser with NULL; explicitly test malformed/short EDID and no-HDR EDID cases.
+6. **Validation:** retain the existing captured-EDID tests; add DDC/modesetting integration tests, RandR property/protocol tests, rendering tests for all supported glamor paths, and SDR regression tests. Build both with the feature disabled and enabled.
+
+### Recommended next sequence
+
+- First write/agree a compact normative HDR design: client metadata model, output/RandR contract, color pipeline, fallback/compatibility and security/lifetime rules.
+- Then extract only the safe EDID runtime integration as a separate small change, with malformed-EDID tests and no display behavior change.
+- Implement output/RandR capability and metadata plumbing next, behind an explicit feature gate.
+- Implement the glamor color pipeline end-to-end only after the protocol and output semantics are stable. Do not revive the full PoC as one giant patch.
+- Reconstruct the old local-only wip/hdr-full only if its actual patch/commit can be recovered; otherwise use the external PoC plus the old analysis as references and build a fresh branch from current master.
