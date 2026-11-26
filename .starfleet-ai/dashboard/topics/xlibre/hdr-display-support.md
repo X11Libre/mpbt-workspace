@@ -378,3 +378,10 @@ Each replacement has exactly one commit, API-verified author/committer `Enrico W
 - Current #4232 head: e82644d98e58ade396950172ddbd341463ac6f16; parent #4231 current head 60a22b75864952817bd1589deac81571574ce5a7; CI run 45905193967 pending.
 - #4231 current head remains 60a22b75864952817bd1589deac81571574ce5a7; CI run 45904923410 pending.
 - Earlier #4232 head b8febd... is superseded. No PR merged.
+
+### Stacking cleanup — #4232 allocation-only diff
+
+- Made test/xtrans-fd-trunc.c byte-identical between #4231 base and #4232 head; the #4232 patch now lists exactly five allocation-only files.
+- Current #4232 head 2429f7f00860501602a86452f59b037895a0c925, parent #4231 head 60a22b75864952817bd1589deac81571574ce5a7; run 45905471008 pending.
+- #4231 head 60a22b75864952817bd1589deac81571574ce5a7; run 45904923410 pending.
+- No merges. After #4231 merges, rebase/retarget #4232 to updated master and rerun CI.
