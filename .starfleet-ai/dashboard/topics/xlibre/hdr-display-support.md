@@ -165,4 +165,11 @@ Owner approval received for all three v1 decisions:
 
 The approved source pipeline and validation requirements are recorded in spec section 26 and durable decision `metux/wormhole-0/decisions/2026-11-26--hdr-linear-bradford-and-source-semantics.md`. The spec and project context now mark these decisions as approved.
 
-Remaining design work: define ICC profile ingestion/CMM ownership (current proposal: parametric Color Descriptions only in the first protocol version; defer arbitrary ICC profiles), validation tolerances and canonical white-point precision, HLG luminance semantics, and non-finite FP16 handling. No Xserver implementation changed and no wire ABI is frozen.
+Remaining design work: validation tolerances and canonical white-point precision, HLG luminance semantics, and non-finite FP16 handling. Owner has approved parametric Color Descriptions only in v1; arbitrary ICC profiles/CMM integration are deferred. No Xserver implementation changed and no wire ABI is frozen.
+
+
+### 2026-11-26 — v1 Color Description scope and no-compositor output proposal
+
+**Owner-approved scope:** v1 supports parametric Color Descriptions only (primaries, white point, transfer function, luminance/reference-white semantics and relative/absolute interpretation). Arbitrary ICC profile ingestion and general-purpose CMM integration are deferred beyond v1. Specification section 26.6 records the decision.
+
+**New design proposal (not yet approved):** when no compositor is active, convert the final desktop image independently per output, preferably through per-CRTC DRM/KMS color-pipeline blocks; otherwise use output-specific GPU scanout buffers, with a safe SDR fallback. This must remain separate from per-window conversion into the common compositor working space. Multi-output behavior, source-semantic limitations, Present/direct-scanout and overlay/cursor/video-plane handling need investigation. See specification section 27.
