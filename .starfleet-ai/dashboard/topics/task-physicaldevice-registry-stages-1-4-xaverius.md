@@ -2,7 +2,7 @@ Title: "PhysicalDevice Registry Stages 1-4 (Xaverius)"
 Category: active
 Kind: "task"
 Status: "in-progress"
-Assigned-To: "Defiant"
+Assigned-To: "Nautilus"
 Created-By: "Enterprise"
 Created: "2026-11-06T11:15:22Z"
 Doc-Ref: "—"
@@ -44,3 +44,9 @@ Namespace correction note (W0-20261106-012/W0-20261106-014): the canonical API n
 - 2026-11-06T13:49:44Z Defiant: progress 60% (Stage 4 complete (commit 1e8b516e77, pushed to origin/wip/xaverius): snapshot query + DIX publication — ModuleRole admission check, ops ABI validation, identity dedupe, direct XaveriusDeviceBackendBinding allocation, XaPhysicalDevicePublish() with dixAllocServerXID()+AddResource()-once, XaveriusPhysicalDeviceRelease() releases binding+ModuleRole ref, XaveriusRegistryRemoveDeviceBackendBinding() marks exact binding UNAVAILABLE. Build green (-Dwerror). wip/xaverius: Stage 1 (197f1f4311) + Stage 2 (1253b413c3) + Stage 3 (8fc42aee56) + Stage 4 (1e8b516e77) all pushed. Task at 60%. Ready for Stage-1-4 independent review (Enterprise read-only).)
 
 - 2026-11-06T15:19:43Z Defiant: progress 70% (Stage 3 observation API complete (commit ba13a3cb1a, pushed): XaveriusRegistryObserveDevice/RemoveObservation/ConfirmDeviceRemoved, generation-checked discovery sources/observations, stale-event rejection. Build green (-Dwerror). wip/xaverius: Stage 1-4 complete + ownership fixes + formatting + observation API. Remaining W0-016 §6: canonical ordering tuple/comparator + DDX binding preference via owner_key.)
+
+- 2026-11-25T18:25:23Z Defiant: progress 75% (ACCEPTANCE_MATRIX.md HEAD updated to actual origin tip 9cc27e103 (commit 7491d8c1d4, local only): Documentation-only fix. Build green. Origin/wip/xaverius at 9cc27e1030 includes W0-153 items 1-6 complete.)
+
+- 2026-11-26T19:05:00Z Owner directive w0-20261126T190500Z-xav-nautilus-takeover: Nautilus authorized to take over from Defiant. No duplicate task. Cruiser proposal superseded.
+
+- 2026-11-26T19:07:00Z Nautilus: Acknowledged wormhole directive. Task reassigned from Defiant to Nautilus. Beginning worktree inventory and safe handoff.
