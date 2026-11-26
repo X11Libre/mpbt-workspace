@@ -119,3 +119,25 @@ Before implementation, resolve these questions explicitly:
 - Hardware acceleration: use DRM color-pipeline/overlay capabilities opportunistically, but retain a correct shader/software composition fallback; do not make optional hardware planes a correctness prerequisite.
 
 Suggested first milestone is deliberately narrow: integrate EDID capability discovery into the live output path and expose read-only capabilities, without enabling HDR signaling or changing rendering. This provides a safe, testable base before any client protocol or output-mode switching is added.
+
+
+### Proposed implementation baseline (discussion draft; not normative yet)
+
+Keep source-image description and output signaling separate:
+
+- **Source image description:** immutable, versioned description of primaries, white point, transfer function, reference white and luminance range. Associate it with a drawable/window for static content semantics. If dynamic metadata is needed, attach it to a frame/presentation transaction rather than racing mutable window properties.
+- **Output description:** separate per-output capabilities and selected output mode/colorspace/bit depth. Read sink capabilities from EDID; select an output encoding only when the sink and DRM driver support it.
+- **Composition:** convert source content into a common linear-light working space before blending. Tone-map mixed SDR/HDR or mismatched peak luminance deliberately; then encode the final composed frame for the output. Do not blend PQ/HLG encoded samples directly.
+- **KMS handoff:** modesetting submits the final composed frame's metadata through the DRM connector HDR_OUTPUT_METADATA blob and sets supported Colorspace/max_bpc properties. Do not copy the monitor's EDID static metadata blob straight to HDR_OUTPUT_METADATA: one describes sink capability, the other describes the outgoing composed frame.
+- **Compatibility:** preserve the current 8-bit direct path when no color transform is required. Avoid mandatory Vulkan, a forced external compositor, a new core visual class, or a global GL 4.6 minimum.
+
+Recommended format strategy (requires owner approval): start with existing packed 10:10:10:2 / 30-bit TrueColor-compatible output where supported; use floating-point intermediate buffers internally when available. Treat client-visible FP16 RGBA as a later capability, not a prerequisite for first HDR10 output. PQ is a practical first transfer-function target because of display support; define HLG semantics in the model rather than silently treating it as PQ.
+
+Suggested milestones:
+
+0. Read-only EDID capability integration and diagnostics; no modeset or rendering behavior changes.
+1. Explicit experimental output mode behind a runtime option; negotiate DRM Colorspace/max_bpc and HDR_OUTPUT_METADATA, with safe disable/rollback and SDR fallback.
+2. Versioned client color-description API and mixed SDR/HDR source conversion; no core protocol opcode reuse.
+3. Complete glamor path coverage, dynamic metadata where needed, advanced formats and optional hardware color-pipeline/plane offload.
+
+Each milestone needs tests for no-HDR EDID, malformed/short EDID, unsupported KMS properties, hotplug, SDR-only clients, mixed SDR/HDR, and unchanged legacy 8-bit pass-through.
