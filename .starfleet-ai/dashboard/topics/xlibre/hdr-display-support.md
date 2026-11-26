@@ -151,7 +151,7 @@ The owner approved these design directions; see `metux/wormhole-0:master/X11LIBR
 - Negotiated compositor handoff: RGBA FP16, linear premultiplied alpha; capability negotiation and a valid fallback remain mandatory.
 - Unmanaged legacy windows: implicit sRGB/D65 source profile. In the HDR color-managed composition path, the session-wide configurable `LegacySDRReferenceWhite` defaults to 203 cd/m² so SDR graphics white is anchored to HDR reference white. 80 or 100 cd/m² remain user/session-configurable alternatives.
 - The legacy reference-white setting is never per-output; explicit Color Descriptions override it.
-- Exact configuration interface/range, chromatic adaptation, HLG absolute-luminance assumptions, non-finite FP policy and wire ABI remain open. No Xserver implementation is authorized by these design decisions.
+- Exact configuration interface/range, HLG absolute-luminance assumptions, non-finite FP policy and wire ABI remain open. Chromatic adaptation is owner-decided in section 26. No Xserver implementation is authorized by these design decisions.
 
 The earlier suggested format strategy in this tracker predates owner approval of the negotiated FP16 compositor handoff and should be read as historical discussion, not as the current owner-approved direction.
 
