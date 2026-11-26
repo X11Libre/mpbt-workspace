@@ -354,3 +354,13 @@ Each replacement has exactly one commit, API-verified author/committer `Enrico W
 - Fixed the Alpine/musl link failure seen on the prior #4236 exact head by marking the malloc wrapper default-visible. Previous failure was: hidden `__wrap_malloc` referenced by DSO. The fix is pending exact-head CI; do not claim validated yet.
 - The Signed-Off-By job passed on former replacement #4234 run `45883291726`. Current original PR exact-head runs are queued.
 - No Xserver local build/test was run; no PR merged. Continue to inspect full CI matrices and review all diffs before recommending merge.
+
+
+### 2026-11-26 — Deep review, live MSG_CTRUNC test, and stacked PR ordering
+
+- Exact-head CI for #4230 (`45888660431`) and #4233 (`45888669984`) completed with 18 successful jobs, 7 workflow-skipped jobs, and no failures. Their DCO checks passed. #4230's Ubuntu `xserver:unit` passed. Previous exact heads of #4231 (`45888664565`) and #4232 (`45888560671`) also had 18 successful / 7 skipped jobs, including Alpine and DCO, but those heads have since been extended.
+- Added live Xtrans MSG_CTRUNC regression to #4231. It sends 129 FDs through a real local Xtrans connection against the 128-FD receive control buffer, expects `EMSGSIZE`, and checks that no received FD remains open. Current head `d515dc6959b28fa2f2c25c8259c48e80bfc54a79`; exact-head run `45904081384` is in progress, with DCO already successful.
+- Moved #4232's allocation-test registration/prototype after `xkb_test` to avoid same-gap conflicts with #4230. #4231 registers its test after `ddc_tests`; #4230 remains after `xfree86_test`. Meson source insertions also have distinct anchors.
+- Stacked #4232 on #4231: base branch `fix/xtrans-reject-truncated-fd-groups` at `d515dc6...`; current head `f3c106b9960d20cbe31ef4c854e0f5b9d6f47ca7`. The #4232 diff now contains only the allocation-failure delta. Exact-head run `45904354611` is pending.
+- #4230 current head `8aaa71ad6d424e987ab5880fd97c6fd86b30f2f6`; #4233 current head `2c65e302c47d6edddb8296cd1321e7354f1f851a`. All remain open/draft; no merge.
+- Note seven skipped jobs are Arch, macOS, Cygwin, image/dependency and release jobs: report only that all executed jobs are green, not that every possible platform was exercised. GitHub API `verification=false/unsigned` means no GPG signature; it is separate from the DCO trailer, which the check action recognizes.
