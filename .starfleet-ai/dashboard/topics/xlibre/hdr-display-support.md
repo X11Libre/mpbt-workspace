@@ -221,3 +221,6 @@ Follow-up source audit of modesetting `driver.c` at Xserver HEAD `3132e4b7997b52
 - Missing helper symbols or failed feature probes mean HDR unavailable, not DDX initialization failure.
 
 Detailed lifecycle constraints are in spec section 30.9, follow-up commit `02770890c38c71304c04330e7cf08f79478af6c6`. No Xserver source changes.
+
+
+Owner clarification: modesetting DDX and Glamor module are always built and deployed together from the same codebase. Therefore their internal HDR helper interface is a same-build interface, not an independently versioned optional module ABI. Required helper symbols can be resolved as part of the paired module contract; missing symbols mean a broken/mismatched installation, not normal runtime HDR unavailability. No optional-symbol compatibility shim is needed. Runtime HDR remains optional per screen based on FP16/shader/export/synchronization probes. Generic core remains Glamor-independent; NVIDIA remains legacy SDR unless it separately implements a provider. Specification update: `metux/wormhole-0` commit `49303af27f6e059caebfce1c36da15769a1f963b`; project-context update commit `c62da5fae17b59e2e9ee8143318fe3d580343fbc`.
