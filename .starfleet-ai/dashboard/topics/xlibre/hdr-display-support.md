@@ -278,3 +278,9 @@ HDR spec section 30.18 records a critical new blocker from current Xserver maste
 ### 2026-11-26 — Correction: request-scoped ancillary FD accounting
 
 HDR spec section 30.19 corrects the strict-count detail: `ClientRec.req_fds` is only the remaining expected FD counter, not the actual received count. Xtrans currently queues ancillary FDs connection-wide without request-boundary association. Extension-level checking alone cannot reject excess FDs safely. Reliable handoff requires Xtrans to associate ancillary descriptors with exact X request byte boundaries, expose and validate actual per-request counts, reject extras, and propagate both receive- and send-side queue allocation failures. No code/tests changed.
+
+### 2026-11-26 — FD marker offsets / output ordering
+
+HDR spec section 30.20 adds the detailed Xtrans/libxcb framing review. Linux `unix(7)` documents SCM_RIGHTS as a SOCK_STREAM barrier, allowing Xtrans to record the FD marker at `stream_read_offset + recvmsg_bytes - 1` when the client attaches FDs to the first byte of an X request. The server parser must correlate absolute marker offsets with request boundaries because `ReadRequestFromClient()` reads ahead and retains pipelined bytes. The current receive path ignores `MSG_CTRUNC` and does not propagate FD-queue allocation failures.
+
+A second issue was found on both output paths: Xserver `WriteFdToClient()` binds FDs to the next transport write, which may begin with earlier buffered output; libxcb `send_fds()` queues FDs without flushing `out.queue`, and a later `sendmsg()` may start with earlier requests. Require byte-offset/reply-segment-aware FD ordering and regression tests before using the existing helpers for HDR. Linux AF_UNIX is the initial candidate transport; other platforms need verification. No code/XML/tests changed.
