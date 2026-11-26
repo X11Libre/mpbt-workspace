@@ -314,7 +314,7 @@ Draft Xserver PR [#4232](https://github.com/X11Libre/xserver/pull/4232), branch 
 - `appendFd()` propagates `ENOMEM` and does not close the caller's FD on failed queueing; send path propagates the failure.
 - Receive-side append failure closes all descriptors in the failed/remaining ancillary group and the already queued receive FIFO, then returns an error.
 - Added Linux tests through actual Xtrans local transport APIs with linker-wrapped `malloc()` failure injection.
-- Exact-head workflow run 45881893934 is active; platform build jobs were queued/in progress at last check. Signed-Off-By failed with `Resource not accessible by integration`. No local build/test claimed. Draft only; review test harness and wait for all build/test jobs before merge.
+- Initial workflow 45881893934 failed compilation because `__wrap_malloc` lacked a prior prototype under `-Wmissing-prototypes`; added the prototype in commit `f8d278e9711f3a3750d802cb5e5a7855ae514d9f`. A fresh exact-head run had not appeared at last check. No local build/test claimed; draft pending fresh CI and review.
 - Shares `os/Xtranssock.c` with PR #4231, so coordinate rebase/merge ordering.
 
 
