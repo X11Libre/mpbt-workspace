@@ -163,6 +163,6 @@ Owner approval received for all three v1 decisions:
 - Full adaptation only; no partial-adaptation control or per-window/per-output CAT selector.
 - Explicit, versioned distinction between relative-colorimetric RGB and absolute-colorimetric XYZ / already-adapted PCS semantics, preventing double adaptation.
 
-The approved source pipeline and validation requirements are recorded in spec section 26. The spec and project context now mark these decisions as approved.
+The approved source pipeline and validation requirements are recorded in spec section 26 and durable decision `metux/wormhole-0/decisions/2026-11-26--hdr-linear-bradford-and-source-semantics.md`. The spec and project context now mark these decisions as approved.
 
 Remaining design work: define ICC profile ingestion/CMM ownership (current proposal: parametric Color Descriptions only in the first protocol version; defer arbitrary ICC profiles), validation tolerances and canonical white-point precision, HLG luminance semantics, and non-finite FP16 handling. No Xserver implementation changed and no wire ABI is frozen.
