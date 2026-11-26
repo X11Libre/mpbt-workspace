@@ -288,3 +288,12 @@ A second issue was found on both output paths: Xserver `WriteFdToClient()` binds
 ### 2026-11-26 — Proposed transport/API contract
 
 HDR spec section 30.21 now proposes an internal transport contract and ordered implementation sequence. Receive-side Xtrans returns FD groups with absolute marker offsets and rejects malformed/truncated ancillary data; DIX validates each marker against the exact first byte and declared FD count of one request. Server output binds FD groups to exact reply byte offsets/segments rather than the next transport write. libxcb must drain preceding buffered requests and atomically stage the FD group with its request. Keep helpers private/additive, preserve legacy DRI3/NVIDIA ABI, and fail closed to SDR. No implementation or tests run.
+
+## 2026-11-26 — SCM_RIGHTS regression PRs and framing correction
+
+- Xserver master remains `d439c01fef4c8dcb3a0d05471e3edb0eb00f6f89`.
+- PR [#4230](https://github.com/X11Libre/xserver/pull/4230) adds Linux AF_UNIX framing tests. Its first CI run failed because `test/tests.h` declared `xtrans_fd_test()` twice. Removed the duplicate in commit `6d8ee1bcdf6a261c84690a2a485fdec2be048d84`; exact-head workflow run `45874014274` was pending at the latest refresh, so CI is not yet green.
+- PR [#4231](https://github.com/X11Libre/xserver/pull/4231) rejects `MSG_CTRUNC` and closes the FDs delivered in the truncated control buffer. Its build jobs were green except Solaris still running; `Check Signed-Off-By` failed with GitHub `Resource not accessible by integration`. Treat that as a permission/infrastructure failure, not as a verified sign-off failure. PR remains Draft/open.
+- The #4230 socketpair test demonstrates `recvmsg()` returning ordinary bytes before an FD-bearing `sendmsg()` together with the entire FD-bearing payload. This disproves the section 30.20 marker formula `read_offset + nbytes - 1`. The HDR design draft now has section 30.22 explicitly superseding that formula; no replacement request-boundary association strategy is approved.
+- Further source review confirms `appendFd()` still silently drops descriptors on allocation failure, while receive/send callers ignore the failure. This can leave a partial receive queue or report a send as successful. It is not fixed by #4231 and needs its own scoped regression-tested follow-up.
+- No HDR wire protocol/XML or rendering implementation has been started.
