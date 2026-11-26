@@ -212,3 +212,12 @@ Key direction:
 - Runtime-probe FP16 FBO, shader precision, import/export, dimensions and end-to-end synchronization without raising the GL baseline.
 - Legacy Composite/SDR behavior remains unchanged unless the versioned handoff is explicitly negotiated. NVIDIA need not register or support HDR.
 - No Xserver code changed; implementation remains unauthorized. Exact provider API, transport/wire contract, source-path coverage, tiling and failure transitions remain open.
+
+
+Follow-up source audit of modesetting `driver.c` at Xserver HEAD `3132e4b7997b525d046e727c1db6656d14b5bc20`:
+- modesetting loads the Glamor EGL module dynamically with `xf86LoadSubModule()` and resolves symbols with `LoaderSymbolFromModule()`; per-screen function pointers are stored in `modesettingRec`.
+- HDR helpers must be optional symbols, resolved separately. Existing `glamor_gbm` is not proof of FP16 renderability/export or compositor synchronization.
+- The provider must quiesce/unregister in the early modesetting `CloseScreen()` path before BO/GBM teardown and before the wrapped Glamor close chain; no callbacks may survive `FreeScreen()`.
+- Missing helper symbols or failed feature probes mean HDR unavailable, not DDX initialization failure.
+
+Detailed lifecycle constraints are in spec section 30.9, follow-up commit `02770890c38c71304c04330e7cf08f79478af6c6`. No Xserver source changes.
