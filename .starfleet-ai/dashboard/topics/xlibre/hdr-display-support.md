@@ -364,3 +364,10 @@ Each replacement has exactly one commit, API-verified author/committer `Enrico W
 - Stacked #4232 on #4231: base branch `fix/xtrans-reject-truncated-fd-groups` at `d515dc6...`; current head `f3c106b9960d20cbe31ef4c854e0f5b9d6f47ca7`. The #4232 diff now contains only the allocation-failure delta. Exact-head run `45904354611` is pending.
 - #4230 current head `8aaa71ad6d424e987ab5880fd97c6fd86b30f2f6`; #4233 current head `2c65e302c47d6edddb8296cd1321e7354f1f851a`. All remain open/draft; no merge.
 - Note seven skipped jobs are Arch, macOS, Cygwin, image/dependency and release jobs: report only that all executed jobs are green, not that every possible platform was exercised. GitHub API `verification=false/unsigned` means no GPG signature; it is separate from the DCO trailer, which the check action recognizes.
+
+### Follow-up — FreeBSD portability fix (2026-11-26)
+
+- Run 45904081384 for #4231 failed on FreeBSD while compiling test/xtrans-fd-trunc.c: NULL was undeclared because stddef.h was inside the Linux-only guard. Moved stddef.h to the unconditional includes.
+- Current #4231 head: 60a22b75864952817bd1589deac81571574ce5a7; exact-head run 45904923410 pending.
+- Rebased stacked #4232 onto that corrected #4231 head. Current #4232 head: b8febd859ebffb83e5a1964d411eaafb92bf008b; exact-head run 45904977771 pending.
+- Earlier heads are superseded. No PR merged; do not treat prior green runs as current-head validation.
