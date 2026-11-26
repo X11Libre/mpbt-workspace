@@ -273,7 +273,7 @@ HDR spec section 30.17 now maps the provisional handoff to xcb-proto conventions
 
 ### 2026-11-26 — Xtrans FD transport audit
 
-HDR spec section 30.18 records a critical new blocker from current Xserver master `d439c01fef4c8dcb3a0d05471e3edb0eb00f6f89`: Xtrans FD passing is available only on `local`/`unix` domain sockets; TCP/INET/INET6 explicitly reject FD operations. `SetReqFds()` only logs count mismatches, so the extension must validate actual ancillary FD count strictly before consuming. More importantly, `appendFd()` can fail allocation while `_XSERVTransSocketSendFd()` still returns success; `WriteFdToClient()` can therefore falsely indicate a queued FD. Reliable handoff requires an Xtrans API fix with failure/ownership semantics and transport tests. No code/tests changed.
+HDR spec section 30.18 records a critical new blocker from current Xserver master `d439c01fef4c8dcb3a0d05471e3edb0eb00f6f89`: Xtrans FD passing is available only on `local`/`unix` domain sockets; TCP/INET/INET6 explicitly reject FD operations. `SetReqFds()` manages only the remaining expected count; it does not expose the actual per-request ancillary FD count (see the correction below). More importantly, `appendFd()` can fail allocation while `_XSERVTransSocketSendFd()` still returns success; `WriteFdToClient()` can therefore falsely indicate a queued FD. Reliable handoff requires an Xtrans API fix with failure/ownership semantics and transport tests. No code/tests changed.
 
 ### 2026-11-26 — Correction: request-scoped ancillary FD accounting
 
