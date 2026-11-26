@@ -270,3 +270,7 @@ Spec section 30.16 drafts the request/reply/event matrix: QueryVersion, QueryCap
 ### 2026-11-26 — XCB protocol-schema mapping
 
 HDR spec section 30.17 now maps the provisional handoff to xcb-proto conventions verified against `gitlab-freedesktop-mirrors/xcbproto:master` (`c70aba5cc6ae87757111dac737fc814b3605f0d4`) and DRI3 XML. It proposes a client-owned CMCONTEXT resource, per-screen epoch, counted FD lists, first-byte reply `nfd`, and XGE for generation-correlated notifications. FD-less transports remain explicitly unsupported. Exact XML/layout, Xtrans validation and generated binding/runtime tests remain open. No implementation or tests were run.
+
+### 2026-11-26 — Xtrans FD transport audit
+
+HDR spec section 30.18 records a critical new blocker from current Xserver master `d439c01fef4c8dcb3a0d05471e3edb0eb00f6f89`: Xtrans FD passing is available only on `local`/`unix` domain sockets; TCP/INET/INET6 explicitly reject FD operations. `SetReqFds()` only logs count mismatches, so the extension must validate actual ancillary FD count strictly before consuming. More importantly, `appendFd()` can fail allocation while `_XSERVTransSocketSendFd()` still returns success; `WriteFdToClient()` can therefore falsely indicate a queued FD. Reliable handoff requires an Xtrans API fix with failure/ownership semantics and transport tests. No code/tests changed.
