@@ -96,3 +96,26 @@ Verified against current GitHub state:
 - Implement output/RandR capability and metadata plumbing next, behind an explicit feature gate.
 - Implement the glamor color pipeline end-to-end only after the protocol and output semantics are stable. Do not revive the full PoC as one giant patch.
 - Reconstruct the old local-only wip/hdr-full only if its actual patch/commit can be recovered; otherwise use the external PoC plus the old analysis as references and build a fresh branch from current master.
+
+
+### Design references and unresolved protocol decisions (refreshed 2026-11-26)
+
+Relevant prior design discussion:
+- X11Libre organization discussion #251 (Color Management & HDR): https://github.com/orgs/X11Libre/discussions/251
+- X11Libre issue #250: https://github.com/X11Libre/misc/issues/250
+- Historical X.Org DeepColor extension RFC: https://groups.google.com/g/xorg-devel/c/JmhOVTpZcs8
+- Wayland color-management protocol concepts: https://wayland.freedesktop.org/docs/book/Color.html
+- Linux DRM/KMS color and HDR output properties: https://docs.kernel.org/gpu/drm-kms.html
+
+Do not simply copy Wayland code or the old DeepColor proposal. Reuse concepts where useful while keeping XLibre's protocol and implementation independent. The historical DeepColor discussion is useful because it explicitly considered API-agnostic drawable metadata and compositor capability discovery; later discussion raised compatibility concerns with adding a new core visual class.
+
+Before implementation, resolve these questions explicitly:
+- Pixel representation: is the first supported target packed 10-bpc RGB within the existing 32-bit pixel model, or is FP16 RGBA a required first-class format? Do not conflate bit depth with colorimetry or HDR transfer functions.
+- Metadata scope: static image description attached to a window/pixmap versus dynamic/content metadata associated with a presented frame. A single mutable window property is not automatically sufficient for all content.
+- Transfer functions: define PQ and HLG support, their reference/peak luminance semantics, and SDR/scRGB conversion. The prior discussion contains competing preferences; no default is approved yet.
+- Mixed-client composition: specify how SDR, wide-gamut SDR and HDR surfaces are converted into a common blending space and how the composed output metadata is selected.
+- Output policy: define RandR output colorspace and bit-depth selection separately from the KMS HDR_OUTPUT_METADATA blob, which describes the final composed output. The kernel KMS documentation assigns userspace responsibility for blending/tone-mapping mixed layers and supplying final metadata.
+- Legacy path: preserve existing 8-bit direct/low-overhead presentation when no color conversion is requested. HDR must not silently force every client through a compositor or Vulkan layer.
+- Hardware acceleration: use DRM color-pipeline/overlay capabilities opportunistically, but retain a correct shader/software composition fallback; do not make optional hardware planes a correctness prerequisite.
+
+Suggested first milestone is deliberately narrow: integrate EDID capability discovery into the live output path and expose read-only capabilities, without enabling HDR signaling or changing rendering. This provides a safe, testable base before any client protocol or output-mode switching is added.
