@@ -154,3 +154,12 @@ The owner approved these design directions; see `metux/wormhole-0:master/X11LIBR
 - Exact configuration interface/range, chromatic adaptation, HLG absolute-luminance assumptions, non-finite FP policy and wire ABI remain open. No Xserver implementation is authorized by these design decisions.
 
 The earlier suggested format strategy in this tracker predates owner approval of the negotiated FP16 compositor handoff and should be read as historical discussion, not as the current owner-approved direction.
+
+
+### 2026-11-26 — chromatic adaptation investigation
+
+Spec section 26 now recommends (pending owner approval) fixed ICC linear Bradford, full adaptation, for relative-colorimetric RGB sources whose white point differs from D65. It explicitly separates relative RGB semantics from absolute-colorimetric XYZ / already-adapted ICC PCS output to prevent double adaptation. The proposed source pipeline and validation requirements are documented there.
+
+Evidence: ICC.1:2022 recommends linear Bradford absent a specific reason to choose another CAT; W3C CSS Color 4 (2026-11-12 CRD) also uses linear Bradford for D50/D65 conversions. CAT16 remains a possible later option, not a v1 choice without a demonstrated requirement.
+
+Owner approval is still needed for CAT selection, full adaptation, relative/absolute source semantics and ICC/CMM ownership. No Xserver implementation changed.
