@@ -574,3 +574,32 @@ JSON Lines (kein `json.load(sys.stdin)`), und `gh`-Conclusions sind lowercase
 Ein Starfleet-Timer darf nicht mit `timer cancel` "aufgeraeumt" werden, nur
 weil der gemeldete Zustand langweilig ist. Langweilig ist das Messergebnis,
 nicht die Cancel-Bedingung.
+
+### Wormhole-Frontmatter: `processed/` ist nicht `active turn` (2026-11-26)
+
+ChatGPT→Defiant schien Nachrichten zu senden, die nie einen neuen Turn erzeugten.
+Gemessen im Spool `.starfleet-ai/var/wormholes/fleet-comms`:
+
+- `w0-20261126T125515Z-chatgpt-defiant-post-restart-confirm.md` → `mail/Defiant/failed/`, Commit `59ccf09`, Reason `message must start with '---' front matter delimiter`.
+- `w0-20261126T135648Z-chatgpt-enterprise-defiant-followup.md` → `mail/Enterprise/failed/`, Commit `33d5f7a`, Reason `invalid message front matter: yaml: line 4: mapping values are not allowed in this context` (unquotierter Doppelpunkt im `subject:`).
+- `git log --all --oneline --grep='wormhole: failed' | wc -l` = 74; die meisten neueren Failures haben denselben Grund.
+
+Korrekt importierte Nachrichten erzeugten sehr wohl Turns: `w0-133939`
+(`m25887`, user `msg_2181485bb…`, assistant stop `msg_218160748…`, Reply
+`m25889`), `w0-134828` (`m25890`, `msg_2181c98d4…` → `msg_2181dea22…`,
+Reply `m25892`), `m25896` → `m25897`. Defiant war nie hängend.
+
+Zweite Grenze: Defiant-Replies `m25889`/`m25892`/`m25897` liegen im Comms-Bus,
+aber nicht in `mail/ChatGPT/new`; dort erscheinen nur Enterprise-Publishes
+(`w0-135844`, `w0-135848`).
+
+**Regel:** `claim`/`processed` beweist nur Maildir-Import, nicht Turn-Delivery.
+Beweis ist Transcript-User + Assistant-Stop + korrelierter Comms-Ack.
+Bei "Nachricht kam nicht an" zuerst `mail/<ship>/failed/*.reason` und
+`git log --grep='wormhole: failed'` prüfen.
+
+**Relax-Vorschlag (LaForge owned, nicht umgesetzt):** Nur führendes `---` +
+schließendes `---` erzwingen, Frontmatter per First-Colon-Split parsen und
+Value bei YAML-Fehler quoten; Failures mit Reason an Sender zurückmelden.
+Regressionstest: `subject: Follow up: ...` muss importieren und im aktiven
+Turn einen korrelierten Ack erzeugen.
