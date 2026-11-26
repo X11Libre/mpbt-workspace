@@ -256,3 +256,9 @@ Concrete XML schema, runtime transport matrix and compositor interoperability re
 Xserver master `9f1d28b59b6af78033b7f0d0c170935308de046f`: Composite ownership is per-window. Only one manual redirect client is allowed per window; automatic redirect registrations can coexist. `CompositeRedirectSubwindows` creates per-child registrations and tracks future children through a parent resource.
 
 Spec section 30.14 proposes an exclusive HDR compositor claim per screen plus a per-window check that the same client owns manual Composite redirection. Automatic redirection is excluded from v1. PanoramiX/Xinerama mapping and Composite-private helper lifecycle remain open. No Xserver code changes.
+
+### 2026-11-26 — PanoramiX/Xinerama scope
+
+Xserver master `9f1d28b59b6af78033b7f0d0c170935308de046f`: Composite redirects fan out across underlying screens when the PanoramiX path is active; CompositeNameWindowPixmap returns a PanoramiXRes containing one physical pixmap per screen. This differs from RandR multi-output on one ScreenRec.
+
+Spec section 30.15 proposes v1 to support normal ScreenRec/RandR and explicitly report unsupported handoff while Composite PanoramiX/Xinerama is active. Existing Composite fallback remains unchanged. Future aggregate multi-screen generation/lease bundle is open.
