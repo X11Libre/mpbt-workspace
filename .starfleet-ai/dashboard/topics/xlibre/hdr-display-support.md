@@ -250,3 +250,9 @@ X11Libre/mirror.fdo.libxcb master `aa7f3256060451ad65a38feeccf792f44181a4e0`: ge
 Spec section 30.13 proposes a v1 cap of four DMA-BUF object FDs plus one producer fence, and one release fence or zero for NO_USE. Protocol XML and generated bindings are required; raw XCB requests without the reply-FD flag are unsafe. Client-side FD support is a build prerequisite, not something the server can infer from its own capability query.
 
 Concrete XML schema, runtime transport matrix and compositor interoperability remain open. No Xserver code changes.
+
+### 2026-11-26 — Composite redirect ownership audit
+
+Xserver master `9f1d28b59b6af78033b7f0d0c170935308de046f`: Composite ownership is per-window. Only one manual redirect client is allowed per window; automatic redirect registrations can coexist. `CompositeRedirectSubwindows` creates per-child registrations and tracks future children through a parent resource.
+
+Spec section 30.14 proposes an exclusive HDR compositor claim per screen plus a per-window check that the same client owns manual Composite redirection. Automatic redirection is excluded from v1. PanoramiX/Xinerama mapping and Composite-private helper lifecycle remain open. No Xserver code changes.
