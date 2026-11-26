@@ -288,3 +288,10 @@ A second issue was found on both output paths: Xserver `WriteFdToClient()` binds
 ### 2026-11-26 — Proposed transport/API contract
 
 HDR spec section 30.21 now proposes an internal transport contract and ordered implementation sequence. Receive-side Xtrans returns FD groups with absolute marker offsets and rejects malformed/truncated ancillary data; DIX validates each marker against the exact first byte and declared FD count of one request. Server output binds FD groups to exact reply byte offsets/segments rather than the next transport write. libxcb must drain preceding buffered requests and atomically stage the FD group with its request. Keep helpers private/additive, preserve legacy DRI3/NVIDIA ABI, and fail closed to SDR. No implementation or tests run.
+
+## 2026-11-26 — FD transport follow-up
+
+- A Linux AF_UNIX/SOCK_STREAM C reproducer disproved the byte-offset formula previously recorded in X11LIBRE_HDR_COLOR_MANAGEMENT_SPEC.md §30.20: recvmsg() can return ordinary bytes preceding an FD-bearing sendmsg() and the complete FD-bearing payload together. The old read_offset + nbytes - 1 marker assumption is withdrawn; see wormhole-0 PR #3 for the spec/project-context correction.
+- Xserver draft PR [#4230](https://github.com/X11Libre/xserver/pull/4230) adds Linux AF_UNIX SCM_RIGHTS tests for read-ahead/coalescing, separate ancillary deliveries and MSG_CTRUNC.
+- Xserver draft PR [#4231](https://github.com/X11Libre/xserver/pull/4231) rejects truncated ancillary FD messages and closes descriptors delivered in the truncated control buffer.
+- Both Xserver PRs are pending CI/review. No claim of end-to-end Xserver/libxcb FD framing correctness; HDR FD handoff remains disabled until ordered FD-group accounting and request/reply framing are implemented and tested together.
