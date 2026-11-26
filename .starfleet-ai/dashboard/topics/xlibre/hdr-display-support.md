@@ -195,3 +195,20 @@ Owner preference: add future HDR screen/backend operations through DIX private s
 NVIDIA compatibility is particularly sensitive: CONFIG_LEGACY_NVIDIA_PADDING adds `reserved_for_nvidia_470_and_390` at a fixed ScreenRec position; Meson option `legacy_nvidia_padding` controls it; Video ABI is 28.1 with padding vs 28.0 without; LoaderGetABIVersion reports NVIDIA ABI 25.2 under the compatibility configuration. `dix/pixmap.c` initializes the field NULL. Preserve the padding, field position, initialization and loader logic. `legacy_nvidia_340x` is a separate old-entrypoint option. Proprietary NVIDIA need not implement HDR; no registration must mean legacy SDR operation.
 
 See spec section 29 and durable decision `metux/wormhole-0/decisions/2026-11-26--hdr-screen-private-ops-and-nvidia-abi.md`. Source base `X11Libre/xserver:master` at `3132e4b7997b525d046e727c1db6656d14b5bc20`. No source code changed; no implementation authorized.
+
+
+## 2026-11-26 — Core / DDX / Glamor interface design
+
+Xserver `master` was rechecked at `3132e4b7997b525d046e727c1db6656d14b5bc20`. Glamor uses its own `PRIVATE_SCREEN` state and X-depth-derived pixmap/FBO formats; its current DRI3 export is tied to `PixmapPtr`. Desktop GL 2.1 / GLES 2.0 remain the current initialization baselines, so FP16 FBO renderability and shader precision require runtime probes.
+
+A design proposal was added to `metux/wormhole-0:master/X11LIBRE_HDR_COLOR_MANAGEMENT_SPEC.md`, section 30 (commit `e845da71c89f60ddf10526bb3065594ce6753427`), and summarized in `X11LIBRE_HDR_PROJECT_CONTEXT.md` (commit `5e47282ff3cac80dc416c451b77d76c12f3b3156`).
+
+Key direction:
+- DIX/core owns policy, per-window source/transformed generations and negotiation.
+- A core-owned optional versioned per-screen provider is attached through existing `PRIVATE_SCREEN` state; no ScreenRec/DevPrivateType changes.
+- The first in-tree provider may be modesetting only and delegates GPU transformation to Glamor.
+- Glamor uses a separate opaque FP16 color-buffer object, not a fake X pixmap depth.
+- Buffer transport and synchronization are backend capabilities; DRI3 is not the color semantics API.
+- Runtime-probe FP16 FBO, shader precision, import/export, dimensions and end-to-end synchronization without raising the GL baseline.
+- Legacy Composite/SDR behavior remains unchanged unless the versioned handoff is explicitly negotiated. NVIDIA need not register or support HDR.
+- No Xserver code changed; implementation remains unauthorized. Exact provider API, transport/wire contract, source-path coverage, tiling and failure transitions remain open.
