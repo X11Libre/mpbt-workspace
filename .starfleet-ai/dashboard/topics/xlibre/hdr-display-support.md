@@ -266,3 +266,7 @@ Spec section 30.15 proposes v1 to support normal ScreenRec/RandR and explicitly 
 ### 2026-11-26 — Provisional v1 protocol matrix
 
 Spec section 30.16 drafts the request/reply/event matrix: QueryVersion, QueryCapabilities, AcquireCompositor, ReleaseCompositor, SubscribeWindow, UnsubscribeWindow, AcquireBuffer, ReleaseBuffer; events BufferReady, BufferInvalidated and StreamError. Frame races use explicit extension statuses; X errors remain for malformed IDs/values, access and allocation. The matrix is not a wire ABI; XML schema, field widths, opcodes and generated binding tests remain open.
+
+### 2026-11-26 — XCB protocol-schema mapping
+
+HDR spec section 30.17 now maps the provisional handoff to xcb-proto conventions verified against `gitlab-freedesktop-mirrors/xcbproto:master` (`c70aba5cc6ae87757111dac737fc814b3605f0d4`) and DRI3 XML. It proposes a client-owned CMCONTEXT resource, per-screen epoch, counted FD lists, first-byte reply `nfd`, and XGE for generation-correlated notifications. FD-less transports remain explicitly unsupported. Exact XML/layout, Xtrans validation and generated binding/runtime tests remain open. No implementation or tests were run.
