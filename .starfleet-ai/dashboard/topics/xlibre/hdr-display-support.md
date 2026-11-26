@@ -340,3 +340,17 @@ To avoid rewriting existing branches/force-pushing, created one-commit replaceme
 - #4233 → [#4237](https://github.com/X11Libre/xserver/pull/4237), head `d9bdcdd8a505dfc7586ed057993211232dc070c7`
 
 Each replacement has exactly one commit, API-verified author/committer `Enrico Weigelt <info@metux.net>`, and the DCO trailer. CI was queued on all exact heads. Original PRs remain open until replacement CI and DCO checks pass. No local build/test claimed.
+
+
+### 2026-11-26 — Xtrans PR branch consolidation and Alpine linker fix
+
+- Per owner instruction, consolidated the signed-off work on the original PRs #4230–#4233; no replacement PRs remain active. Each original branch is now a single commit based on Xserver master `d439c01fef4c8dcb3a0d05471e3edb0eb00f6f89` and carries the authorized DCO trailer.
+- Current heads / exact-head CI runs:
+  - #4230 `8aaa71ad6d424e987ab5880fd97c6fd86b30f2f6` / `45888660431` queued.
+  - #4231 `dfe2e77d4c832ac00820fd2f231b85c024d0eede` / `45888664565` queued.
+  - #4232 `c50bd2aa6b4f12f9fd153613f78a5b037c7cbac9` / `45888560671` queued.
+  - #4233 `2c65e302c47d6edddb8296cd1321e7354f1f851a` / `45888669984` queued.
+- Closed #4234–#4237 as superseded, not merged. The original PRs #4230–#4233 remain open.
+- Fixed the Alpine/musl link failure seen on the prior #4236 exact head by marking the malloc wrapper default-visible. Previous failure was: hidden `__wrap_malloc` referenced by DSO. The fix is pending exact-head CI; do not claim validated yet.
+- The Signed-Off-By job passed on former replacement #4234 run `45883291726`. Current original PR exact-head runs are queued.
+- No Xserver local build/test was run; no PR merged. Continue to inspect full CI matrices and review all diffs before recommending merge.
