@@ -305,3 +305,14 @@ Owner pointed out that DRI has used FD passing successfully for years. Audited X
 Conclusion: lack of exact byte offsets in a batched recvmsg() does not itself break the established DRI3 flow. HDR should preserve the FIFO contract and should not require byte-offset tracking or a replacement transport API without a demonstrated need. Section 30.23 of the HDR spec records this corrected direction.
 
 Remaining hardening: SetReqFds() logs mismatches but overwrites the expected counter; appendFd() can fail allocation while callers still report success; receive queue has no group boundaries; test output ordering when an earlier write remains buffered after EAGAIN before a later FD-bearing reply. Plan is additive compatibility-preserving fixes and focused tests, not replacing the DRI3 path. No Xserver implementation/XML changed.
+
+
+## 2026-11-26 — Xtrans FD queue allocation failure follow-up
+
+Draft Xserver PR [#4232](https://github.com/X11Libre/xserver/pull/4232), branch `fix/xtrans-fd-queue-allocation-failure`, head `401caa60a35ccb18ce7072528b34b754f7d6d031`:
+
+- `appendFd()` propagates `ENOMEM` and does not close the caller's FD on failed queueing; send path propagates the failure.
+- Receive-side append failure closes all descriptors in the failed/remaining ancillary group and the already queued receive FIFO, then returns an error.
+- Added Linux tests through actual Xtrans local transport APIs with linker-wrapped `malloc()` failure injection.
+- Exact-head CI had not yet reported; no local build/test claimed. Draft only; review test harness and CI before merge.
+- Shares `os/Xtranssock.c` with PR #4231, so coordinate rebase/merge ordering.
