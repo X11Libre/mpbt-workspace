@@ -186,3 +186,12 @@ The proprietary NVIDIA DDX is external to X11Libre/xserver and was not inspected
 
 
 Additional multi-CRTC finding: modesetting's ordinary screen pixmap uses a shared front buffer; each CRTC has its own scanout origin, and PRIME can select per-CRTC scanout pixmaps. KMS gamma-LUT/CTM state is CRTC-scoped, so cloned connectors on one CRTC share it; independent connector transforms cannot be assumed. Hardware cursor operations are separate. Present requires candidate format/modifier support across every active CRTC. Do not make FP16 the mandatory screen-pixmap format. See spec section 28.7.
+
+
+### 2026-11-26 — ScreenRec private operations / NVIDIA ABI audit
+
+Owner preference: add future HDR screen/backend operations through DIX private state, not by extending ScreenRec. Use a core-owned key of the existing PRIVATE_SCREEN type and a core-owned private record with a copied, versioned optional ops table. `ScreenRec.devPrivate` is the legacy single DDX pointer and must not be overwritten; `devPrivates` is the DIX-managed key store. Do not add a DevPrivateType / change PRIVATE_LAST because `screenSpecificPrivates[PRIVATE_LAST]` is embedded in ScreenRec and affects its layout. `dixRegisterPrivateKey()` handles existing regular and GPU screens via `fixupScreens()`.
+
+NVIDIA compatibility is particularly sensitive: CONFIG_LEGACY_NVIDIA_PADDING adds `reserved_for_nvidia_470_and_390` at a fixed ScreenRec position; Meson option `legacy_nvidia_padding` controls it; Video ABI is 28.1 with padding vs 28.0 without; LoaderGetABIVersion reports NVIDIA ABI 25.2 under the compatibility configuration. `dix/pixmap.c` initializes the field NULL. Preserve the padding, field position, initialization and loader logic. `legacy_nvidia_340x` is a separate old-entrypoint option. Proprietary NVIDIA need not implement HDR; no registration must mean legacy SDR operation.
+
+See spec section 29 and durable decision `metux/wormhole-0/decisions/2026-11-26--hdr-screen-private-ops-and-nvidia-abi.md`. Source base `X11Libre/xserver:master` at `3132e4b7997b525d046e727c1db6656d14b5bc20`. No source code changed; no implementation authorized.
