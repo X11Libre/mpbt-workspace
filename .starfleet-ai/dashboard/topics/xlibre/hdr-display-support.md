@@ -371,3 +371,10 @@ Each replacement has exactly one commit, API-verified author/committer `Enrico W
 - Current #4231 head: 60a22b75864952817bd1589deac81571574ce5a7; exact-head run 45904923410 pending.
 - Rebased stacked #4232 onto that corrected #4231 head. Current #4232 head: b8febd859ebffb83e5a1964d411eaafb92bf008b; exact-head run 45904977771 pending.
 - Earlier heads are superseded. No PR merged; do not treat prior green runs as current-head validation.
+
+### Follow-up — allocation-test portability and pending CI
+
+- Moved stddef.h in test/xtrans-fd-alloc.c outside LDWRAP_TESTS, because its NULL sentinel is unconditional even when linker-wrap tests are disabled.
+- Current #4232 head: e82644d98e58ade396950172ddbd341463ac6f16; parent #4231 current head 60a22b75864952817bd1589deac81571574ce5a7; CI run 45905193967 pending.
+- #4231 current head remains 60a22b75864952817bd1589deac81571574ce5a7; CI run 45904923410 pending.
+- Earlier #4232 head b8febd... is superseded. No PR merged.
