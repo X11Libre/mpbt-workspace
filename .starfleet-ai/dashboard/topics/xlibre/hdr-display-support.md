@@ -242,3 +242,11 @@ Xserver master source rechecked at d96a26a11ca6ddc53050f4a96dd0becee9858077. Com
 Spec section 30.12 now proposes a separate versioned extension with BufferReady (no FDs), AcquireBuffer reply (DMA-BUF plane FDs plus producer fence), and ReleaseBuffer request (generation-correlated release fence or explicit NO_USE). The internal provider API is split into async transform submit/collect, export, release-fence import/queue-wait, pool reuse, destruction and quiesce. This is still a design proposal; extension naming, wire layout, compositor authority, XCB FD support, security and failure semantics remain open.
 
 No Xserver code changed; implementation remains unauthorized.
+
+### 2026-11-26 — XCB FD transport verification
+
+X11Libre/mirror.fdo.libxcb master `aa7f3256060451ad65a38feeccf792f44181a4e0`: generated bindings mark FD-bearing replies with `XCB_REQUEST_REPLY_FDS`; libxcb reads the FD count from reply `pad0`, appends descriptors after the reply payload and exposes them through generated `*_reply_fds()` accessors. Request-side `<fd>` fields generate `xcb_send_request_with_fds()`. Received FDs are caller-owned and must be closed before freeing the reply. FD passing is conditional on `HAVE_SENDMSG`; current `XCB_MAX_PASS_FD` is 16 (implementation detail, not wire ABI).
+
+Spec section 30.13 proposes a v1 cap of four DMA-BUF object FDs plus one producer fence, and one release fence or zero for NO_USE. Protocol XML and generated bindings are required; raw XCB requests without the reply-FD flag are unsafe. Client-side FD support is a build prerequisite, not something the server can infer from its own capability query.
+
+Concrete XML schema, runtime transport matrix and compositor interoperability remain open. No Xserver code changes.
