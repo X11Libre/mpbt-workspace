@@ -262,3 +262,7 @@ Spec section 30.14 proposes an exclusive HDR compositor claim per screen plus a 
 Xserver master `9f1d28b59b6af78033b7f0d0c170935308de046f`: Composite redirects fan out across underlying screens when the PanoramiX path is active; CompositeNameWindowPixmap returns a PanoramiXRes containing one physical pixmap per screen. This differs from RandR multi-output on one ScreenRec.
 
 Spec section 30.15 proposes v1 to support normal ScreenRec/RandR and explicitly report unsupported handoff while Composite PanoramiX/Xinerama is active. Existing Composite fallback remains unchanged. Future aggregate multi-screen generation/lease bundle is open.
+
+### 2026-11-26 — Provisional v1 protocol matrix
+
+Spec section 30.16 drafts the request/reply/event matrix: QueryVersion, QueryCapabilities, AcquireCompositor, ReleaseCompositor, SubscribeWindow, UnsubscribeWindow, AcquireBuffer, ReleaseBuffer; events BufferReady, BufferInvalidated and StreamError. Frame races use explicit extension statuses; X errors remain for malformed IDs/values, access and allocation. The matrix is not a wire ABI; XML schema, field widths, opcodes and generated binding tests remain open.
