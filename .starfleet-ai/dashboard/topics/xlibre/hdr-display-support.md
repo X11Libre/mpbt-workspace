@@ -156,10 +156,13 @@ The owner approved these design directions; see `metux/wormhole-0:master/X11LIBR
 The earlier suggested format strategy in this tracker predates owner approval of the negotiated FP16 compositor handoff and should be read as historical discussion, not as the current owner-approved direction.
 
 
-### 2026-11-26 — chromatic adaptation investigation
+### 2026-11-26 — chromatic adaptation decisions approved
 
-Spec section 26 now recommends (pending owner approval) fixed ICC linear Bradford, full adaptation, for relative-colorimetric RGB sources whose white point differs from D65. It explicitly separates relative RGB semantics from absolute-colorimetric XYZ / already-adapted ICC PCS output to prevent double adaptation. The proposed source pipeline and validation requirements are documented there.
+Owner approval received for all three v1 decisions:
+- Fixed ICC linear Bradford for relative-colorimetric RGB sources whose white point differs from D65.
+- Full adaptation only; no partial-adaptation control or per-window/per-output CAT selector.
+- Explicit, versioned distinction between relative-colorimetric RGB and absolute-colorimetric XYZ / already-adapted PCS semantics, preventing double adaptation.
 
-Evidence: ICC.1:2022 recommends linear Bradford absent a specific reason to choose another CAT; W3C CSS Color 4 (2026-11-12 CRD) also uses linear Bradford for D50/D65 conversions. CAT16 remains a possible later option, not a v1 choice without a demonstrated requirement.
+The approved source pipeline and validation requirements are recorded in spec section 26. The spec and project context now mark these decisions as approved.
 
-Owner approval is still needed for CAT selection, full adaptation, relative/absolute source semantics and ICC/CMM ownership. No Xserver implementation changed.
+Remaining design work: define ICC profile ingestion/CMM ownership (current proposal: parametric Color Descriptions only in the first protocol version; defer arbitrary ICC profiles), validation tolerances and canonical white-point precision, HLG luminance semantics, and non-finite FP16 handling. No Xserver implementation changed and no wire ABI is frozen.
