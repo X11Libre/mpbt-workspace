@@ -297,3 +297,11 @@ HDR spec section 30.21 now proposes an internal transport contract and ordered i
 - The #4230 socketpair test demonstrates `recvmsg()` returning ordinary bytes before an FD-bearing `sendmsg()` together with the entire FD-bearing payload. This disproves the section 30.20 marker formula `read_offset + nbytes - 1`. The HDR design draft now has section 30.22 explicitly superseding that formula; no replacement request-boundary association strategy is approved.
 - Further source review confirms `appendFd()` still silently drops descriptors on allocation failure, while receive/send callers ignore the failure. This can leave a partial receive queue or report a send as successful. It is not fixed by #4231 and needs its own scoped regression-tested follow-up.
 - No HDR wire protocol/XML or rendering implementation has been started.
+
+### 2026-11-26 — DRI3 FD-passing compatibility review
+
+Owner pointed out that DRI has used FD passing successfully for years. Audited Xserver master d439c01fef4c8dcb3a0d05471e3edb0eb00f6f89: DRI3 uses the established connection-wide FIFO. Xtrans appends descriptors received through recvmsg(); DRI3 declares expected counts via SetReqFds(N) and consumes descriptors in order via ReadFdFromClient(). Replies queue FDs via WriteFdToClient() immediately before X_SEND_REPLY_SIMPLE(), and Xtrans attaches them to the next socket write.
+
+Conclusion: lack of exact byte offsets in a batched recvmsg() does not itself break the established DRI3 flow. HDR should preserve the FIFO contract and should not require byte-offset tracking or a replacement transport API without a demonstrated need. Section 30.23 of the HDR spec records this corrected direction.
+
+Remaining hardening: SetReqFds() logs mismatches but overwrites the expected counter; appendFd() can fail allocation while callers still report success; receive queue has no group boundaries; test output ordering when an earlier write remains buffered after EAGAIN before a later FD-bearing reply. Plan is additive compatibility-preserving fixes and focused tests, not replacing the DRI3 path. No Xserver implementation/XML changed.
