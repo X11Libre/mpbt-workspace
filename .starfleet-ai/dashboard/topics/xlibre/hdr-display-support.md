@@ -324,3 +324,19 @@ Draft Xserver PR [#4232](https://github.com/X11Libre/xserver/pull/4232), branch 
 - Draft Xserver PR [#4233](https://github.com/X11Libre/xserver/pull/4233), branch `ci/fix-signoff-action-permissions`, adds narrowly scoped `pull-requests: write` to the sign-off job only.
 - Workflow run 45882365691 queued at last check. The PR itself is unsigned; expected action behavior after permission fix is to report DCO, not silently pass.
 - #4230–#4232 must be rerun after #4233 and all commits must carry valid Signed-off-by trailers before merge.
+
+
+## 2026-11-26 — DCO sign-off and replacement PRs
+
+Owner explicitly authorized DCO sign-off in their name. Verified existing Xserver signed commits and used:
+
+`Signed-off-by: Enrico Weigelt, metux IT consult <info@metux.net>`
+
+To avoid rewriting existing branches/force-pushing, created one-commit replacements with identical Git trees and the same master parent:
+
+- #4230 → [#4234](https://github.com/X11Libre/xserver/pull/4234), head `ec8356ff43d5f5674983238bbb7cb7d62ff71a9a`
+- #4231 → [#4235](https://github.com/X11Libre/xserver/pull/4235), head `6499dc22620a0378c76a083a7c0afa028060eead`
+- #4232 → [#4236](https://github.com/X11Libre/xserver/pull/4236), head `e73f28888e3c6070ed6d208af5bd3eb557f29ae9`
+- #4233 → [#4237](https://github.com/X11Libre/xserver/pull/4237), head `d9bdcdd8a505dfc7586ed057993211232dc070c7`
+
+Each replacement has exactly one commit, API-verified author/committer `Enrico Weigelt <info@metux.net>`, and the DCO trailer. CI was queued on all exact heads. Original PRs remain open until replacement CI and DCO checks pass. No local build/test claimed.
