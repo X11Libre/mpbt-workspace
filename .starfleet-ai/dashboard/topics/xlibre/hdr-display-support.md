@@ -316,3 +316,11 @@ Draft Xserver PR [#4232](https://github.com/X11Libre/xserver/pull/4232), branch 
 - Added Linux tests through actual Xtrans local transport APIs with linker-wrapped `malloc()` failure injection.
 - Exact-head workflow run 45881893934 is active; platform build jobs were queued/in progress at last check. Signed-Off-By failed with `Resource not accessible by integration`. No local build/test claimed. Draft only; review test harness and wait for all build/test jobs before merge.
 - Shares `os/Xtranssock.c` with PR #4231, so coordinate rebase/merge ordering.
+
+
+## 2026-11-26 — Signed-Off-By workflow permission follow-up
+
+- Diagnosed `Resource not accessible by integration` in the sign-off action: action logs enumerate commits, then fail while trying to post a comment for unsigned commits. The action source uses the Pull Requests API and `issues.createComment()`.
+- Draft Xserver PR [#4233](https://github.com/X11Libre/xserver/pull/4233), branch `ci/fix-signoff-action-permissions`, adds narrowly scoped `pull-requests: write` to the sign-off job only.
+- Workflow run 45882365691 queued at last check. The PR itself is unsigned; expected action behavior after permission fix is to report DCO, not silently pass.
+- #4230–#4232 must be rerun after #4233 and all commits must carry valid Signed-off-by trailers before merge.
