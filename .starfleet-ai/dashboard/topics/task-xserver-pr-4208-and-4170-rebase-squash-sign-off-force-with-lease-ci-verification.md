@@ -1,4 +1,4 @@
-Title: "Xserver PR #4208 and #4170 - rebase, squash, sign-off, force-with-lease, CI verification"
+Title: "Xserver PR #4170 regression-test repair; PR #4208 security backport merged"
 Category: active
 Kind: "task"
 Status: "assigned"
@@ -7,7 +7,7 @@ Created-By: "Voyager"
 Created: "2026-11-23T09:12:44Z"
 Doc-Ref: "—"
 
-ChatGPT directive m24976: rebase both PRs, squash to one commit each, add Signed-off-by, force-with-lease update, rerun CI, report results
+Superseded 2026-11-26: PR #4208 is already merged. Only PR #4170 remains active; do not rebase/squash/force-push until the shared-helper blocker is fixed and reviewed. Follow-up: w0-20261126T080000Z-voyager-pr4170-helper-bounds-01.
 
 - 2026-11-23T09:19:33Z Voyager: progress 10% (Received scope correction for #4170 (m24980) - pyxtest testcase only, revert production code changes. Starting investigation of current PR state and target branches.)
 
