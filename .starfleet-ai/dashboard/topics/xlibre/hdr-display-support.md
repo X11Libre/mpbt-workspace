@@ -141,3 +141,16 @@ Suggested milestones:
 3. Complete glamor path coverage, dynamic metadata where needed, advanced formats and optional hardware color-pipeline/plane offload.
 
 Each milestone needs tests for no-HDR EDID, malformed/short EDID, unsupported KMS properties, hotplug, SDR-only clients, mixed SDR/HDR, and unchanged legacy 8-bit pass-through.
+
+
+## 2026-11-26 — dedicated HDR session owner decisions
+
+The owner approved these design directions; see `metux/wormhole-0:master/X11LIBRE_HDR_COLOR_MANAGEMENT_SPEC.md` sections 24–25 for the detailed rationale and remaining open items:
+
+- Common compositor working space: linear BT.2020 / D65, output-independent, neutral RGB 1.0 = 203 cd/m².
+- Negotiated compositor handoff: RGBA FP16, linear premultiplied alpha; capability negotiation and a valid fallback remain mandatory.
+- Unmanaged legacy windows: implicit sRGB/D65 source profile. In the HDR color-managed composition path, the session-wide configurable `LegacySDRReferenceWhite` defaults to 203 cd/m² so SDR graphics white is anchored to HDR reference white. 80 or 100 cd/m² remain user/session-configurable alternatives.
+- The legacy reference-white setting is never per-output; explicit Color Descriptions override it.
+- Exact configuration interface/range, chromatic adaptation, HLG absolute-luminance assumptions, non-finite FP policy and wire ABI remain open. No Xserver implementation is authorized by these design decisions.
+
+The earlier suggested format strategy in this tracker predates owner approval of the negotiated FP16 compositor handoff and should be read as historical discussion, not as the current owner-approved direction.
