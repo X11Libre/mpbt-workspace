@@ -173,3 +173,13 @@ Remaining design work: validation tolerances and canonical white-point precision
 **Owner-approved scope:** v1 supports parametric Color Descriptions only (primaries, white point, transfer function, luminance/reference-white semantics and relative/absolute interpretation). Arbitrary ICC profile ingestion and general-purpose CMM integration are deferred beyond v1. Specification section 26.6 records the decision.
 
 **New design proposal (not yet approved):** when no compositor is active, convert the final desktop image independently per output, preferably through per-CRTC DRM/KMS color-pipeline blocks; otherwise use output-specific GPU scanout buffers, with a safe SDR fallback. This must remain separate from per-window conversion into the common compositor working space. Multi-output behavior, source-semantic limitations, Present/direct-scanout and overlay/cursor/video-plane handling need investigation. See specification section 27.
+
+### 2026-11-26 — modesetting audit and NVIDIA compatibility gate
+
+X11Libre/xserver master was refreshed at `bb06f6ddca766c41c81494ae228c11e53df59590`. The current modesetting DDX has CRTC `GAMMA_LUT`, `GAMMA_LUT_SIZE` and `CTM` handling, but no `DEGAMMA_LUT` in its CRTC property model. Its 1D RGB gamma LUT is enabled only when the kernel reports a usable size (default policy up to 4096 entries, overridable with `UseGammaLUT`); otherwise it uses the legacy DRM CRTC gamma call. CTM is separate 3x3 state. This is not a full HDR pipeline.
+
+Present checks format/modifier support across all active CRTCs before flipping; hardware cursor programming is separate, and sprite/overlay visibility affects flip eligibility. Shared screen-pixmap and per-CRTC scanout behavior still needs deeper multi-output/PRIME/clone testing.
+
+**Owner requirement:** proprietary NVIDIA Xorg driver must not be broken; it does not have to support HDR. Keep HDR opt-in and runtime capability-gated, preserve legacy SDR/X11 behavior when unsupported, avoid mandatory new driver callbacks or unreviewed public driver ABI changes, and keep DRM/GBM/Vulkan requirements out of generic DIX/core. Do not raise the global OpenGL baseline. Legacy Composite/Damage/Present/DRI3/RandR gamma and scanout semantics must remain unchanged unless the new contract is negotiated.
+
+The proprietary NVIDIA DDX is external to X11Libre/xserver and was not inspected/tested. Treat it as a required compatibility test target, not as verified. Detailed findings/test gates are in spec section 28; durable decision: `metux/wormhole-0/decisions/2026-11-26--hdr-driver-compatibility-and-nvidia.md`. No Xserver code changed; no implementation authorized.
