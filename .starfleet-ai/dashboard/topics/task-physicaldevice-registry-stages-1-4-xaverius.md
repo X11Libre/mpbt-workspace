@@ -50,3 +50,9 @@ Namespace correction note (W0-20261106-012/W0-20261106-014): the canonical API n
 - 2026-11-26T19:05:00Z Owner directive w0-20261126T190500Z-xav-nautilus-takeover: Nautilus authorized to take over from Defiant. No duplicate task. Cruiser proposal superseded.
 
 - 2026-11-26T19:07:00Z Nautilus: Acknowledged wormhole directive. Task reassigned from Defiant to Nautilus. Beginning worktree inventory and safe handoff.
+
+- 2026-11-26T19:15:00Z Nautilus: Defiant acknowledged takeover. Local state preserved: 1 unpushed commit (7491d8c1d4), 4 modified files (registry.c, xaverius_intern.h, test/xaverius-registry.c, ACCEPTANCE_MATRIX.md). All 5 W0-153 blockers fixed & verified by Defiant.
+
+- 2026-11-26T19:20:00Z Nautilus: Created isolated worktree wip/xaverius-nautilus at origin/wip/xaverius (9cc27e1030). Applied all 4 modified files from Defiant's worktree. Verified build (ninja -C build-xaverius -Dwerror=true → all 703 targets link, exit 0) and tests (21 registry + 7 QV tests pass; pre-existing signal_logging_test FAIL unrelated).
+
+- 2026-11-26T19:22:00Z Nautilus: Committed consolidation of all 8 W0-153 review blockers (commit f4beec5183) on wip/xaverius-nautilus. Pushed to origin/wip/xaverius-nautilus. CI pending.
