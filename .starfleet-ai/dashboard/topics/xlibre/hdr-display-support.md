@@ -478,3 +478,15 @@ CI exact heads unchanged: #4230 run 45995722324 in progress; #4232 run 459958319
 Current-master inventory found queued-FD replies in DRI3, RandR leases and MIT-SHM. They all queue with `WriteFdToClient()` before emitting their corresponding reply. Spec section 30.30 records the exact call-site inventory (Wormhole spec commit `8797047bf040aca527b0e61376a72bd3a0b145d3`). This confirms existing protocols depend on the generic next-write contract; it does not yet prove a runtime backpressure failure. No generic behavior changes are authorized by this HDR work.
 
 Next: build a deterministic DIX-level regression for pending ordinary output + EAGAIN + FD-bearing reply, including retries, short writes, reentrancy and teardown. No such test or implementation exists yet. Detailed handoff updated in `metux/wormhole-0:master/X11LIBRE_HDR_PROJECT_CONTEXT.md` (commit `9d5d9928a945c74d0f3685695f11af4a575f6e94`).
+
+
+## 2026-11-27 14:15Z — Owner scope review: Xtrans PRs narrowed
+
+Detailed handoff and rationale are recorded in `metux/wormhole-0:master/X11LIBRE_HDR_PROJECT_CONTEXT.md` (checkpoint commit `fe1cb7131d1e125f290e879b86f3c312c3ccde37`) and spec section 30.31 (commit `97daf3b47375ae31a7705b504f5e5dd180e8fdc7`).
+
+- #4231 rebased onto Xserver master `21d70661f216140a6080882b01d2d7bbf20191e4`, head `4bb84c5e5fa9e9dc60a113d3c60149205a269fa7`. This is a general `MSG_CTRUNC` fail-closed fix plus a live test, not merely a test. Useful generic hardening, not required for compliant small HDR FD groups.
+- #4232 narrowed to receive-side HDR prerequisite only, head `6ef3a93ef2a0b43d4fc9d77bf9342143d8d12a37`: per-read FD count, receive queue OOM cleanup/failure, registered regression tests and active malloc wrapping. Removed SendFds/atomic batch queue/WriteFdsToClient/DRI3 batch conversion. Outbound send error handling deferred due DRI3 multi-FD ownership/atomicity and unresolved HDR output transport.
+- Original #4232 allocation test was not in Meson or test runner and malloc wrapping was not enabled; current head fixes both. Prior green run `45995831968` on superseded head does not validate the current test.
+- #4233 rebased by owner onto current master, head `d42037bb87537b3592a65eb897e0e08d430a04a2`; one job-scoped permission change; run `46011658495` queued.
+- Current exact-head CI: #4231 run `46012395834` queued; #4232 run `46013405746` queued; #4233 run `46011658495` queued. All PRs remain Draft/open/unmerged.
+- #4230 and #4240 still based on old master `d439c01f...`; rebase and refresh CI before merge consideration.
