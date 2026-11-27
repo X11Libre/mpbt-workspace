@@ -459,3 +459,8 @@ A Linux socketpair check showed that a four-byte recvmsg() buffer stops at the f
 ### 2026-11-27 — Legacy EDID parser compatibility
 
 #4240's first Ubuntu run caught a legacy-API compatibility regression: xf86InterpretEEDID() has no length parameter and existing callers pass complete multi-block EDID buffers. The size-aware walkers now treat rawDataLen == 0 as legacy/unknown length and preserve that pointer-only contract; xf86ParseEDID() retains actual-length bounds. The legacy API is documented as requiring all advertised blocks. Current #4240 head `da9116cab956ea81d6b78c2fc6172741eb0f8377`, exact-head run `45996097202` pending.
+
+
+## 2026-11-27 13:45Z — Output-side FD ordering audit
+
+The detailed source audit is recorded in `metux/wormhole-0:master/X11LIBRE_HDR_PROJECT_CONTEXT.md` and spec section 30.28 (spec commit `44cb4ad97f17d65190a5d1814fca15fd5877795a`). Confirmed source-level hazard in Xserver `os/io.c`: `WriteFdToClient()` queues FDs for the next transport write, while `dixWriteToClient()` appends reply bytes behind any existing output and `FlushClient()` writes from the beginning of that buffer. EAGAIN retains pending bytes in `oc->output` while returning 0. Thus a later FD-bearing reply can be associated with older pending output. No dynamic regression or code fix yet; the design note requires tests for EAGAIN, partial sends, callbacks/reentrancy, allocation failure and teardown. No implementation authorized by this design update.
