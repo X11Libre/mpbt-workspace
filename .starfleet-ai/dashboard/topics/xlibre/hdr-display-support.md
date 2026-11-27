@@ -446,3 +446,11 @@ A four-byte first header read could coalesce ancillary groups attached to succes
 - #4230 current head `5bc5fc17afa4dc559f314baa4d3d0b9e11e33b96`, run `45995093049` queued.
 - #4232 current head `d0cf2465da15f2fdc3ca9fc41dd98da44d90b86a`, stacked on #4231 head `fd0443f1d0e79fcaf2eb3f30b43963e5edbc5a32`; exact-head CI not yet registered.
 - Previous green runs refer to earlier heads. No local build/test or merge is claimed.
+
+
+### 2026-11-27 superseding correction — no one-byte probe
+
+A Linux socketpair check showed that a four-byte recvmsg() buffer stops at the first SCM_RIGHTS sendmsg() boundary: two consecutive two-byte FD-bearing sendmsg() payloads are returned on separate reads, each with its own group. The earlier one-byte-probe note is superseded. The candidate needs request-bounded reads (no read-ahead across request boundaries), not a one-byte probe. The Xtrans regressions now use four-byte read requests and verify that two-byte ancillary groups arrive separately.
+
+- #4230 current head `afa92c9ebf26d4faf8be20bee70842767124b82b`, run `45995722324` queued.
+- #4232 current head `b5387cf06a6614ee58e6608ec15e60680eeb1cdb`, new exact-head CI not yet registered.
