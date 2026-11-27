@@ -72,8 +72,12 @@ def validate(path: Path, recipient: str | None = None) -> dict[str, str]:
 
     if path.name != fields["id"] + ".md":
         raise ValidationError(f"filename must be exactly {fields['id']}.md")
-    if recipient is not None and fields["to"] != recipient:
+    if recipient is None:
+        raise ValidationError("--recipient is required")
+    if fields["to"] != recipient:
         raise ValidationError(f"to={fields['to']!r} does not match recipient mailbox {recipient!r}")
+    if path.parts[-4:-1] != ("mail", recipient, "new"):
+        raise ValidationError(f"destination must be mail/{recipient}/new/<message-id>.md")
 
     try:
         created = datetime.strptime(fields["created"], "%Y-%m-%dT%H:%M:%SZ")
@@ -91,7 +95,7 @@ def validate(path: Path, recipient: str | None = None) -> dict[str, str]:
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("message", type=Path, help="path to <message-id>.md")
-    parser.add_argument("--recipient", help="expected recipient/mailbox directory")
+    parser.add_argument("--recipient", required=True, help="expected recipient/mailbox directory")
     args = parser.parse_args()
     try:
         fields = validate(args.message, args.recipient)
