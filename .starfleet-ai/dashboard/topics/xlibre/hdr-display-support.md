@@ -505,3 +505,13 @@ Correction to the previous tracker checkpoint: #4232 is now based directly on cu
 ## 2026-11-27 14:25Z — DIX failure-path confirmation
 
 Current master `21d70661f216140a6080882b01d2d7bbf20191e4` `os/io.c:ReadRequestFromClient()` treats only would-block as a normal yield; any other negative Xtrans read is fatal. Thus #4231's `EMSGSIZE` and #4232's `ENOMEM` abort request reading instead of allowing a partial FD queue to contaminate later requests. Recorded in spec §30.33 (Wormhole commit `2dc22092581712b796524a70b251549374d7ba58`) and project context commit `0881e64b5c15b608ce5a190e33bed99a10d2f63c`. Source inspection only; no local build/runtime test.
+
+
+## 2026-11-27 15:03Z — Xtrans FD cleanup and style review
+
+- Applied owner-wide Xserver C conventions to new #4231/#4232 code: variables near first use where practical, braced control flow, return type and function name on one line. Durable decision: `metux/wormhole-0:master/decisions/2026-11-27--xserver-coding-style.md`.
+- Xserver master is `325ba5ebb80ed97bb5387ec7b6f69d38bc40f8bb`. Both PR branches are single-commit branches based directly on it.
+- #4231 head `6cd70b3a33f0b934f1dc492b158b3fa91ea0fa3e`: `MSG_CTRUNC` path closes descriptors from the truncated control buffer and also clears/closes any previously queued receive FDs. Regression seeds a pre-existing queued FD and verifies it is closed. Exact-head CI run `46022322395` pending.
+- #4232 head `909a70fd4b4d03a29a60edeb24dd26cff290b31b`: `appendFd()` is now used only by `_XSERVTransSocketSendFd()`; receive queue uses `appendRecvFd()` for explicit allocation-failure reporting. Added a test for local Xtrans connection-close cleanup of unconsumed received FDs. Exact-head CI run `46022152207` pending.
+- Reviewed the distinct DIX request-end cleanup: `ReadRequestFromClient()` drains remaining `client->req_fds` through `ReadFdFromClient()` and closes them. That path remains unchanged and is source-reviewed only; the new regression covers Xtrans connection teardown.
+- Both PRs remain Draft/open/unmerged. No local build/test claimed.
