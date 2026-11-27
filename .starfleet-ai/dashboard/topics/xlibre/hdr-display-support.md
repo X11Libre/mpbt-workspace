@@ -534,3 +534,8 @@ Current Xserver master is `325ba5ebb80ed97bb5387ec7b6f69d38bc40f8bb`.
 - First exact-head run `46022322395` failed its Ubuntu unit test because the generic `send_fds()` test helper used the full 129-FD control length even for the one-FD seed message. Corrected it to use `CMSG_SPACE(count * sizeof(int))`.
 - New exact-head runs `46023742549` and `46023735465` pending. Previous failure is superseded but no green claim yet.
 - #4232 run `46022152207`, #4230 run `46023298662`, and #4240 run `46023127915` still pending/in progress. All remain Draft/open/unmerged.
+
+
+2026-11-27 18:00Z owner priority update: Resume HDR as the active priority; make Xserver-core changes only when demonstrably required by HDR. The SCM_RIGHTS marker-offset formula is invalid because a coalesced recvmsg() byte count does not locate the ancillary marker (spec §30.22). #4230 transport tests, #4231 generic MSG_CTRUNC hardening and #4232 per-read FD-count/OOM handling are parked as low-priority separate work; preserve DRI3 FIFO and do not implement generic Xtrans/DIX changes absent a concrete HDR protocol requirement.
+
+Current Xserver master: 9b99e420eab37f57ac69a733d809782ed99791fe. Stage-0 PR #4240 rebased onto master as one signed-off commit, head 865d56ccb91e7c202f6a4b8930a1e9493c52fe74; branch feature/edid-hdr-bounded-capabilities. Compare verified exactly six intended EDID/DDC/modesetting/test files, no unrelated master changes reverted. New exact-head CI runs 46045249263 and 46045246277 are queued. PR remains Draft/open; no merge or local build/test claimed. This is read-only EDID/CTA/HDR sink capability parsing only. Next: poll exact-head CI, then continue Stage-1 output capability/mode design; RandR/output policy remains an owner decision gate.
