@@ -464,3 +464,10 @@ A Linux socketpair check showed that a four-byte recvmsg() buffer stops at the f
 ## 2026-11-27 13:45Z — Output-side FD ordering audit
 
 The detailed source audit is recorded in `metux/wormhole-0:master/X11LIBRE_HDR_PROJECT_CONTEXT.md` and spec section 30.28 (spec commit `44cb4ad97f17d65190a5d1814fca15fd5877795a`). Confirmed source-level hazard in Xserver `os/io.c`: `WriteFdToClient()` queues FDs for the next transport write, while `dixWriteToClient()` appends reply bytes behind any existing output and `FlushClient()` writes from the beginning of that buffer. EAGAIN retains pending bytes in `oc->output` while returning 0. Thus a later FD-bearing reply can be associated with older pending output. No dynamic regression or code fix yet; the design note requires tests for EAGAIN, partial sends, callbacks/reentrancy, allocation failure and teardown. No implementation authorized by this design update.
+
+
+## 2026-11-27 14:00Z — Xtrans send-path confirmation
+
+Xserver `os/Xtranssock.c` source inspection confirms the queued FD list is attached to the next `_XSERVTransSocketWrite()` via `sendmsg()`; EAGAIN before a positive write retains the list, while any positive short write consumes it. This confirms the buffered-output association hazard described in spec section 30.29. Detailed handoff updated in `metux/wormhole-0:master/X11LIBRE_HDR_PROJECT_CONTEXT.md` (commit `64225266e71507dd56f204758b4b090caf4dde35`). Still no dynamic DIX regression or implementation change.
+
+CI exact heads unchanged: #4230 run 45995722324 in progress; #4232 run 45995831968 in progress; #4240 run 45996097202 queued. #4231 and #4233 remain green. All PRs remain Draft/open/unmerged.
