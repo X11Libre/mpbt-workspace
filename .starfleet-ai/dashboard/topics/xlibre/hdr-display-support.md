@@ -437,3 +437,12 @@ Enable this mode only after the compositor-acquisition round-trip barrier, and r
 - Draft PR [#4240](https://github.com/X11Libre/xserver/pull/4240) proposes milestone 0 only: length-aware EDID parsing, bounds-safe extension walkers, complete-extension validation, normal modesetting/full-DDC integration and malformed/truncated-input tests. Head: `ff89fbe00aa56b3c80ef3382f83b17f40fff4f50`.
 - #4240 exact-head CI run `45994542211` is queued. No local build/test was run.
 - No HDR output signaling, client protocol/XML, request parser or rendering behavior is implemented. No PR has been merged.
+
+
+### 2026-11-27 — One-byte request-boundary probe
+
+A four-byte first header read could coalesce ancillary groups attached to successive partial-header writes. The HDR-only candidate therefore requires a one-byte first positive read at every request boundary. Xserver #4230's request-bounded and multiple-groups tests now model the one-byte probe; #4232's per-read count test uses reads 1, 1, 2, 4 and expects counts 0, 2, 1, 0.
+
+- #4230 current head `5bc5fc17afa4dc559f314baa4d3d0b9e11e33b96`, run `45995093049` queued.
+- #4232 current head `d0cf2465da15f2fdc3ca9fc41dd98da44d90b86a`, stacked on #4231 head `fd0443f1d0e79fcaf2eb3f30b43963e5edbc5a32`; exact-head CI not yet registered.
+- Previous green runs refer to earlier heads. No local build/test or merge is claimed.
