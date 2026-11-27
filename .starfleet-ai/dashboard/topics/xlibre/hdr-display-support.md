@@ -434,6 +434,6 @@ Enable this mode only after the compositor-acquisition round-trip barrier, and r
 
 - Xserver master: `d439c01fef4c8dcb3a0d05471e3edb0eb00f6f89`.
 - Xtrans hardening/test PRs #4230–#4233 have green exact-head CI on all executed jobs; all remain Draft/open/unmerged. #4232 is stacked on #4231.
-- Draft PR [#4240](https://github.com/X11Libre/xserver/pull/4240) proposes milestone 0 only: length-aware EDID parsing, bounds-safe extension walkers, complete-extension validation, normal modesetting/full-DDC integration and malformed/truncated-input tests. Head: `30d1fe14b002a1b7dd04141961388cf8ddf531dc`.
-- #4240 exact-head CI run `45994123556` is pending. No local build/test was run.
+- Draft PR [#4240](https://github.com/X11Libre/xserver/pull/4240) proposes milestone 0 only: length-aware EDID parsing, bounds-safe extension walkers, complete-extension validation, normal modesetting/full-DDC integration and malformed/truncated-input tests. Head: `ff89fbe00aa56b3c80ef3382f83b17f40fff4f50`.
+- #4240 exact-head CI run `45994542211` is queued. No local build/test was run.
 - No HDR output signaling, client protocol/XML, request parser or rendering behavior is implemented. No PR has been merged.
