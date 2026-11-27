@@ -419,3 +419,12 @@ The request-bounded candidate now has an additional required validation point: a
 ## 2026-11-27 — Xtrans per-read FD count API
 
 Xserver PR #4232 now includes _XSERVTransGetLastReadFdCount(), which reports the number of descriptors received during the immediately preceding Xtrans read. The count resets on every read and is cleared on read failure. Its live test verifies 0, 2, 1, 0 for an ordinary request, a two-FD group on the first partial header read, a second one-FD group on a later partial header read, and the body. This supplies the transport-side signal required by the HDR request-bounded candidate; the Xserver request parser still needs to use it and disable read-ahead for negotiated HDR clients.
+
+
+## 2026-11-27 — ReadRequestFromClient parser integration point
+
+Current Xserver master os/io.c:ReadRequestFromClient() computes needed and gotnow for the xReq header, BIG-REQUESTS extension header and full request, but its transport read currently asks for all remaining input-buffer capacity (oci->size - oci->bufcnt), which permits read-ahead into subsequent requests.
+
+For negotiated HDR clients only, cap that read length to needed - gotnow. Track request_read_index and accumulated request_fd_count in private ConnectionInput/OsComm state: after each positive read, call _XSERVTransGetLastReadFdCount(); accept a nonzero count only on the first positive read of the request, accumulate it, and reject any later nonzero read (including later partial header fragments or the body). After the full request is assembled, expose the accumulated count to the HDR handler for comparison with the request-declared count before it consumes the FIFO.
+
+Enable this mode only after the compositor-acquisition round-trip barrier, and reject enabling it if bytes beyond the negotiation request are already buffered. EAGAIN/zero-byte reads do not advance request_read_index. Existing BIG-REQUESTS parsing remains authoritative. Legacy DRI3 and ordinary clients keep the existing read-ahead behavior. This is the next parser implementation task; it is not included in the current Xserver PRs.
