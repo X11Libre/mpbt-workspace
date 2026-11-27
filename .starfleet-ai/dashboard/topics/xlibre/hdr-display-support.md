@@ -385,3 +385,27 @@ Each replacement has exactly one commit, API-verified author/committer `Enrico W
 - Current #4232 head 2429f7f00860501602a86452f59b037895a0c925, parent #4231 head 60a22b75864952817bd1589deac81571574ce5a7; run 45905471008 pending.
 - #4231 head 60a22b75864952817bd1589deac81571574ce5a7; run 45904923410 pending.
 - No merges. After #4231 merges, rebase/retarget #4232 to updated master and rerun CI.
+
+
+## 2026-11-27 — Current HDR transport refresh
+
+This refresh supersedes the older marker-offset proposal in the 2026-11-26 notes. The normative correction is in wormhole-0 master section 30.22; the current request-bounded candidate is in section 30.27. Do not use the former formula based on recvmsg() byte count.
+
+### Receive-side candidate
+
+A standalone Linux AF_UNIX/SOCK_STREAM experiment and the registered Xserver regression in PR #4230 show that a receiver positioned at an X request boundary can read only the current header (including a partial header) and receive the FD group with the first header read. Later header/body reads do not receive that group. Candidate HDR-only strategy: after a compositor-acquisition round-trip barrier, disable request read-ahead for negotiated HDR clients, expose per-read FD counts from Xtrans, parse the request length including BIG-REQUESTS, then read exactly the remaining request body. Validate the declared FD count against the group received during the header read; reject FDs arriving during body reads. Keep the existing FIFO ownership/consumption model and leave legacy DRI3 input behavior unchanged. This is not implemented in the Xserver parser or libxcb and is not an approved wire ABI.
+
+### Output-side blocker
+
+The output path remains unresolved. WriteFdToClient queues FDs for the next transport write; FlushClient may begin with earlier buffered bytes after EAGAIN, so a later FD-bearing reply could attach to an older event/reply. Candidate HDR-only mitigation: flush all prior output before queueing an FD group, ensure reply-buffer capacity before queueing, then queue the group and write the reply; if prior output remains pending after EAGAIN, return a retryable BUSY/WOULD_BLOCK result without queueing the FD. This needs a dedicated DIX-level backpressure regression and proof that partial writes preserve the reply/FD association. Do not change the legacy DRI3 WriteFdToClient path until that test exists.
+
+### Current Xserver transport PRs
+
+- [#4230](https://github.com/X11Libre/xserver/pull/4230) head 4fb7f5e73eb9944797ab9b9e5ae50d6a2fbc37f6: Linux AF_UNIX framing, multi-marker, MSG_CTRUNC and request-bounded partial-header tests. The bounded-read test is registered. Exact-head runs 45914116797 and 45914122959 are pending.
+- [#4231](https://github.com/X11Libre/xserver/pull/4231) head fd0443f1d0e79fcaf2eb3f30b43963e5edbc5a32: reject MSG_CTRUNC, close all received FDs and fail with EMSGSIZE. Both exact-head runs are green: 45912011180 (20 passed, 5 skipped) and 45912016553 (18 passed, 7 skipped); DCO passed.
+- [#4232](https://github.com/X11Libre/xserver/pull/4232) head b0174238f714c077574d8948e1382bebc74354e5, stacked on #4231: propagate allocation errors, add atomic SendFds/WriteFdsToClient group queueing, and fix DRI3 BuffersFromPixmap so multi-plane FDs are queued all-or-nothing. Exact-head runs 45913945592 and 45913950660 are in progress. An intermediate head had a SendFd/SendFds dispatch mismatch; current head fixes it.
+- All three remain Draft, unreviewed and unmerged. #4232 must be retargeted/rebased after #4231 merges. No local Xserver build/test has been run.
+
+### Scope boundary
+
+This HDR session has not implemented the HDR wire protocol/XML, request parser, libxcb changes, output metadata, or rendering pipeline. The work above is transport regression/hardening plus a candidate framing strategy. Keep the already-approved linear BT.2020/D65 working space, FP16 premultiplied compositor handoff and 203 cd/m² neutral reference white separate from these still-open transport and ABI decisions.
