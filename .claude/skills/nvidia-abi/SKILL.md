@@ -19,7 +19,8 @@ Full reference: **`reference.md`** in this skill's directory. This skill is the 
 ## Key rules
 
 - **Two ways the blob reaches a symbol:** link-import (`nm -D`) AND runtime lookup (`dlsym()`/`LoaderSymbol()`). Check BOTH — plain `nm` misses the runtime half (#2070).
-- **Struct layout:** append new fields only at the **tail** (past the PRIVATE marker). Do not reorder/insert.
+- **Struct layout:** never reorder/insert/remove fields. Before any extension, trace allocation ownership and all public construction paths. A tail append is only safe if the core owns and sizes every allocation and old out-of-tree consumers only read existing fields; the core must never write the new tail into storage that an old external driver may have allocated or embedded. If driver-side allocation cannot be ruled out, do not extend the struct; use an opaque/private sidecar or accessor instead.
+- **Allocation audit:** distinguish (a) core-allocated objects returned to a DDX from (b) DDX-allocated/embedded objects passed into the core. Search in-tree call sites, public constructors, and lifetime/free paths, but do not treat an in-tree-only search as proof about proprietary blobs. NVIDIA binary symbol/string scans do not reveal allocation sizes or struct ownership; state that limitation explicitly.
 - **Runtime-lookup-only symbols** (e.g. `xf86CursorScreenKeyRec`, `monitorResolution`, `PictureScreenPrivateKey`) must stay `_X_EXPORT`.
 - **Version coverage:** currently 390.157, 470.256.02, 550.142, 570.133.07.
 
