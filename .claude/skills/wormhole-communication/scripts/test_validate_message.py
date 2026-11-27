@@ -7,7 +7,8 @@ from validate_message import ValidationError, validate
 
 class ValidateMessageTests(unittest.TestCase):
     def write_message(self, text: str, name: str = "w0-test.md") -> Path:
-        directory = Path(tempfile.mkdtemp())
+        directory = Path(tempfile.mkdtemp()) / "mail" / "Nautilus" / "new"
+        directory.mkdir(parents=True)
         path = directory / name
         path.write_text(text, encoding="utf-8")
         return path
@@ -41,6 +42,14 @@ A non-empty body.
         text = self.valid().replace('to: "Nautilus"', 'to: "Nautilus"\nto: "Enterprise"')
         with self.assertRaisesRegex(ValidationError, "duplicate key"):
             validate(self.write_message(text))
+
+    def test_rejects_wrong_destination_directory(self):
+        path = self.write_message(self.valid())
+        wrong = path.parent.parent.parent / "Other" / "new" / path.name
+        wrong.parent.mkdir(parents=True)
+        wrong.write_text(path.read_text(encoding="utf-8"), encoding="utf-8")
+        with self.assertRaisesRegex(ValidationError, "destination must be"):
+            validate(wrong, "Nautilus")
 
     def test_rejects_empty_body(self):
         text = self.valid().split("---\n", 2)
