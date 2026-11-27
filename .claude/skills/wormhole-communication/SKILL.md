@@ -63,11 +63,19 @@ The validator intentionally accepts a strict YAML subset:
   `:`, `#`, brackets, or other YAML syntax).
 - Required fields: `id`, `from`, `to`, `subject`, `type`, `created`.
 - `id`, `from`, and `to` must be path-safe tokens; the filename must equal
-  `<id>.md`; `to` must match the mailbox directory.
+  `<id>.md`; `to` must match the mailbox directory, and the file must be under
+  exactly `mail/<recipient>/new/`.
 - Duplicate keys, missing delimiters, invalid UTF-8, non-string values,
   non-UTC/non-canonical timestamps, and empty bodies are rejected.
 - Additional project-specific metadata keys are allowed, but their values must
   also be JSON double-quoted strings.
+
+Run the validator's regression tests after changing it:
+
+```sh
+python3 -m unittest discover \
+  -s .claude/skills/wormhole-communication/scripts -p 'test_*.py' -v
+```
 
 Example:
 
