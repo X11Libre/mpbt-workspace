@@ -1,6 +1,6 @@
 Title: "HDR (High Dynamic Range) display support"
 Category: active
-Status: "**EDID parser merged; HDR runtime/rendering pipeline still unimplemented.** Resume from a design review, not by rebasing the stale PoC."
+Status: "**EDID parser merged; bounded read-only capability integration is in Draft PR #4240; HDR runtime/rendering pipeline still unimplemented.** Continue from current master and the design gates, not the stale PoC."
 Doc-Ref: "Discussion `X11Libre/misc#251`; external WIP fork `cepelinas9000/xserver@wip/x11hdrV2`; branch `wip/hdr-prep` **pushed to `X11Libre/xserver`** (https://github.com/X11Libre/xserver/tree/wip/hdr-prep), tracked locally in agent clone `_WORK_/xserver-master/agent/hdr-prep/xserver` (remote `cepelinas` added there for fetching his branches; extraction base was master commit `cb5f2cd67e`, Feb 17 2026, 871 commits behind current master when analyzed)"
 Migrated-From: 8cf8692b9f0057ffe44e793b35bcf7329da83d3f
 Slug: hdr-display-support
@@ -428,3 +428,12 @@ Current Xserver master os/io.c:ReadRequestFromClient() computes needed and gotno
 For negotiated HDR clients only, cap that read length to needed - gotnow. Track request_read_index and accumulated request_fd_count in private ConnectionInput/OsComm state: after each positive read, call _XSERVTransGetLastReadFdCount(); accept a nonzero count only on the first positive read of the request, accumulate it, and reject any later nonzero read (including later partial header fragments or the body). After the full request is assembled, expose the accumulated count to the HDR handler for comparison with the request-declared count before it consumes the FIFO.
 
 Enable this mode only after the compositor-acquisition round-trip barrier, and reject enabling it if bytes beyond the negotiation request are already buffered. EAGAIN/zero-byte reads do not advance request_read_index. Existing BIG-REQUESTS parsing remains authoritative. Legacy DRI3 and ordinary clients keep the existing read-ahead behavior. This is the next parser implementation task; it is not included in the current Xserver PRs.
+
+
+## 2026-11-27 — Current implementation checkpoint
+
+- Xserver master: `d439c01fef4c8dcb3a0d05471e3edb0eb00f6f89`.
+- Xtrans hardening/test PRs #4230–#4233 have green exact-head CI on all executed jobs; all remain Draft/open/unmerged. #4232 is stacked on #4231.
+- Draft PR [#4240](https://github.com/X11Libre/xserver/pull/4240) proposes milestone 0 only: length-aware EDID parsing, bounds-safe extension walkers, complete-extension validation, normal modesetting/full-DDC integration and malformed/truncated-input tests. Head: `30d1fe14b002a1b7dd04141961388cf8ddf531dc`.
+- #4240 exact-head CI run `45994123556` is pending. No local build/test was run.
+- No HDR output signaling, client protocol/XML, request parser or rendering behavior is implemented. No PR has been merged.
