@@ -500,3 +500,8 @@ Correction to the previous tracker checkpoint: #4232 is now based directly on cu
 - #4232: head `466677ef815294c1a43f56a02def3b02e70c3217`, same master base, exact CI run `46013779628` pending. Only receive-side count/OOM handling and registered tests; no MSG_CTRUNC fix, no send API/batch queue, no DRI3 batch changes.
 - #4233: head `d42037bb87537b3592a65eb897e0e08d430a04a2`, same master base, exact CI run `46011658495` queued.
 - All remain Draft/open/unmerged. Detailed correction is in Wormhole handoff commit `8e68af50ca5751cd825982a948a77d7e7f91272d` and spec section 30.32 (commit `9da1b7071f6b745a1783f4b8a6ffdbab2cbf8fdd`).
+
+
+## 2026-11-27 14:25Z — DIX failure-path confirmation
+
+Current master `21d70661f216140a6080882b01d2d7bbf20191e4` `os/io.c:ReadRequestFromClient()` treats only would-block as a normal yield; any other negative Xtrans read is fatal. Thus #4231's `EMSGSIZE` and #4232's `ENOMEM` abort request reading instead of allowing a partial FD queue to contaminate later requests. Recorded in spec §30.33 (Wormhole commit `2dc22092581712b796524a70b251549374d7ba58`) and project context commit `0881e64b5c15b608ce5a190e33bed99a10d2f63c`. Source inspection only; no local build/runtime test.
