@@ -454,3 +454,8 @@ A Linux socketpair check showed that a four-byte recvmsg() buffer stops at the f
 
 - #4230 current head `afa92c9ebf26d4faf8be20bee70842767124b82b`, run `45995722324` queued.
 - #4232 current head `b5387cf06a6614ee58e6608ec15e60680eeb1cdb`, exact-head CI run `45995831968` queued.
+
+
+### 2026-11-27 — Legacy EDID parser compatibility
+
+#4240's first Ubuntu run caught a legacy-API compatibility regression: xf86InterpretEEDID() has no length parameter and existing callers pass complete multi-block EDID buffers. The size-aware walkers now treat rawDataLen == 0 as legacy/unknown length and preserve that pointer-only contract; xf86ParseEDID() retains actual-length bounds. The legacy API is documented as requiring all advertised blocks. Current #4240 head `da9116cab956ea81d6b78c2fc6172741eb0f8377`, exact-head run `45996097202` pending.
