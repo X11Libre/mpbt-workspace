@@ -490,3 +490,13 @@ Detailed handoff and rationale are recorded in `metux/wormhole-0:master/X11LIBRE
 - #4233 rebased by owner onto current master, head `d42037bb87537b3592a65eb897e0e08d430a04a2`; one job-scoped permission change; run `46011658495` queued.
 - Current exact-head CI: #4231 run `46012395834` queued; #4232 run `46013405746` queued; #4233 run `46011658495` queued. All PRs remain Draft/open/unmerged.
 - #4230 and #4240 still based on old master `d439c01f...`; rebase and refresh CI before merge consideration.
+
+
+## 2026-11-27 14:20Z — #4232 unstacked from #4231
+
+Correction to the previous tracker checkpoint: #4232 is now based directly on current Xserver master and is independent of #4231.
+
+- #4231: head `4bb84c5e5fa9e9dc60a113d3c60149205a269fa7`, base master `21d70661f216140a6080882b01d2d7bbf20191e4`, exact CI run `46012395834` queued.
+- #4232: head `466677ef815294c1a43f56a02def3b02e70c3217`, same master base, exact CI run `46013779628` pending. Only receive-side count/OOM handling and registered tests; no MSG_CTRUNC fix, no send API/batch queue, no DRI3 batch changes.
+- #4233: head `d42037bb87537b3592a65eb897e0e08d430a04a2`, same master base, exact CI run `46011658495` queued.
+- All remain Draft/open/unmerged. Detailed correction is in Wormhole handoff commit `8e68af50ca5751cd825982a948a77d7e7f91272d` and spec section 30.32 (commit `9da1b7071f6b745a1783f4b8a6ffdbab2cbf8fdd`).
