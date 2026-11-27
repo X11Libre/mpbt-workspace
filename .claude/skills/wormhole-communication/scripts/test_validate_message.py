@@ -55,7 +55,7 @@ A non-empty body.
         text = self.valid().split("---\n", 2)
         empty = text[0] + "---\n" + text[1] + "---\n"
         with self.assertRaisesRegex(ValidationError, "body must not be empty"):
-            validate(self.write_message(empty))
+            validate(self.write_message(empty), "Nautilus")
 
     def test_rejects_filename_id_mismatch(self):
         with self.assertRaisesRegex(ValidationError, "filename must be exactly"):
