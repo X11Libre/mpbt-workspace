@@ -18,7 +18,6 @@ from pathlib import Path
 KEY_RE = re.compile(r"^[a-z][a-z0-9_]*$")
 TOKEN_RE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._-]*$")
 REQUIRED = {"id", "from", "to", "subject", "type", "created"}
-ALLOWED = REQUIRED | {"reply_to", "supersedes", "task_id", "repository", "branch", "commit"}
 
 
 class ValidationError(ValueError):
@@ -50,8 +49,6 @@ def validate(path: Path, recipient: str | None = None) -> dict[str, str]:
         key = key.strip()
         if not KEY_RE.fullmatch(key):
             raise ValidationError(f"line {number}: invalid key {key!r}")
-        if key not in ALLOWED:
-            raise ValidationError(f"line {number}: unsupported front-matter key {key!r}")
         if key in fields:
             raise ValidationError(f"line {number}: duplicate key {key!r}")
         value = value.strip()
