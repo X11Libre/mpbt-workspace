@@ -401,7 +401,7 @@ The output path remains unresolved. WriteFdToClient queues FDs for the next tran
 
 ### Current Xserver transport PRs
 
-- [#4230](https://github.com/X11Libre/xserver/pull/4230) head 4fb7f5e73eb9944797ab9b9e5ae50d6a2fbc37f6: Linux AF_UNIX framing, multi-marker, MSG_CTRUNC and request-bounded partial-header tests. The bounded-read test is registered. Exact-head runs 45914116797 and 45914122959 are pending.
+- [#4230](https://github.com/X11Libre/xserver/pull/4230) head 4fb7f5e73eb9944797ab9b9e5ae50d6a2fbc37f6: Linux AF_UNIX framing, multi-marker, MSG_CTRUNC and request-bounded partial-header tests. The bounded-read test is registered. Exact-head runs 45915160161 and 45915153363 are pending.
 - [#4231](https://github.com/X11Libre/xserver/pull/4231) head fd0443f1d0e79fcaf2eb3f30b43963e5edbc5a32: reject MSG_CTRUNC, close all received FDs and fail with EMSGSIZE. Both exact-head runs are green: 45912011180 (20 passed, 5 skipped) and 45912016553 (18 passed, 7 skipped); DCO passed.
 - [#4232](https://github.com/X11Libre/xserver/pull/4232) head b0174238f714c077574d8948e1382bebc74354e5, stacked on #4231: propagate allocation errors, add atomic SendFds/WriteFdsToClient group queueing, and fix DRI3 BuffersFromPixmap so multi-plane FDs are queued all-or-nothing. Exact-head runs 45913945592 and 45913950660 are in progress. An intermediate head had a SendFd/SendFds dispatch mismatch; current head fixes it.
 - All three remain Draft, unreviewed and unmerged. #4232 must be retargeted/rebased after #4231 merges. No local Xserver build/test has been run.
@@ -409,3 +409,8 @@ The output path remains unresolved. WriteFdToClient queues FDs for the next tran
 ### Scope boundary
 
 This HDR session has not implemented the HDR wire protocol/XML, request parser, libxcb changes, output metadata, or rendering pipeline. The work above is transport regression/hardening plus a candidate framing strategy. Keep the already-approved linear BT.2020/D65 working space, FP16 premultiplied compositor handoff and 203 cd/m² neutral reference white separate from these still-open transport and ABI decisions.
+
+
+## 2026-11-27 — Per-read FD group validation
+
+The request-bounded candidate now has an additional required validation point: a flat FIFO cannot distinguish two separate SCM_RIGHTS groups if they arrive on successive partial reads of one request header. The HDR receive path must expose an FD count/group signal per read. Accept a nonzero group only on the first read at the request boundary; reject any later nonzero read during the rest of the header or body. The new Xserver #4230 regression sends two one-FD groups on successive two-byte header fragments and verifies that the kernel delivers them on separate recvmsg() calls. Current #4230 head is 51b4086038600c50463fd76f530dc48d718a0a88, with exact-head CI runs 45915160161 and 45915153363 pending.
