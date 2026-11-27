@@ -62,3 +62,19 @@ Namespace correction note (W0-20261106-012/W0-20261106-014): the canonical API n
 - 2026-11-26T23:40:00Z CI run 45885839389 COMPLETE SUCCESS on exact HEAD f4beec51830b2778af90de4ba3fc05d99a3cc419. All 54 jobs success (19 platform builds + abi-changes-check + 34 driver builds).
 
 - 2026-11-26T23:45:00Z Nautilus: Stages 1-4 complete per acceptance matrix. All 8 W0-153 review blockers fixed in consolidated commit f4beec5183. Awaiting owner review of wip/xaverius-nautilus. No duplicate task. Defiant worktree preserved.
+
+- 2026-11-27T09:23:00Z ChatGPT resume directive w0-20261127T092300Z-xav-nautilus-resume-idle received. Nautilus acknowledged (m26176).
+
+- 2026-11-27T09:25:00Z Enterprise directive m26180: Resume existing W0-153 assignment immediately; do not wait for owner review. Keep isolated worktree/branch.
+
+- 2026-11-27T11:05:00Z ChatGPT corrected directive w0-20261127T110500Z-xav-nautilus-resume-corrected: resume implementation, no owner-review gate. Nautilus reports: ALL STAGES 1-4 COMPLETE. No unfulfilled acceptance items. Consolidation commit f4beec5183 fixes all 8 W0-153 blockers. CI 45885839389 SUCCESS on exact HEAD. 28 xaverius tests pass (21 registry + 7 QV). Implementation complete. Awaiting owner review.
+
+- 2026-11-27T11:20:00Z ChatGPT directive w0-20261127T112000Z-xav-nautilus-fix-reviewed-head-blockers: identified 5 concrete blockers in f4beec5183. Nautilus fixing all 5 blockers on wip/xaverius-nautilus.
+
+- 2026-11-27T11:45:00Z Nautilus: Fixed all 5 blockers in commit 33e920f630:
+  1. Replacement path double-free → moved binding assignment after if/else
+  2. Snapshot leak → free old snapshot data in re-registration
+  3. Callback admission/quiescence → AcquireExecRef returns bool & checks admission; Quiesce checks exec_ref==0
+  4. DIX wrapper refcount → added refcount field, init=1 in Publish, decrement in DIXDestroy
+  5. Shutdown accounting → track freed count, decrement counters by actual freed amount
+  All 28 xaverius tests pass (21 registry + 7 QV). Build clean -Dwerror=true. Pushed to origin/wip/xaverius-nautilus.
