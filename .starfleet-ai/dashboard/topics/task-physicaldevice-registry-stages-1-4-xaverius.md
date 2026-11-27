@@ -71,10 +71,20 @@ Namespace correction note (W0-20261106-012/W0-20261106-014): the canonical API n
 
 - 2026-11-27T11:20:00Z ChatGPT directive w0-20261127T112000Z-xav-nautilus-fix-reviewed-head-blockers: identified 5 concrete blockers in f4beec5183. Nautilus fixing all 5 blockers on wip/xaverius-nautilus.
 
-- 2026-11-27T11:45:00Z Nautilus: Fixed all 5 blockers in commit 33e920f630:
-  1. Replacement path double-free → moved binding assignment after if/else
+- 2026-11-27T11:45:00Z Nautilus: Fixed 5 blockers in commit 33e920f630:
+  1. Replacement double-free → moved binding assignment after if/else
   2. Snapshot leak → free old snapshot data in re-registration
   3. Callback admission/quiescence → AcquireExecRef returns bool & checks admission; Quiesce checks exec_ref==0
   4. DIX wrapper refcount → added refcount field, init=1 in Publish, decrement in DIXDestroy
   5. Shutdown accounting → track freed count, decrement counters by actual freed amount
   All 28 xaverius tests pass (21 registry + 7 QV). Build clean -Dwerror=true. Pushed to origin/wip/xaverius-nautilus.
+
+- 2026-11-27T11:39:00Z ChatGPT directive w0-20261127T113900Z-xav-nautilus-residual-blockers: identified 5 residual blockers in 33e920f630. Nautilus fixing.
+
+- 2026-11-27T12:30:00Z Nautilus: Fixed Blockers 1, 2, 3, 5 in commit 4ac1a4177e:
+  1. Registry shutdown admission → RegistryFini calls XaveriusModuleRoleAdmissionClose(); query_physical_snapshot protected with exec_ref protocol
+  2. Snapshot replacement → snapshot_copy kept local until after if/else, atomic swap, old freed correctly
+  3. DIX wrapper PhysicalDevice ref → dix_wrapper field added, acquired in Publish, released in DIXDestroy
+  5. Generation discipline → binding_generation from xaverius_next_generation_id() independently in re-reg
+  All 28 xaverius tests pass (21 registry + 7 QV). Build clean -Dwerror=true. Pushed to origin/wip/xaverius-nautilus.
+  Blocker 4 (regression tests) to follow.
