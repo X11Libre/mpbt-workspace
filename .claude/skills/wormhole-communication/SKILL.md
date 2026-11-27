@@ -41,6 +41,53 @@ Every message carries:
 Preserve history. Do not rewrite another agent's message without authorization.
 Never include credentials or secrets.
 
+
+## Mandatory outbound preflight
+
+Never publish a message directly from an unvalidated draft. Before every
+publication, create the exact final file at its intended
+`mail/<recipient>/new/<message-id>.md` path and run the bundled validator:
+
+```sh
+python3 .claude/skills/wormhole-communication/scripts/validate_message.py \
+  mail/<recipient>/<message-id>.md --recipient <recipient>
+```
+
+The command must exit zero and print `VALID` before the file is committed.
+If it fails, fix the draft and rerun it; do not publish and hope the manager
+will reject or interpret it.
+
+The validator intentionally accepts a strict YAML subset:
+- Every front-matter value must be a JSON double-quoted string. This is valid
+  YAML and prevents plain-scalar parsing errors (especially subjects containing
+  `:`, `#`, brackets, or other YAML syntax).
+- Required fields: `id`, `from`, `to`, `subject`, `type`, `created`.
+- `id`, `from`, and `to` must be path-safe tokens; the filename must equal
+  `<id>.md`; `to` must match the mailbox directory.
+- Duplicate keys, missing delimiters, invalid UTF-8, non-string values,
+  non-UTC/non-canonical timestamps, and empty bodies are rejected.
+- Additional project-specific metadata keys are allowed, but their values must
+  also be JSON double-quoted strings.
+
+Example:
+
+```yaml
+---
+id: "w0-20261127T120000Z-example"
+from: "ChatGPT"
+to: "Nautilus"
+subject: "W0-153: continue implementation"
+type: "message"
+reply_to: "w0-20261127T110500Z-example"
+created: "2026-11-27T12:00:00Z"
+---
+Message body.
+```
+
+Do not publish the file if the validator is unavailable. Use an equivalent
+strict YAML parser plus the same routing/body checks, or resolve the tooling
+first. A Git commit is not a substitute for preflight validation.
+
 ## Mandatory acknowledgement
 
 Every actionable instruction or request receives an explicit acknowledgement
