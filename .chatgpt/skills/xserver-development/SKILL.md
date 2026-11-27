@@ -25,6 +25,33 @@ Treat these as existing project decisions, but verify them against the current s
 - Use the agreed `XAVERIUS_*` naming for protocol constants and the agreed `Xaverius*` type names.
 - Distinguish private in-tree exported symbols from guaranteed external ABI. In-tree symbols may use the project's private-header conventions; do not promise a stable external ABI unless explicitly specified.
 
+## Public structure ABI and allocation ownership
+
+Before changing any public struct used by DDX drivers, trace its real allocation,
+initialization, ownership, and lifetime paths in the current source and headers.
+Do not infer allocation ownership merely from a public typedef or from the
+absence of an in-tree driver-side allocation.
+
+- In-tree drivers are rebuilt with the server and can be updated together.
+  The compatibility risk is out-of-tree drivers, especially proprietary blobs.
+- Establish whether the server/core allocates every instance through exported
+  constructors, or whether a DDX can allocate, embed, copy, or provide an
+  instance itself. Check all public constructors and all relevant callers.
+- If the core owns allocation and returns pointers to drivers, appending fields
+  at the very end can be ABI-compatible for old consumers, provided all old
+  member offsets/alignment remain unchanged and the core is the only code that
+  writes the new tail. Verify the actual allocation size and every access path.
+- If an out-of-tree driver may allocate or embed the struct, the core must not
+  access newly appended storage unless the allocation size/capacity is
+  independently guaranteed. Prefer an opaque/private sidecar or accessor
+  design; otherwise do not extend the struct.
+- Never insert, reorder, or remove fields in a public driver-visible struct.
+  A tail append is not automatically safe: prove who allocates it and who
+  writes/reads the new member first.
+- Binary import/string scans can identify symbol dependencies, but cannot by
+  themselves prove whether a proprietary driver allocates a public struct.
+  Record that limitation explicitly rather than claiming the blob is safe.
+
 ## Review and implementation discipline
 
 - Compare the exact target branch against its base and inspect the relevant call paths, not just symbol names or commit messages.
