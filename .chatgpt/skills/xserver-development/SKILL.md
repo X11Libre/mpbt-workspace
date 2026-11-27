@@ -48,6 +48,12 @@ absence of an in-tree driver-side allocation.
 - Never insert, reorder, or remove fields in a public driver-visible struct.
   A tail append is not automatically safe: prove who allocates it and who
   writes/reads the new member first.
+- If a tail extension is nevertheless justified, place an explicit ABI-boundary
+  comment immediately before the first private tail member, stating that all
+  fields below it are server-private and not part of the driver ABI. For example:
+  `/* ABI boundary: fields below are server-private, not part of the driver ABI. */`
+  This comment documents intent; it does not make an otherwise unsafe extension
+  compatible or replace the allocation/ownership proof.
 - Binary import/string scans can identify symbol dependencies, but cannot by
   themselves prove whether a proprietary driver allocates a public struct.
   Record that limitation explicitly rather than claiming the blob is safe.
