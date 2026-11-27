@@ -526,3 +526,11 @@ Current Xserver master is `325ba5ebb80ed97bb5387ec7b6f69d38bc40f8bb`.
 - #4232 head `909a70fd4b4d03a29a60edeb24dd26cff290b31b`, run `46022152207` queued/in progress; receive OOM cleanup plus connection-close regression; appendFd remains send-only.
 - #4240 head `2019df16d73b7061a8fff8b2791803e5ec355bad`, run `46023127915` queued; EDID length-aware parser integration retained and style fixes applied. It appends rawDataLen to public xf86Monitor, so inspect ABI-check result.
 - All remain Draft/open/unmerged; no local build/test claimed. Spec section 30.35 and Wormhole project context contain the full checkpoint.
+
+
+## 2026-11-27 15:19Z — #4231 test correction after first CI failure
+
+- #4231 head is now `6e7a8004d053534578e5d976b4e91d45c395b3c5`, based on current master `325ba5ebb80ed97bb5387ec7b6f69d38bc40f8bb`.
+- First exact-head run `46022322395` failed its Ubuntu unit test because the generic `send_fds()` test helper used the full 129-FD control length even for the one-FD seed message. Corrected it to use `CMSG_SPACE(count * sizeof(int))`.
+- New exact-head runs `46023742549` and `46023735465` pending. Previous failure is superseded but no green claim yet.
+- #4232 run `46022152207`, #4230 run `46023298662`, and #4240 run `46023127915` still pending/in progress. All remain Draft/open/unmerged.
