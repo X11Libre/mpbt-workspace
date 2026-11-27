@@ -515,3 +515,14 @@ Current master `21d70661f216140a6080882b01d2d7bbf20191e4` `os/io.c:ReadRequestFr
 - #4232 head `909a70fd4b4d03a29a60edeb24dd26cff290b31b`: `appendFd()` is now used only by `_XSERVTransSocketSendFd()`; receive queue uses `appendRecvFd()` for explicit allocation-failure reporting. Added a test for local Xtrans connection-close cleanup of unconsumed received FDs. Exact-head CI run `46022152207` pending.
 - Reviewed the distinct DIX request-end cleanup: `ReadRequestFromClient()` drains remaining `client->req_fds` through `ReadFdFromClient()` and closes them. That path remains unchanged and is source-reviewed only; the new regression covers Xtrans connection teardown.
 - Both PRs remain Draft/open/unmerged. No local build/test claimed.
+
+
+## 2026-11-27 15:16Z — Remaining HDR/Xtrans PRs rebased
+
+Current Xserver master is `325ba5ebb80ed97bb5387ec7b6f69d38bc40f8bb`.
+
+- #4230 head `ac72f4d7dcfdfc6a6e4d2922a28e2cc3db4e3cdb`, run `46023298662` pending; new test code updated to owner-wide C style.
+- #4231 head `6cd70b3a33f0b934f1dc492b158b3fa91ea0fa3e`, run `46022322395` queued/in progress; truncation error now also clears prior queued FDs.
+- #4232 head `909a70fd4b4d03a29a60edeb24dd26cff290b31b`, run `46022152207` queued/in progress; receive OOM cleanup plus connection-close regression; appendFd remains send-only.
+- #4240 head `2019df16d73b7061a8fff8b2791803e5ec355bad`, run `46023127915` queued; EDID length-aware parser integration retained and style fixes applied. It appends rawDataLen to public xf86Monitor, so inspect ABI-check result.
+- All remain Draft/open/unmerged; no local build/test claimed. Spec section 30.35 and Wormhole project context contain the full checkpoint.
