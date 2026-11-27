@@ -471,3 +471,10 @@ The detailed source audit is recorded in `metux/wormhole-0:master/X11LIBRE_HDR_P
 Xserver `os/Xtranssock.c` source inspection confirms the queued FD list is attached to the next `_XSERVTransSocketWrite()` via `sendmsg()`; EAGAIN before a positive write retains the list, while any positive short write consumes it. This confirms the buffered-output association hazard described in spec section 30.29. Detailed handoff updated in `metux/wormhole-0:master/X11LIBRE_HDR_PROJECT_CONTEXT.md` (commit `64225266e71507dd56f204758b4b090caf4dde35`). Still no dynamic DIX regression or implementation change.
 
 CI exact heads unchanged: #4230 run 45995722324 in progress; #4232 run 45995831968 in progress; #4240 run 45996097202 queued. #4231 and #4233 remain green. All PRs remain Draft/open/unmerged.
+
+
+## 2026-11-27 14:15Z — Existing queued-FD reply callers
+
+Current-master inventory found queued-FD replies in DRI3, RandR leases and MIT-SHM. They all queue with `WriteFdToClient()` before emitting their corresponding reply. Spec section 30.30 records the exact call-site inventory (Wormhole spec commit `8797047bf040aca527b0e61376a72bd3a0b145d3`). This confirms existing protocols depend on the generic next-write contract; it does not yet prove a runtime backpressure failure. No generic behavior changes are authorized by this HDR work.
+
+Next: build a deterministic DIX-level regression for pending ordinary output + EAGAIN + FD-bearing reply, including retries, short writes, reentrancy and teardown. No such test or implementation exists yet. Detailed handoff updated in `metux/wormhole-0:master/X11LIBRE_HDR_PROJECT_CONTEXT.md` (commit `9d5d9928a945c74d0f3685695f11af4a575f6e94`).
