@@ -10,3 +10,5 @@ Doc-Ref: "—"
 Fetch xorg/main, classify deltas for master/25.0/25.1/25.2, prepare decision reports; no merge without explicit approval.
 
 - 2026-11-28T12:14:49Z Enterprise: began work
+
+- 2026-11-28T12:14:52Z Enterprise: m26468/m26469 acked; board/topics checked; starting four-target xorg/main delta measurement
